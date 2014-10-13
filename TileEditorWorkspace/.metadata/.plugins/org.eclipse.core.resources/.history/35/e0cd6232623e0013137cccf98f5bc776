@@ -1,0 +1,736 @@
+import java.util.*;
+
+
+public class IEEEXtreme2013 {
+
+	public void acadox () {
+		Scanner s = new Scanner(System.in);
+		while (s.hasNextLine()) {
+			String s2 = s.nextLine();
+			if (!parseLine(s2)) {
+				System.out.println("ERROR");
+			}
+		}
+	}
+	
+	public boolean parseLine(String s) {
+		Scanner s2 = new Scanner(s);
+		Stack<String> sa = new Stack<String>();
+		int ops = 0;
+//		ArrayList<String> sa = new ArrayList<String>();
+		while (s2.hasNext()) {
+	//		sa.add(s2.next());
+			String curr = s2.next();
+		//	System.out.println(curr);
+			if (isOp(curr)) {
+				ops++;
+				String st1;
+				String st2 = "";
+				if (sa.empty()) return false;
+				st1 = sa.pop();
+				if (curr.charAt(0)!='~') {
+					if (sa.empty()) return false;
+					st2 = sa.pop();
+				}
+				sa.push(doCalculation(curr.charAt(0),st2,st1));
+				if (ops>20) {
+					String real = sa.pop();
+					while (!sa.isEmpty()) sa.pop();
+					sa.push(real);
+					break;
+				}
+
+			}
+			else {
+				sa.push(curr);
+			}
+		}
+		if (!sa.empty()) {
+			String ans = sa.pop();
+			if (!sa.empty()) return false;
+			System.out.println(ans);
+		}
+		return true;
+		
+/*		String st1;
+		String st2;
+		String st3;
+		if (s2.hasNext()) st1 = s2.next();
+		else return false;
+		int ops = 0;
+		while (s2.hasNext()) {
+			ops++;
+			if (s2.hasNext()) st2 = s2.next();
+			else return false;
+			if (s2.hasNext()) st3 = s2.next();
+			else return false;
+			if (!isHex(4,st1)) return false;
+			if (!isHex(4,st2)) return false;
+			if (!isOp(st3)) return false;
+			st1 = doCalculation(st3.charAt(0),st1,st2);
+		}
+		if (ops > 20) return false;
+		System.out.println(st1);
+		return true;*/
+	}
+	
+	public String doCalculation(char op, String first, String second) {
+		if (op=='+') {
+			int one = hexToInt(first);
+			int two = hexToInt(second);
+			String ans = intToHex(one+two);
+			return ans.toUpperCase();
+//			System.out.println(ans.toUpperCase());
+		}
+		else if (op=='-') {
+			int one = hexToInt(first);
+			int two = hexToInt(second);
+			int min = one - two;
+			if (min < 0) min = 0;
+			String ans = intToHex(min);
+			return ans.toUpperCase();
+	//		System.out.println(ans.toUpperCase());
+		}
+		else {
+			String bin1 = hexToBinary(first);
+			String bin2 = "";
+			if (op!='~') {
+				bin2 = hexToBinary(second);
+				while (bin2.length()<bin1.length()) bin2 = "0".concat(bin2);
+				while (bin1.length()<bin2.length()) bin1 = "0".concat(bin1);
+			}
+			else {
+				bin1 = hexToBinary(second);
+			}
+			if (op=='&') {
+				String ans = "";
+				for (int n=0;n<bin1.length();n++) {
+					char one = bin1.charAt(n);
+					char two = bin2.charAt(n);
+					if (one=='1' && two=='1') {
+						ans = ans.concat("1");
+					}
+					else {
+						ans = ans.concat("0");
+					}
+				}
+				return binaryToHex(ans).toUpperCase();
+//				System.out.println(binaryToHex(ans).toUpperCase());
+			}
+			if (op=='|') {
+				String ans = "";
+				for (int n=0;n<bin1.length();n++) {
+					char one = bin1.charAt(n);
+					char two = bin2.charAt(n);
+					if (one=='1' || two=='1') {
+						ans = ans.concat("1");
+					}
+					else {
+						ans = ans.concat("0");
+					}
+				}
+				return binaryToHex(ans).toUpperCase();
+//				System.out.println(binaryToHex(ans).toUpperCase());
+			}
+			if (op=='~') {
+				String ans = "";
+				while (bin1.length()<16) {
+					bin1 = "0".concat(bin1);
+				}
+				for (int n=0;n<bin1.length();n++) {
+					char one = bin1.charAt(n);
+			//		char two = bin2.charAt(n);
+					if (one=='0') {
+						ans = ans.concat("1");
+					}
+					else {
+						ans = ans.concat("0");
+					}
+				}
+				return binaryToHex(ans).toUpperCase();
+//				System.out.println(binaryToHex(ans).toUpperCase());
+			}
+			if (op=='X') {
+				String ans = "";
+				for (int n=0;n<bin1.length();n++) {
+					char one = bin1.charAt(n);
+					char two = bin2.charAt(n);
+					if ((one=='1' && two=='0') || (one=='0' && two=='1')) {
+						ans = ans.concat("1");
+					}
+					else {
+						ans = ans.concat("0");
+					}
+				}
+				return binaryToHex(ans).toUpperCase();
+//				System.out.println(binaryToHex(ans).toUpperCase());
+			}
+		}
+		return "";
+	}
+	
+	public boolean isHex(int length, String str) {
+		if (str.length() <=0 || str.length() > length) return false;
+		for (int n=0;n<str.length();n++) {
+			int curr = (int)str.charAt(n);
+			if (curr >=(int)'0' && curr <= (int)'9') continue;
+			if (curr >=(int)'a' && curr <= (int)'f') continue;
+			if (curr >=(int)'A' && curr <= (int)'F') continue;
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean isOp(String str) {
+		if (str.length()!=1) return false;
+		return (str.charAt(0)=='+' || str.charAt(0)=='-' || str.charAt(0)=='&' || str.charAt(0)=='|' || str.charAt(0)=='~' || str.charAt(0)=='X');
+	}
+	
+	
+	public int hexToInt(String hex) {
+		int hexInt = 0;
+		for (int n=0;n<hex.length();n++) {
+			hexInt*=16;
+			hexInt+=hexCharToInt(hex.charAt(n));
+		}
+		return hexInt;
+	}
+	
+	public int hexCharToInt(char hex) {
+		char[] hex1 = new char[]{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','a','b','c','d','e','f'};
+		for (int n=0;n<hex1.length;n++) {
+			if (hex1[n]==hex) {
+				if (n>15) return n-6;
+				else return n;
+			}
+		}
+		return -1;		
+	}
+	
+	public String hexToBinary(String hex) {
+		String s = "";
+		for (int n=0;n<hex.length();n++) {
+			s = s.concat(hexCharToBinary(hex.charAt(n)));
+		}
+		return s;
+	}
+	
+	public String hexCharToBinary(char hex) {
+		String[] hex1 = new String[]{"0000","0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","1100","1101","1110","1111"};
+		return hex1[hexCharToInt(hex)];
+	}
+	
+	public String binaryToHex(String binary) {
+		String s = "";
+		String[] hex1 = new String[]{"0000","0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","1100","1101","1110","1111"};
+		for (int n=0;n<binary.length()/4;n++) {
+			String curr = binary.substring(n*4, n*4+4);
+			for (int m=0;m<hex1.length;m++) {
+				if (curr.equals(hex1[m])) {
+					s = s.concat(Integer.toHexString(m));
+				}
+			}
+		}
+		while (s.length()<4) s = "0".concat(s);
+		return s;
+	}
+	
+	public String intToHex(int num) {
+		if (num < 0) return "0000";
+		String str = Integer.toHexString(num);
+		if (str.length() > 4) return "FFFF";
+		while (str.length()<4) str = "0".concat(str);
+		return str;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public class Road {
+		String start;
+		String end;
+		public Road(String start1, String end2) {
+			start = start1;
+			end = end2;
+		}
+		
+		public boolean startsAt(String start1) {
+			return start.equals(start1);
+		}
+		
+		public boolean endsAt(String end1) {
+			return end.equals(end1);
+		}
+		
+		public String toString() {
+			return start + " " + end;
+		}
+	}
+	
+	public void problem_as() {
+		Scanner s = new Scanner(System.in);
+		String start = s.next();
+		s.nextLine();
+		ArrayList<Road> roads = new ArrayList<Road>();
+		while (s.hasNextLine()) {
+			String one = s.next();
+			String two = s.next();
+			if (s.hasNextLine())
+				s.nextLine();
+			if (one.equals("A") || two.equals("A")) break;
+			roads.add(new Road(one,two));
+		}
+		ArrayList<String> startArr = new ArrayList<String>();
+		startArr.add("F");
+		ArrayList<ArrayList<String>> ans = findPath(startArr,roads,start,"F");
+		int shortest = Integer.MAX_VALUE;
+		if (ans.size()>0) {
+			for (ArrayList<String> aStr : ans) {
+				shortest = Math.min(shortest, aStr.size());
+			}
+			ArrayList<String> firstAlpha = null;
+			for (ArrayList<String> aStr : ans) {
+				if (aStr.size()==shortest) {
+					if (firstAlpha==null) firstAlpha = aStr;
+					else {
+						for (int n=0;n<shortest;n++) {
+							char c = aStr.get(n).charAt(0);
+							char c1 = firstAlpha.get(n).charAt(0);
+							if (c < c1) {
+								firstAlpha = aStr;
+								break;
+							}
+							else if (c>c1) break;
+						}
+					}
+				}
+			}
+			String ssssss = "";
+			for (int n=0;n<firstAlpha.size();n++) {
+				if (n!=0) ssssss = ssssss + " ";
+				ssssss = ssssss + firstAlpha.get(n);
+			}
+			System.out.println("Total Routes: " + ans.size());
+			System.out.println("Shortest Route Length: " + shortest);
+			System.out.println("Shortest Route after Sorting of Routes of length " + shortest + ": " + ssssss);
+		}
+		else {
+			System.out.println("No Route Available from F to " + start);
+		}
+	}
+	
+	public ArrayList<ArrayList<String>> findPath(ArrayList<String> curr, ArrayList<Road> roads, String goal, String current) {
+		ArrayList<ArrayList<String>> ans = new ArrayList<ArrayList<String>>();
+		for (Road road : roads) {
+			if (road.startsAt(current) && !curr.contains(road.end)) {
+				ArrayList<String> newAr = (ArrayList<String>)curr.clone();
+				newAr.add(road.end);
+				if (road.end.equals(goal)) {
+					ans.add(newAr);
+				}
+				else {
+					ArrayList<ArrayList<String>> others = findPath(newAr,roads,goal,road.end);
+					for  (ArrayList<String> arrrrr : others) {
+						ans.add(arrrrr);
+					}
+				}
+			}
+			else if (road.endsAt(current) && !curr.contains(road.start)) {
+
+				ArrayList<String> newAr = (ArrayList<String>)curr.clone();
+				newAr.add(road.start);
+				if (road.start.equals(goal)) {
+					ans.add(newAr);
+				}
+				else {
+					ArrayList<ArrayList<String>> others = findPath(newAr,roads,goal,road.start);
+					for  (ArrayList<String> arrrrr : others) {
+						ans.add(arrrrr);
+					}
+				}
+			}
+		}
+		return ans;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public void problem_ar() {
+		Scanner s = new Scanner(System.in);
+		Scanner s2 = new Scanner(s.nextLine());
+		int length = Integer.parseInt(s2.next());
+		int[] times = new int[length];
+		int nnn = 0;
+		while (s2.hasNext()) {
+			times[nnn] = s2.nextInt();
+			nnn++;
+		}
+		Scanner s3 = new Scanner(s.nextLine());
+		int prioritiesLength = s3.nextInt();
+		int[] priorities = new int[prioritiesLength];
+		int[] priorities2 = new int[prioritiesLength];
+		nnn = 0;
+		while (s3.hasNext()) {
+			priorities[nnn] = s3.nextInt();
+			priorities2[nnn] = s3.nextInt();
+			nnn++;
+		}
+		Arrays.sort(times);
+		ArrayList<Integer> times2 = new ArrayList<Integer>();
+		for (int n=times.length-1;n>=0;n--) {
+			times2.add(times[n]);
+		}
+		String str = "";
+		int overlapAmount = -1;
+		int overlapLevel = -1;
+		for (int n=0;n<prioritiesLength;n++) {
+			int currPrior = priorities[n];
+	//		System.out.println(currPrior);
+			ArrayList<Integer> indices = fittingIndices(currPrior,new ArrayList<Integer>(),times2,0);
+	//		System.out.println(indices);
+			int[] indices2 = new int[indices.size()];
+			int[] timess = new int[indices.size()];
+			for (int m=0;m<indices.size();m++) {
+				indices2[m] = indices.get(m);
+			}
+			Arrays.sort(indices2);
+			int iiii = 0;
+			for (int m=indices2.length-1;m>=0;m--) {
+				timess[iiii] = times2.get(indices2[m]);
+				times2.remove(indices2[m]);
+				iiii++;
+			}
+			int timeTotal = 0;
+			for (int nea : timess) {
+				if (!str.equals("")) str += " ";
+				str += nea;
+				timeTotal+=nea;
+			}
+			if (timeTotal != currPrior) {
+				if (overlapLevel == -1) {
+					overlapLevel = n+1;
+					overlapAmount = Math.abs(timeTotal - currPrior);
+				}
+			}
+		}
+		for (int n=0;n<times2.size();n++) {
+			if (!str.equals("")) str += " ";
+			str += times2.get(n);
+		}
+		System.out.println(str);
+		if (overlapAmount==-1) System.out.println("Overlap Zero");
+		else System.out.println("Overlap " + overlapAmount + " of Level " + overlapLevel);
+	}
+	
+	public ArrayList<Integer> fittingIndices(int priority, ArrayList<Integer> currentIndices, ArrayList<Integer> times, int currentSize) {
+	//	System.out.println("fittingIndices(" + currentSize + ")");
+		int min = Integer.MAX_VALUE;
+		int min2 = Integer.MAX_VALUE;
+		int minKey = -1;
+		boolean pos = false;
+		for (int n=0;n<times.size();n++) {
+			if (currentIndices.contains(n)) continue;
+			int newSize = currentSize + times.get(n);
+			ArrayList<Integer> newIndices = (ArrayList<Integer>)currentIndices.clone();
+			newIndices.add(n);
+			if (newSize==priority) {
+			//	System.out.println("priority: " + priority + "  newSize: " + newSize + " times: " + times + " n: " + n + " newIndices: " + newIndices);
+				return newIndices;
+			}
+			else if (newSize > priority) {
+				if (Math.abs(newSize-priority) < min) {
+					min = Math.abs(newSize-priority);
+					minKey = n;
+					min2 = newSize;
+					pos = true;
+				}
+			}
+			else {
+				ArrayList<Integer> nextFitting = fittingIndices(priority,newIndices,times,newSize);
+				int innn = 0;
+				for (int n22 : nextFitting) innn+=times.get(n22);
+			//	System.out.println("less: " + innn + "  nextFitting: " + nextFitting);
+				if ((Math.abs(innn-priority) < min)) {
+					min = Math.abs(innn-priority);
+					minKey = n;
+					min2 = innn;
+					pos = false;
+				}
+			}
+		}
+		if (minKey==-1) return currentIndices;
+		ArrayList<Integer> newind = (ArrayList<Integer>)currentIndices.clone();
+		newind.add(minKey);
+		if (min2 > priority) return newind;
+		return fittingIndices(priority,newind,times,min);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public void binary_palind() {
+		Scanner s = new Scanner(System.in);
+		String str = s.next();
+		String[] split = str.split(",");
+		int min = Integer.parseInt(split[0]);
+		int max = Integer.parseInt(split[1]);
+		int ans = 0;
+		for (int n=min;n<=max;n++) {
+			if (isPalindrome(n)) ans++;
+		}
+		System.out.println(ans);
+	}
+	
+	public boolean isPalindrome(int val) {
+		if (val%2==0) return false;
+		String bin = Integer.toBinaryString(val);
+		int len = bin.length();
+		for (int n=0;n<len/2;n++) {
+			if (bin.charAt(n)!=bin.charAt(len-n-1)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public void assembly_test() {
+		Integer i;
+		int ax = 0;
+		int cx = 0;
+		int bx = 0;
+		while (true) {
+			bx = ax;
+			ax = ax >>> 1;
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public class Path {
+		public int begin;
+		public int end;
+		public Path(int begin1,int end1) {
+			begin = begin1;
+			end = end1;
+		}
+		public boolean beginsAt(int begin1) {
+			return begin==begin1;
+		}
+		public boolean endsAt(int end1) {
+			return end==end1;
+		}
+		public String toString() {
+			return "[" + begin + ", " + end + "]";
+		}
+	}
+	
+	
+	public void problem_ak() {
+		Scanner s = new Scanner(System.in);
+		int max = s.nextInt();
+		s.nextLine();
+		ArrayList<Path> paths = new ArrayList<Path>();
+		ArrayList<Integer> pathsInt = new ArrayList<Integer>();
+		ArrayList<Integer> hasFront = new ArrayList<Integer>();
+		int i = 0;
+		while (s.hasNextLine()) {
+			String ssss = s.nextLine();
+			Scanner s2 = new Scanner(ssss);
+			int a = s2.nextInt();
+			int b = s2.nextInt();
+			if (!pathsInt.contains(a)) pathsInt.add(a);
+			if (!pathsInt.contains(b)) pathsInt.add(b);
+			if (!hasFront.contains(b)) hasFront.add(b);
+			paths.add(new Path(a,b));
+			i++;
+			if (i>=max-1) break;
+ 			
+		}
+		ArrayList<Integer> doesNotHaveFront = (ArrayList<Integer>)pathsInt.clone();
+		doesNotHaveFront.removeAll(hasFront);
+		ArrayList<Path> pats = createFirstPath(paths,paths.get(0));
+	
+		ArrayList<Integer> patInts =  new ArrayList<Integer>();
+		for (Path p : pats) {
+			if (!patInts.contains(p.end)) {
+				patInts.add(p.end);
+			}
+			if (!patInts.contains(p.begin)) {
+				patInts.add(p.begin);
+			}
+		}
+		for (int n=0;n<paths.size();n++) {
+			
+		}
+		ArrayList<Integer> ans = findVertices(paths,patInts,new ArrayList<Path>(),doesNotHaveFront);
+		int[] i2 = new int[ans.size()];
+		for (int n=0;n<ans.size();n++) {
+			i2[n] = ans.get(n);
+		}
+		Arrays.sort(i2);
+		for (int n=0;n<i2.length;n++) {
+			System.out.println(i2[n]);
+		}
+	}
+	
+	public ArrayList<Path> createFirstPath(ArrayList<Path> paths, Path path1) {
+		ArrayList<Path> currPaths = new ArrayList<Path>();
+		currPaths.add(path1);
+		for (int n=0;n<paths.size();n++) {
+			Path curr = paths.get(n);
+			if (curr.beginsAt(path1.end)) {
+				ArrayList<Path> newPaths = createFirstPath(paths,curr);
+				newPaths.add(path1);
+				return newPaths;
+			}
+		}
+		return currPaths;
+	}
+	
+	public ArrayList<Integer> findVertices(ArrayList<Path> paths, ArrayList<Integer> realPath, ArrayList<Path> currentPath, ArrayList<Integer> hasFrontNot) {
+		ArrayList<Integer> pathRemoved = (ArrayList<Integer>)realPath.clone();
+		int children = 0;
+		for (int n=0;n<paths.size();n++) {
+			if (!currentPath.contains(paths.get(n))) {
+				Path now = paths.get(n);
+				if ((currentPath.size()==0 && hasFrontNot.contains(now.begin)) || (currentPath.size()!=0 && now.beginsAt(currentPath.get(currentPath.size()-1).end))) {
+					ArrayList<Path> newCurrent = (ArrayList<Path>)currentPath.clone();
+					newCurrent.add(now);
+					ArrayList<Integer> next = findVertices(paths,realPath,newCurrent,hasFrontNot);
+					for (int m=pathRemoved.size()-1;m>=0;m--) {
+						if (!next.contains(pathRemoved.get(m))) {
+							pathRemoved.remove(m);
+						}
+					}
+					children++;
+					
+				}
+			}
+		}
+		if (children==0) {
+			ArrayList<Integer> currentPathElems = new ArrayList<Integer>();
+			for (Path p : currentPath) {
+				if (!currentPathElems.contains(p.end)) {
+					currentPathElems.add(p.end);
+				}
+				if (!currentPathElems.contains(p.begin)) {
+					currentPathElems.add(p.begin);
+				}
+			}
+			for (int n=pathRemoved.size()-1;n>=0;n--) {
+				if (!currentPathElems.contains(pathRemoved.get(n))) {
+					pathRemoved.remove(n);
+				}
+			}
+		}
+		return pathRemoved;
+	}
+	
+	
+	
+	public void problem_aq() {
+		Scanner s = new Scanner(System.in);
+		int num = 0;		
+		int max = 0;
+		num = s.nextInt();
+		max = num;
+		s.nextLine();
+		int n = 0;
+		while (s.hasNextLine()) {
+			n++;
+			Scanner s2 = new Scanner(s.nextLine());
+			if (s2.hasNextInt())
+				num+=s2.nextInt();
+			if (n > max*max) break;
+		}
+		int ans = num % 9;
+		System.out.println(ans);
+		try {
+			Thread.sleep(ans*500);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+		System.out.println("Done");
+	}
+	
+}

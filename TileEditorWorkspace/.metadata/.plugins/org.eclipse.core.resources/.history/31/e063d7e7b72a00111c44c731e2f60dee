@@ -1,0 +1,24 @@
+
+public class GotoStatement extends Statement
+{
+	int line;
+	
+	public GotoStatement (int i) {
+		line = i;
+	}
+	
+
+
+	// execute() takes a ProgramState and executes this statement, by making
+	// any necessary changes to the ProgramState (e.g. a new value for the
+	// program counter, changing the value of some variable, pushing or
+	// popping from the line number stack).
+	//
+	// In the event that the execution of the statement causes a fatal error
+	// that should terminate the Facile program, such as division by zero or
+	// a RETURN statement without a corresponding GOSUB, a FatalException is
+	// thrown.
+	public  void execute(ProgramState state) throws FatalException {
+		state.setLine(line);
+	}
+}

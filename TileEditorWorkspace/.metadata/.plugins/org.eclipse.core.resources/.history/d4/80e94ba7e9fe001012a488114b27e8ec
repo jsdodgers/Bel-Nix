@@ -1,0 +1,67 @@
+import java.awt.Font;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
+
+
+
+
+public class HelloPrinter
+{
+	public static void main(String[] args)
+	{
+		JFrame frame = new JFrame();
+		frame.setSize(300, 400);
+		frame.setTitle("An Empty Frame");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		String[] stringArray = {" ","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","!",","};
+		
+		String string2 = "jjjjj";
+		JLabel label1 = new JLabel(string2);
+		label1.setFont(new Font("Serif",Font.PLAIN,36));
+		label1.setLocation(100, 200);
+//		label1.setBounds(200, 100, 200, 40);
+		frame.add(label1);
+		
+		String string3 = "Hello, World!";
+		frame.setVisible(true);
+		System.out.println("hi");
+		while (!string2.equals(string3)) {
+			int n=0;
+			string2 = "a"+string2;
+			while(!string2.equals(string3.substring(string3.length()-string2.length()))) {
+				if (frame.getComponentCount()>1)
+					frame.remove(1);
+			//	RectangleComponent component = new RectangleComponent(string2);
+			
+			//	frame.add(component);
+				if (string2.length()>1) {
+					string2 = stringArray[n]+string2.substring(1);
+				}
+				else {
+					string2 = stringArray[n];
+				}
+//				string2 = string2+"k";
+				
+			//	frame.setVisible(true);
+				pause(40);
+				n++;
+			}
+			System.out.println(string2);
+			
+		}
+		System.out.println("done");
+		frame.setVisible(true);
+	}
+
+	private static void pause(long millisec)
+	{
+		long startTime = System.currentTimeMillis();
+		long endTime;
+		do
+		{
+			endTime = System.currentTimeMillis();
+		} while (endTime - startTime < millisec);
+	}
+}
+

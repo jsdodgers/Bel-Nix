@@ -1,0 +1,28 @@
+import java.io.IOException;
+import java.awt.Robot;
+import java.awt.AWTException;
+import java.awt.event.KeyEvent;
+
+
+
+
+
+public class Typing
+{
+	public static void main(String[] args) throws IOException, InterruptedException
+	{	
+		Runtime.getRuntime().exec ("open /Users/Justin/ops.txt ");	
+		try {
+
+			Robot robot = new Robot();
+			robot.waitForIdle();
+
+		
+			robot.keyPress(KeyEvent.VK_B);
+			robot.keyRelease(KeyEvent.VK_B);
+	//b		
+		} catch (AWTException e) {
+			e.printStackTrace();
+		}
+	}
+}

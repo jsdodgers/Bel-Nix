@@ -1,0 +1,14 @@
+
+public class Interpreter
+{
+	public Interpreter (String[] strings) {
+		
+	}
+	
+	public void go () {
+		
+		
+	}
+	
+	
+}

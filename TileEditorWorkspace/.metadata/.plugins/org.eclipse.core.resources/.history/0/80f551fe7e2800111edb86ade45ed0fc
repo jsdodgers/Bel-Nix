@@ -1,0 +1,44 @@
+import java.util.Arrays;
+
+public class TaxiBusiness {
+
+	public int[] place(String[] town) {
+		int distance = -1;
+		int[] expected = new int[2];
+		for (int n=0;n<town.length;n++) {
+			for (int m=0;m<town[n].length();m++) {
+				if (town[n].charAt(m)=='-') {
+					int distance2 = -1;
+					for (int x=0;x<town.length;x++) {
+						for (int y=0;y<town[x].length();y++) {
+							if (town[x].charAt(y)=='T') {
+								int distance3 = Math.abs(x-n)+Math.abs(y-m);
+								if (distance3<distance2 || distance2==-1) {
+									distance2 = distance3;
+								}
+							}
+						}
+					}
+					if (distance2<distance || distance==-1) {
+						distance = distance2;
+						expected[0] = n;
+						expected[1] = m;
+					}
+					else if(distance2 == distance) {
+						if (n<expected[0]) {
+							expected[0] = n;
+							expected[1] = m;
+						}
+						else if(n==expected[0] && m<expected[1]) {
+							expected[0] = n;
+							expected[1] = m;
+						}
+					}
+				}
+			}
+		}
+		System.out.println(Arrays.toString(expected));
+		return expected;
+	}
+
+}

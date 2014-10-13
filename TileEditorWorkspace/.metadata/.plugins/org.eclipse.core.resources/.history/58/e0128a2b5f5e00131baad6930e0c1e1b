@@ -1,0 +1,1256 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Scanner;
+
+
+public class Sudoku {
+	public static void main(String[] args) {
+	//	for (String s : args) {
+	//		System.out.println(s);
+	//	}
+	//	System.out.println("test");
+		long totalStartTime = System.currentTimeMillis();
+		int whatToDo = 0;
+		if (args.length>0) {
+			String str1 = args[0];
+			if (str1.toLowerCase().equals("set")) {
+				whatToDo = 1;
+			}
+			else if (str1.toLowerCase().equals("print")) {
+				whatToDo = 2;
+			}
+			else if (str1.toLowerCase().equals("generate")) {
+				whatToDo = 3;
+			}
+			else if (str1.toLowerCase().equals("solve")) {
+				whatToDo = 4;
+			}
+			else if (str1.toLowerCase().equals("test1")) {
+				whatToDo = 5;
+			}
+			else if (str1.toLowerCase().equals("test2")) {
+				whatToDo = 6;
+			}
+			else if (str1.toLowerCase().equals("test")) {
+				whatToDo = 90;
+			}
+			else {
+				try {
+					Scanner s = new Scanner(new FileReader(str1));
+					int n = 0;
+					int m = 0;
+					if (s.hasNextInt()) {
+						n++;
+						m = s.nextInt();
+					}
+					while (s.hasNextInt()) {
+						n++;
+						s.nextInt();
+					}
+					if (n==4) whatToDo = 3;
+					else if (n==(m*m+3)) whatToDo = 4;
+					
+				} catch (IOException e) {
+					
+				}
+			}
+		}
+		SudokuSolver sudoku = new SudokuSolver();
+		sudoku.loadConstraintMethods();
+		if (whatToDo==1) {
+			if (args.length==1) System.out.println("Error: Must enter a constraint method to edit");
+			else {
+				String bool = "";
+				String name = args[1];
+				if (name.toLowerCase().contains("time")) {
+					if (args.length > 2) {
+						double time = Double.parseDouble(args[2]);
+						sudoku.setTimeLimit(time);
+					}
+					else {
+						System.out.println("Error: Setting timeout needs a parameter which is the number of seconds before timeout.");
+					}
+				}
+				else {
+					if (args.length>2) {
+						bool = args[2];
+					}
+					sudoku.setBool(name, bool);
+				}
+			}
+		}
+		else if (whatToDo==2) {
+			if (args.length==1 || args[1].toLowerCase().equals("all"))
+				sudoku.printConstraintMethods();
+			else {
+				for (int n=1;n<args.length;n++) {
+					sudoku.printConstraintMethod(args[n]);
+				}
+			}
+		}
+		else if (whatToDo==3) {
+			String input = null;
+			String output = null;
+			int ind = 0;
+			if (args[0].toLowerCase().equals("generate")) ind++;
+			if (args.length>ind) input = args[ind];
+			else System.out.println("Error: No input file.");
+			if (args.length>ind+1) output = args[ind+1];
+			if (input!=null) {
+				try {
+					Scanner s = new Scanner(new FileReader(input));
+					int N = s.nextInt();
+					int r = s.nextInt();
+					int c = s.nextInt();
+					int M = s.nextInt();
+					SudokuPuzzle p = new SudokuPuzzle(N, r, c, null);
+					System.out.println("Attempts: " + p.generatePuzzle(M) + "\n");
+					if (output==null) {
+						p.printPuzzle();
+					}
+					else {
+						BufferedWriter bw = new BufferedWriter(new FileWriter(output));
+						try {
+							bw.write(N + " " + r + " " + c + "\n");
+							bw.write(p.toString());
+						} finally {
+							bw.close();
+						}
+					}
+				} catch (IOException e) {
+					
+				}
+			}
+		}
+		else if (whatToDo==4) {
+			String input = null;
+			String output = null;
+			int ind = 0;
+			if (args[0].toLowerCase().equals("solve")) ind++;
+			if (args.length>ind) input = args[ind];
+			else System.out.println("Error: No input file.");
+			if (args.length>ind+1) output = args[ind+1];
+			if (input!=null) {
+				try {
+					Scanner s = new Scanner(new FileReader(input));
+					int N = s.nextInt();
+					int r = s.nextInt();
+					int c = s.nextInt();
+					SudokuSquare[] allSquares = new SudokuSquare[N*N];
+					int curr = 0;
+					while (s.hasNextInt()) {
+						int move = s.nextInt()-1;
+						if (move <-1 || move>=N) {
+							System.out.println("Error: All values must be between 0 and " + N + " for this puzzle size.");
+							throw new IOException();
+						}
+						if (curr>=allSquares.length) {
+							System.out.println("Error: Too many values in input.");
+							throw new IOException();
+						}
+						allSquares[curr] = new SudokuSquare(N, move);
+						curr++;
+					}
+					if (curr!=allSquares.length) { 
+						System.out.println("Error: Not enough values in input.");
+						System.out.println(curr + " " + N);
+					}
+					else {
+						SudokuPuzzle p = new SudokuPuzzle(N, r, c, allSquares);
+						SudokuSolver solver = new SudokuSolver(p);
+						solver.loadConstraintMethods();
+						long searchStartTime = System.currentTimeMillis();
+						SudokuResult result = solver.solvePuzzle();
+					//	p.getMinimumRemainingValuesIndex();
+						long endTime = System.currentTimeMillis();
+						SudokuPuzzle solved = solver.solvedPuzzle;
+						String strRes = null;
+						if (result==SudokuResult.SudokuResultError) strRes = "Received Error.";
+						else if (result==SudokuResult.SudokuResultNoSolution) strRes = "None";
+						else if (result==SudokuResult.SudokuResultTimeOut) strRes = "Timeout";
+						else if (result==SudokuResult.SudokuResultSolved) strRes = solved.toString();
+						if (output==null || result==SudokuResult.SudokuResultError) {
+							System.out.println(strRes);
+//							solved.printPuzzle();
+						}
+						else {
+							BufferedWriter bw = new BufferedWriter(new FileWriter(output));
+							try {
+							//	bw.write(N + " " + r + " " + c + "\n");
+//								bw.write(solved.toString());
+								bw.write(strRes);
+							} finally {
+								bw.close();
+							}
+						}
+						System.out.println("Time: " + (endTime - searchStartTime));
+						System.out.println("Assignments: " + solver.assignments);
+						System.out.println("Solution: " + (result==SudokuResult.SudokuResultSolved?"Yes":"No"));
+						System.out.println("Timeout: " + (result==SudokuResult.SudokuResultTimeOut?"Yes":"No"));
+					//	solver.printConstraintMethod("time");
+					//	System.out.println("" + (endTime-searchStartTime));
+					//	System.out.println("" + (endTime-totalStartTime));
+						
+					}
+				} catch (IOException e) {
+				
+				}
+			}
+		}
+		else if (whatToDo==5) {
+			int N = 9;
+			int r = 3;
+			int c = 3;
+			SudokuSolver s = new SudokuSolver();
+			SudokuSolver s2 = new SudokuSolver();
+			s.setBool("bt", "1");
+			s.setBool("fc", "0");
+			s2.setBool("bt", "1");
+			s2.setBool("fc","1");
+			s.printConstraintMethods();
+			System.out.println();
+			s2.printConstraintMethods();
+			int testCases = 100;
+			for (int M=1;M<40;M++) {
+				System.out.println("Working on case: " + M);
+				long[] timesBT = new long[testCases];
+				long[] timesFC = new long[testCases];
+				for (int n=0;n<testCases;n++) {
+					SudokuPuzzle p = new SudokuPuzzle(N, r, c, null);
+					p.generatePuzzle(M);
+					SudokuPuzzle p2 = new SudokuPuzzle(p);
+			//		System.out.println(p);
+					s.puzzle = p;
+					s2.puzzle = p2;
+					long btStart = System.currentTimeMillis();
+					SudokuResult result = s.solvePuzzle();
+					long btEndfcStart = System.currentTimeMillis();
+					SudokuResult result2 = s2.solvePuzzle();
+					long fcEnd = System.currentTimeMillis();
+					if (result!=SudokuResult.SudokuResultSolved || result2!=SudokuResult.SudokuResultSolved) {
+						System.out.println(n + "  " + result + " " + result2);
+						n--;
+					}
+					else {
+						timesBT[n] = btEndfcStart - btStart;
+						timesFC[n] = fcEnd - btEndfcStart;
+					}
+				}
+				try {
+					String output1 = "test/bt/bt" + M + ".txt";
+					String output2 = "test/fc/fc" + M + ".txt";
+					BufferedWriter bw = new BufferedWriter(new FileWriter(output1));
+					BufferedWriter bw2 = new BufferedWriter(new FileWriter(output2));
+					try {
+						long btTot = 0;
+						long fcTot = 0;
+						for (int n=0;n<testCases;n++) {
+							btTot+=timesBT[n];
+							fcTot+=timesFC[n];
+							bw.write(timesBT[n] + "\n");
+							bw2.write(timesFC[n] + "\n");
+						}
+						bw.write("\n" + btTot + "\n" + (btTot/testCases));
+						bw2.write("\n" + fcTot + "\n" + (fcTot/testCases));
+					} finally {
+						bw.close();
+						bw2.close();
+					}
+				} catch (IOException e) {
+					
+				}
+				
+				
+			}
+			
+		}
+		else if (whatToDo==6) {
+			SudokuSolver s = new SudokuSolver();
+			SudokuSolver s2 = new SudokuSolver();
+			s.setBool("bt", "1");
+			s.setBool("fc", "0");
+			s2.setBool("bt", "1");
+			s2.setBool("fc","1");
+			SudokuSolver[] solvers = new SudokuSolver[]{s,s2};
+			String[] names = new String[]{"bt","fc"};
+			testWithConstraints("test2",solvers,names,1,10,10,5);
+			
+		}
+		else if (whatToDo==90) {
+
+			if (args.length>1) {
+				try {
+					Scanner s = new Scanner(new FileReader(args[1]));
+					int N = s.nextInt();
+					int r = s.nextInt();
+					int c = s.nextInt();
+					SudokuSquare[] allSquares = new SudokuSquare[N*N];
+					int curr = 0;
+					while (s.hasNextInt()) {
+						int move = s.nextInt()-1;
+						if (move <-1 || move>=N) {
+							System.out.println("Error: All values must be between 0 and " + N + " for this puzzle size.");
+							throw new IOException();
+						}
+						if (curr>=allSquares.length) {
+							System.out.println("Error: Too many values in input.");
+							throw new IOException();
+						}
+						allSquares[curr] = new SudokuSquare(N, move);
+						curr++;
+					}
+					if (curr!=allSquares.length) { 
+						System.out.println("Error: Not enough values in input.");
+						System.out.println(curr + " " + N);
+					}
+					else {
+						SudokuPuzzle p = new SudokuPuzzle(N, r, c, allSquares);
+						p.printPuzzle();
+					}
+				} catch (IOException e) {
+				
+				}
+			}
+		}
+		sudoku.writeConstraintMethods();
+	}
+	
+	
+	public static void testWithConstraints(String testName, SudokuSolver[] solvers, String[] names, int minM, int maxM, int numTests, double timeLimit) {
+		for (SudokuSolver s : solvers) s.setTimeLimit(timeLimit);
+		for (SudokuSolver s : solvers) s.printConstraintMethods();
+		int N = 9;
+		int r = 3;
+		int c = 3;
+//		SudokuSolver s = new SudokuSolver();
+//		SudokuSolver s2 = new SudokuSolver();
+//		s.setBool("bt", "1");
+//		s.setBool("fc", "0");
+//		s2.setBool("bt", "1");
+//		s2.setBool("fc","1");
+//		s.printConstraintMethods();
+//		System.out.println();
+//		s2.printConstraintMethods();
+//		int testCases = 100;
+		for (int M=minM;M<maxM;M++) {
+			System.out.println("Working on case: " + M);
+			long[][] times = new long[solvers.length][numTests];
+			for (int n=0;n<numTests;n++) {
+				SudokuPuzzle p = new SudokuPuzzle(N, r, c, null);
+				p.generatePuzzle(M);
+//				SudokuPuzzle p2 = new SudokuPuzzle(p);
+		//		System.out.println(p);
+				for (SudokuSolver s : solvers) s.puzzle = new SudokuPuzzle(p);
+				SudokuResult[] results = new SudokuResult[solvers.length];
+				long[] clockTimes = new long[solvers.length+1];
+				for (int m=0;m<solvers.length;m++) {
+					clockTimes[m] = System.currentTimeMillis();
+					results[m] = solvers[m].solvePuzzle();
+				}
+				clockTimes[solvers.length] = System.currentTimeMillis();
+	//			s.puzzle = p;
+	//			s2.puzzle = p2;
+	//			long btStart = System.currentTimeMillis();
+	//			SudokuResult result = s.solvePuzzle();
+	//			long btEndfcStart = System.currentTimeMillis();
+	//			SudokuResult result2 = s2.solvePuzzle();
+//				long fcEnd = System.currentTimeMillis();
+				boolean oneNotSolved = false;
+				for (SudokuResult res : results) {
+					System.out.println(res + "  " + (res==SudokuResult.SudokuResultSolved));
+					if (res!=SudokuResult.SudokuResultSolved) oneNotSolved = true;
+					break;
+				}
+//				if (result!=SudokuResult.SudokuResultSolved || result2!=SudokuResult.SudokuResultSolved) {
+				if (oneNotSolved) {
+					for (int m = 0;m<results.length;m++) {
+						System.out.print(names[m] +": " + results[m] + "  ");
+					}
+					System.out.println();
+	//				System.out.println(n + "  " + result + " " + result2);
+					n--;
+				}
+				else {
+					System.out.println(Arrays.toString(results));
+					for (int m = 0; m < solvers.length; m++) {
+						times[m][n] = clockTimes[m+1] - clockTimes[m];
+					}
+//					timesBT[n] = btEndfcStart - btStart;
+	//				timesFC[n] = fcEnd - btEndfcStart;
+				}
+			}
+			try {
+				String[] outputs = new String[solvers.length];
+				for (int n=0;n<solvers.length;n++) {
+					outputs[n] = "test/" + testName + "/" + names[n] + "/" + names[n] + M + ".txt";
+				}
+//				String output1 = "test/bt/bt" + M + ".txt";
+//				String output2 = "test/fc/fc" + M + ".txt";
+				BufferedWriter[] bws = new BufferedWriter[solvers.length];
+//				BufferedWriter bw = new BufferedWriter(new FileWriter(output1));
+//				BufferedWriter bw2 = new BufferedWriter(new FileWriter(output2));
+				for (int n=0;n<solvers.length;n++) {
+					File file = new File(outputs[n]);
+					file.getParentFile().mkdirs();
+					bws[n] = new BufferedWriter(new FileWriter(file));
+				}
+				try {
+//					long btTot = 0;
+	//				long fcTot = 0;
+					long[] tots = new long[solvers.length];
+					for (int n=0;n<solvers.length;n++) {
+						tots[n] = 0;
+					}
+					for (int n=0;n<numTests;n++) {
+						for (int m=0;m<solvers.length;m++) {
+							tots[m]+=times[m][n];
+							bws[m].write(times[m][n] + "\n");
+						}
+//						btTot+=timesBT[n];
+//						fcTot+=timesFC[n];
+//						bw.write(timesBT[n] + "\n");
+//						bw2.write(timesFC[n] + "\n");
+					}
+					for (int n=0;n<solvers.length;n++) {
+						bws[n].write("\n" + tots[n] + "\n" + (tots[n]/numTests));
+					}
+//					bw.write("\n" + btTot + "\n" + (btTot/testCases));
+//					bw2.write("\n" + fcTot + "\n" + (fcTot/testCases));
+				} finally {
+					for (BufferedWriter b : bws) b.close();
+//					bw.close();
+//					bw2.close();
+				}
+			} catch (IOException e) {
+				
+			}
+			
+			
+		}	
+	}
+	
+}
+
+enum SudokuResult {
+	SudokuResultError,
+	SudokuResultSolved,
+	SudokuResultNoSolution,
+	SudokuResultTimeOut
+}
+
+class SudokuSolver {
+	private boolean backTracking;
+	private boolean forwardChecking;
+	private boolean minimumRemainingValues;
+	private boolean degreeHeuristic;
+	private boolean leastConstrainingValue;
+	private boolean arcConsistencyPreprocessing;
+	private boolean arcConsistency;
+	public SudokuPuzzle puzzle;
+	public SudokuPuzzle solvedPuzzle;
+	private double timeLimit;
+	private static String constraintFileName = "constraintMethods.txt";
+	public int assignments;
+	
+	public void setTimeLimit(double time) {
+		timeLimit = time;
+		System.out.println("Timeout set to:\t\t" + timeLimit);
+	}
+	
+	public int setBool(int str, String bool) {
+		boolean boolVal = false;
+		boolean boolSet = false;
+		boolean toggle = false;
+		if (bool.toLowerCase().equals("true") || bool.toLowerCase().equals("1") || bool.toLowerCase().equals("yes") || bool.toLowerCase().equals("t")) {
+			boolVal = true;
+			boolSet = true;
+		}
+		else if (bool.toLowerCase().equals("false") || bool.toLowerCase().equals("0") || bool.toLowerCase().equals("no") || bool.toLowerCase().equals("f")) {
+			boolVal = false;
+			boolSet = true;
+		}
+		else if (bool.toLowerCase().equals("") || bool.toLowerCase().equals("toggle")) {
+			toggle = true;
+			boolSet = true;
+		}
+		if (boolSet) {
+			setBool(str,boolVal,toggle);
+		}
+		else {
+			System.out.println("Error: boolean value not recognized.");
+		}
+		return str;
+	}
+	
+	public int setBool(String str, String bool) {
+		int num = constraintNameToInt(str);
+		return setBool(num,bool);
+		
+	}
+
+	public int setBool(int num, boolean bool, boolean toggle) {
+		
+		switch (num) {
+			case 0:
+				if (!(toggle?!backTracking:bool)) {
+					System.out.println("Back Tracking cannot be turned off.");
+				}
+				else {
+					backTracking = (toggle?!backTracking:bool);
+					System.out.println("Back Tracking (BT) set to: " + backTracking);
+				}
+				break;
+			case 1:
+				forwardChecking = (toggle?!forwardChecking:bool);
+				System.out.println("Forward Checking (FC) set to: " + forwardChecking);
+				break;
+			case 2:
+				minimumRemainingValues = (toggle?!minimumRemainingValues:bool);
+				System.out.println("Minimum Remaining Values (MRV) set to: " + minimumRemainingValues);
+				
+				break;
+			case 3:
+				if ((toggle?!degreeHeuristic:bool)) {
+					System.out.println("DH is not yet implemented.");
+				}
+				else {
+					degreeHeuristic = (toggle?!degreeHeuristic:bool);
+					System.out.println("Degree Heuristic (DH) set to: " + degreeHeuristic);
+				}
+				break;
+			case 4:
+				if ((toggle?!leastConstrainingValue:bool)) {
+					System.out.println("LCV is not yet implemented.");
+				}
+				else {
+					leastConstrainingValue = (toggle?!leastConstrainingValue:bool);
+					System.out.println("Least Constraining Value (LCV) set to: " + leastConstrainingValue);
+				}
+				break;
+			case 5:
+				if ((toggle?!arcConsistencyPreprocessing:bool)) {
+					System.out.println("ACP is not yet implemented.");
+				}
+				else {
+					arcConsistencyPreprocessing = (toggle?!arcConsistencyPreprocessing:bool);
+					System.out.println("Arc Consistency Pre-Processing only (ACP) set to: " + arcConsistencyPreprocessing);
+				}
+				break;
+			case 6:
+				if ((toggle?!arcConsistency:bool)) {
+					System.out.println("AC is not yet implemented.");
+				}
+				else {
+					arcConsistency = (toggle?!arcConsistency:bool);
+					System.out.println("Arc Consistency (AC) set to: " + arcConsistency);
+				}
+				break;
+			default:
+				System.out.println("Error: Constraint Method name not recognized.");
+		}
+		return num;
+	}
+	
+	public int constraintNameToInt(String str) {
+		int num = 100;
+		boolean numSet = false;
+		for (int n=0;n<7 && !numSet;n++) {
+			if (str.equals(n + "")) {
+				num = n;
+				numSet = true;
+			}
+		}
+		if (!numSet && (str.toLowerCase().contains("back") || str.toLowerCase().contains("bt"))) {
+			numSet = true;
+			num = 0;
+		}
+		if (!numSet && (str.toLowerCase().contains("rward") || str.toLowerCase().contains("fc"))) {
+			numSet = true;
+			num = 1;
+		}
+		if (!numSet && (str.toLowerCase().contains("mrv") || str.toLowerCase().contains("remain") || str.toLowerCase().contains("inimu"))) {
+			numSet = true;
+			num = 2;
+		}
+		if (!numSet && (str.toLowerCase().contains("dh") || str.toLowerCase().contains("egre") || str.toLowerCase().contains("eurist"))) {
+			numSet = true;
+			num = 3;
+		}
+		if (!numSet && (str.toLowerCase().contains("lcv") || str.toLowerCase().contains("east") || str.toLowerCase().contains("straining"))) {
+			numSet = true;
+			num = 4;
+		}
+		if (!numSet && (str.toLowerCase().contains("ac") || str.toLowerCase().contains("arc") || str.toLowerCase().contains("consistency"))) {
+			if (str.toLowerCase().contains("acp") || str.toLowerCase().contains("pre") || str.toLowerCase().contains("proc")) {
+				numSet = true;
+				num = 5;
+			}
+			else {
+				numSet = true;
+				num = 6;
+			}
+		}
+		return num;
+	}
+	
+	public SudokuSolver() {
+		backTracking = true;
+		forwardChecking = false;
+		minimumRemainingValues = false;
+		degreeHeuristic = false;
+		leastConstrainingValue = false;
+		arcConsistencyPreprocessing = false;
+		arcConsistency = false;
+		timeLimit = 1;
+	}
+	
+	public SudokuSolver(SudokuPuzzle pz) {
+		this();
+		puzzle = pz;
+	}
+	
+	public SudokuResult solvePuzzle() {
+		assignments = 0;
+		long startTime = System.currentTimeMillis();
+		SudokuPuzzle puz = new SudokuPuzzle(puzzle);
+		int start = (minimumRemainingValues&&true?puz.getMinimumRemainingValuesIndex() : 0);
+		return solvePuzzle(puz,start,startTime,start);
+	}
+	
+	public SudokuResult solvePuzzle(SudokuPuzzle puz, int currInd, long startTime, int startInd) {
+	//	System.out.println(currInd + "\n" + puz + "\n");
+	//	if (currInd == puz.N * puz.N - 1) System.out.println(puz);
+		if (System.currentTimeMillis() - startTime > timeLimit * 1000) return SudokuResult.SudokuResultTimeOut;
+		if (puz.isSolved()) {
+			solvedPuzzle = puz;
+		//	System.out.println(solvedPuzzle);
+			return SudokuResult.SudokuResultSolved;
+		}
+		if (currInd>=puz.allSquares.length || currInd < 0) {
+//			System.out.println(currInd);
+//			System.out.println("ind out of bounds");
+			if (startInd==currInd) {
+	//			System.out.println(puz);
+			}
+			return SudokuResult.SudokuResultNoSolution;
+		}
+		SudokuSquare square = puz.allSquares[currInd];
+		if (square.hasMove()) {
+			int next = (minimumRemainingValues?puz.getMinimumRemainingValuesIndex() : currInd+1);
+	//		System.out.println(next);
+			if (startInd==currInd) {
+	//			System.out.println("has Move");
+	//			System.out.println(puz);
+				startInd = next;
+			}
+			return solvePuzzle(puz,next,startTime,startInd);
+		}
+		int num = puz.N;
+	//	boolean[] priorPoss = square.getPossibilities().clone();
+		boolean[][] priorPoss = new boolean[puz.allSquares.length][];
+		for (int n=0;n<puz.allSquares.length;n++) {
+			priorPoss[n] = puz.allSquares[n].getPossibilities().clone();
+		}
+//		System.out.println("New");
+//		System.out.println(puz);
+//		System.out.println("Square: " + currInd + "   poss: " + Arrays.toString(square.getPossibilities()) + "  priorPoss: " + Arrays.deepToString(priorPoss));
+		for (int n=0;n<num;n++) {
+			if (System.currentTimeMillis() - startTime > timeLimit * 1000) return SudokuResult.SudokuResultTimeOut;
+			if (square.getPossibility(n)) {
+				assignments++;
+				square.setMove(n);
+				ArrayList<SudokuSquare> hasOne = new ArrayList<SudokuSquare>();
+				ArrayList<SudokuSquare> hasZero = new ArrayList<SudokuSquare>();
+				hasOne.add(square);
+				if (forwardChecking) {
+					SudokuSquare[][] sss = new SudokuSquare[][]{square.row.getCells(),square.column.getCells(),square.grid.getCells()};
+					for (SudokuSquare[] ss : sss) for (SudokuSquare sq : ss) {
+						if (!sq.hasMove() && sq.getPossibility(n)) {
+							sq.removePossibility(n);
+							if (sq.numPossibilities()==1) {
+								sq.setMove(sq.getValidTokens()[0]);
+								hasOne.add(sq);
+							}
+							else if (sq.numPossibilities()==0) {
+								hasZero.add(sq);
+							}
+						}
+					}
+				}
+				if (hasZero.size()>0 || square.row.hasConflicts() || square.column.hasConflicts() || square.grid.hasConflicts()) {
+					square.unsetMove();
+					square.removePossibility(n);
+					if (!square.hasPossibility()) {
+		//				System.out.println("Square: " + currInd + "   poss: " + Arrays.toString(square.getPossibilities()) + "  priorPoss: " + Arrays.toString(priorPoss));
+						
+				/*		System.out.println(puz);
+						for (int sn=0;sn<puz.allSquares.length;sn++) {
+							SudokuSquare squarea = puz.allSquares[sn];
+							System.out.print(Arrays.toString(squarea.getPossibilities()) + " ");
+						}*/
+						setPossibilities(puz,priorPoss);
+						for (SudokuSquare sq : hasOne) {
+							sq.unsetMove();
+						}
+
+						if (startInd==currInd) {
+		//					System.out.println("Square has no possibilities 1");
+		//					System.out.println(puz);
+						}
+
+						
+						return SudokuResult.SudokuResultNoSolution;
+					}
+				}
+				else {
+					SudokuResult res = solvePuzzle(puz,(minimumRemainingValues?puz.getMinimumRemainingValuesIndex() : currInd+1),startTime,startInd);
+					if (res==SudokuResult.SudokuResultSolved || res==SudokuResult.SudokuResultError || res == SudokuResult.SudokuResultTimeOut) return res;
+					square.unsetMove();
+					square.removePossibility(n);
+					if (!square.hasPossibility()) {
+						setPossibilities(puz,priorPoss);
+						for (SudokuSquare sq : hasOne) {
+							sq.unsetMove();
+						}
+
+						if (startInd==currInd) {
+						//	System.out.println("Square has no possibilities 2");
+						//	System.out.println(puz);
+						}
+
+
+						return SudokuResult.SudokuResultNoSolution;
+					}
+				}
+				if (forwardChecking) {
+					setPossibilities(puz,priorPoss,currInd);
+					for (SudokuSquare sq : hasOne) {
+						sq.unsetMove();
+					}
+
+				}
+			}
+		}
+	//	System.out.println(puz);
+	//	System.out.println("Square: " + currInd + "   poss: " + Arrays.toString(square.getPossibilities()) + "  priorPoss: " + Arrays.toString(priorPoss));
+
+		if (startInd==currInd) {
+	//		System.out.println("Got to the end.");
+	//		System.out.println(puz);
+		}
+
+
+		setPossibilities(puz,priorPoss);
+//		System.out.println(puz);
+		return SudokuResult.SudokuResultNoSolution;
+		
+	}
+	public void setPossibilities(SudokuPuzzle puz,boolean[][] possibilities) {
+		setPossibilities(puz,possibilities,-1);
+	}	
+	public void setPossibilities(SudokuPuzzle puz,boolean[][] possibilities, int except) {
+		for (int n=0;n<puz.allSquares.length;n++) {
+			if (n==except) continue;
+			puz.allSquares[n].setPossibilities(possibilities[n].clone());
+		}
+	}
+
+	public void loadConstraintMethods() {
+	/*	try (BufferedReader br = new BufferedReader(new FileReader(constraintFileName))){
+		} finally {
+			br.close();
+		}*/
+		try {
+			Scanner s = new Scanner(new FileReader(constraintFileName));
+			int i = 0;
+			while (s.hasNextBoolean()) {
+				boolean bool = s.nextBoolean();
+				switch (i) {
+					case 0:
+						backTracking = bool;
+						break;
+					case 1:
+						forwardChecking = bool;
+						break;
+					case 2:
+						minimumRemainingValues = bool;
+						break;
+					case 3:
+						degreeHeuristic = bool;
+						break;
+					case 4:
+						leastConstrainingValue = bool;
+						break;
+					case 5:
+						arcConsistencyPreprocessing = bool;
+						break;
+					case 6:
+						arcConsistency = bool;
+						break;
+					default:
+				}
+				i++;
+			}
+			if (s.hasNextDouble()) {
+				timeLimit = s.nextDouble();
+			}
+			else {
+				timeLimit = 1.0;
+			}
+		} catch (IOException e) {
+			
+		}
+	}
+	
+	public void printConstraintMethods() {
+		for (int n=0;n<7;n++) {
+			printConstraintMethod(n);
+		}
+		printTimeLimit();
+	}
+
+	public void printConstraintMethod(String constraintMethod) {
+		if (constraintMethod.toLowerCase().contains("time")) {
+			printTimeLimit();
+			return;
+		}
+		int num = constraintNameToInt(constraintMethod);
+		printConstraintMethod(num);
+	}
+
+	public void printConstraintMethod(int constraintMethod) {
+		switch (constraintMethod) {
+			case 0:
+				System.out.println("Backtracking (BT): \t\t\t" + boolStr(backTracking));
+				break;
+			case 1:
+				System.out.println("Forward Checking (FC): \t\t\t" + boolStr(forwardChecking));
+				break;
+			case 2:
+				System.out.println("Minimum Remaining Values (MRV):\t\t" + boolStr(minimumRemainingValues));
+				break;
+			case 3:
+				System.out.println("Degree Heuristic (DH):\t\t\t" + boolStr(degreeHeuristic));
+				break;
+			case 4:
+				System.out.println("Least Constraining Value (LCV):\t\t" + boolStr(leastConstrainingValue));
+				break;
+			case 5:
+				System.out.println("Arc Consistency Pre-processing (ACP):\t" + boolStr(arcConsistencyPreprocessing));
+				break;
+			case 6:
+				System.out.println("Arc Consistency Each Step (AC):\t\t" + boolStr(arcConsistency));
+				break;
+			default:
+		}
+	}
+	
+	public void printTimeLimit() {
+		System.out.println("Time Limit is:\t\t\t\t" + timeLimit);
+	}
+	
+	public void writeConstraintMethods() {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(constraintFileName));
+			try {
+				bw.write(backTracking + " " + forwardChecking + " " + minimumRemainingValues + " " + degreeHeuristic + 
+						" " + leastConstrainingValue +
+						" " + arcConsistencyPreprocessing + 
+						" " + arcConsistency + "\n" + timeLimit);
+			}finally {
+				bw.close();
+			}
+		} catch(IOException e) {
+			
+		}
+	}
+	
+	public String boolStr(boolean bool) {
+		return (bool?"On":"Off");
+	}
+	
+}
+
+
+class SudokuPuzzle {
+	
+	SudokuSquare[] allSquares;
+	SudokuSet[] rows;
+	SudokuSet[] columns;
+	SudokuSet[] grids;
+	int N;
+	int gridRows;
+	int gridColumns;
+	
+	
+	public int getMinimumRemainingValuesIndex() {
+		int n = 0;
+		ArrayList<Integer> mins = new ArrayList<Integer>();
+		int min = Integer.MAX_VALUE;
+		for (SudokuSquare s : allSquares) {
+	//		System.out.println(n + "\t\t" + s.hasMove() + "\t\t" + min + "\t\t" + mins.size());
+			if (!s.hasMove()) {
+				int num = s.numPossibilities();
+				if (num!=1 && num!=0) {
+					if (num==min) {
+						mins.add(n);
+					}
+					else if (num < min) {
+						mins = new ArrayList<Integer>();
+						min = num;
+						mins.add(n);
+					}
+				}
+			}
+			n++;
+		}
+		if (mins.size()==0) return -1;
+//		System.out.println(toString());
+	//	System.out.println(mins.get(0));
+//		System.out.println();
+		return mins.get(0);
+	}
+	
+	public boolean isSolved() {
+		for (SudokuSquare s : allSquares) {
+			if (!s.hasMove()) return false;
+		}
+		return !hasConflicts();
+	}
+	
+	public boolean hasConflicts() {
+		for (SudokuSet set : rows) if (set.hasConflicts()) return true;
+		for (SudokuSet set : columns) if (set.hasConflicts()) return true;
+		for (SudokuSet set : grids) if (set.hasConflicts()) return true;
+		return false;
+	}
+	
+	public SudokuPuzzle(SudokuPuzzle sp) {
+		N = sp.N;
+		gridRows = sp.gridRows;
+		gridColumns = sp.gridColumns;
+		SudokuSquare[] all = new SudokuSquare[sp.allSquares.length];
+		for (int n=0;n<all.length;n++) {
+			all[n] = new SudokuSquare(sp.allSquares[n]);
+		}
+		allSquares = all;
+		setRowsColumnsEtc();
+	}
+
+	public SudokuPuzzle(int numRows, int numRowsGrid, int numColumnsGrid, SudokuSquare[] squares) {
+		N = numRows;
+		gridRows = numRowsGrid;
+		gridColumns = numColumnsGrid;
+		if (squares==null) {
+			allSquares = new SudokuSquare[N*N];
+			for (int n=0;n<N*N;n++) {
+				allSquares[n] = new SudokuSquare(N);
+			}
+		}
+		else {
+			allSquares = squares;
+		}
+		setRowsColumnsEtc();
+	}
+	
+	public void setRowsColumnsEtc() {
+		rows = new SudokuSet[N];
+		columns = new SudokuSet[N];
+		grids = new SudokuSet[N];
+		for (int n=0;n<N;n++) {
+			SudokuSquare[] rowArr = new SudokuSquare[N];
+			SudokuSquare[] columnArr = new SudokuSquare[N];
+			SudokuSquare[] gridArr = new SudokuSquare[N];
+			for (int m=0;m<N;m++) {
+				rowArr[m] = allSquares[n * N + m];
+				columnArr[m] = allSquares[m*N + n];
+			}
+			//n: 0 1 2 3 4 5
+			//gridColumns: 3
+			//gridRows: 2
+			//N: 6
+			//0 3 12 15 24 27
+			int left = (n%gridRows)*gridColumns;
+			int down = (n/gridRows)*gridRows*N;
+			int NStart = left + down;
+			for (int m=0;m<gridRows;m++) {
+				for (int o=0;o<gridColumns;o++) {
+					gridArr[m*gridColumns + o] = allSquares[NStart + m*N + o];
+				}
+			}
+			rows[n] = new SudokuSet(N,rowArr);
+			columns[n] = new SudokuSet(N,columnArr);
+			grids[n] = new SudokuSet(N,gridArr);
+			rows[n].setCellsToThis(0);
+			columns[n].setCellsToThis(1);
+			grids[n].setCellsToThis(2);
+		}
+	}
+
+	public int generatePuzzle(int M) {
+		Random r = new Random();
+		int attempts = 1;
+		while (!generatePuzzleAttempt(M,r)) {
+			attempts++;
+			for (SudokuSquare square : allSquares) {
+				square.setMove(-1);
+				square.resetPossibilities();
+			}
+		}
+		return attempts;
+	}
+	
+	public boolean generatePuzzleAttempt(int M, Random r) {
+		int max = allSquares.length;
+		int nextSquare = r.nextInt(max);
+		while (allSquares[nextSquare].getMove()!=-1) {
+			nextSquare = r.nextInt(max);
+		}
+		SudokuSquare square = allSquares[nextSquare];
+		int[] validTokens = square.getValidTokens();
+		int chosenValue = validTokens[r.nextInt(validTokens.length)];
+		square.setMove(chosenValue);
+		if (square.row.hasConflicts() || square.column.hasConflicts() || square.grid.hasConflicts()) {
+			square.unsetMove();
+			square.removePossibility(chosenValue);
+			if (square.hasPossibility()) return generatePuzzleAttempt(M,r);
+			return false;
+		}
+		else {
+			if (M==1) return true;
+			return generatePuzzleAttempt(M-1, r);
+		}
+	}
+	
+	public void printPuzzle() {
+		printPuzzle(false);
+	}
+	
+	public void printPuzzle(boolean all) {
+		for (int n=0;n<allSquares.length;n++) {
+			System.out.print(allSquares[n]);
+			if (n%N==(N-1)) System.out.println();
+			else System.out.print(" ");
+		}
+		if (!all) return;
+		System.out.println();
+		System.out.println("Rows:");
+		for (int n=0;n<rows.length;n++) {
+			System.out.println(rows[n]);
+		}
+		System.out.println("\nColumns:");
+		for (int n=0;n<columns.length;n++) {
+			System.out.println(columns[n]);
+		}
+		System.out.println("\nGrids:");
+		for (int n=0;n<grids.length;n++) {
+			System.out.println(grids[n]);
+		}
+	}
+	
+	public String toString() {
+		String s = "";
+		for (int n=0;n<allSquares.length;n++) {
+			s = s + allSquares[n];
+			if (n%N==(N-1)) s = s + "\n";
+			else s = s + " ";
+		}
+		return s;
+	}
+	
+	
+}
+
+
+
+
+
+class SudokuSet {
+	
+	private int numberCells;
+	private SudokuSquare[] cells;
+	
+	public SudokuSet(int N, SudokuSquare[] cellArr) {
+		numberCells = N;
+		cells = cellArr;
+	}
+	
+	public SudokuSquare[] getCells() {
+		return cells;
+	}
+	
+	public boolean hasConflicts() {
+		boolean[] usedNums = new boolean[numberCells];
+		for (int n=0;n<numberCells;n++) {
+			usedNums[n] = false;
+		}
+		for (SudokuSquare cell : cells) {
+			if (cell.hasMove()) {
+				if (usedNums[cell.getMove()]) return true;
+				usedNums[cell.getMove()] = true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isSolvable() {
+		for (SudokuSquare cell : cells) {
+			if (!cell.hasMove() && !cell.hasPossibility()) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public ArrayList<SudokuSquare> removePossibilities(int possibility) {
+		ArrayList<SudokuSquare> edited = new ArrayList<SudokuSquare>();
+		for (SudokuSquare cell : cells) {
+			if (cell.isPossible(possibility)) {
+				cell.removePossibility(possibility);
+				edited.add(cell);
+			}
+		}
+		return edited;
+	}
+	
+	public void setCellsToThis(int n) {
+		for (SudokuSquare ss : cells) {
+			switch (n) {
+				case 0:
+					ss.row = this;
+					break;
+				case 1:
+					ss.column = this;
+					break;
+				case 2:
+					ss.grid = this;
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	public String toString() {
+		String s = "";
+		for (int n=0;n<cells.length;n++) {
+			if (n!=0) s = s + " ";
+			s = s + cells[n];
+		}
+		return s;
+	}
+	
+}
+
+class SudokuSquare {
+	private boolean[] possibleMoves;
+	private int move;
+	SudokuSet row;
+	SudokuSet column;
+	SudokuSet grid;
+	
+	public SudokuSquare(SudokuSquare ss) {
+		possibleMoves = new boolean[ss.possibleMoves.length];
+		for (int n=0;n<possibleMoves.length;n++) {
+			possibleMoves[n] = ss.possibleMoves[n];
+		}
+		move = ss.move;
+	}
+	
+	public SudokuSquare(int N, int moveDef) {
+		this(N);
+		move = moveDef;
+	}
+	
+	public SudokuSquare(int N) {
+		possibleMoves = new boolean[N];
+		for (int n=0;n<N;n++) possibleMoves[n] = true;
+		move = -1;
+	}
+	
+	public void resetPossibilities() {
+		for (int n=0;n<possibleMoves.length;n++) possibleMoves[n] = true;
+	}
+	
+	public boolean[] getPossibilities() {
+		return possibleMoves;
+	}
+	
+	public boolean getPossibility(int n) {
+		return possibleMoves[n];
+	}
+	
+	public void addPossibility(int n) {
+		possibleMoves[n] = true;
+	}
+	
+	public void removePossibility(int n) {
+		possibleMoves[n] = false;
+	}
+	
+	public void setPossibilities(boolean[] poss) {
+		possibleMoves = poss;
+	}
+	
+	public int numPossibilities() {
+		int num = 0;
+		for (int n=0;n<possibleMoves.length;n++) if (possibleMoves[n]) num++;
+		return num;
+	}
+	
+	public int[] getValidTokens() {
+		int num = numPossibilities();
+		int[] valid = new int[num];
+		int curr = 0;
+		for (int n=0;n<possibleMoves.length;n++) if (possibleMoves[n]) {
+			valid[curr] = n;
+			curr++;
+		}
+		return valid;
+	}
+	
+	public boolean hasPossibility() {
+		for (boolean bool : possibleMoves) {
+			if (bool) return true;
+		}
+		return false;
+	}
+	
+	public boolean isPossible(int n) {
+		return possibleMoves[n];
+	}
+	
+	public boolean hasMove() {
+		return move>=0;
+	}
+	
+	public void setMove(int n) {
+		move = n;
+	}
+	
+	public void unsetMove() {
+		move = -1;
+	}
+	
+	public int getMove() {
+		return move;
+	}
+	
+	public String moveToString() {
+		return Integer.toString(move+1);
+	}
+	
+	public String toString() {
+		return moveToString();
+	}
+	
+}
+
+

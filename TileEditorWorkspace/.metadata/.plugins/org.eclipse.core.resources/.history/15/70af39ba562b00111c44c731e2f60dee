@@ -1,0 +1,10 @@
+import java.util.ArrayList;
+public class Theater
+{
+	int time;
+	int windowCount;
+	int lineCount;
+	ArrayList<Queue<Customer>> lines;
+	ArrayList<Window> windows;
+	ArrayList<Customer> customers;
+}

@@ -1,0 +1,105 @@
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+
+public class Simulator
+{
+	public static void main (String[] args) {
+		int length = 0;
+		ArrayList<Integer[]> customerArrivals = new ArrayList<Integer[]>();
+		Theater theater = new Theater();
+		try {
+			Scanner scanner = new Scanner(new File(args[0]));
+			scanner.nextLine();
+			length = scanner.nextInt()*60;
+			theater.setWindowCount(scanner.nextInt());
+			boolean singleLine = false;
+			if (scanner.next().equals("S")) {
+				theater.setLineCount(1);
+				singleLine = true;
+			}
+			else {
+				theater.setLineCount(theater.getWindowCount());
+			}
+			for (int n=0;n<theater.getLineCount();n++) {
+				theater.addLine();
+			}
+			for (int n=0;n<theater.getWindowCount();n++) {
+				int next = scanner.nextInt();
+				theater.addWindow(new Window(next, n));
+			}
+			scanner.nextLine();
+			String nextLine = scanner.nextLine();
+			while (!nextLine.equals("END")) {
+				Scanner scanner2 = new Scanner(nextLine);
+				customerArrivals.add(new Integer[]{scanner2.nextInt(),scanner2.nextInt()});
+				nextLine = scanner.nextLine();
+			}
+			while (theater.getTime()<length) {
+				theater.incrementTime();
+				for (int n=0;n<theater.customerCount();n++) {
+					Customer customer = theater.getCustomer(n);
+					if (customer.isInLine()) {
+						customer.waitOneSec();
+					}
+				}
+				for (int n=0;n<theater.getWindowCount();n++) {
+					if (theater.getWindow(n).getCustomer()!=null) {
+						theater.getWindow(n).incrementTimeWithCustomer();
+					}
+					else {
+						theater.getWindow(n).incrementIdle();
+					}
+				}
+				for (int n=0;n<customerArrivals.size();n++) {
+					if (theater.getTime()==customerArrivals.get(n)[1]) {
+						for (int m=0;m<customerArrivals.get(n)[0];m++) {
+							theater.addCustomerToLine(new Customer(customerArrivals.get(n)[1]));
+						}
+					}
+				}
+				for (int n=0;n<theater.getWindowCount();n++) {
+					if (theater.getWindow(n).getCustomer()==null) {
+						if (singleLine) {
+							if (!theater.getLine(0).isEmpty()) {
+								theater.getWindow(n).setCustomer(theater.getLine(0).front());
+								theater.getLine(0).front().setInLine(false);
+								theater.getLine(0).dequeue();
+							}
+						}
+						else {
+							if(!theater.getLine(n).isEmpty()) {
+								theater.getWindow(n).setCustomer(theater.getLine(n).front());
+								theater.getLine(n).front().setInLine(false);
+								theater.getLine(n).dequeue();
+							}
+						}
+					}
+				}
+			}
+			int[][] lines = new int[4][theater.getLineCount()];
+			for (int n=0;n<theater.customerCount();n++) {
+				if (!theater.getCustomer(n).hasReachedWindow()) {
+					lines[0][theater.getCustomer(n).getLine()]++;
+				}
+				else {
+					lines[1][theater.getCustomer(n).getLine()]++;
+					lines[2][theater.getCustomer(n).getLine()]+=theater.getCustomer(n).getWaitTime();
+				}
+				lines[3][theater.getCustomer(n).getLine()] = Math.max(lines[3][theater.getCustomer(n).getLine()],theater.getCustomer(n).getWaitTime());
+			}
+			for (int n=0; n<lines[0].length;n++) {
+				System.out.println("Line " + (n+1));
+				System.out.println("Customers still in line: " +lines[0][n]);
+				System.out.println("Max line length: " + theater.getLine(n).getMaxLength());
+				System.out.println("Average time: " + String.format("%.2f",((float)lines[2][n])/lines[1][n]));
+				System.out.println("Max time: " + lines[3][n]);
+			}
+		}
+		catch (FileNotFoundException e) {
+			System.out.println("File does not exist");
+		}
+		
+	}
+}
