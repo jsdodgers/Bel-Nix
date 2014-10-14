@@ -9,16 +9,24 @@ public class Sprites : MonoBehaviour {
 	SpriteRenderer sprend;
 	Sprite spr;
 	GameObject grids;
-	ArrayList gridsArray;
+	ArrayList gridsArray = new ArrayList();
+	GameObject lines;
+	ArrayList linesArray;
 	GameObject gridPrefab;
 
 	float cameraOriginalSize;
-
+	float boxWidthPerc = .2f;
+	
 	bool mouseLeftDown;
 	bool mouseRightDown;
 	bool mouseMiddleDown;
 
-	float xx = 0.0f;
+	bool shiftDown;
+	Vector2 scrollPosition = new Vector2(0.0f,0.0f);
+
+	float red = 0.0f;
+	float green = 0.0f;
+	float blue = 0.0f;
 
 	
 	// Use this for initialization
@@ -32,6 +40,8 @@ public class Sprites : MonoBehaviour {
 		grids = GameObject.Find("Grids");
 		gridsArray = new ArrayList();
 		gridPrefab = (GameObject)Resources.Load("Sprite/Square_70");
+		lines = GameObject.Find("Lines");
+	//	linesArray = new ArrayList();
 	}
 	
 	// Update is called once per frame
@@ -44,16 +54,20 @@ public class Sprites : MonoBehaviour {
 	void handleMouseInput() {
 		handleMouseScrollWheel();
 		handleMouseClicks();
+		handleKeys();
 		handleMouseMovement();
+		handleMouseSelect();
 	}
 
 	void handleMouseScrollWheel() {
-		float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
-		float cameraSize = mainCamera.orthographicSize;
-		float maxCameraSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize * 6.0f/5.0f;
-		float minCameraSize = 1.0f * cameraOriginalSize / 5.0f;
-		cameraSize = Mathf.Clamp(cameraSize - mouseWheel,minCameraSize,maxCameraSize);
-		mainCamera.orthographicSize = cameraSize;
+		if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+			float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
+			float cameraSize = mainCamera.orthographicSize;
+			float maxCameraSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize * 6.0f/5.0f;
+			float minCameraSize = 1.0f * cameraOriginalSize / 5.0f;
+			cameraSize = Mathf.Clamp(cameraSize - mouseWheel,minCameraSize,maxCameraSize);
+			mainCamera.orthographicSize = cameraSize;
+		}
 	}
 
 	void handleMouseClicks() {
@@ -62,13 +76,17 @@ public class Sprites : MonoBehaviour {
 		mouseMiddleDown = Input.GetMouseButton(2);
 	}
 
+	void handleKeys() {
+		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+	}
+
 	void handleMouseMovement() {
 //		float mouseFactor = mainCamera.orthographicSize/5.0f;
 		float mouseFactor = 0.3f;
 		float mouseX = Input.GetAxis("Mouse X");
 		float mouseY = Input.GetAxis("Mouse Y");
 		mouseFactor = 18.0f;
-		if (mouseRightDown || mouseMiddleDown) {
+		if ((mouseRightDown || mouseMiddleDown)  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			Vector3 pos = mainCamera.WorldToScreenPoint(cameraTransform.position);
 			pos.x -= mouseX * mouseFactor;
 			pos.y -= mouseY * mouseFactor;
@@ -77,11 +95,26 @@ public class Sprites : MonoBehaviour {
 		}
 	}
 
+	void handleMouseSelect() {
+		if (mouseLeftDown && !shiftDown && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+			if (hit) {
+				GameObject go = hit.collider.gameObject;
+				SpriteRenderer sR = go.GetComponent<SpriteRenderer>();
+				sR.color = new Color(red/255.0f,green/255.0f,blue/255.0f,0.4f);
+			}
+		}
+	}
+
 	void loadGrid(float x, float y) {
 		foreach (GameObject g in gridsArray) {
 			Destroy(g);
 		}
+//		foreach (GameObject g in linesArray) {
+//			Destroy (g);
+//		}
 		gridsArray = new ArrayList();
+		linesArray = new ArrayList();
 		float minX = -x/2.0f + 0.5f;
 		float minY = y/2.0f - 0.5f;
 		float maxX = x/2.0f - 0.5f;
@@ -98,12 +131,39 @@ public class Sprites : MonoBehaviour {
 				sr.color = new Color(1.0f,1.0f,1.0f,0.2f);
 			}
 		}
-		xx++;
+		/*
+		int x1 = 1;
+		for (float n=minX;n<=minX;n++) {
+			GameObject go = new GameObject("LineX" + x1);
+			LineRenderer lr = go.AddComponent<LineRenderer>();
+			go.transform.parent = lines.transform;
+			lr.SetVertexCount(2);
+			lr.SetPosition(0,new Vector3(n,minY,0));
+			lr.SetPosition(1,new Vector3(n,maxY,0));
+			lr.material = new Material(Shader.Find("Unlit/Texture"));
+			lr.SetColors(Color.black,Color.black);
+			lr.SetWidth(71.0f/70.0f,71.0f/70.0f);
+		}
+		xx++;*/
 	}
 
 
 	void OnGUI() {
-		if (GUI.Button(new Rect(10,10,100,50),"Button Test")) {
+		GUISkin skinCopy = (GUISkin)Instantiate(GUI.skin);
+
+		float boxWidth = Screen.width*boxWidthPerc;
+		float boxX = Screen.width*(1-boxWidthPerc);
+		float boxY = 0.0f;
+		float boxHeight = Screen.height;
+		GUI.Box(new Rect(boxX,boxY,boxWidth,boxHeight),"");
+		float scrollContentSize = boxWidth - 16.0f;
+		float loadButtonWidth = scrollContentSize * .9f;
+		float loadButtonX = Screen.width - boxWidth + scrollContentSize*.05f;
+		float loadButtonY = scrollContentSize*.05f;
+		float loadButtonHeight = 30.0f;
+		float width = GUI.skin.verticalScrollbar.fixedWidth;
+		scrollPosition = GUI.BeginScrollView(new Rect(boxX,boxY,boxWidth,boxHeight), scrollPosition, new Rect(boxX,boxY,scrollContentSize,boxHeight*2.0f));
+		if (GUI.Button(new Rect(loadButtonX,loadButtonY,loadButtonWidth,loadButtonHeight),"Load File...")) {
 			Debug.Log("Button Press");
 /* 			string path = EditorUtility.OpenFilePanel(
 				"Overwrite with png",
@@ -121,39 +181,56 @@ public class Sprites : MonoBehaviour {
 //			Sprite sprite = new Sprite();
 //			sprend.sprite = sprite;
 			if (path.Length != 0) {
-		//		Texture2D texture = new Texture2D(512,512);
-		//		Sprite sp2 = Resources.Load<Sprite>("Images/none");
-		//		sp2 = (Sprite)Instantiate(sp2);
 				float currX = sprend.transform.localScale.x / spr.texture.width;
 				float currY = sprend.transform.localScale.y / spr.texture.height;
-	//			float currX = 1.0f / sp2.texture.width;
-	//			float currY = 1.0f / sp2.texture.height;
-		//		Debug.Log(sp2.texture.width + "   " + sp2.texture.height);
 				WWW www = new WWW("file:///" + path);
-//				Sprite sp = Resources.Load<Sprite>("file:///" + path);
-		//		sprend.sprite = sp;
-		///		spr.texture.Resize(www.texture.width,www.texture.height);
-			//	spr.rect = new Rect(0,0,www.texture.width,www.texture.height);
 				www.LoadImageIntoTexture(spr.texture);
-//				sprite.texture = texture;
-		//		Debug.Log(sprite);
-//				spr.texture.LoadImage(texture.EncodeToPNG());
-//				int width = 512;
-//				int height = 512;
-//				sprend.sprite = sp2;
-				float scaleX = currX * spr.texture.width;
-				float scaleY = currY * spr.texture.height;
+				float scaleX = Mathf.Round(currX * spr.texture.width);
+				float scaleY = Mathf.Round(currY * spr.texture.height);
 				sprend.transform.localScale = new Vector3(scaleX, scaleY, sprend.transform.localScale.z);
 				mainCamera.orthographicSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize;
 				cameraTransform.localPosition = new Vector3(0,0,-10);
 				loadGrid(scaleX, scaleY);
-//				sprend.transform.localScale.x = currX * spr.texture.width;
-//				sprend.transform.localScale.y = currY * spr.texture.height;
 				Debug.Log(www.texture.width + "  " + www.texture.height + "    " + sprend.transform.localScale.x + "  " + sprend.transform.localScale.y);
-			//	GetImageSize(texture,&width,&height);
-		//		spr.texture.Resize(width,height);
 			}
 		}
+		float textFieldHeight = 20.0f;
+		float textLabelWidth = 15.0f;
+		float textLabelX = loadButtonX;
+		float textFieldWidth = loadButtonWidth - textLabelWidth;
+		float textFieldX = textLabelX + textLabelWidth;
+		float redY = loadButtonY + loadButtonHeight + 5.0f;
+		float greenY = redY + textFieldHeight + 5.0f;
+		float blueY = greenY + textFieldHeight + 5.0f;
+		GUI.Label(new Rect(textLabelX,redY,textLabelWidth,textFieldHeight),"R");
+		GUI.Label(new Rect(textLabelX,greenY,textLabelWidth,textFieldHeight),"G");
+		GUI.Label(new Rect(textLabelX,blueY,textLabelWidth,textFieldHeight),"B");
+		bool redParsed = float.TryParse(GUI.TextField(new Rect(textFieldX,redY,textFieldWidth,textFieldHeight),(red==0.0f?"":((int)red).ToString())),out red);
+		bool greenParsed = float.TryParse(GUI.TextField(new Rect(textFieldX,greenY,textFieldWidth,textFieldHeight),(green==0.0f?"":((int)green).ToString())),out green);
+		bool blueParsed = float.TryParse(GUI.TextField(new Rect(textFieldX,blueY,textFieldWidth,textFieldHeight),(blue==0.0f?"":((int)blue).ToString())),out blue);
+		if (!redParsed) red = 0.0f;
+		if (!greenParsed) green = 0.0f;
+		if (!blueParsed) blue = 0.0f;
+		red = Mathf.Clamp(red,0.0f,255.0f);
+		green = Mathf.Clamp(green,0.0f,255.0f);
+		blue = Mathf.Clamp(blue,0.0f,255.0f);
+		float colorBoxHeight = textFieldHeight;
+		Texture2D colorTexture = new Texture2D((int)loadButtonWidth,(int)colorBoxHeight);
+		Texture2D oldTexture = GUI.skin.box.normal.background;
+		Color fillColor = new Color(red/255.0f,green/255.0f,blue/255.0f,1.0f);
+		Color[] colors = colorTexture.GetPixels();
+		for (int n=0;n<colors.Length;n++) {
+			colors[n] = fillColor;
+		}
+		colorTexture.SetPixels(colors);
+		colorTexture.Apply();
+		GUI.skin.box.normal.background = colorTexture;
+		float colorBoxY = blueY + textFieldHeight + 5.0f;
+		GUI.Box(new Rect(loadButtonX, colorBoxY, loadButtonWidth, colorBoxHeight),"");
+		GUI.skin.box.normal.background = oldTexture;
+		GUI.EndScrollView();
+
+		GUI.skin = skinCopy;
 	}
 
 
