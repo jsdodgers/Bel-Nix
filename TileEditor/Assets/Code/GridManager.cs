@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEditor;
 
-public class Sprites : MonoBehaviour {
+public class GridManager : MonoBehaviour {
 
 	Transform cameraTransform;
 	Camera mainCamera;
@@ -15,19 +15,20 @@ public class Sprites : MonoBehaviour {
 	GameObject gridPrefab;
 
 	float cameraOriginalSize;
-	float boxWidthPerc = .2f;
+	public float boxWidthPerc = .2f;
 	
 	bool mouseLeftDown;
 	bool mouseRightDown;
 	bool mouseMiddleDown;
 
 	bool shiftDown;
-	Vector2 scrollPosition = new Vector2(0.0f,0.0f);
 
-	float red = 0.0f;
-	float green = 0.0f;
-	float blue = 0.0f;
+	public float red = 0.0f;
+	public float green = 0.0f;
+	public float blue = 0.0f;
 
+	public bool passable = true;
+	public bool standable = true;
 	
 	// Use this for initialization
 	void Start () {
@@ -96,24 +97,44 @@ public class Sprites : MonoBehaviour {
 	}
 
 	void handleMouseSelect() {
-		if (mouseLeftDown && !shiftDown && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (mouseLeftDown && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
 			if (hit) {
 				GameObject go = hit.collider.gameObject;
-				SpriteRenderer sR = go.GetComponent<SpriteRenderer>();
-				sR.color = new Color(red/255.0f,green/255.0f,blue/255.0f,0.4f);
+				if (!shiftDown) {
+					Tile t = go.GetComponent<TileHolder>().tile;
+					t.setColor(red, green, blue, 0.4f);
+					t.passable = passable;
+					t.standable = standable;
+		//		SpriteRenderer sR = go.GetComponent<SpriteRenderer>();
+		//		sR.color = new Color(red/255.0f,green/255.0f,blue/255.0f,0.4f);
+				}
+				else {
+					Tile t = go.GetComponent<TileHolder>().tile;
+					red = t.red;
+					green = t.green;
+					blue = t.blue;
+					passable = t.passable;
+					standable = t.standable;
+				}
 			}
 		}
 	}
 
-	void loadGrid(float x, float y) {
-		foreach (GameObject g in gridsArray) {
-			Destroy(g);
+	void clearGrid() {
+		foreach (Tile t in gridsArray) {
+			TileHolder th = t.tileGameObject.GetComponent<TileHolder>();
+			th.tile = null;
+			Destroy(t.tileGameObject);
 		}
+		gridsArray = new ArrayList();
+	}
+
+	void loadGrid(float x, float y) {
+		clearGrid();
 //		foreach (GameObject g in linesArray) {
 //			Destroy (g);
 //		}
-		gridsArray = new ArrayList();
 		linesArray = new ArrayList();
 		float minX = -x/2.0f + 0.5f;
 		float minY = y/2.0f - 0.5f;
@@ -123,12 +144,15 @@ public class Sprites : MonoBehaviour {
 		for (float n=minX;n<=maxX;n++) {
 			for (float m=minY;m>=maxY;m--) {
 				GameObject go = (GameObject)Instantiate(gridPrefab);
-				gridsArray.Add(go);
+				Tile t = new Tile(go,255.0f,255.0f,255.0f,0.4f);
+				TileHolder th = go.AddComponent<TileHolder>();
+				th.tile = t;
+				gridsArray.Add(t);
 				go.transform.position = new Vector3(n,m,0);
 				go.transform.parent = grids.transform;
-				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+		//		SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
 			//	sr.sprite.border = new Vector4(1.0f,1.0f,1.0f,1.0f);
-				sr.color = new Color(1.0f,1.0f,1.0f,0.2f);
+		//		sr.color = new Color(t.red,t.green,t.blue,t.alpha);
 			}
 		}
 		/*
@@ -147,90 +171,29 @@ public class Sprites : MonoBehaviour {
 		xx++;*/
 	}
 
-
-	void OnGUI() {
-		GUISkin skinCopy = (GUISkin)Instantiate(GUI.skin);
-
-		float boxWidth = Screen.width*boxWidthPerc;
-		float boxX = Screen.width*(1-boxWidthPerc);
-		float boxY = 0.0f;
-		float boxHeight = Screen.height;
-		GUI.Box(new Rect(boxX,boxY,boxWidth,boxHeight),"");
-		float scrollContentSize = boxWidth - 16.0f;
-		float loadButtonWidth = scrollContentSize * .9f;
-		float loadButtonX = Screen.width - boxWidth + scrollContentSize*.05f;
-		float loadButtonY = scrollContentSize*.05f;
-		float loadButtonHeight = 30.0f;
-		float width = GUI.skin.verticalScrollbar.fixedWidth;
-		scrollPosition = GUI.BeginScrollView(new Rect(boxX,boxY,boxWidth,boxHeight), scrollPosition, new Rect(boxX,boxY,scrollContentSize,boxHeight*2.0f));
-		if (GUI.Button(new Rect(loadButtonX,loadButtonY,loadButtonWidth,loadButtonHeight),"Load File...")) {
-			Debug.Log("Button Press");
-/* 			string path = EditorUtility.OpenFilePanel(
-				"Overwrite with png",
-				"",
-				"png");
-			Debug.Log(path);
-			*/
-			string path = EditorUtility.OpenFilePanel(
-				"Overwrite with jpg",
-				"../Images/Maps",
-				"jpg");
-			Debug.Log(path);
-
-//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
-//			Sprite sprite = new Sprite();
-//			sprend.sprite = sprite;
-			if (path.Length != 0) {
-				float currX = sprend.transform.localScale.x / spr.texture.width;
-				float currY = sprend.transform.localScale.y / spr.texture.height;
-				WWW www = new WWW("file:///" + path);
-				www.LoadImageIntoTexture(spr.texture);
-				float scaleX = Mathf.Round(currX * spr.texture.width);
-				float scaleY = Mathf.Round(currY * spr.texture.height);
-				sprend.transform.localScale = new Vector3(scaleX, scaleY, sprend.transform.localScale.z);
-				mainCamera.orthographicSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize;
-				cameraTransform.localPosition = new Vector3(0,0,-10);
-				loadGrid(scaleX, scaleY);
-				Debug.Log(www.texture.width + "  " + www.texture.height + "    " + sprend.transform.localScale.x + "  " + sprend.transform.localScale.y);
-			}
+	public void loadNewBackgroundFile() {
+		string path = EditorUtility.OpenFilePanel(
+			"Overwrite with jpg",
+			"../Images/Maps",
+			"jpg");
+		Debug.Log(path);
+		
+		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
+		//			Sprite sprite = new Sprite();
+		//			sprend.sprite = sprite;
+		if (path.Length != 0) {
+			float currX = sprend.transform.localScale.x / spr.texture.width;
+			float currY = sprend.transform.localScale.y / spr.texture.height;
+			WWW www = new WWW("file:///" + path);
+			www.LoadImageIntoTexture(spr.texture);
+			float scaleX = Mathf.Round(currX * spr.texture.width);
+			float scaleY = Mathf.Round(currY * spr.texture.height);
+			sprend.transform.localScale = new Vector3(scaleX, scaleY, sprend.transform.localScale.z);
+			mainCamera.orthographicSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize;
+			cameraTransform.localPosition = new Vector3(0,0,-10);
+			loadGrid(scaleX, scaleY);
+			Debug.Log(www.texture.width + "  " + www.texture.height + "    " + sprend.transform.localScale.x + "  " + sprend.transform.localScale.y);
 		}
-		float textFieldHeight = 20.0f;
-		float textLabelWidth = 15.0f;
-		float textLabelX = loadButtonX;
-		float textFieldWidth = loadButtonWidth - textLabelWidth;
-		float textFieldX = textLabelX + textLabelWidth;
-		float redY = loadButtonY + loadButtonHeight + 5.0f;
-		float greenY = redY + textFieldHeight + 5.0f;
-		float blueY = greenY + textFieldHeight + 5.0f;
-		GUI.Label(new Rect(textLabelX,redY,textLabelWidth,textFieldHeight),"R");
-		GUI.Label(new Rect(textLabelX,greenY,textLabelWidth,textFieldHeight),"G");
-		GUI.Label(new Rect(textLabelX,blueY,textLabelWidth,textFieldHeight),"B");
-		bool redParsed = float.TryParse(GUI.TextField(new Rect(textFieldX,redY,textFieldWidth,textFieldHeight),(red==0.0f?"":((int)red).ToString())),out red);
-		bool greenParsed = float.TryParse(GUI.TextField(new Rect(textFieldX,greenY,textFieldWidth,textFieldHeight),(green==0.0f?"":((int)green).ToString())),out green);
-		bool blueParsed = float.TryParse(GUI.TextField(new Rect(textFieldX,blueY,textFieldWidth,textFieldHeight),(blue==0.0f?"":((int)blue).ToString())),out blue);
-		if (!redParsed) red = 0.0f;
-		if (!greenParsed) green = 0.0f;
-		if (!blueParsed) blue = 0.0f;
-		red = Mathf.Clamp(red,0.0f,255.0f);
-		green = Mathf.Clamp(green,0.0f,255.0f);
-		blue = Mathf.Clamp(blue,0.0f,255.0f);
-		float colorBoxHeight = textFieldHeight;
-		Texture2D colorTexture = new Texture2D((int)loadButtonWidth,(int)colorBoxHeight);
-		Texture2D oldTexture = GUI.skin.box.normal.background;
-		Color fillColor = new Color(red/255.0f,green/255.0f,blue/255.0f,1.0f);
-		Color[] colors = colorTexture.GetPixels();
-		for (int n=0;n<colors.Length;n++) {
-			colors[n] = fillColor;
-		}
-		colorTexture.SetPixels(colors);
-		colorTexture.Apply();
-		GUI.skin.box.normal.background = colorTexture;
-		float colorBoxY = blueY + textFieldHeight + 5.0f;
-		GUI.Box(new Rect(loadButtonX, colorBoxY, loadButtonWidth, colorBoxHeight),"");
-		GUI.skin.box.normal.background = oldTexture;
-		GUI.EndScrollView();
-
-		GUI.skin = skinCopy;
 	}
 
 

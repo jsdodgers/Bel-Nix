@@ -46,7 +46,10 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Code\Sprites.cs" />
+     <Compile Include="Assets\Code\GridManager.cs" />
+     <Compile Include="Assets\Code\MyGUI.cs" />
+     <Compile Include="Assets\Code\Tile.cs" />
+     <Compile Include="Assets\Code\TileHolder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
