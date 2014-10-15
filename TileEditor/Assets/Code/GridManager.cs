@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEditor;
+using System.IO;
 
 public class GridManager : MonoBehaviour {
 
@@ -9,7 +10,8 @@ public class GridManager : MonoBehaviour {
 	SpriteRenderer sprend;
 	Sprite spr;
 	GameObject grids;
-	ArrayList gridsArray = new ArrayList();
+//	ArrayList gridsArray = new ArrayList();
+	Tile[,] gridsArray;
 	GameObject lines;
 	ArrayList linesArray;
 	GameObject gridPrefab;
@@ -22,6 +24,17 @@ public class GridManager : MonoBehaviour {
 	bool mouseMiddleDown;
 
 	bool shiftDown;
+	bool altDown;
+	bool controlDown;
+	bool hDown;
+	bool iDown;
+
+	int gridX = 0;
+	int gridY = 0;
+
+	public bool displayH;
+	public bool displayI;
+	public int displayHTime = 0;
 
 	public float red = 0.0f;
 	public float green = 0.0f;
@@ -29,6 +42,8 @@ public class GridManager : MonoBehaviour {
 
 	public bool passable = true;
 	public bool standable = true;
+
+	public string imageFileName = "";
 	
 	// Use this for initialization
 	void Start () {
@@ -39,7 +54,7 @@ public class GridManager : MonoBehaviour {
 		sprend = (SpriteRenderer)transform.GetComponent("SpriteRenderer");
 		spr = sprend.sprite;
 		grids = GameObject.Find("Grids");
-		gridsArray = new ArrayList();
+		gridsArray = new Tile[gridX,gridY];
 		gridPrefab = (GameObject)Resources.Load("Sprite/Square_70");
 		lines = GameObject.Find("Lines");
 	//	linesArray = new ArrayList();
@@ -58,6 +73,7 @@ public class GridManager : MonoBehaviour {
 		handleKeys();
 		handleMouseMovement();
 		handleMouseSelect();
+		handleKeyActions();
 	}
 
 	void handleMouseScrollWheel() {
@@ -79,6 +95,27 @@ public class GridManager : MonoBehaviour {
 
 	void handleKeys() {
 		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+		altDown = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+		hDown = Input.GetKey(KeyCode.H);
+		iDown = Input.GetKey(KeyCode.I);
+	}
+
+	void handleKeyActions() {
+		if (shiftDown && altDown && controlDown) {
+			bool wasI = displayI;
+			displayH = hDown && !displayI;
+			displayI = iDown && !displayH;
+			if (!wasI && displayI) {
+				loadNewBackgroundFile();
+			}
+			if (displayH) {
+				displayHTime = 20;
+			}
+		}
+		if (!displayH && displayHTime>0) {
+			displayHTime--;
+		}
 	}
 
 	void handleMouseMovement() {
@@ -121,39 +158,113 @@ public class GridManager : MonoBehaviour {
 		}
 	}
 
+	public void printGrid() {
+		string str = gridX + ";" + gridY;
+	
+		foreach (Tile t in gridsArray) {
+		//	foreach (Tile t in tA) {
+				str = str + ";";
+				str = str + t.stringValue();
+		//	}
+		}
+		Debug.Log(str);
+		string path = EditorUtility.OpenFolderPanel("Select Folder","../Files/Maps/Tile Maps","");
+		int currAdd = 0;
+		string fileName = path + "/" + imageFileName + (currAdd>0?"" +currAdd:"") + ".txt";
+		while (File.Exists(fileName)) {
+			currAdd++;
+			fileName = path + "/" + imageFileName + (currAdd>0?""+currAdd:"") + ".txt";
+		}
+//		if (File.Exists(path + "/" + fileName))
+//		{
+//			Debug.Log(fileName+" already exists.");
+//			return;
+//		}
+
+		StreamWriter sr = File.CreateText(fileName);
+	//	sr.WriteLine ("This is my file.");
+	//	sr.WriteLine ("I can write ints {0} or floats {1}, and so on.",
+	//	              1, 4.2);
+		sr.WriteLine(str);
+		sr.Close();
+		//		string path = EditorUtility.OpenFilePanel(
+//			"Overwrite with jpg",
+//			"../Files/Maps/Images",
+//			"jpg");
+
+	}
+
+	public IEnumerator importGrid() {
+		string path = EditorUtility.OpenFilePanel(
+			"Overwrite with jpg",
+			"../Files/Maps/Tile Maps",
+			"txt");
+		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
+		//			Sprite sprite = new Sprite();
+		//			sprend.sprite = sprite;
+		if (path.Length != 0) {
+			WWW www = new WWW("file:///" + path);
+			yield return www;
+			string text = www.text;
+			string[] tiles = text.Split(";".ToCharArray());
+			if (int.Parse(tiles[0])==gridX && int.Parse(tiles[1])==gridY) {
+				Debug.Log("Works!");
+				for (int n=2;n<tiles.Length;n++) {
+					int x = Tile.xForTile(tiles[n]);
+					int y = Tile.yForTile(tiles[n]);
+					Tile t = gridsArray[x,y];
+					t.parseTile(tiles[n]);
+				}
+			}
+			else {
+				Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
+			}
+//			Debug.Log(text);
+		}
+	}
+
 	void clearGrid() {
 		foreach (Tile t in gridsArray) {
-			TileHolder th = t.tileGameObject.GetComponent<TileHolder>();
-			th.tile = null;
-			Destroy(t.tileGameObject);
+		//	foreach (Tile t in tA) {
+				TileHolder th = t.tileGameObject.GetComponent<TileHolder>();
+				th.tile = null;
+				Destroy(t.tileGameObject);
+		//	}
 		}
-		gridsArray = new ArrayList();
+		gridsArray = null;
 	}
 
 	void loadGrid(float x, float y) {
+		gridX = (int)x;
+		gridY = (int)y;
 		clearGrid();
 //		foreach (GameObject g in linesArray) {
 //			Destroy (g);
 //		}
+		gridsArray = new Tile[gridX,gridY];
 		linesArray = new ArrayList();
 		float minX = -x/2.0f + 0.5f;
 		float minY = y/2.0f - 0.5f;
 		float maxX = x/2.0f - 0.5f;
 		float maxY = -y/2.0f + 0.5f;
 		Debug.Log("x: " + x + ", minX: " + minX);
+		int xcur = 0;
 		for (float n=minX;n<=maxX;n++) {
+			int ycur = 0;
 			for (float m=minY;m>=maxY;m--) {
 				GameObject go = (GameObject)Instantiate(gridPrefab);
-				Tile t = new Tile(go,255.0f,255.0f,255.0f,0.4f);
+				Tile t = new Tile(go,xcur,ycur,255.0f,255.0f,255.0f,0.4f);
 				TileHolder th = go.AddComponent<TileHolder>();
 				th.tile = t;
-				gridsArray.Add(t);
+				gridsArray[xcur,ycur] = t;
 				go.transform.position = new Vector3(n,m,0);
 				go.transform.parent = grids.transform;
 		//		SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
 			//	sr.sprite.border = new Vector4(1.0f,1.0f,1.0f,1.0f);
 		//		sr.color = new Color(t.red,t.green,t.blue,t.alpha);
+				ycur++;
 			}
+			xcur++;
 		}
 		/*
 		int x1 = 1;
@@ -174,14 +285,17 @@ public class GridManager : MonoBehaviour {
 	public void loadNewBackgroundFile() {
 		string path = EditorUtility.OpenFilePanel(
 			"Overwrite with jpg",
-			"../Images/Maps",
+			"../Files/Maps/Images",
 			"jpg");
 		Debug.Log(path);
-		
 		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
 		//			Sprite sprite = new Sprite();
 		//			sprend.sprite = sprite;
 		if (path.Length != 0) {
+			string[] paths = path.Split(new char[]{'/'});
+			string path1 = paths[paths.Length-1];
+			string[] pathA = path1.Split(new char[]{'.'});
+			imageFileName = pathA[0];
 			float currX = sprend.transform.localScale.x / spr.texture.width;
 			float currY = sprend.transform.localScale.y / spr.texture.height;
 			WWW www = new WWW("file:///" + path);

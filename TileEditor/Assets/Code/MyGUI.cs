@@ -45,12 +45,16 @@ public class MyGUI : MonoBehaviour {
 			*/
 			gridManager.loadNewBackgroundFile();
 		}
+		float importButtonY = loadButtonY + loadButtonHeight + 5.0f;
+		if (GUI.Button(new Rect(loadButtonX,importButtonY,loadButtonWidth,loadButtonHeight),"Import Tile Map")) {
+			StartCoroutine(gridManager.importGrid());
+		}
 		float textFieldHeight = 20.0f;
 		float textLabelWidth = 15.0f;
 		float textLabelX = loadButtonX;
 		float textFieldWidth = loadButtonWidth - textLabelWidth;
 		float textFieldX = textLabelX + textLabelWidth;
-		float redY = loadButtonY + loadButtonHeight + 5.0f;
+		float redY = importButtonY + loadButtonHeight + 5.0f;
 		float greenY = redY + textFieldHeight + 5.0f;
 		float blueY = greenY + textFieldHeight + 5.0f;
 		float red = gridManager.red;
@@ -92,9 +96,21 @@ public class MyGUI : MonoBehaviour {
 		float passableY = standableY + checkHeight + 5.0f;
 		gridManager.standable = GUI.Toggle(new Rect(checkX,standableY,checkWidth,checkHeight),gridManager.standable,"Can Stand On");
 		gridManager.passable = GUI.Toggle(new Rect(checkX,passableY,checkWidth,checkHeight),gridManager.passable,"Can Pass Through");
-
-		GUI.EndScrollView();
 		
+		float printY = passableY + checkHeight + 15.0f;
+		if (GUI.Button(new Rect(loadButtonX,printY,loadButtonWidth,loadButtonHeight),"Save File")) {
+			gridManager.printGrid();
+		}
+		GUI.EndScrollView();
+
+		if (gridManager.displayH || gridManager.displayHTime>0) {
+			float lW = 200.0f;
+			float lH = 100.0f;
+			float lX = (Screen.width - lW)/2.0f;
+			float lY = (Screen.width - lH)/2.0f;
+			GUI.Label(new Rect(lX,lY,lW,lH),"Shift+Control+Alt+" + (gridManager.displayI?"I":"H") + " is pressed!");
+		}
+
 		GUI.skin = skinCopy;
 	}
 
