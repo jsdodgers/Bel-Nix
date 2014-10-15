@@ -28,12 +28,16 @@ public class GridManager : MonoBehaviour {
 	bool controlDown;
 	bool hDown;
 	bool iDown;
+	bool lDown;
+	bool sDown;
 
 	int gridX = 0;
 	int gridY = 0;
 
 	public bool displayH;
 	public bool displayI;
+	public bool displayS;
+	public bool displayL;
 	public int displayHTime = 0;
 
 	public float red = 0.0f;
@@ -99,15 +103,32 @@ public class GridManager : MonoBehaviour {
 		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 		hDown = Input.GetKey(KeyCode.H);
 		iDown = Input.GetKey(KeyCode.I);
+		lDown = Input.GetKey(KeyCode.L);
+		sDown = Input.GetKey(KeyCode.S);
 	}
+
 
 	void handleKeyActions() {
 		if (shiftDown && altDown && controlDown) {
 			bool wasI = displayI;
-			displayH = hDown && !displayI;
-			displayI = iDown && !displayH;
+			bool wasL = displayL;
+			bool wasS = displayS;
+			displayS = sDown && !displayH && !displayI && !displayL;
+			displayH = hDown && !displayI && !displayL && !displayS;
+			displayI = iDown && !displayH && !displayL && !displayS;
+			displayL = lDown && !displayI && !displayH && !displayS;
 			if (!wasI && displayI) {
+				if (imageFileName != null && !imageFileName.Equals("")) {
+					StartCoroutine(importGrid());
+				}
+			}
+			if (!wasL && displayL) {
 				loadNewBackgroundFile();
+			}
+			if (!wasS && displayS) {
+				if (imageFileName != null && !imageFileName.Equals("")) {
+					printGrid();
+				}
 			}
 			if (displayH) {
 				displayHTime = 20;
@@ -168,25 +189,30 @@ public class GridManager : MonoBehaviour {
 		//	}
 		}
 		Debug.Log(str);
-		string path = EditorUtility.OpenFolderPanel("Select Folder","../Files/Maps/Tile Maps","");
 		int currAdd = 0;
-		string fileName = path + "/" + imageFileName + (currAdd>0?"" +currAdd:"") + ".txt";
+		string fileDirectory = "../Files/Maps/Tile Maps";
+		string fileName = fileDirectory + "/" + imageFileName + (currAdd>0?"" +currAdd:"") + ".txt";
 		while (File.Exists(fileName)) {
 			currAdd++;
-			fileName = path + "/" + imageFileName + (currAdd>0?""+currAdd:"") + ".txt";
+			fileName = fileDirectory + "/" + imageFileName + (currAdd>0?""+currAdd:"") + ".txt";
 		}
+//		string path = EditorUtility.OpenFolderPanel("Select Folder",fileDirectory,"pppppppppp");
+		string path = EditorUtility.SaveFilePanel("Save Tile Map","../Files/Maps/Tile Maps",imageFileName + (currAdd>0?"" +currAdd:""),"txt");
+		if (path.Length>0) {
+
 //		if (File.Exists(path + "/" + fileName))
 //		{
 //			Debug.Log(fileName+" already exists.");
 //			return;
 //		}
 
-		StreamWriter sr = File.CreateText(fileName);
+			StreamWriter sr = File.CreateText(path);
 	//	sr.WriteLine ("This is my file.");
 	//	sr.WriteLine ("I can write ints {0} or floats {1}, and so on.",
 	//	              1, 4.2);
-		sr.WriteLine(str);
-		sr.Close();
+			sr.WriteLine(str);
+			sr.Close();
+		}
 		//		string path = EditorUtility.OpenFilePanel(
 //			"Overwrite with jpg",
 //			"../Files/Maps/Images",

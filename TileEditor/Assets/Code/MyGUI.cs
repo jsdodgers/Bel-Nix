@@ -45,10 +45,13 @@ public class MyGUI : MonoBehaviour {
 			*/
 			gridManager.loadNewBackgroundFile();
 		}
+		
+		GUI.enabled = gridManager.imageFileName != null && !gridManager.imageFileName.Equals("");
 		float importButtonY = loadButtonY + loadButtonHeight + 5.0f;
 		if (GUI.Button(new Rect(loadButtonX,importButtonY,loadButtonWidth,loadButtonHeight),"Import Tile Map")) {
 			StartCoroutine(gridManager.importGrid());
 		}
+		GUI.enabled = true;
 		float textFieldHeight = 20.0f;
 		float textLabelWidth = 15.0f;
 		float textLabelX = loadButtonX;
@@ -98,9 +101,11 @@ public class MyGUI : MonoBehaviour {
 		gridManager.passable = GUI.Toggle(new Rect(checkX,passableY,checkWidth,checkHeight),gridManager.passable,"Can Pass Through");
 		
 		float printY = passableY + checkHeight + 15.0f;
-		if (GUI.Button(new Rect(loadButtonX,printY,loadButtonWidth,loadButtonHeight),"Save File")) {
+		GUI.enabled = gridManager.imageFileName != null && !gridManager.imageFileName.Equals("");
+		if (GUI.Button(new Rect(loadButtonX,printY,loadButtonWidth,loadButtonHeight),"Save Tile Map")) {
 			gridManager.printGrid();
 		}
+		GUI.enabled = true;
 		GUI.EndScrollView();
 
 		if (gridManager.displayH || gridManager.displayHTime>0) {
