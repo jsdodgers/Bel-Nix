@@ -59,6 +59,116 @@ public class GraphicalUserInterface : MonoBehaviour
 		return abilityScore/2;
 	}
 
+	int raceModifications(int cRace, string modName)
+	{
+		switch(modName)
+		{
+		case "Health":
+			if(cRace == 0)
+			{
+				return (-1);
+			}
+			else if(cRace == 2)
+			{
+				return 1;
+			}
+			break;
+		case "Composure":
+			if(cRace == 0)
+			{
+				return 1;
+			}
+			else if(cRace == 2)
+			{
+				return (-1);
+			}
+			break;
+		default:
+			break;
+		}
+
+		return 0;
+	}
+
+	int classModifications(int cClass, string modName)
+	{
+		switch(modName)
+		{
+		case "Health":
+			if(cClass == 0)
+			{
+				return 2;
+			}
+			else if(cClass == 2)
+			{
+				return 1;
+			}
+			break;
+		case "Composure":
+			if(cClass == 3)
+			{
+				return 2;
+			}
+			else if(cClass == 2)
+			{
+				return 1;
+			}
+			break;
+		case "Athletics":
+			if(cClass == 0)
+			{
+				return 1;
+			}
+			break;
+		case "Melee":
+			if(cClass == 2)
+			{
+				return 1;
+			}
+			break;
+		case "Ranged":
+			if(cClass == 0)
+			{
+				return 1;
+			}
+			break;
+		case "Stealth":
+			if(cClass == 2)
+			{
+				return 1;
+			}
+			break;
+		case "Mechanical":
+			if(cClass == 1)
+			{
+				return 2;
+			}
+			break;
+		case "Medicinal":
+			if(cClass == 3)
+			{
+				return 1;
+			}
+			break;
+		case "Historical":
+			if(cClass == 3)
+			{
+				return 1;
+			}
+			break;
+		case "Political":
+			if(cClass == 4)
+			{
+				return 2;
+			}
+			break;
+		default:
+			break;
+		}
+
+		return 0;
+	}
+
 	int setSkillDecreaseButton(int skill, int boxHeight)
 	{
 		if(skill == skillLowerBound)
@@ -363,7 +473,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				}
 				GUI.enabled = true;
 				GUI.Box(new Rect(510, calculateBoxHeight(4), 125, 20), "Health:");
-				GUI.Box(new Rect(510, calculateBoxHeight(5), 125, 20), (sturdyScore + perceptionScore).ToString());
+				GUI.Box(new Rect(510, calculateBoxHeight(5), 125, 20), (sturdyScore + perceptionScore + classModifications(classSelect, "Health") + raceModifications(raceSelect, "Health")).ToString());
 
 				GUI.Box(new Rect(135, calculateBoxHeight(6), 125, 20), "Technique:");
 				if(techniqueScore == scoreLowerBound)
@@ -446,7 +556,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.enabled = true;
 
 				GUI.Box(new Rect(510, calculateBoxHeight(6), 125, 20), "Composure:");
-				GUI.Box(new Rect(510, calculateBoxHeight(7), 125, 20), (techniqueScore + wellVersedScore).ToString());
+				GUI.Box(new Rect(510, calculateBoxHeight(7), 125, 20), (techniqueScore + wellVersedScore + classModifications(classSelect, "Composure") + raceModifications(raceSelect, "Composure")).ToString());
 
 				GUI.Box(new Rect(10, calculateBoxHeight(9), 250, 20), "Combat Scores:");
 				GUI.Box(new Rect(135, calculateBoxHeight(10), 125, 20), "Initiatve:");
@@ -481,58 +591,58 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(385, calculateBoxHeight(4), 50, 20), "Mod:");
 				GUI.Box(new Rect(10, calculateBoxHeight(5), 125, 40), "Physique:");
 				GUI.Box(new Rect(135, calculateBoxHeight(5), 125, 20), "Athletics:");
-				GUI.Box(new Rect(460, calculateBoxHeight(5), 50, 20), (athleticsSkill + calculateMod(sturdyScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(5), 50, 20), athleticsSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(5), 50, 20), (athleticsSkill + calculateMod(sturdyScore) + classModifications(classSelect, "Athletics")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(5), 50, 20), (athleticsSkill + classModifications(classSelect, "Athletics")).ToString());
 				GUI.Box(new Rect(385, calculateBoxHeight(5), 50, 40), calculateMod(sturdyScore).ToString());
 				GUI.Box(new Rect(360, calculateBoxHeight(5), 25, 40), "+");
 				GUI.Box(new Rect(435, calculateBoxHeight(5), 25, 40), "=");
 				athleticsSkill = setSkillDecreaseButton(athleticsSkill, 5);
 				athleticsSkill = setSkillIncreaseButton(athleticsSkill, 5);
 				GUI.Box(new Rect(135, calculateBoxHeight(6), 125, 20), "Melee:");
-				GUI.Box(new Rect(460, calculateBoxHeight(6), 50, 20), (meleeSkill + calculateMod(sturdyScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(6), 50, 20), meleeSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(6), 50, 20), (meleeSkill + calculateMod(sturdyScore) + classModifications(classSelect, "Melee")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(6), 50, 20), (meleeSkill + classModifications(classSelect, "Melee")).ToString());
 				meleeSkill = setSkillDecreaseButton(meleeSkill, 6);
 				meleeSkill = setSkillIncreaseButton(meleeSkill, 6);
 				GUI.Box(new Rect(10, calculateBoxHeight(7), 125, 40), "Prowess:");
 				GUI.Box(new Rect(135, calculateBoxHeight(7), 125, 20), "Ranged:");
-				GUI.Box(new Rect(460, calculateBoxHeight(7), 50, 20), (rangedSkill + calculateMod(perceptionScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(7), 50, 20), rangedSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(7), 50, 20), (rangedSkill + calculateMod(perceptionScore) + classModifications(classSelect, "Ranged")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(7), 50, 20), (rangedSkill + classModifications(classSelect, "Ranged")).ToString());
 				GUI.Box(new Rect(385, calculateBoxHeight(7), 50, 40), calculateMod(perceptionScore).ToString());
 				GUI.Box(new Rect(360, calculateBoxHeight(7), 25, 40), "+");
 				GUI.Box(new Rect(435, calculateBoxHeight(7), 25, 40), "=");
 				rangedSkill = setSkillDecreaseButton(rangedSkill, 7);
 				rangedSkill = setSkillIncreaseButton(rangedSkill, 7);
 				GUI.Box(new Rect(135, calculateBoxHeight(8), 125, 20), "Stealth:");
-				GUI.Box(new Rect(460, calculateBoxHeight(8), 50, 20), (stealthSkill + calculateMod(perceptionScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(8), 50, 20), stealthSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(8), 50, 20), (stealthSkill + calculateMod(perceptionScore) + classModifications(classSelect, "Stealth")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(8), 50, 20), (stealthSkill + classModifications(classSelect, "Stealth")).ToString());
 				stealthSkill = setSkillDecreaseButton(stealthSkill, 8);
 				stealthSkill = setSkillIncreaseButton(stealthSkill, 8);
 				GUI.Box(new Rect(10, calculateBoxHeight(9), 125, 40), "Mastery:");
 				GUI.Box(new Rect(135, calculateBoxHeight(9), 125, 20), "Mechanical:");
-				GUI.Box(new Rect(460, calculateBoxHeight(9), 50, 20), (mechanicalSkill + calculateMod(techniqueScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(9), 50, 20), mechanicalSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(9), 50, 20), (mechanicalSkill + calculateMod(techniqueScore) + classModifications(classSelect, "Mechanical")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(9), 50, 20), (mechanicalSkill + classModifications(classSelect, "Mechanical")).ToString());
 				GUI.Box(new Rect(385, calculateBoxHeight(9), 50, 40), calculateMod(techniqueScore).ToString());
 				GUI.Box(new Rect(360, calculateBoxHeight(9), 25, 40), "+");
 				GUI.Box(new Rect(435, calculateBoxHeight(9), 25, 40), "=");
 				mechanicalSkill = setSkillDecreaseButton(mechanicalSkill, 9);
 				mechanicalSkill = setSkillIncreaseButton(mechanicalSkill, 9);
 				GUI.Box(new Rect(135, calculateBoxHeight(10), 125, 20), "Medicinal:");
-				GUI.Box(new Rect(460, calculateBoxHeight(10), 50, 20), (medicinalSkill + calculateMod(techniqueScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(10), 50, 20), medicinalSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(10), 50, 20), (medicinalSkill + calculateMod(techniqueScore) + classModifications(classSelect, "Medicinal")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(10), 50, 20), (medicinalSkill + classModifications(classSelect, "Medicinal")).ToString());
 				medicinalSkill = setSkillDecreaseButton(medicinalSkill, 10);
 				medicinalSkill = setSkillIncreaseButton(medicinalSkill, 10);
 				GUI.Box(new Rect(10, calculateBoxHeight(11), 125, 40), "Knowledge:");
 				GUI.Box(new Rect(135, calculateBoxHeight(11), 125, 20), "Historical:");
-				GUI.Box(new Rect(460, calculateBoxHeight(11), 50, 20), (historicalSkill + calculateMod(wellVersedScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(11), 50, 20), historicalSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(11), 50, 20), (historicalSkill + calculateMod(wellVersedScore) + classModifications(classSelect, "Historical")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(11), 50, 20), (historicalSkill + classModifications(classSelect, "Historical")).ToString());
 				GUI.Box(new Rect(385, calculateBoxHeight(11), 50, 40), calculateMod(wellVersedScore).ToString());
 				GUI.Box(new Rect(360, calculateBoxHeight(11), 25, 40), "+");
 				GUI.Box(new Rect(435, calculateBoxHeight(11), 25, 40), "=");
 				historicalSkill = setSkillDecreaseButton(historicalSkill, 11);
 				historicalSkill = setSkillIncreaseButton(historicalSkill, 11);
 				GUI.Box(new Rect(135, calculateBoxHeight(12), 125, 20), "Political:");
-				GUI.Box(new Rect(460, calculateBoxHeight(12), 50, 20), (politicalSkill + calculateMod(wellVersedScore)).ToString());
-				GUI.Box(new Rect(285, calculateBoxHeight(12), 50, 20), politicalSkill.ToString());
+				GUI.Box(new Rect(460, calculateBoxHeight(12), 50, 20), (politicalSkill + calculateMod(wellVersedScore) + classModifications(classSelect, "Political")).ToString());
+				GUI.Box(new Rect(285, calculateBoxHeight(12), 50, 20), (politicalSkill + classModifications(classSelect, "Political")).ToString());
 				politicalSkill = setSkillDecreaseButton(politicalSkill, 12);
 				politicalSkill = setSkillIncreaseButton(politicalSkill, 12);
 
