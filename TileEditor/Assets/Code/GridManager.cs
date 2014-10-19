@@ -44,8 +44,18 @@ public class GridManager : MonoBehaviour {
 	public float green = 0.0f;
 	public float blue = 0.0f;
 
-	public bool passable = true;
+//	public bool passable = true;
 	public bool standable = true;
+	
+	
+	public int passableRight;
+	public int passableLeft;
+	public int passableDown;
+	public int passableUp;
+	
+	public int trigger;
+	public int action; 
+
 
 	public string imageFileName = "";
 	
@@ -162,8 +172,14 @@ public class GridManager : MonoBehaviour {
 				if (!shiftDown) {
 					Tile t = go.GetComponent<TileHolder>().tile;
 					t.setColor(red, green, blue, 0.4f);
-					t.passable = passable;
+//					t.passable = passable;
 					t.standable = standable;
+					t.passableUp = passableUp;
+					t.passableRight = passableRight;
+					t.passableDown = passableDown;
+					t.passableLeft = passableLeft;
+					t.trigger = trigger;
+					t.action = action;
 		//		SpriteRenderer sR = go.GetComponent<SpriteRenderer>();
 		//		sR.color = new Color(red/255.0f,green/255.0f,blue/255.0f,0.4f);
 				}
@@ -172,15 +188,21 @@ public class GridManager : MonoBehaviour {
 					red = t.red;
 					green = t.green;
 					blue = t.blue;
-					passable = t.passable;
+//					passable = t.passable;
 					standable = t.standable;
+					passableUp = t.passableUp;
+					passableRight = t.passableRight;
+					passableDown = t.passableDown;
+					passableLeft = t.passableLeft;
+					trigger = t.trigger;
+					action = t.action;
 				}
 			}
 		}
 	}
 
 	public void printGrid() {
-		string str = gridX + ";" + gridY;
+		string str = imageFileName + ";" + gridX + ";" + gridY;
 	
 		foreach (Tile t in gridsArray) {
 		//	foreach (Tile t in tA) {
@@ -233,19 +255,35 @@ public class GridManager : MonoBehaviour {
 			yield return www;
 			string text = www.text;
 			string[] tiles = text.Split(";".ToCharArray());
-			if (int.Parse(tiles[0])==gridX && int.Parse(tiles[1])==gridY) {
+			if (int.Parse(tiles[1])==gridX && int.Parse(tiles[2])==gridY) {
 				Debug.Log("Works!");
-				for (int n=2;n<tiles.Length;n++) {
-					int x = Tile.xForTile(tiles[n]);
-					int y = Tile.yForTile(tiles[n]);
-					Tile t = gridsArray[x,y];
-					t.parseTile(tiles[n]);
-				}
+				parseTiles(tiles);
 			}
 			else {
-				Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
+				Debug.Log(Application.absoluteURL);
+			
+				string path1 = "../Files/Maps/Images/" + tiles[0] + ".jpg";
+				string path2 = Path.GetFullPath(path1);
+				Debug.Log(path2);
+				if (File.Exists(path2)) {
+					Debug.Log("file Exists!");
+					loadImage(path2);
+					parseTiles(tiles);
+				}
+				else {
+					Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
+				}
 			}
 //			Debug.Log(text);
+		}
+	}
+
+	void parseTiles(string[] tiles) {
+		for (int n=3;n<tiles.Length;n++) {
+			int x = Tile.xForTile(tiles[n]);
+			int y = Tile.yForTile(tiles[n]);
+			Tile t = gridsArray[x,y];
+			t.parseTile(tiles[n]);
 		}
 	}
 
@@ -317,6 +355,11 @@ public class GridManager : MonoBehaviour {
 		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
 		//			Sprite sprite = new Sprite();
 		//			sprend.sprite = sprite;
+		loadImage(path);
+	}
+
+	public void loadImage(string path) {
+		int max = 0;
 		if (path.Length != 0) {
 			string[] paths = path.Split(new char[]{'/'});
 			string path1 = paths[paths.Length-1];
@@ -324,7 +367,12 @@ public class GridManager : MonoBehaviour {
 			imageFileName = pathA[0];
 			float currX = sprend.transform.localScale.x / spr.texture.width;
 			float currY = sprend.transform.localScale.y / spr.texture.height;
-			WWW www = new WWW("file:///" + path);
+		//	Debug.Log(Application.dataPath);
+			WWW www = new WWW("file://" + path);
+			while (!www.isDone && max < 1000000000) {
+				max++;
+			}
+//			yield return www;
 			www.LoadImageIntoTexture(spr.texture);
 			float scaleX = Mathf.Round(currX * spr.texture.width);
 			float scaleY = Mathf.Round(currY * spr.texture.height);
