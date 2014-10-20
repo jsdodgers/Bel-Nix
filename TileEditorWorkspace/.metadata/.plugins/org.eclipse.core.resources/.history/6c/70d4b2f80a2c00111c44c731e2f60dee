@@ -1,0 +1,50 @@
+
+public class Queue <E>
+{
+	private static class Node <E> {
+		public E data;
+		public Node<E> next;
+		
+		public Node(E thisData, Node<E> nextNode) {
+			data = thisData;
+			next = nextNode;
+		}
+	}
+	
+	private Node<E> head;
+	private Node<E> tail;
+	private int count;
+	
+	public Queue() {
+		head = null;
+		tail = null;
+		count = 0;
+	}
+	
+	
+	public void enqueue (E newNode) {
+		Node<E> node = new Node(newNode, null);
+		if (isEmpty()) {
+			head = node;
+			tail = node;
+		}
+		else {
+			tail.next = node;
+			tail = node;
+		}
+	}
+	
+	public void dequeue () {
+		Node<E> nextHead = head.next;
+		head.next = null;
+		head = nextHead;
+	}
+	
+	public E front () {
+		return head.data;
+	}
+	
+	public boolean isEmpty() {
+		return count ==0;
+	}
+}

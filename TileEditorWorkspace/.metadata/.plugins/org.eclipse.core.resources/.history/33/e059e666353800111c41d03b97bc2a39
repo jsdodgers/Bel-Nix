@@ -1,0 +1,22 @@
+import java.util.ArrayList;
+import java.util.Random;
+
+
+public class Rule implements Generable
+{
+	private String variable;
+	private ArrayList<RightHandSide> choices;
+	
+	public Rule (String var, ArrayList<RightHandSide> choice) {
+		variable = var;
+		choices = choice;
+	}
+	
+	private String getVariable() {
+		return variable;
+	}
+	
+	public String generate (Grammar g, Random r) {
+		return null;
+	}
+}

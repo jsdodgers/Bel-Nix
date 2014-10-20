@@ -1,0 +1,37 @@
+import javax.swing.JFrame;
+
+
+
+
+
+public class HelloPrinter
+{
+	public static void main(String[] args)
+	{
+		JFrame frame = new JFrame();
+		frame.setSize(300, 400);
+		frame.setTitle("An Empty Frame");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		String string2 = "k";
+
+		frame.setVisible(true);
+		for (int n=0;n<10;n++) {
+			RectangleComponent component = new RectangleComponent(string2);
+			frame.add(component);
+			string2 = string2+"k";
+			//pause(40);
+		}
+	//	frame.setVisible(true);
+	}
+
+	private static void pause(long millisec)
+	{
+		long startTime = System.currentTimeMillis();
+		long endTime;
+		do
+		{
+			endTime = System.currentTimeMillis();
+		} while (endTime - startTime < millisec);
+	}
+}
+

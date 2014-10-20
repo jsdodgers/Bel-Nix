@@ -1,0 +1,109 @@
+// MusicManager.java
+//
+// ICS 21 Lab Assignment #5 - Completed
+//
+// Written by Norman Jacobson, December 2006
+// Minor modifications for ICS 21 Fall 2009 by Norman Jacobson, September 2009
+
+
+import java.util.*;
+
+
+// Manage the making of the index and category counts
+class MusicManager
+{
+	// Music and index file names
+	private static final String MUSIC_FILE_NAME = "music.txt";
+	private static final String INDEX_FILE_NAME = "index.txt";
+	
+
+	public static final int MEDIA_CODE_POSITION = 2;
+
+	// Music and index files
+	private MusicFile musicToSort;
+	private IndexFile indexedMusicList;
+
+	// The data structure used to sort the music items
+	private MusicList itemList;
+
+
+	// Constructs the files and music list
+	public MusicManager()
+	{
+		musicToSort = new MusicFile();
+		indexedMusicList = new IndexFile();
+		itemList = new MusicList();
+		// *** REPLACE THIS COMMENT WITH YOUR CODE ***
+	}
+
+	// Prepares an index file from an incoming list of music items and
+	// displays to the screen the media category counts and
+	// a total count of items items processed.
+	public void makeIndexAndDisplayCounts()
+	{
+		makeMusicIndex();
+		writeMusicIndex();
+		displayCounts();
+		// *** REPLACE THIS COMMENT WITH YOUR CODE ***
+	}
+
+
+
+	// Open the file
+	// While there are more lines...
+	//	read in an item (a line of the file)
+	//	based on the MEDIA_CODE_POSITION of the line,
+	//	create a new music item of the correct type,
+	//	and add it into the itemList
+	// Close file (when no more lines)
+	private void makeMusicIndex()
+	{
+		musicToSort.open(MUSIC_FILE_NAME);
+		while (musicToSort.hasMoreItems()) {
+			ArrayList<String> array1 = musicToSort.readItem();
+			if (array1.get(MEDIA_CODE_POSITION).equals("P")) {
+				itemList.addItem(new Paper(array1));
+			}
+			else if (array1.get(MEDIA_CODE_POSITION).equals("W")) {
+				itemList.addItem(new WaxCylinder(array1));
+			}
+			else if (array1.get(MEDIA_CODE_POSITION).equals("V")) {
+				itemList.addItem(new VinylRecord(array1));
+			}
+			else if (array1.get(MEDIA_CODE_POSITION).equals("C")) {
+				itemList.addItem(new CompactMedia(array1));
+			}
+
+
+		}
+		musicToSort.close();
+		// *** REPLACE THIS COMMENT WITH YOUR CODE ***
+	}
+
+
+	// Open the indexed music file;
+	// write out the sorted music list to the file;
+	// close the file
+	private void writeMusicIndex()
+	{
+		indexedMusicList.open(INDEX_FILE_NAME);
+
+		for (int n=0;n<itemList.getBuckets().size();n++) {
+			for (int m=0;m<itemList.getBuckets().get(n).getItems().size();m++) {
+				indexedMusicList.writeItem(itemList.getBuckets().get(n).getItems().get(m));
+
+			}
+		}
+
+		
+		indexedMusicList.close();
+		// *** REPLACE THIS COMMENT WITH YOUR CODE ***
+	}
+
+
+	// Display the counts
+	private void displayCounts()
+	{
+		// *** REPLACE THIS COMMENT WITH YOUR CODE ***
+	}
+}

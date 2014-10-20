@@ -8,7 +8,7 @@ namespace CharacterInfo
 		public CharacterName(string firstName, string lastName) {FIRST_NAME = firstName; LAST_NAME = lastName;}
 	}
 	public enum 	CharacterSex {MALE, FEMALE, OTHER}
-	public enum 	CharacterBackground {FALLEN_NOBLE, WHITE_GEM, IMMIGRANT, COMMONER, SERVANT, UNKNOWN}
+
 	public struct 	CharacterHeight 
 	{ 
 		public int feet, inches;

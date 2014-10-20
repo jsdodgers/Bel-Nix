@@ -1,0 +1,54 @@
+
+public class Customer
+{
+	private int line;
+	private int waitTime;
+	private boolean reachedWindow;
+	private boolean finishedAtWindow;
+	private int startTime;
+	
+	
+	public Customer (int time) {
+		line = 0;
+		waitTime = 0;
+		reachedWindow = false;
+		finishedAtWindow = false;
+		startTime = time;
+	}
+	
+	public int getLine() {
+		return line;
+	}
+	
+	public void setLine(int lineNum) {
+		line = lineNum;
+	}
+	
+	public int getWaitTime() {
+		return waitTime;
+	}
+	
+	public void waitOneSec() {
+		waitTime++;
+	}
+	
+	public boolean hasReachedWindow() {
+		return reachedWindow;
+	}
+	
+	public boolean hasFinishedAtWindow() {
+		return finishedAtWindow;
+	}
+	
+	public void setReachedWindow() {
+		reachedWindow = true;
+	}
+	
+	public void setFinishedAtWindow() {
+		finishedAtWindow = true;
+	}
+	
+	public int getStartTime() {
+		return startTime;
+	}
+}

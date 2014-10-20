@@ -1,0 +1,92 @@
+import java.util.*;
+
+
+public class IEEEXtreme2013 {
+
+	public void acadox () {
+		Scanner s = new Scanner(System.in);
+		while (s.hasNextLine()) {
+			String s2 = s.nextLine();
+			if (!parseLine(s2)) {
+				System.out.println("ERROR");
+			}
+		}
+	}
+	
+	public boolean parseLine(String s) {
+		Scanner s2 = new Scanner(s);
+		String st1;
+		String st2;
+		String st3;
+		if (s2.hasNext()) st1 = s2.next();
+		else return false;
+		if (s2.hasNext()) st2 = s2.next();
+		else return false;
+		if (s2.hasNext()) st3 = s2.next();
+		else return false;
+		if (s2.hasNext()) return false;
+		if (!isHex(4,st1)) return false;
+		if (!isHex(4,st2)) return false;
+		if (!isOp(st3)) return false;
+		doCalculation(st3.charAt(0),st1,st2);
+		return true;
+	}
+	
+	public void doCalculation(char op, String first, String second) {
+		if (op=='+') {
+			int one = hexToInt(first);
+			int two = hexToInt(second);
+			System.out.println(one);
+			System.out.println(two);
+			String ans = intToHex(one+two);
+			System.out.println(ans);
+		}
+	}
+	
+	public boolean isHex(int length, String str) {
+		if (str.length() <=0 || str.length() > length) return false;
+		for (int n=0;n<str.length();n++) {
+			int curr = (int)str.charAt(n);
+			if (curr >=(int)'0' && curr <= (int)'9') continue;
+			if (curr >=(int)'a' && curr <= (int)'f') continue;
+			if (curr >=(int)'A' && curr <= (int)'F') continue;
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean isOp(String str) {
+		if (str.length()!=1) return false;
+		return (str.charAt(0)=='+' || str.charAt(0)=='-' || str.charAt(0)=='&' || str.charAt(0)=='|' || str.charAt(0)=='~' || str.charAt(0)=='X');
+	}
+	
+	
+	public int hexToInt(String hex) {
+		int hexInt = 0;
+		for (int n=0;n<hex.length();n++) {
+			hexInt*=16;
+			hexInt+=hexCharToInt(hex.charAt(n));
+		}
+		return hexInt;
+	}
+	
+	public int hexCharToInt(char hex) {
+		char[] hex1 = new char[]{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','a','b','c','d','e','f'};
+		for (int n=0;n<hex1.length;n++) {
+			if (hex1[n]==hex) {
+				if (n>15) return n-6;
+				else return n;
+			}
+		}
+		return -1;		
+	}
+	
+	public String intToHex(int num) {
+		if (num < 0) return "0000";
+		String str = Integer.toHexString(num);
+		if (str.length() > 4) return "FFFF";
+		while (str.length()<4) str = "0".concat(str);
+		return str;
+	}
+	
+}

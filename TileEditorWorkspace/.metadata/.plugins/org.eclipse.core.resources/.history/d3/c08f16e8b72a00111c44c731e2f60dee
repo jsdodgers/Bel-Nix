@@ -1,0 +1,8 @@
+
+public class Facile
+{
+	public static void main(String[] args) {
+		Interpreter interpreter = new Interpreter(args);
+		interpreter.go();
+	}
+}
