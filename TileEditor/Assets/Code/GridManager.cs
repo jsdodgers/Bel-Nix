@@ -16,6 +16,7 @@ public class GridManager : MonoBehaviour {
 	ArrayList linesArray;
 	GameObject gridPrefab;
 	GameObject mouseOver;
+	GameObject mouseOver2;
 
 	float cameraOriginalSize;
 	public float boxWidthPerc = .2f;
@@ -31,13 +32,17 @@ public class GridManager : MonoBehaviour {
 	bool iDown;
 	bool lDown;
 	bool sDown;
+	bool spaceDown;
+	bool escapeDown;
 
 	bool shiftDraggin = false;
 	bool middleDraggin = false;
 	bool normalDraggin = false;
 	bool rightDraggin = false;
 	bool wasShiftDraggin = false;
+	bool shiftDragginCancelled = false;
 	Vector2 startSquare;
+	Vector2 lastPos;
 	Vector3 startSquareActual;
 
 	int gridX = 0;
@@ -112,8 +117,13 @@ public class GridManager : MonoBehaviour {
 
 	void handleMouseClicks() {
 		wasShiftDraggin = shiftDraggin;
+		if (escapeDown) {
+			shiftDraggin = false;
+			shiftDragginCancelled = true;
+		}
 		mouseLeftDown = Input.GetMouseButton(0);
-		if (!normalDraggin && !middleDraggin && !rightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (shiftDown && Input.GetMouseButtonDown(0)));
+		if (Input.GetMouseButtonUp(0)) shiftDragginCancelled = false;
+		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDragginCancelled) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (shiftDown && Input.GetMouseButtonDown(0)));
 		if (!shiftDraggin && !middleDraggin && !rightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!shiftDown && Input.GetMouseButtonDown(0)));
 		mouseRightDown = Input.GetMouseButton(1);
 		if (!shiftDraggin && !middleDraggin && !normalDraggin) rightDraggin = (rightDraggin && mouseRightDown) || Input.GetMouseButtonDown(1);
@@ -129,6 +139,8 @@ public class GridManager : MonoBehaviour {
 		iDown = Input.GetKey(KeyCode.I);
 		lDown = Input.GetKey(KeyCode.L);
 		sDown = Input.GetKey(KeyCode.S);
+		escapeDown = Input.GetKey(KeyCode.Escape);
+		spaceDown = Input.GetKey(KeyCode.Space);
 	}
 
 
@@ -196,14 +208,46 @@ public class GridManager : MonoBehaviour {
 			//	startSquareActual = startSquare;
 				mouseOver = (GameObject)Instantiate(gridPrefab);
 				SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
-				sr.color = new Color (1.0f,1.0f,1.0f,0.4f);
-				sr.sortingOrder = 1;
+				mouseOver2 = (GameObject)Instantiate(gridPrefab);
+				SpriteRenderer sr2 = mouseOver2.GetComponent<SpriteRenderer>();
+				sr.color = new Color(1.0f,1.0f,1.0f,0.4f);
+				sr.sortingOrder = 2;
+//				sr2.color = new Color (1.0f,1.0f,1.0f,0.5f);
+				sr2.color = new Color(red, green, blue, 0.4f);
+				sr2.sortingOrder = 1;
 			}
+			else if (spaceDown) {
+				Vector3 v4 = startSquareActual;
+				v4.x += (posActual.x - lastPos.x);
+				v4.y += (posActual.y - lastPos.y);
+				Vector3 posActual4 = new Vector3(v4.x,v4.y,v4.z);
+				v4.x += gridX/2.0f;
+				v4.y += gridY/2.0f;
+				v4.y = gridY - v4.y;
+				v4.x = Mathf.Floor(v4.x);
+				v4.y = Mathf.Floor(v4.y);
+				startSquareActual = posActual4;
+				startSquare = new Vector2(v4.x,v4.y);
+			}
+
+			lastPos = posActual;
 //			posActual = v3;
 			Vector2 min = new Vector2(Mathf.Min(posActual.x,startSquareActual.x),Mathf.Min(posActual.y,startSquareActual.y));
 			Vector2 max = new Vector2(Mathf.Max(posActual.x,startSquareActual.x),Mathf.Max(posActual.y,startSquareActual.y));
+	//		Vector2 min2 = new Vector2(Mathf.Min(Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) - (((int)gridX)%2==1 ? 0.5f : 0.0f),Mathf.Min(Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) - (((int)gridY)%2==1 ? 0.5f : 0.0f));
+	//		Vector2 max2 = new Vector2(Mathf.Max (Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) + (((int)gridX)%2==1 ? 0.5f : 1.0f) ,Mathf.Max (Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) + (((int)gridY)%2==1 ? 0.5f : 1.0f));
+			Vector2 min2 = new Vector2(Mathf.Min(gridX, Mathf.Max(0.0f, Mathf.Min(v3.x, startSquare.x))) - gridX/2.0f, gridY/2.0f - Mathf.Min(gridY, Mathf.Max(0.0f, Mathf.Min(v3.y, startSquare.y))));
+			Vector2 max2 = new Vector2(Mathf.Max(0.0f, Mathf.Min(gridX-1.0f,Mathf.Max(v3.x, startSquare.x)) + 1.0f) - gridX/2.0f, gridY/2.0f - Mathf.Max(0.0f, 1.0f + Mathf.Min(gridY-1.0f, Mathf.Max(v3.y, startSquare.y))));
 			mouseOver.transform.localScale = new Vector3(max.x - min.x,max.y - min.y, 1.0f);
 			mouseOver.transform.position = new Vector3((max.x + min.x)/2.0f,(max.y + min.y)/2.0f, 2.0f);
+			mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
+			mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
+		}
+		else if (shiftDragginCancelled) {
+			Destroy(mouseOver);
+			mouseOver = null;
+			Destroy(mouseOver2);
+			mouseOver2 = null;
 		}
 		else if (wasShiftDraggin) {
 			Vector3 v3 = Input.mousePosition;
@@ -220,6 +264,8 @@ public class GridManager : MonoBehaviour {
 			Vector2 max = new Vector2(Mathf.Max(v3.x,startSquare.x),Mathf.Max(v3.y,startSquare.y));
 			Destroy(mouseOver);
 			mouseOver = null;
+			Destroy(mouseOver2);
+			mouseOver2 = null;
 			for (int n = (int)min.x; n <= (int)max.x;n++) {
 				if (n >= 0 && n < gridX) {
 					for (int m = (int)min.y; m <= (int)max.y; m++) {
