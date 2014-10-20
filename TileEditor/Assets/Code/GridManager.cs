@@ -230,6 +230,7 @@ public class GridManager : MonoBehaviour {
 				startSquare = new Vector2(v4.x,v4.y);
 			}
 
+
 			lastPos = posActual;
 //			posActual = v3;
 			Vector2 min = new Vector2(Mathf.Min(posActual.x,startSquareActual.x),Mathf.Min(posActual.y,startSquareActual.y));
