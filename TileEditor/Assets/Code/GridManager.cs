@@ -15,6 +15,7 @@ public class GridManager : MonoBehaviour {
 	GameObject lines;
 	ArrayList linesArray;
 	GameObject gridPrefab;
+	GameObject mouseOver;
 
 	float cameraOriginalSize;
 	public float boxWidthPerc = .2f;
@@ -30,6 +31,14 @@ public class GridManager : MonoBehaviour {
 	bool iDown;
 	bool lDown;
 	bool sDown;
+
+	bool shiftDraggin = false;
+	bool middleDraggin = false;
+	bool normalDraggin = false;
+	bool rightDraggin = false;
+	bool wasShiftDraggin = false;
+	Vector2 startSquare;
+	Vector3 startSquareActual;
 
 	int gridX = 0;
 	int gridY = 0;
@@ -83,8 +92,8 @@ public class GridManager : MonoBehaviour {
 
 	void handleMouseInput() {
 		handleMouseScrollWheel();
-		handleMouseClicks();
 		handleKeys();
+		handleMouseClicks();
 		handleMouseMovement();
 		handleMouseSelect();
 		handleKeyActions();
@@ -102,9 +111,14 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void handleMouseClicks() {
+		wasShiftDraggin = shiftDraggin;
 		mouseLeftDown = Input.GetMouseButton(0);
+		if (!normalDraggin && !middleDraggin && !rightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (shiftDown && Input.GetMouseButtonDown(0)));
+		if (!shiftDraggin && !middleDraggin && !rightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!shiftDown && Input.GetMouseButtonDown(0)));
 		mouseRightDown = Input.GetMouseButton(1);
+		if (!shiftDraggin && !middleDraggin && !normalDraggin) rightDraggin = (rightDraggin && mouseRightDown) || Input.GetMouseButtonDown(1);
 		mouseMiddleDown = Input.GetMouseButton(2);
+		if (!shiftDraggin && !normalDraggin && !rightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || Input.GetMouseButtonDown(2);
 	}
 
 	void handleKeys() {
@@ -155,7 +169,7 @@ public class GridManager : MonoBehaviour {
 		float mouseX = Input.GetAxis("Mouse X");
 		float mouseY = Input.GetAxis("Mouse Y");
 		mouseFactor = 18.0f;
-		if ((mouseRightDown || mouseMiddleDown)  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (middleDraggin  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			Vector3 pos = mainCamera.WorldToScreenPoint(cameraTransform.position);
 			pos.x -= mouseX * mouseFactor;
 			pos.y -= mouseY * mouseFactor;
@@ -165,25 +179,69 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void handleMouseSelect() {
-		if (mouseLeftDown && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (shiftDraggin && (wasShiftDraggin || Input.mousePosition.x < Screen.width*(1-boxWidthPerc))) {
+			Vector3 v3 = Input.mousePosition;
+			v3.z = 10.0f;
+			v3 = mainCamera.ScreenToWorldPoint(v3);
+			Vector3 posActual = new Vector3(v3.x,v3.y,v3.z);
+			v3.x += gridX/2.0f;
+			v3.y += gridY/2.0f;
+			v3.y = gridY - v3.y;
+			v3.x = Mathf.Floor(v3.x);
+			v3.y = Mathf.Floor(v3.y);
+			Debug.Log(v3);
+			if (!wasShiftDraggin) {
+				startSquareActual = posActual;
+				startSquare = new Vector2(v3.x,v3.y);
+			//	startSquareActual = startSquare;
+				mouseOver = (GameObject)Instantiate(gridPrefab);
+				SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
+				sr.color = new Color (1.0f,1.0f,1.0f,0.4f);
+				sr.sortingOrder = 1;
+			}
+//			posActual = v3;
+			Vector2 min = new Vector2(Mathf.Min(posActual.x,startSquareActual.x),Mathf.Min(posActual.y,startSquareActual.y));
+			Vector2 max = new Vector2(Mathf.Max(posActual.x,startSquareActual.x),Mathf.Max(posActual.y,startSquareActual.y));
+			mouseOver.transform.localScale = new Vector3(max.x - min.x,max.y - min.y, 1.0f);
+			mouseOver.transform.position = new Vector3((max.x + min.x)/2.0f,(max.y + min.y)/2.0f, 2.0f);
+		}
+		else if (wasShiftDraggin) {
+			Vector3 v3 = Input.mousePosition;
+			v3.z = 10.0f;
+			v3 = mainCamera.ScreenToWorldPoint(v3);
+			v3.x += gridX/2.0f;
+			v3.y += gridY/2.0f;
+			v3.y = gridY - v3.y;
+			v3.x = Mathf.Floor(v3.x);
+			v3.y = Mathf.Floor(v3.y);
+			Debug.Log("Start: " + startSquare);
+			Debug.Log("End: " + v3);
+			Vector2 min = new Vector2(Mathf.Min(v3.x,startSquare.x),Mathf.Min(v3.y,startSquare.y));
+			Vector2 max = new Vector2(Mathf.Max(v3.x,startSquare.x),Mathf.Max(v3.y,startSquare.y));
+			Destroy(mouseOver);
+			mouseOver = null;
+			for (int n = (int)min.x; n <= (int)max.x;n++) {
+				if (n >= 0 && n < gridX) {
+					for (int m = (int)min.y; m <= (int)max.y; m++) {
+						if (m >= 0 && m < gridY) {
+							Tile t = gridsArray[n,m];
+							setProperties(t);
+						}
+					}
+				}
+			}
+		}
+		if ((normalDraggin || rightDraggin) && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
 			if (hit) {
 				GameObject go = hit.collider.gameObject;
-				if (!shiftDown) {
+				if (normalDraggin) {
 					Tile t = go.GetComponent<TileHolder>().tile;
-					t.setColor(red, green, blue, 0.4f);
-//					t.passable = passable;
-					t.standable = standable;
-					t.passableUp = passableUp;
-					t.passableRight = passableRight;
-					t.passableDown = passableDown;
-					t.passableLeft = passableLeft;
-					t.trigger = trigger;
-					t.action = action;
+					setProperties(t);
 		//		SpriteRenderer sR = go.GetComponent<SpriteRenderer>();
 		//		sR.color = new Color(red/255.0f,green/255.0f,blue/255.0f,0.4f);
 				}
-				else {
+				else if (rightDraggin) {
 					Tile t = go.GetComponent<TileHolder>().tile;
 					red = t.red;
 					green = t.green;
@@ -199,6 +257,18 @@ public class GridManager : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	public void setProperties(Tile t) {
+		t.setColor(red, green, blue, 0.4f);
+		//					t.passable = passable;
+		t.standable = standable;
+		t.passableUp = passableUp;
+		t.passableRight = passableRight;
+		t.passableDown = passableDown;
+		t.passableLeft = passableLeft;
+		t.trigger = trigger;
+		t.action = action;
 	}
 
 	public void printGrid() {
