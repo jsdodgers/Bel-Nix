@@ -1,12 +1,13 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Character.cs">
     <Files>
-      <File FileName="Assets\Code Library\GraphicalUserInterface.cs" Line="62" Column="50" />
-      <File FileName="Assets\Code Library\PersonalInformation.cs" Line="10" Column="15" />
-      <File FileName="Assets\Scripts\Character.cs" Line="18" Column="101" />
-      <File FileName="Assets\Code Library\CharacterRace.cs" Line="27" Column="15" />
-      <File FileName="Assets\Code Library\AbilityScores.cs" Line="1" Column="1" />
+      <File FileName="Assets\Code Library\GraphicalUserInterface.cs" Line="690" Column="30" />
+      <File FileName="Assets\Scripts\Character.cs" Line="28" Column="99" />
+      <File FileName="Assets\Code Library\CharacterRace.cs" Line="1" Column="1" />
+      <File FileName="Assets\Code Library\AbilityScores.cs" Line="20" Column="49" />
+      <File FileName="Assets\Code Library\CharacterProgress.cs" Line="1" Column="1" />
+      <File FileName="Assets\Code Library\CharacterBuilder.cs" Line="6" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

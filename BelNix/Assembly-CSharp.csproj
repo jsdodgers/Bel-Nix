@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Code Library\AbilityScores.cs" />
+     <Compile Include="Assets\Code Library\CharacterBuilder.cs" />
      <Compile Include="Assets\Code Library\CharacterClass.cs" />
      <Compile Include="Assets\Code Library\CharacterProgress.cs" />
      <Compile Include="Assets\Code Library\CharacterRace.cs" />
@@ -56,6 +57,8 @@
      <Compile Include="Assets\Code Library\PersonalInformation.cs" />
      <Compile Include="Assets\Code Library\SkillScores.cs" />
      <Compile Include="Assets\Scripts\Character.cs" />
+     <None Include="Assets\Saves\DocClearwater.txt" />
+     <None Include="Assets\Saves\Vincent.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

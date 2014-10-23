@@ -20,7 +20,7 @@ public class Character : MonoBehaviour {
 		                                                           new CharacterHeight(5, 9), 
 		                                                           new CharacterWeight(155));
 		CharacterProgress characterProgress = new CharacterProgress(new Class_Researcher());
-		AbilityScores abilityScores = new AbilityScores(2, 0, 2, 1);
+		AbilityScores abilityScores = new AbilityScores(5, 1, 4, 2);
 		CombatScores combatScores = new CombatScores(ref abilityScores, ref personalInfo, ref characterProgress);
 		SkillScores skillScores = new SkillScores(ref combatScores, ref characterProgress);
 
