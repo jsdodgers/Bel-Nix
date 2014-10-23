@@ -1,7 +1,0 @@
-public class AlphabetPaths {
-
-	public long count(String[] letterMaze) {
-		return 0;
-	}
-
-}

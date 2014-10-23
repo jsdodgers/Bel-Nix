@@ -1,7 +1,0 @@
-public class TaxiBusiness {
-
-	public int[] place(String[] town) {
-		return null;
-	}
-
-}
