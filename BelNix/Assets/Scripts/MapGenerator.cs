@@ -237,6 +237,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleInput() {
+		Debug.Log("handleInput");
 		handleMouseScrollWheel();
 		handleKeys();
 		handleMouseClicks();
