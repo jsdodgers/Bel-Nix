@@ -1,4 +1,5 @@
 ﻿<Properties>
+<<<<<<< HEAD
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Character.cs">
     <Files>
@@ -11,6 +12,13 @@
       <File FileName="Assets\Code Library\CharacterBuilder.cs" Line="6" Column="2" />
       <File FileName="Assets\Scripts\EnemyTemplate.cs" Line="13" Column="36" />
       <File FileName="Assets\Code Library\CharacterClass.cs" Line="17" Column="3" />
+=======
+  <MonoDevelop.Ide.Workspace />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/MapGenerator.cs">
+    <Files>
+      <File FileName="../TileEditor/Assets/Code/GridManager.cs" Line="304" Column="5" />
+      <File FileName="Assets/Scripts/MapGenerator.cs" Line="70" Column="1" />
+>>>>>>> eecfeaf5b5f38f829e7c05a5ca1c5fe055409994
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
