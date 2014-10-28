@@ -6,6 +6,7 @@ public class MapGenerator : MonoBehaviour {
 	int gridSize = 70;
 
 	int currentMoveDist = 5;
+	int attackRange = 1;
 	int viewDist = 11;
 
 	GameObject map;
@@ -123,8 +124,8 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void resetAroundPlayer(int view) {
-		for (int x = (int)Mathf.Max(player.transform.localPosition.x - view,0); x < (int)Mathf.Min(player.transform.localPosition.x + 1 + view, actualWidth); x++) {
-			for (int y = (int)Mathf.Max(-player.transform.localPosition.y + 1 - view,0); y < (int)Mathf.Min(-player.transform.localPosition.y + 2 + view, actualHeight); y ++) {
+		for (int x = (int)Mathf.Max(player.transform.localPosition.x - .5f - view,0); x < (int)Mathf.Min(player.transform.localPosition.x - .5f + 1 + view, actualWidth); x++) {
+			for (int y = (int)Mathf.Max(-player.transform.localPosition.y - .5f - view,0); y < (int)Mathf.Min(-player.transform.localPosition.y + .5f + view, actualHeight); y ++) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
 				Color c = Color.black;
@@ -139,9 +140,9 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void setAroundPlayer(int radius, int view) {
-		int type = 2;
-		for (int x = (int)Mathf.Max(player.transform.localPosition.x - view,0); x < (int)Mathf.Min(player.transform.localPosition.x + 1 + view, actualWidth); x++) {
-			for (int y = (int)Mathf.Max(-player.transform.localPosition.y + 1 - view,0); y < (int)Mathf.Min(-player.transform.localPosition.y + 2 + view, actualHeight); y++) {
+		int type = 4;
+		for (int x = (int)Mathf.Max(player.transform.localPosition.x - .5f - view,0); x < (int)Mathf.Min(player.transform.localPosition.x + 1 - .5f + view, actualWidth); x++) {
+			for (int y = (int)Mathf.Max(-player.transform.localPosition.y - .5f - view,0); y < (int)Mathf.Min(-player.transform.localPosition.y + .5f + view, actualHeight); y++) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
 				if (isInPlayerRadius(radius,x,y)) {
@@ -153,7 +154,16 @@ public class MapGenerator : MonoBehaviour {
 						currentSpriteColor = c;
 					}
 				}
-				else if (type == 0 || (type==1 && isInPlayerRadius(view,x,y)) || (type==2 &&  isInCircularRadius(view,x,y)) || (type==3 &&  isInCircularRadius2(view,x,y))) {
+				else if (isInPlayerRadius(radius + attackRange,x,y)) {
+					Color c = new Color(1.0f,0.0f,0.0f, 0.4f);
+					if (sr!=currentSprite) {
+						sr.color = c;
+					}
+					else {
+						currentSpriteColor = c;
+					}
+				}
+				else if (type == 0 || (type==1 && isInPlayerRadius(view,x,y)) || (type==2 &&  isInCircularRadius(view,x,y)) || (type==3 &&  isInCircularRadius2(view,x,y)) || (type==4 &&  isInCircularRadius3(view,x,y))) {
 					Color c = Color.clear;
 					if (sr!=currentSprite) {
 						sr.color = c;
@@ -167,19 +177,23 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool isInPlayerRadius(int radius, int x, int y) {
-		return Mathf.Abs(player.transform.localPosition.x - x) + Mathf.Abs(-player.transform.localPosition.y + 1 - y) <= radius;
+		return Mathf.Abs(player.transform.localPosition.x - .5f - x) + Mathf.Abs(-player.transform.localPosition.y - .5f - y) <= radius;
 	}
 	
 	bool isInCircularRadius(int radius, int x, int y) {
-		return Mathf.Pow(player.transform.localPosition.x - x,2) + Mathf.Pow(-player.transform.localPosition.y + 1 - y,2) < Mathf.Pow(radius,2);
+		return Mathf.Pow(player.transform.localPosition.x - .5f - x,2) + Mathf.Pow(-player.transform.localPosition.y - .5f - y,2) < Mathf.Pow(radius,2);
 	}
 	
 	bool isInCircularRadius2(int radius, int x, int y) {
-		return Mathf.Pow(player.transform.localPosition.x - x,2) + Mathf.Pow(-player.transform.localPosition.y + 1 - y,2) <= Mathf.Pow(radius,2);
+		return Mathf.Pow(player.transform.localPosition.x - .5f - x,2) + Mathf.Pow(-player.transform.localPosition.y - .5f - y,2) <= Mathf.Pow(radius,2);
+	}
+	
+	bool isInCircularRadius3(int radius, int x, int y) {
+		return Mathf.Pow(player.transform.localPosition.x - .5f - x,2) + Mathf.Pow(-player.transform.localPosition.y - .5f - y,2) - 2 <= Mathf.Pow(radius,2);
 	}
 		
 	int totalMoveDist(int x, int y) {
-		return (int)Mathf.Abs(player.transform.localPosition.x - x) + (int)Mathf.Abs(-player.transform.localPosition.y + 1 - y);
+		return (int)Mathf.Abs(player.transform.localPosition.x - x - .5f) + (int)Mathf.Abs(-player.transform.localPosition.y  - y - .5f);
 	}
 	void loadGrid(int x, int y) {
 	//	clearGrid();
@@ -237,6 +251,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleInput() {
+
 		Debug.Log("handleInput");
 		handleMouseScrollWheel();
 		handleKeys();
@@ -285,15 +300,15 @@ public class MapGenerator : MonoBehaviour {
 		bool mouseUp = Input.GetMouseButtonUp(0);
 		if (mouseUp) {
 			int x = (int)currentGrid.transform.localPosition.x;
-			int y = (int)currentGrid.transform.localPosition.y + 1;
-			if (isInPlayerRadius(currentMoveDist,x,-y + 1)) {
+			int y = (int)currentGrid.transform.localPosition.y;
+			if (isInPlayerRadius(currentMoveDist,x,-y)) {
 				if (player) {
 					resetAroundPlayer(viewDist);
-					currentMoveDist -= totalMoveDist(x,-y + 1);
+					currentMoveDist -= totalMoveDist(x,-y);
 					if (currentMoveDist == 0) currentMoveDist = 5;
 					Vector3 pos = player.transform.localPosition;
-					pos.x = x;
-					pos.y = y;
+					pos.x = x + .5f;
+					pos.y = y - .5f;
 					player.transform.localPosition = pos;
 					setAroundPlayer(currentMoveDist, viewDist);
 				}
@@ -334,6 +349,14 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		lastPos = pos1;
+		float midSlope = (pos1.y - player.transform.position.y)/(pos1.x - player.transform.position.x);
+		float rotation = Mathf.Atan(midSlope) + Mathf.PI/2.0f;
+		Vector3 rot1 = player.transform.eulerAngles;
+		if (pos1.x > player.transform.position.x) {
+			rotation += Mathf.PI;
+		}
+		rot1.z = rotation * 180 / Mathf.PI;
+		player.transform.eulerAngles = rot1;
 	}
 
 
@@ -359,10 +382,13 @@ public class MapGenerator : MonoBehaviour {
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
 						if (isInPlayerRadius(currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-							spr.color = new Color(0.0f, 0.0f, 0.0f, 0.4f);
+							spr.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
+						}
+						else if (isInPlayerRadius(currentMoveDist + attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+							spr.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
 						}
 						else {
-							spr.color = new Color(1.0f, 0.0f, 0.0f, 0.4f);
+							spr.color = new Color(0.40f, 0.40f, 0.40f, 0.4f);
 						}
 					}
 				}
