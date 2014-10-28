@@ -8,7 +8,7 @@ public class GraphicalUserInterface : MonoBehaviour
 	string characterLastName = "";
 	public string[] cCProgression = new string[] {"Personal Information"};
 	int cCProgressionSelect = 0;
-	bool abilityScoresHasBeenTriggered, skillsHasBeenTriggered, talentHasBeenTriggered = false;
+	//bool abilityScoresHasBeenTriggered, skillsHasBeenTriggered, talentHasBeenTriggered = false;
 	bool hasLastName = true;
 	public string[] sex = new string[] {"Male", "Female"};
 	public string[] race = new string[] {"Berrind", "Ashpian", "Rorrul"};
@@ -384,7 +384,7 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
 				{
-					abilityScoresHasBeenTriggered = true;
+					//abilityScoresHasBeenTriggered = true;
 					cCProgressionSelect = 1;
 					if(cCProgression.Length < 2)
 					{
@@ -580,7 +580,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
 				{
-					skillsHasBeenTriggered = true;
+					//skillsHasBeenTriggered = true;
 					cCProgressionSelect = 2;
 					if(cCProgression.Length < 3)
 					{
@@ -662,7 +662,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
 				{
-					talentHasBeenTriggered = true;
+					//talentHasBeenTriggered = true;
 					cCProgressionSelect = 3;
 					if(cCProgression.Length < 4)
 					{
