@@ -57,6 +57,7 @@
      <Compile Include="Assets\Code Library\PersonalInformation.cs" />
      <Compile Include="Assets\Code Library\SkillScores.cs" />
      <Compile Include="Assets\Scripts\Character.cs" />
+     <Compile Include="Assets\Scripts\EnemyTemplate.cs" />
      <None Include="Assets\Saves\DocClearwater.txt" />
      <None Include="Assets\Saves\Vincent.txt" />
   </ItemGroup>

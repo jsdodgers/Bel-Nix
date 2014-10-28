@@ -16,16 +16,12 @@ namespace CharacterInfo
 			{
 			case PrimalState.RECKLESS:
 				return "Reckless";
-				break;
 			case PrimalState.PASSIVE:
 				return "Passive";
-				break;
 			case PrimalState.THREATENED:
 				return "Threatened";
-				break;
 			default:
 				return "";
-				break;
 			}
 		}
 	}
