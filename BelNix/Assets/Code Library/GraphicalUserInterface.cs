@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.IO;
 
 public class GraphicalUserInterface : MonoBehaviour
 {
 	string characterName = "";
 	string characterLastName = "";
-	public string[] cCProgression = new string[] {"Personal Information", "Ability Scores", "Skills", "Talent"};
+	public string[] cCProgression = new string[] {"Personal Information"};
 	int cCProgressionSelect = 0;
-	bool abilityScoresHasBeenTriggered, skillsHasBeenTriggered, talentHasBeenTriggered = false;
+	//bool abilityScoresHasBeenTriggered, skillsHasBeenTriggered, talentHasBeenTriggered = false;
 	bool hasLastName = true;
 	public string[] sex = new string[] {"Male", "Female"};
 	public string[] race = new string[] {"Berrind", "Ashpian", "Rorrul"};
@@ -383,8 +384,12 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
 				{
-					abilityScoresHasBeenTriggered = true;
+					//abilityScoresHasBeenTriggered = true;
 					cCProgressionSelect = 1;
+					if(cCProgression.Length < 2)
+					{
+						cCProgression = new string[] {"Personal Information", "Ability Scores"};
+					}
 				}
 			}
 			else if(cCProgressionSelect == 1)
@@ -575,8 +580,12 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
 				{
-					skillsHasBeenTriggered = true;
+					//skillsHasBeenTriggered = true;
 					cCProgressionSelect = 2;
+					if(cCProgression.Length < 3)
+					{
+						cCProgression = new string[] {"Personal Information", "Ability Scores", "Skills"};
+					}
 				}
 			}
 			else if(cCProgressionSelect == 2)
@@ -653,8 +662,12 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
 				{
-					talentHasBeenTriggered = true;
+					//talentHasBeenTriggered = true;
 					cCProgressionSelect = 3;
+					if(cCProgression.Length < 4)
+					{
+						cCProgression = new string[] {"Personal Information", "Ability Scores", "Skills", "Talent"};
+					}
 				}
 			}
 			else
@@ -668,9 +681,69 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Finish"))
 				{
-
+					writeCharacter();
 				}
 			}
 		}
+	}
+
+	public void writeCharacter()
+	{
+		string characterStr = "";
+		string delimiter = ";";
+		//********PERSONAL INFORMATION ********
+		//Adding player first name.
+		characterStr += characterName + delimiter;
+		//If the player has a last name, add it.
+		if(hasLastName)
+		{
+			characterStr += characterLastName + delimiter;
+		}
+		//sexSelect 0 = Male, 1 = Female
+		characterStr += sexSelect.ToString() + delimiter;
+		//raceSelect 0 = Berrind, 1 = Ashpian, 2 = Rorrul
+		characterStr += raceSelect.ToString() + delimiter;
+		//backgroundSelect (contextualized by race)
+		//For Berrind: 0 = Fallen Noble, 1 = White Gem
+		//For Ashpian: 0 = Commoner, 1 = Immigrant
+		//For Rorrul: 0 = Servant, 1 = Unknown
+		characterStr += backgroundSelect.ToString() + delimiter;
+		characterStr += age.ToString() + delimiter;
+		characterStr += height.ToString() + delimiter;
+		characterStr += weight.ToString() + delimiter;
+		//classSelect 0 = Ex-Soldier, 1 = Engineer, 2 = Investigator, 3 = Researcher, 4 = Orator
+		characterStr += classSelect.ToString() + delimiter;
+		//********Ability Scores********
+		characterStr += sturdyScore.ToString() + delimiter;
+		characterStr += perceptionScore.ToString() + delimiter;
+		characterStr += techniqueScore.ToString() + delimiter;
+		characterStr += wellVersedScore.ToString() + delimiter;
+		//********Skills********
+		characterStr += athleticsSkill.ToString() + delimiter;
+		characterStr += meleeSkill.ToString() + delimiter;
+		characterStr += rangedSkill.ToString() + delimiter;
+		characterStr += stealthSkill.ToString() + delimiter;
+		characterStr += mechanicalSkill.ToString() + delimiter;
+		characterStr += medicinalSkill.ToString() + delimiter;
+		characterStr += historicalSkill.ToString() + delimiter;
+		characterStr += politicalSkill.ToString() + delimiter;
+		//********Talents********
+
+
+		int currAdd = 0;
+		string fileDirectory = Application.dataPath + "/Saves/";
+		string fileName = fileDirectory + characterName + characterLastName + (currAdd>0?"" +currAdd:"") + ".txt";
+		while(File.Exists(fileName))
+		{
+			currAdd++;
+			fileName = fileDirectory + characterName + characterLastName + (currAdd>0?"" +currAdd:"") + ".txt";
+		}
+
+		StreamWriter sr = File.CreateText(fileName);
+
+		sr.WriteLine(characterStr);
+		sr.Close();
+
+		Debug.Log(characterStr);
 	}
 }
