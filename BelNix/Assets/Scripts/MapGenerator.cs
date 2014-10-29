@@ -14,13 +14,17 @@ public class MapGenerator : MonoBehaviour {
 	Camera mainCamera;
 	SpriteRenderer sprend;
 	Sprite spr;
-	
+
+	GameObject arrowStraightPrefab;
+	GameObject arrowCurvePrefab;
+	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
 	GameObject selectedPlayer;
 	GameObject hoveredPlayer;
 	ArrayList players;
 	GameObject grids;
 	GameObject lines;
+	GameObject path;
 	GameObject[,] gridArray;
 	ArrayList lastPlayerPath;
 
@@ -75,6 +79,9 @@ public class MapGenerator : MonoBehaviour {
 		
 		players = new ArrayList();
 		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackiePrefab");
+		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
+		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
+		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
 		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
@@ -87,6 +94,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		lines = mapTransform.FindChild("Lines").gameObject;
 		grids = mapTransform.FindChild("Grid").gameObject;
+		path = mapTransform.Find("Path").gameObject;
 		sprend = map.GetComponent<SpriteRenderer>();
 		spr = sprend.sprite;
 		Debug.Log("Start()");
@@ -138,8 +146,14 @@ public class MapGenerator : MonoBehaviour {
 
 	void resetPlayerPath() {
 		if (lastPlayerPath!=null) {
-			foreach (Vector2 v in lastPlayerPath) {
-				GameObject g = gridArray[(int)v.x, (int)v.y];
+//			foreach (Vector2 v in lastPlayerPath) {
+//			foreach (GameObject p in path.transform.) {
+			for (int n=path.transform.childCount-1; n >= 0;n--) {
+				Transform t = path.transform.GetChild(n);
+				GameObject go = t.gameObject;
+				t.parent = null;
+				Destroy(go);
+			/*	GameObject g = gridArray[(int)v.x, (int)v.y];
 				SpriteRenderer sr = g.GetComponent<SpriteRenderer>();
 				Color c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
 				if (sr!=currentSprite) {
@@ -147,15 +161,66 @@ public class MapGenerator : MonoBehaviour {
 				}
 				else {
 					currentSpriteColor = c;
-				}
+				}*/
 			}
 		}
 	}
 
-	void setPlayerPath(ArrayList path) {
+	void setPlayerPath(ArrayList path1) {
 //		Debug.Log("Set Player Path");
-		foreach (Vector2 v in path) {
+//		bool first = true;
+		for (int n=1;n<path1.Count;n++) {
+			Vector2 v = (Vector2)path1[n];
+			Vector2 v0 = (Vector2)path1[n-1];
+//		foreach (Vector2 v in path1) {
+//			if (first) {
+//				first = false;
+//				continue;
+//			}
+
+
+			GameObject go;
+			if (n == path1.Count-1) {
+				go = GameObject.Instantiate(arrowPointPrefab) as GameObject;
+				int xDif = (int)(v.x - v0.x);
+				int yDif = (int)(v.y - v0.y);
+				go.transform.eulerAngles = new Vector3(0.0f, 0.0f, (xDif==-1 ?90.0f : (xDif==1 ? 270.0f : (yDif == -1 ? 0.0f : 180.0f))));
+			}
+			else {
+				Vector2 v2 = (Vector2)path1[n+1];
+				if (v2.x == v0.x || v2.y == v0.y) {
+					go = GameObject.Instantiate(arrowStraightPrefab) as GameObject;
+					if (v2.y == v0.y) {
+						go.transform.eulerAngles = new Vector3(0.0f, 0.0f, 90.0f);
+					}
+				}
+				else {
+					int xDif1 = (int)(v2.x - v.x);
+					int yDif1 = (int)(v2.y - v.y);
+					int xDif2 = (int)(v.x - v0.x);
+					int yDif2 = (int)(v.y - v0.y);
+					Debug.Log("xDif1: " + xDif1 + " yDif1: " + yDif1 + " xDif2: " + xDif2 + " yDif2: " + yDif2);
+					go = GameObject.Instantiate(arrowCurvePrefab) as GameObject;
+					float rot = 0.0f;
+					if (xDif1 == -1 && yDif2 == -1) rot = 270.0f;
+					else if (xDif2 == 1 && yDif1 == -1) rot = 180.0f;
+					else if (xDif2 == 1 && yDif1 == 1) rot = 270.0f;
+					else if (xDif1 == 1 && yDif2 == 1) rot = 90.0f;
+					else if (xDif1 == -1 && yDif2 == 1) rot = 180.0f;
+					else if (xDif2 == -1 && yDif1 == -1) rot = 90.0f;
+				//	if (xDif == -1 && yDif == -1) rot = 90.0f;
+				//	if (xDif == 1 && yDif == 1) rot = 270.0f;
+				//	if (xDif == -1 && yDif == 1) rot = 180.0f;
+					go.transform.eulerAngles = new Vector3(0.0f, 0.0f, rot);
+				}
+			}
+			go.renderer.sortingOrder = 2;
+		//	= GameObject.Instantiate(arrowStraightPrefab) as GameObject;
+			go.transform.parent = path.transform;
+			go.transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, 0.0f);
+
 		//	Debug.Log(v);
+			/*
 			GameObject g = gridArray[(int)v.x, (int)v.y];
 			SpriteRenderer sr = g.GetComponent<SpriteRenderer>();
 			Color c = new Color(0.0f, 1.0f, 1.0f, 0.4f);
@@ -165,7 +230,7 @@ public class MapGenerator : MonoBehaviour {
 			else {
 				currentSpriteColor = c;
 				sr.color = c;
-			}
+			}*/
 		}
 	}
 	
@@ -398,7 +463,7 @@ public class MapGenerator : MonoBehaviour {
 				foreach (Vector2 v1 in lastPlayerPath) {
 					s += v1.ToString() + ", ";
 				}
-			//	Debug.Log(s);
+				Debug.Log(s);
 				setPlayerPath(lastPlayerPath);
 				lastArrowPos = v;
 
@@ -538,12 +603,12 @@ public class MapGenerator : MonoBehaviour {
 						if (selectedPlayer) {
 							Player p = selectedPlayer.GetComponent<Player>();
 						//	Debug.Log(" c: " + lastPlayerPath[0] + " d: " + new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y));
-							if (Player.exists(lastPlayerPath, new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y))) {
+					//		if (Player.exists(lastPlayerPath, new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y))) {
 						//		Debug.Log("Yup!");
-								spr.color = new Color(0.0f, 1.0f, 1.0f, 0.4f);
-								did = true;
-							}
-							else if (isInPlayerRadius(p, p.currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+					//			spr.color = new Color(0.0f, 1.0f, 1.0f, 0.4f);
+					//			did = true;
+					//		}
+							if (isInPlayerRadius(p, p.currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
 								spr.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
 								did = true;
 							}
