@@ -1,14 +1,13 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 using System.Collections;
 
 public class MapGenerator : MonoBehaviour {
 
 	int gridSize = 70;
 
-	int currentMoveDist = 5;
-	int attackRange = 1;
-	int viewDist = 11;
 
+	GameObject lastHit;
 	GameObject map;
 	Transform mapTransform;
 	Transform cameraTransform;
@@ -17,7 +16,9 @@ public class MapGenerator : MonoBehaviour {
 	Sprite spr;
 
 	GameObject playerPrefab;
-	GameObject player;
+	GameObject selectedPlayer;
+	GameObject hoveredPlayer;
+	ArrayList players;
 	GameObject grids;
 	GameObject lines;
 	GameObject[,] gridArray;
@@ -68,10 +69,18 @@ public class MapGenerator : MonoBehaviour {
 		map = GameObject.Find("Map");
 		mapTransform = map.transform;
 
+		players = new ArrayList();
 		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackiePrefab");
-		player = GameObject.Instantiate(playerPrefab) as GameObject;
-		player.transform.parent = mapTransform;
-
+		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
+		for (int n=0;n<positions.Length;n++) {
+			Vector3 pos = positions[n];
+			GameObject player = GameObject.Instantiate(playerPrefab) as GameObject;
+			player.transform.parent = mapTransform;
+			Player p = player.GetComponent<Player>();
+			p.mapGenerator = this;
+			p.setPosition(pos);
+			players.Add(player);
+		}
 		lines = mapTransform.FindChild("Lines").gameObject;
 		grids = mapTransform.FindChild("Grid").gameObject;
 		sprend = map.GetComponent<SpriteRenderer>();
@@ -106,7 +115,7 @@ public class MapGenerator : MonoBehaviour {
 			createLineRenderer(n, n, 0, -actualHeight);
 		}
 		loadGrid(actualWidth, actualHeight);
-		setAroundPlayer(currentMoveDist, viewDist);
+//		setAroundPlayer(currentMoveDist, viewDist);
 	}
 
 	void createLineRenderer(int xStart, int xEnd, int yStart, int yEnd) {
@@ -123,12 +132,12 @@ public class MapGenerator : MonoBehaviour {
 		handleInput();
 	}
 
-	void resetAroundPlayer(int view) {
-		for (int x = (int)Mathf.Max(player.transform.localPosition.x - .5f - view,0); x < (int)Mathf.Min(player.transform.localPosition.x - .5f + 1 + view, actualWidth); x++) {
-			for (int y = (int)Mathf.Max(-player.transform.localPosition.y - .5f - view,0); y < (int)Mathf.Min(-player.transform.localPosition.y + .5f + view, actualHeight); y ++) {
+	void resetAroundPlayer(Player player1, int view) {
+		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
+			for (int y = (int)Mathf.Max(-player1.position.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y ++) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-				Color c = Color.black;
+				Color c = Color.clear;
 				if (sr!=currentSprite) {
 					sr.color = c;
 				}
@@ -139,13 +148,13 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	void setAroundPlayer(int radius, int view) {
+	void setAroundPlayer(Player player1, int radius, int view, int attackRange) {
 		int type = 4;
-		for (int x = (int)Mathf.Max(player.transform.localPosition.x - .5f - view,0); x < (int)Mathf.Min(player.transform.localPosition.x + 1 - .5f + view, actualWidth); x++) {
-			for (int y = (int)Mathf.Max(-player.transform.localPosition.y - .5f - view,0); y < (int)Mathf.Min(-player.transform.localPosition.y + .5f + view, actualHeight); y++) {
+		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
+			for (int y = (int)Mathf.Max(-player1.transform.localPosition.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y++) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-				if (isInPlayerRadius(radius,x,y)) {
+				if (isInPlayerRadius(player1,radius,x,y)) {
 					Color c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
 					if (sr!=currentSprite) {
 						sr.color = c;
@@ -154,7 +163,7 @@ public class MapGenerator : MonoBehaviour {
 						currentSpriteColor = c;
 					}
 				}
-				else if (isInPlayerRadius(radius + attackRange,x,y)) {
+				else if (isInPlayerRadius(player1,radius + attackRange,x,y)) {
 					Color c = new Color(1.0f,0.0f,0.0f, 0.4f);
 					if (sr!=currentSprite) {
 						sr.color = c;
@@ -163,7 +172,7 @@ public class MapGenerator : MonoBehaviour {
 						currentSpriteColor = c;
 					}
 				}
-				else if (type == 0 || (type==1 && isInPlayerRadius(view,x,y)) || (type==2 &&  isInCircularRadius(view,x,y)) || (type==3 &&  isInCircularRadius2(view,x,y)) || (type==4 &&  isInCircularRadius3(view,x,y))) {
+				else if (type == 0 || (type==1 && isInPlayerRadius(player1,view,x,y)) || (type==2 &&  isInCircularRadius(player1,view,x,y)) || (type==3 &&  isInCircularRadius2(player1,view,x,y)) || (type==4 &&  isInCircularRadius3(player1,view,x,y))) {
 					Color c = Color.clear;
 					if (sr!=currentSprite) {
 						sr.color = c;
@@ -176,24 +185,24 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	bool isInPlayerRadius(int radius, int x, int y) {
-		return Mathf.Abs(player.transform.localPosition.x - .5f - x) + Mathf.Abs(-player.transform.localPosition.y - .5f - y) <= radius;
+	bool isInPlayerRadius(Player player1, int radius, int x, int y) {
+		return Mathf.Abs(player1.position.x - x) + Mathf.Abs(-player1.position.y - y) <= radius;
 	}
 	
-	bool isInCircularRadius(int radius, int x, int y) {
-		return Mathf.Pow(player.transform.localPosition.x - .5f - x,2) + Mathf.Pow(-player.transform.localPosition.y - .5f - y,2) < Mathf.Pow(radius,2);
+	bool isInCircularRadius(Player player1, int radius, int x, int y) {
+		return Mathf.Pow(player1.position.x - x,2) + Mathf.Pow(-player1.position.y - y,2) < Mathf.Pow(radius,2);
 	}
 	
-	bool isInCircularRadius2(int radius, int x, int y) {
-		return Mathf.Pow(player.transform.localPosition.x - .5f - x,2) + Mathf.Pow(-player.transform.localPosition.y - .5f - y,2) <= Mathf.Pow(radius,2);
+	bool isInCircularRadius2(Player player1, int radius, int x, int y) {
+		return Mathf.Pow(player1.position.x - x,2) + Mathf.Pow(-player1.position.y - y,2) <= Mathf.Pow(radius,2);
 	}
 	
-	bool isInCircularRadius3(int radius, int x, int y) {
-		return Mathf.Pow(player.transform.localPosition.x - .5f - x,2) + Mathf.Pow(-player.transform.localPosition.y - .5f - y,2) - 2 <= Mathf.Pow(radius,2);
+	bool isInCircularRadius3(Player player1, int radius, int x, int y) {
+		return Mathf.Pow(player1.position.x - x,2) + Mathf.Pow(-player1.position.y - y,2) - 2 <= Mathf.Pow(radius,2);
 	}
 		
-	int totalMoveDist(int x, int y) {
-		return (int)Mathf.Abs(player.transform.localPosition.x - x - .5f) + (int)Mathf.Abs(-player.transform.localPosition.y  - y - .5f);
+	int totalMoveDist(Player player1, int x, int y) {
+		return (int)Mathf.Abs(player1.position.x - x) + (int)Mathf.Abs(-player1.position.y  - y);
 	}
 	void loadGrid(int x, int y) {
 	//	clearGrid();
@@ -228,7 +237,7 @@ public class MapGenerator : MonoBehaviour {
 		//		blue = 2.0f - red - green;
 		//		sr.color = new Color(red,green,blue,0.4f);
 				sr.color = Color.clear;
-				sr.color = Color.black;
+//				sr.color = Color.black;
 				ycur++;
 			}
 			xcur++;
@@ -251,8 +260,6 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleInput() {
-
-		Debug.Log("handleInput");
 		handleMouseScrollWheel();
 		handleKeys();
 		handleMouseClicks();
@@ -299,6 +306,7 @@ public class MapGenerator : MonoBehaviour {
 		bool mouseDown = Input.GetMouseButtonDown(0);
 		bool mouseUp = Input.GetMouseButtonUp(0);
 		if (mouseUp) {
+			/*
 			int x = (int)currentGrid.transform.localPosition.x;
 			int y = (int)currentGrid.transform.localPosition.y;
 			if (isInPlayerRadius(currentMoveDist,x,-y)) {
@@ -313,58 +321,126 @@ public class MapGenerator : MonoBehaviour {
 					setAroundPlayer(currentMoveDist, viewDist);
 				}
 			}
+			*/
+			if (!selectedPlayer) {
+				selectedPlayer = hoveredPlayer;
+			}
+			else {
+				int x = (int)currentGrid.transform.localPosition.x;
+				int y = (int)currentGrid.transform.localPosition.y;
+				Player p = selectedPlayer.GetComponent<Player>();
+				if (isInPlayerRadius(p,p.currentMoveDist,x,-y)) {
+					resetAroundPlayer(p,p.viewDist);
+					p.currentMoveDist -= totalMoveDist(p,x,-y);
+					Vector3 pos = p.position;
+					pos.x = x;
+					pos.y = y;
+					Debug.Log(pos);
+					p.setPosition(pos);
+					if (p.currentMoveDist == 0) {
+						hoveredPlayer = selectedPlayer;
+						selectedPlayer = null;
+						resetMoveDistances();
+						setAroundPlayer(p, p.currentMoveDist, p.viewDist, p.attackRange);
+//						resetAroundPlayer(p, p.viewDist);
+					}
+					else {
+						setAroundPlayer(p, p.currentMoveDist, p.viewDist, p.attackRange);
+					}
+			//		if (p.currentMoveDist == 0) {
+			//		}
+				}
+				else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y)) {
+					if (hoveredPlayer) {
+						resetAroundPlayer(p,p.viewDist);
+						selectedPlayer = hoveredPlayer;
+						Player p2 = selectedPlayer.GetComponent<Player>();
+						setAroundPlayer(p2, p2.currentMoveDist, p2.viewDist, p2.attackRange);
+					}
+				}
+				else {
+					selectedPlayer = hoveredPlayer;
+					resetAroundPlayer(p,p.viewDist);
+					Player p2 = selectedPlayer.GetComponent<Player>();
+					setAroundPlayer(p2, p2.currentMoveDist, p2.viewDist, p2.attackRange);
+				}
+			}
 		}
 	}
 
+
+	void resetMoveDistances() {
+		bool reset = true;
+		foreach (GameObject player in players) {
+			Player p = player.GetComponent<Player>();
+			if (p.currentMoveDist!=0) reset = false;
+		}
+		foreach (GameObject player in players) {
+			Player p = player.GetComponent<Player>();
+			if (reset) p.currentMoveDist = p.maxMoveDist;
+		}
+
+	}
 	
 	void handleMouseMovement() {
-		//		float mouseFactor = mainCamera.orthographicSize/5.0f;
-	//	float mouseFactor = 0.3f;
-	//	float mouseX = Input.GetAxis("Mouse X");
-	//	float mouseY = Input.GetAxis("Mouse Y");
-	//	mouseFactor = 18.0f;
+
+
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = mainCamera.ScreenToWorldPoint(mPos);
 		if (middleDraggin || scrolled) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 				//= mainCamera.WorldToScreenPoint(cameraTransform.position);
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
-//				Vector3 pos = mainCamera.WorldToScreenPoint(cameraTransform.position);
-//				pos.x -= mouseX * mouseFactor * 2/Mathf.Sqrt(mainCamera.orthographicSize);
-//				pos.y -= mouseY * mouseFactor;
-//				cameraTransform.position = mainCamera.ScreenToWorldPoint(pos);
 				float xDiff = pos1.x - lastPos.x;
 				float yDiff = pos1.y - lastPos.y;
 				Vector3 pos = mapTransform.position;
 				pos.x += xDiff;
 				pos.y += yDiff;
 				mapTransform.position = pos;
-		//		for (int n=0;n<mapTransform.childCount;n++) {
-		//			Debug.Log(n);
-		//
-		//			Transform t = mapTransform.GetChild(n);
-		//			t.position = pos;
-		//		}
-			//				cameraTransform.localPosition = new Vector3(cameraTransform.localPosition.x - mouseX * mouseFactor,cameraTransform.localPosition.y - mouseY * mouseFactor,cameraTransform.localPosition.z);
 			}
 		}
 		lastPos = pos1;
-		float midSlope = (pos1.y - player.transform.position.y)/(pos1.x - player.transform.position.x);
-		float rotation = Mathf.Atan(midSlope) + Mathf.PI/2.0f;
-		Vector3 rot1 = player.transform.eulerAngles;
-		if (pos1.x > player.transform.position.x) {
-			rotation += Mathf.PI;
+		if (shiftDown && selectedPlayer) {
+			float midSlope = (pos1.y - selectedPlayer.transform.position.y)/(pos1.x - selectedPlayer.transform.position.x);
+			float rotation = Mathf.Atan(midSlope) + Mathf.PI/2.0f;
+			Vector3 rot1 = selectedPlayer.transform.eulerAngles;
+			if (pos1.x > selectedPlayer.transform.position.x) {
+				rotation += Mathf.PI;
+			}
+			rot1.z = rotation * 180 / Mathf.PI;
+			selectedPlayer.transform.eulerAngles = rot1;
 		}
-		rot1.z = rotation * 180 / Mathf.PI;
-		player.transform.eulerAngles = rot1;
 	}
 
 
 	void handleMouseSelect() {
+
+
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<9);
 //		Physics2D.Ray
 		if (hit) {
 			GameObject go = hit.collider.gameObject;
+			if (go != lastHit) {
+				lastHit = go;
+				Debug.Log("Not Equal!");
+				if (!selectedPlayer) {
+					if (hoveredPlayer) {
+						Player p = hoveredPlayer.GetComponent<Player>();
+						resetAroundPlayer(p, p.viewDist);
+					}
+				}
+				hoveredPlayer = null;
+				foreach (GameObject pGo in players) {
+					Player p = pGo.GetComponent<Player>();
+					if (Mathf.Floor(p.position.x) == Mathf.Floor(go.transform.localPosition.x) && Mathf.Floor(p.position.y) == Mathf.Floor(go.transform.localPosition.y)) {
+						Debug.Log ("Is a Player!");
+						hoveredPlayer = pGo;
+						if (!selectedPlayer) {
+							setAroundPlayer(p, p.currentMoveDist, p.viewDist, p.attackRange);
+						}
+					}
+				}
+			}
 			if (middleDraggin) {
 			//	Tile t = go.GetComponent<TileHolder>().tile;
 			//	setProperties(t);
@@ -381,38 +457,31 @@ public class MapGenerator : MonoBehaviour {
 						}
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
-						if (isInPlayerRadius(currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-							spr.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
+						bool did = false;
+						if (selectedPlayer) {
+							Player p = selectedPlayer.GetComponent<Player>();
+							if (isInPlayerRadius(p, p.currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+								spr.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
+								did = true;
+							}
+							else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+								did = true;
+								spr.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
+							}
 						}
-						else if (isInPlayerRadius(currentMoveDist + attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-							spr.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
-						}
-						else {
+						if (!did) {
 							spr.color = new Color(0.40f, 0.40f, 0.40f, 0.4f);
 						}
 					}
 				}
 			}
-/*			else if (rightDraggin) {
-				Tile t = go.GetComponent<TileHolder>().tile;
-				red = t.red;
-				green = t.green;
-				blue = t.blue;
-				//					passable = t.passable;
-				standable = t.standable;
-				passableUp = t.passableUp;
-				passableRight = t.passableRight;
-				passableDown = t.passableDown;
-				passableLeft = t.passableLeft;
-				trigger = t.trigger;
-				action = t.action;
-			}*/
 		}
 		else if (currentSprite!=null) {
 			currentSprite.color = currentSpriteColor;
 			currentGrid = null;
 			currentSprite = null;
 		}
+	
 	}
 
 }
