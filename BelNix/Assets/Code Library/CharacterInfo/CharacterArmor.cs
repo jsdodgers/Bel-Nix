@@ -6,7 +6,7 @@ using ItemInfo;
 
 namespace CharacterInfo
 {
-    class CharacterArmor
+    public class CharacterArmor
     {
         // Slots needed
         //      - Question? Will we be able to equip things besides equipment? For example, could key items like 
