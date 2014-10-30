@@ -405,7 +405,7 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void clearGrid() {
-		if (gridsArray) {
+		if (gridsArray != null) {
 			foreach (Tile t in gridsArray) {
 		//	foreach (Tile t in tA) {
 				TileHolder th = t.tileGameObject.GetComponent<TileHolder>();
