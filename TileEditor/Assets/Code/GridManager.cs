@@ -478,7 +478,7 @@ public class GridManager : MonoBehaviour {
 	public void loadImage(string path) {
 		int max = 0;
 		if (path.Length != 0) {
-			string[] paths = path.Split(new char[]{'/'});
+			string[] paths = path.Split(new char[]{'/','\\'});
 			string path1 = paths[paths.Length-1];
 			string[] pathA = path1.Split(new char[]{'.'});
 			imageFileName = pathA[0];

@@ -213,7 +213,7 @@ public class Player : MonoBehaviour {
 	//	Debug.Log("Player Update");
 		if (moving) {
 			if (currentPath.Count >= 2) {
-				float speed = 1.0f;
+				float speed = 2.0f;
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist);
@@ -226,7 +226,7 @@ public class Player : MonoBehaviour {
 			}
 		}
 		if (rotating) {
-			float speed = 180.0f;// + 20.0f;
+			float speed = 180.0f*3.0f;// + 20.0f;
 			float time = Time.deltaTime;
 			float rotateDist = time * speed;
 //			float rotateGoal = (rotateTo.
