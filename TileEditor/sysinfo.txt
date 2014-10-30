@@ -1,0 +1,156 @@
+System:
+  OS: Windows 7 Service Pack 1 (6.1.7601) 64bit
+  CPU: Intel(R) Core(TM) i7-2630QM CPU @ 2.00GHz, count: 8
+  Physical RAM: 6057 MB
+  Addressable RAM: 2048 MB
+
+D3D9:
+  Renderer: Intel(R) HD Graphics Family
+  VendorID: 8086
+  Driver: igdumdx32.dll 8.15.10.2622
+  VRAM: 880 (via DXGI)
+
+OpenGL:
+  Version: 3.1.0 - Build 8.15.10.2622
+  Vendor: Intel
+  Renderer: Intel(R) HD Graphics Family
+  VRAM: 880 (via DXGI)
+  Extensions: GL_EXT_blend_minmax GL_EXT_blend_subtract GL_EXT_blend_color GL_EXT_abgr GL_EXT_texture3D GL_EXT_clip_volume_hint GL_EXT_compiled_vertex_array GL_SGIS_texture_edge_clamp GL_SGIS_generate_mipmap GL_EXT_draw_range_elements GL_SGIS_texture_lod GL_EXT_rescale_normal GL_EXT_packed_pixels GL_EXT_texture_edge_clamp GL_EXT_separate_specular_color GL_ARB_multitexture GL_EXT_texture_env_combine GL_EXT_bgra GL_EXT_blend_func_separate GL_EXT_secondary_color GL_EXT_fog_coord GL_EXT_texture_env_add GL_ARB_texture_cube_map GL_ARB_transpose_matrix GL_ARB_texture_env_add GL_IBM_texture_mirrored_repeat GL_EXT_multi_draw_arrays GL_NV_blend_square GL_ARB_texture_compression GL_3DFX_texture_compression_FXT1 GL_EXT_texture_filter_anisotropic GL_ARB_texture_border_clamp GL_ARB_point_parameters GL_ARB_texture_env_combine GL_ARB_texture_env_dot3 GL_ARB_texture_env_crossbar GL_EXT_texture_compression_s3tc GL_ARB_shadow GL_ARB_window_pos GL_EXT_shadow_funcs GL_EXT_stencil_wrap GL_ARB_vertex_program GL_EXT_texture_rectangle GL_ARB_fragment_program GL_EXT_stencil_two_side GL_ATI_separate_stencil GL_ARB_vertex_buffer_object GL_EXT_texture_lod_bias GL_ARB_occlusion_query GL_ARB_fragment_shader GL_ARB_shader_objects GL_ARB_shading_language_100 GL_ARB_texture_non_power_of_two GL_ARB_vertex_shader GL_NV_texgen_reflection GL_ARB_point_sprite GL_ARB_fragment_program_shadow GL_EXT_blend_equation_separate GL_ARB_depth_texture GL_ARB_texture_rectangle GL_ARB_draw_buffers GL_ARB_color_buffer_float GL_ARB_half_float_pixel GL_ARB_texture_float GL_ARB_pixel_buffer_object GL_EXT_framebuffer_object GL_ARB_draw_instanced GL_ARB_half_float_vertex GL_EXT_draw_buffers2 GL_WIN_swap_hint GL_EXT_texture_sRGB GL_ARB_multisample GL_EXT_packed_float GL_EXT_texture_shared_exponent GL_ARB_texture_rg GL_ARB_texture_compression_rgtc GL_NV_conditional_render GL_EXT_texture_swizzle GL_ARB_sync GL_ARB_framebuffer_sRGB GL_EXT_packed_depth_stencil GL_ARB_depth_buffer_float GL_EXT_transform_feedback GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_ARB_framebuffer_object GL_EXT_texture_array GL_EXT_texture_integer GL_ARB_map_buffer_range GL_EXT_texture_snorm GL_INTEL_performance_queries GL_ARB_copy_buffer GL_ARB_sampler_objects GL_NV_primitive_restart GL_ARB_seamless_cube_map GL_ARB_uniform_buffer_object GL_ARB_depth_clamp GL_ARB_vertex_array_bgra GL_ARB_draw_elements_base_vertex GL_ARB_fragment_coord_conventions GL_EXT_gpu_program_parameters GL_ARB_compatibility GL_ARB_vertex_array_object 
+
+User locale: en-US
+System locale: en-US
+
+Running processes:
+Dropbox.exe (4284)
+    path: C:\Users\Owner\AppData\Roaming\Dropbox\bin\Dropbox.exe
+    company:  Dropbox, Inc.
+    product:  Dropbox
+    filedesc: Dropbox
+    filever:  2.10.30.0
+    prodver:  1.0.0.1
+SSMMgr.exe (4360)
+    path: C:\Windows\Samsung\PanelMgr\SSMMgr.exe
+    company:  
+    product:  
+    filedesc: 
+    filever:  3.2.3.8
+    prodver:  3.2.3.8
+Updater.exe (4616)
+    path: C:\Program Files (x86)\Ask.com\Updater\Updater.exe
+    company:  Ask
+    product:  Updater
+    filedesc: Ask Updater
+    filever:  1.2.4.36191
+    prodver:  1.2.4.36191
+hamachi-2-ui.exe (3516)
+    path: C:\Program Files (x86)\LogMeIn Hamachi\hamachi-2-ui.exe
+    company:  LogMeIn Inc.
+    product:  Hamachi Client
+    filedesc: Hamachi Client Application
+    filever:  2.2.0.255
+    prodver:  2.0.0.0
+Steam.exe (5328)
+    path: C:\Program Files (x86)\Steam\Steam.exe
+    company:  Valve Corporation
+    product:  Steam Client Bootstrapper
+    filedesc: Steam Client Bootstrapper
+    filever:  2.45.19.81
+    prodver:  1.0.0.1
+steamwebhelper.exe (5508)
+    path: C:\Program Files (x86)\Steam\bin\steamwebhelper.exe
+    company:  Valve Corporation
+    product:  Steam Client WebHelper
+    filedesc: Steam Client WebHelper
+    filever:  2.45.19.81
+    prodver:  1.0.0.1
+MovieColorEnhancer.exe (5448)
+    path: C:\Program Files (x86)\Samsung\Movie Color Enhancer\MovieColorEnhancer.exe
+    company:  Samsung Electronics Co., Ltd.
+    product:  Movie Color Enhancer 
+    filedesc: MovieColorEnhancer.exe
+    filever:  1.0.5.2
+    prodver:  1.0.5.2
+Skype.exe (7536)
+    path: C:\Program Files (x86)\Skype\Phone\Skype.exe
+    company:  Skype Technologies S.A.
+    product:  Skype
+    filedesc: Skype 
+    filever:  6.21.0.104
+    prodver:  6.21.0.0
+steamwebhelper.exe (6512)
+    path: C:\Program Files (x86)\Steam\bin\steamwebhelper.exe
+    company:  Valve Corporation
+    product:  Steam Client WebHelper
+    filedesc: Steam Client WebHelper
+    filever:  2.45.19.81
+    prodver:  1.0.0.1
+chrome.exe (11388)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (6292)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (6452)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (9220)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (11416)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (12028)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (8512)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+chrome.exe (8700)
+    path: C:\Users\Owner\AppData\Local\Google\Chrome\Application\chrome.exe
+    company:  Google Inc.
+    product:  Google Chrome
+    filedesc: Google Chrome
+    filever:  38.0.2125.111
+    prodver:  38.0.2125.111
+Unity.exe (10708)
+    path: C:\Program Files (x86)\Unity\Editor\Unity.exe
+    company:  Unity Technologies ApS
+    product:  Unity
+    filedesc: Unity Editor
+    filever:  4.5.4.31047
+    prodver:  4.5.4.31047
+UnityBugReporter.exe (2084)
+    path: C:\Program Files (x86)\Unity\Editor\UnityBugReporter.exe
+    company:  Unity Technologies ApS
+    product:  Unity Bug Reporter
+    filedesc: Unity Bug Reporter
+    filever:  4.5.4.31047
+    prodver:  4.5.4.31047
