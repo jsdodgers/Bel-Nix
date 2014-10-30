@@ -13,6 +13,7 @@ public class Player : MonoBehaviour {
 	public bool moving = false;
 	public bool rotating = false;
 	public bool attacking = false;
+	public Enemy attackEnemy = null;
 	public Vector2 rotateFrom;
 	public Vector2 rotateTo;
 	Animator anim;
@@ -70,8 +71,9 @@ public class Player : MonoBehaviour {
 
 	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0) {
 	//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
-		
+
 		if (!first) {
+			if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
 			curr.Add(posFrom);
 		}
@@ -108,8 +110,13 @@ public class Player : MonoBehaviour {
 	//	Debug.Log(maxDist + "!!!!!!");
 		int closestDist = maxDist + 10000;
 		int minLength = maxDist + 10000;
-		ArrayList closestArray = new ArrayList();
-		closestArray.Add(currList[0]);
+//		ArrayList closestArray = new ArrayList();
+//		closestArray.Add(currList[0]);
+		ArrayList closestArray = (ArrayList)currList.Clone();
+		Vector2 las = (Vector2)currList[currList.Count-1];
+		int dis = (int)(Mathf.Abs(las.x - posTo.x) + Mathf.Abs(las.y - posTo.y));
+		closestDist = dis;
+		minLength = currList.Count;
 	//	Debug.Log("Subtractive:   " + currList.Count);
 		while (currList.Count >= 1) {// && maxDist < currentMoveDist) {
 	//		Debug.Log("currList: " + currList.Count);
@@ -132,7 +139,7 @@ public class Player : MonoBehaviour {
 				Vector2 last = (Vector2)withAdded[withAdded.Count-1];
 				int d = (int)(Mathf.Abs(last.x - posTo.x) + Mathf.Abs(last.y - posTo.y));
 				if (d == 0) return withAdded;
-				if (d < closestDist || (d == closestDist && withAdded.Count < minLength)) {
+				if (d < closestDist) {// || (d == closestDist && withAdded.Count < minLength)) {
 			//		Debug.Log("Is Closer!!  " + d);
 					closestDist = d;
 					closestArray = withAdded;
@@ -195,10 +202,10 @@ public class Player : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (attacking) {
-			attackAnimation();
-			attacking = false;
-		}
+	//	if (attacking) {
+	//		attackAnimation();
+	//		attacking = false;
+	//	}
 	//	Debug.Log("Player Update");
 		if (moving) {
 			if (currentPath.Count >= 2) {
@@ -221,12 +228,20 @@ public class Player : MonoBehaviour {
 //			float rotateGoal = (rotateTo.
 			rotateBy(rotateDist);
 		}
+		if (attacking && !moving && !rotating) {
+			attackAnimation();
+			attacking = false;
+		}
 	//	Debug.Log("Player Update End");
 	}
 
 	public void setRotatingPath() {
-		rotateFrom = (Vector2)currentPath[0];
-		rotateTo = (Vector2)currentPath[1];
+		setRotationFrom((Vector2)currentPath[0],(Vector2)currentPath[1]);
+	}
+
+	public void setRotationFrom(Vector2 from, Vector2 to) {
+		rotateFrom = from;
+		rotateTo = to;
 		rotating = true;
 	}
 	
@@ -300,7 +315,15 @@ public class Player : MonoBehaviour {
 			currentMaxPath = currentPath.Count - 1;
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
-				attacking = true;
+		//		attacking = true;
+			}
+			else {
+				Debug.Log("count less than 2");
+				if (attacking && attackEnemy) {
+					Debug.Log("Gonna set rotation");
+//					setRotationFrom(position, attackEnemy.position)
+					setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(attackEnemy.position.x, attackEnemy.position.y));
+				}
 			}
 			redrawGrid();
 		//	if (currentPath.Count >= 2 && moving) 

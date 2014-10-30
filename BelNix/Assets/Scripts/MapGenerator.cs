@@ -20,9 +20,11 @@ public class MapGenerator : MonoBehaviour {
 	GameObject arrowCurvePrefab;
 	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
+	GameObject enemyPrefab;
 	public GameObject selectedPlayer;
 	GameObject hoveredPlayer;
 	ArrayList players;
+	ArrayList enemies;
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
@@ -43,6 +45,7 @@ public class MapGenerator : MonoBehaviour {
 	bool mouseLeftDown;
 	bool mouseRightDown;
 	bool mouseMiddleDown;
+	bool mouseDownGUI = false;
 	
 	bool shiftDown;
 	bool altDown;
@@ -87,7 +90,8 @@ public class MapGenerator : MonoBehaviour {
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
-		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
+//		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
+		Vector3[] positions = new Vector3[] {new Vector3(18, -29, 0), new Vector3(11, -30, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
 			GameObject player = GameObject.Instantiate(playerPrefab) as GameObject;
@@ -96,8 +100,21 @@ public class MapGenerator : MonoBehaviour {
 			p.mapGenerator = this;
 			p.setPosition(pos);
 			players.Add(player);
-			player.renderer.sortingOrder = 3;
+			player.renderer.sortingOrder = 4;
 		}
+		enemies = new ArrayList();
+		enemyPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieEnemy");
+		Vector3[] positions2 = new Vector3[] {new Vector3(15, -28, 0), new Vector3(17, -27, 0), new Vector3(4, -23, 0)};
+		for (int n=0;n<positions2.Length;n++) {
+			Vector3 pos = positions2[n];
+			GameObject enemy = GameObject.Instantiate(enemyPrefab) as GameObject;
+			enemy.transform.parent = mapTransform;
+			Enemy e = enemy.GetComponent<Enemy>();
+			e.setPosition(pos);
+			enemies.Add(enemy);
+			enemy.renderer.sortingOrder = 3;
+		}
+
 		lines = mapTransform.FindChild("Lines").gameObject;
 		grids = mapTransform.FindChild("Grid").gameObject;
 		path = mapTransform.Find("Path").gameObject;
@@ -150,6 +167,17 @@ public class MapGenerator : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		handleInput();
+	}
+
+	public bool canStandOn(float x, float y) {
+		foreach (GameObject enemy in enemies) {
+			Enemy e = enemy.GetComponent<Enemy>();
+	//		Debug.Log("x: " + e.position.x + " - " + x + "   y: " + e.position.y + " - " + y);
+			if (e.position.x == x && -e.position.y == y) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public void resetPlayerPath() {
@@ -437,9 +465,10 @@ public class MapGenerator : MonoBehaviour {
 		if (!shiftDraggin && !normalDraggin && !rightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
 		bool mouseDown = Input.GetMouseButtonDown(0);
 		bool mouseUp = Input.GetMouseButtonUp(0);
+		if (mouseDown) mouseDownGUI = isOnGUI;
 		if (mouseDown && !shiftDown && !isOnGUI) {
 		//	Debug.Log("First");
-			if (!selectedPlayer || !selectedPlayer.GetComponent<Player>().moving) {
+			if (!selectedPlayer || (!selectedPlayer.GetComponent<Player>().moving && !selectedPlayer.GetComponent<Player>().attacking)) {
 				if (selectedPlayer!=null && currentGrid!=null) {
 					int x = (int)currentGrid.transform.localPosition.x;
 					int y = (int)currentGrid.transform.localPosition.y;
@@ -465,12 +494,28 @@ public class MapGenerator : MonoBehaviour {
 				}
 			}
 		}
-		if (mouseUp && !shiftDown) {
+		if (mouseUp && !shiftDown && !mouseDownGUI) {
 		//	Debug.Log("Second");
+			if (selectedPlayer && lastHit) {
+				Debug.Log("lastHit && selectedPlayer");
+				Player p = selectedPlayer.GetComponent<Player>();
+				Debug.Log("lastHit.trans: " + lastHit.transform.localPosition);
+				p.attackEnemy = null;
+			//	if (editingPath && isInPlayerRadius(p, p.currentMoveDist + p.attackRange, (int)lastHit.transform.localPosition.x, (int)lastHit.transform.localPosition.y)) {
+			//		Debug.Log("editingPath && isInPlayerRadius");
+					foreach (GameObject eGo in enemies) {
+						Enemy e = eGo.GetComponent<Enemy>();
+						if (Mathf.Floor(e.position.x) == Mathf.Floor(lastHit.transform.localPosition.x) && Mathf.Floor(e.position.y) == Mathf.Floor(lastHit.transform.localPosition.y)) {
+							Debug.Log("p.attackEnemy = e;");
+							p.attackEnemy = e;
+						}
+			//		}
+				}
+			}
 			editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
 		}
-		if (normalDraggin && editingPath) {		
+		if (normalDraggin && editingPath && !mouseDownGUI) {		
 		//	Debug.Log("Third");
 
 			/*
