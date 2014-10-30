@@ -405,12 +405,14 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void clearGrid() {
-		foreach (Tile t in gridsArray) {
+		if (gridsArray) {
+			foreach (Tile t in gridsArray) {
 		//	foreach (Tile t in tA) {
 				TileHolder th = t.tileGameObject.GetComponent<TileHolder>();
 				th.tile = null;
 				Destroy(t.tileGameObject);
 		//	}
+			}
 		}
 		gridsArray = null;
 	}
