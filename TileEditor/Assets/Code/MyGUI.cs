@@ -26,7 +26,16 @@ public class MyGUI : MonoBehaviour {
 	bool actuallyZeroRight = true;
 	bool actuallyZeroTrigger = true;
 	bool actuallyZeroAction = true;
+	bool colorChanged = true;
+
+	GUIStyle boxStyle = null;
 	
+	void createStyle() {
+		if (boxStyle == null) {
+			boxStyle = new GUIStyle(GUI.skin.box);
+		}
+	}
+
 	void OnGUI() {
 		GUISkin skinCopy = (GUISkin)Instantiate(GUI.skin);
 
@@ -89,23 +98,28 @@ public class MyGUI : MonoBehaviour {
 		red = Mathf.Clamp(red,0.0f,255.0f);
 		green = Mathf.Clamp(green,0.0f,255.0f);
 		blue = Mathf.Clamp(blue,0.0f,255.0f);
+		if (red != gridManager.red || blue!=gridManager.blue || green!=gridManager.green) colorChanged = true;
 		gridManager.red = red;
 		gridManager.green = green;
 		gridManager.blue = blue;
 		float colorBoxHeight = textFieldHeight;
-		Texture2D colorTexture = new Texture2D((int)loadButtonWidth,(int)colorBoxHeight);
-		Texture2D oldTexture = GUI.skin.box.normal.background;
-		Color fillColor = new Color(red/255.0f,green/255.0f,blue/255.0f,1.0f);
-		Color[] colors = colorTexture.GetPixels();
-		for (int n=0;n<colors.Length;n++) {
-			colors[n] = fillColor;
+	//	Texture2D colorTexture = new Texture2D((int)loadButtonWidth,(int)colorBoxHeight);
+	//	Texture2D oldTexture = GUI.skin.box.normal.background;
+	//	Color fillColor = new Color(red/255.0f,green/255.0f,blue/255.0f,1.0f);
+	//	Color[] colors = colorTexture.GetPixels();
+	//	for (int n=0;n<colors.Length;n++) {
+	//		colors[n] = fillColor;
+	//	}
+	//	colorTexture.SetPixels(colors);
+	//	colorTexture.Apply();
+	//	GUI.skin.box.normal.background = colorTexture;
+		createStyle();
+		if (colorChanged) {
+			boxStyle.normal.background = makeTex((int)loadButtonWidth, (int)colorBoxHeight, new Color(red/255.0f, green/255.0f, blue/255.0f, 1.0f));
 		}
-		colorTexture.SetPixels(colors);
-		colorTexture.Apply();
-		GUI.skin.box.normal.background = colorTexture;
 		float colorBoxY = blueY + textFieldHeight + 5.0f;
-		GUI.Box(new Rect(loadButtonX, colorBoxY, loadButtonWidth, colorBoxHeight),"");
-		GUI.skin.box.normal.background = oldTexture;
+		GUI.Box(new Rect(loadButtonX, colorBoxY, loadButtonWidth, colorBoxHeight),"", boxStyle);
+	//	GUI.skin.box.normal.background = oldTexture;
 		float checkHeight = colorBoxHeight;
 		float checkWidth = loadButtonWidth;
 		float checkX = loadButtonX;
@@ -168,6 +182,22 @@ public class MyGUI : MonoBehaviour {
 		}
 
 		GUI.skin = skinCopy;
+	}
+
+
+	
+	Texture2D makeTex( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		colorChanged = false;
+		return result;
 	}
 
 
