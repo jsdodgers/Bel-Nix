@@ -201,7 +201,7 @@ public class GridManager : MonoBehaviour {
 			v3.y = gridY - v3.y;
 			v3.x = Mathf.Floor(v3.x);
 			v3.y = Mathf.Floor(v3.y);
-			Debug.Log(v3);
+			//Debug.Log(v3);
 			if (!wasShiftDraggin) {
 				startSquareActual = posActual;
 				startSquare = new Vector2(v3.x,v3.y);
@@ -259,8 +259,8 @@ public class GridManager : MonoBehaviour {
 			v3.y = gridY - v3.y;
 			v3.x = Mathf.Floor(v3.x);
 			v3.y = Mathf.Floor(v3.y);
-			Debug.Log("Start: " + startSquare);
-			Debug.Log("End: " + v3);
+			//Debug.Log("Start: " + startSquare);
+			//Debug.Log("End: " + v3);
 			Vector2 min = new Vector2(Mathf.Min(v3.x,startSquare.x),Mathf.Min(v3.y,startSquare.y));
 			Vector2 max = new Vector2(Mathf.Max(v3.x,startSquare.x),Mathf.Max(v3.y,startSquare.y));
 			Destroy(mouseOver);
@@ -327,7 +327,7 @@ public class GridManager : MonoBehaviour {
 				str = str + t.stringValue();
 		//	}
 		}
-		Debug.Log(str);
+		//Debug.Log(str);
 		int currAdd = 0;
 		string fileDirectory = "../Files/Maps/Tile Maps";
 		string fileName = fileDirectory + "/" + imageFileName + (currAdd>0?"" +currAdd:"") + ".txt";
@@ -373,22 +373,22 @@ public class GridManager : MonoBehaviour {
 			string text = www.text;
 			string[] tiles = text.Split(";".ToCharArray());
 			if (int.Parse(tiles[1])==gridX && int.Parse(tiles[2])==gridY) {
-				Debug.Log("Works!");
+				//Debug.Log("Works!");
 				parseTiles(tiles);
 			}
 			else {
-				Debug.Log(Application.absoluteURL);
+				//Debug.Log(Application.absoluteURL);
 			
 				string path1 = "../Files/Maps/Images/" + tiles[0] + ".jpg";
 				string path2 = Path.GetFullPath(path1);
-				Debug.Log(path2);
+				//Debug.Log(path2);
 				if (File.Exists(path2)) {
-					Debug.Log("file Exists!");
+					//Debug.Log("file Exists!");
 					loadImage(path2);
 					parseTiles(tiles);
 				}
 				else {
-					Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
+					//Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
 				}
 			}
 //			Debug.Log(text);
@@ -428,7 +428,7 @@ public class GridManager : MonoBehaviour {
 		float minY = y/2.0f - 0.5f;
 		float maxX = x/2.0f - 0.5f;
 		float maxY = -y/2.0f + 0.5f;
-		Debug.Log("x: " + x + ", minX: " + minX);
+		//Debug.Log("x: " + x + ", minX: " + minX);
 		int xcur = 0;
 		for (float n=minX;n<=maxX;n++) {
 			int ycur = 0;
@@ -468,7 +468,7 @@ public class GridManager : MonoBehaviour {
 			"Overwrite with jpg",
 			"../Files/Maps/Images",
 			"jpg");
-		Debug.Log(path);
+		//Debug.Log(path);
 		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
 		//			Sprite sprite = new Sprite();
 		//			sprend.sprite = sprite;
@@ -497,7 +497,7 @@ public class GridManager : MonoBehaviour {
 			mainCamera.orthographicSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize;
 			cameraTransform.localPosition = new Vector3(0,0,-10);
 			loadGrid(scaleX, scaleY);
-			Debug.Log(www.texture.width + "  " + www.texture.height + "    " + sprend.transform.localScale.x + "  " + sprend.transform.localScale.y);
+			//Debug.Log(www.texture.width + "  " + www.texture.height + "    " + sprend.transform.localScale.x + "  " + sprend.transform.localScale.y);
 		}
 	}
 
@@ -507,7 +507,7 @@ public class GridManager : MonoBehaviour {
 		SpriteRenderer sprend = (SpriteRenderer)transform.GetComponent("SpriteRenderer");
 		Sprite spr = sprend.sprite;
 //		WWW www = new WWW("file://" + "/Users/Justin/Documents/UCI/ICS 169AB/Bel Nix/Images/Maps/none.jpg");
-		Debug.Log(Application.dataPath);
+		//Debug.Log(Application.dataPath);
 		WWW www = new WWW("file://" + Application.dataPath + "/Resources/Images/70.png");
 		www.LoadImageIntoTexture(spr.texture);
 	}

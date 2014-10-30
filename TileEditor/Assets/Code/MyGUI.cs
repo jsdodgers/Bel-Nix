@@ -44,7 +44,7 @@ public class MyGUI : MonoBehaviour {
 		float width = GUI.skin.verticalScrollbar.fixedWidth;
 		scrollPosition = GUI.BeginScrollView(new Rect(boxX,boxY,boxWidth,boxHeight), scrollPosition, new Rect(boxX,boxY,scrollContentSize,boxHeight*2.0f));
 		if (GUI.Button(new Rect(loadButtonX,loadButtonY,loadButtonWidth,loadButtonHeight),"Load File...")) {
-			Debug.Log("Button Press");
+			//Debug.Log("Button Press");
 			/* 			string path = EditorUtility.OpenFilePanel(
 				"Overwrite with png",
 				"",
