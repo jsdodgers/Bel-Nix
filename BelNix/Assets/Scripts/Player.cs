@@ -10,6 +10,12 @@ public class Player : MonoBehaviour {
 	public int maxMoveDist = 5;
 	public ArrayList currentPath = new ArrayList();
 	int currentMaxPath = 0;
+	public bool moving = false;
+	public bool rotating = false;
+	public bool attacking = false;
+	public Vector2 rotateFrom;
+	public Vector2 rotateTo;
+	Animator anim;
 
 	public Vector3 position;
 
@@ -18,6 +24,14 @@ public class Player : MonoBehaviour {
 		position = pos;
 		transform.localPosition = new Vector3(pos.x + .5f, pos.y - .5f, pos.z);
 		currentMaxPath = 0;
+		resetPath();
+	}
+
+	public void followPath() {
+		moving = true;
+	}
+
+	public void resetPath() {
 		currentPath = new ArrayList();
 		currentPath.Add(new Vector2(position.x, -position.y));
 	}
@@ -162,19 +176,163 @@ public class Player : MonoBehaviour {
 		return currentPath;
 	}
 
+	void attackAnimation() {
+		Debug.Log("Attack!");
+		anim.SetTrigger("Attack");
+	}
+
 	// Use this for initialization
 	void Start () {
-		
+		moving = false;
 		currentMoveDist = 5;
 		attackRange = 1;
 		viewDist = 11;
 		maxMoveDist = 5;
+		anim = gameObject.GetComponent<Animator>();
 //		currentPath = new ArrayList();
 	//	currentMaxPath = 0;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		if (attacking) {
+			attackAnimation();
+			attacking = false;
+		}
+	//	Debug.Log("Player Update");
+		if (moving) {
+			if (currentPath.Count >= 2) {
+				float speed = 1.0f;
+				float time = Time.deltaTime;
+				float moveDist = time * speed;
+				moveBy(moveDist);
+
+			}
+			else {
+				moving = false;
+				currentPath = new ArrayList();
+				currentPath.Add(new Vector2(position.x, -position.y));
+			}
+		}
+		if (rotating) {
+			float speed = 180.0f;// + 20.0f;
+			float time = Time.deltaTime;
+			float rotateDist = time * speed;
+//			float rotateGoal = (rotateTo.
+			rotateBy(rotateDist);
+		}
+	//	Debug.Log("Player Update End");
+	}
+
+	public void setRotatingPath() {
+		rotateFrom = (Vector2)currentPath[0];
+		rotateTo = (Vector2)currentPath[1];
+		rotating = true;
+	}
 	
+	void rotateBy(float rotateDist) {
+		float midSlope = (rotateTo.y - rotateFrom.y)/(rotateTo.x - rotateFrom.x);
+		float rotation = Mathf.Atan(midSlope) + Mathf.PI/2.0f;
+		Vector3 rot1 = transform.eulerAngles;
+		if (rotateTo.x > rotateFrom.x) {
+			rotation += Mathf.PI;
+		}
+		rotation *= 180.0f / Mathf.PI;
+//		rot1.z = rotation;
+//		transform.eulerAngles = rot1;
+		float rotation2 = rotation - 360.0f;
+		float rotation3 = rotation + 360.0f;
+	//	if (rotation == 0.0f) rotation2 = 360.0f;
+		float difference1 = Mathf.Abs(rotation - rot1.z);
+		float difference2 = Mathf.Abs(rotation2 - rot1.z);
+		float difference3 = Mathf.Abs(rotation3 - rot1.z);
+		float move1 = rotation - rot1.z;
+		float move2 = rotation2 - rot1.z;
+		float move3 = rotation3 - rot1.z;
+		float sign1 = sign(move1);
+		float sign2 = sign(move2);
+		float sign3 = sign(move3);
+		float s = sign1;
+		float m = move1;
+		float d = difference1;
+		if (difference2 < d) {// || difference1 > 180.0f) {
+			Debug.Log("Use 2!!");
+			s = sign2;
+			m = move2;
+			d = difference2;
+		}
+		if (difference3 < d) {
+			s = sign3;
+			m = move3;
+			d = difference3;
+		}
+		if (d <= rotateDist) {
+			rot1.z = rotation;
+			rotating = false;
+		}
+		else {
+			rot1.z += rotateDist * s;
+		}
+		while (rot1.z <= 0) rot1.z += 360.0f;
+		transform.eulerAngles = rot1;
+		Debug.Log("Rotate Dist: " + rotateDist + " r1: " + rotation + " r2: " + rotation2 + "  m1: " + move1 + " m2: " + move2);
+//		rotating = false;
+	}
+	
+	void moveBy(float moveDist) {
+		Vector2 one = (Vector2)currentPath[1];
+		Vector2 zero = (Vector2)currentPath[0];
+		zero = new Vector2(transform.localPosition.x - 0.5f, -transform.localPosition.y - 0.5f);
+		float directionX = sign(one.x - zero.x);
+		float directionY = -sign(one.y - zero.y);
+		//				directionX = Mathf.s
+		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
+//		float distX = one.x - zero.x;
+//		float distY = one.y - zero.y;
+		if (Mathf.Abs(dist - moveDist) <= 0.001f || moveDist >= dist) {
+//			moving = false;
+			unDrawGrid();
+			position = new Vector3(one.x, -one.y, 0.0f);
+			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, 0.0f);
+			currentPath.RemoveAt(0);
+			moveDist = moveDist - dist;
+			currentMoveDist--;
+			currentMaxPath = currentPath.Count - 1;
+			if (currentPath.Count >= 2) {
+				setRotatingPath();
+				attacking = true;
+			}
+			redrawGrid();
+		//	if (currentPath.Count >= 2 && moving) 
+		//		moveBy(moveDist);
+		}
+		else {
+			Vector3 pos = transform.localPosition;
+			pos.x += directionX*moveDist;
+			pos.y += directionY*moveDist;
+			transform.localPosition = pos;
+//			transform.Translate(new Vector3(directionX * moveDist, directionY * moveDist, 0.0f));
+		}
+		//	Vector2 dist = new Vector2(currentPath[1].x - currentPath[0].x, currentPath[1].y - currentPath[0].y);
+		//	Vector2 actualDist = dist;
+	}
+
+	void unDrawGrid() {
+		mapGenerator.resetAroundPlayer(this, viewDist);
+	}
+
+	void redrawGrid() {
+		if (currentMoveDist == 0) {
+			mapGenerator.resetMoveDistances();
+		}
+		mapGenerator.resetPlayerPath();
+		mapGenerator.setPlayerPath(currentPath);
+		mapGenerator.setAroundPlayer(this, currentMoveDist, viewDist, attackRange);
+	}
+
+	float sign(float num) {
+		if (Mathf.Abs(num) < 0.0001f) return 0.0f;
+		if (num > 0) return 1.0f;
+		return -1.0f;
 	}
 }

@@ -6,7 +6,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	int gridSize = 70;
 	
-	
+	GameGUI gui;
 	GameObject lastHit;
 	GameObject map;
 	Transform mapTransform;
@@ -15,19 +15,21 @@ public class MapGenerator : MonoBehaviour {
 	SpriteRenderer sprend;
 	Sprite spr;
 
+	bool isOnGUI;
 	GameObject arrowStraightPrefab;
 	GameObject arrowCurvePrefab;
 	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
-	GameObject selectedPlayer;
+	public GameObject selectedPlayer;
 	GameObject hoveredPlayer;
 	ArrayList players;
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
 	GameObject[,] gridArray;
-	ArrayList lastPlayerPath;
+	public ArrayList lastPlayerPath;
 
+	bool editingPath = false;
 	Vector2 lastArrowPos = new Vector2(-1, -1);
 
 	
@@ -76,9 +78,12 @@ public class MapGenerator : MonoBehaviour {
 		gridPrefab = (GameObject)Resources.Load("Materials/Square_70");
 		map = GameObject.Find("Map");
 		mapTransform = map.transform;
-		
+		GameObject guiObj = GameObject.Find("GameGUI");
+		gui = guiObj.GetComponent<GameGUI>();
+		gui.mapGenerator = this;
+
 		players = new ArrayList();
-		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackiePrefab");
+		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieAnimPrefab");
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
@@ -91,6 +96,7 @@ public class MapGenerator : MonoBehaviour {
 			p.mapGenerator = this;
 			p.setPosition(pos);
 			players.Add(player);
+			player.renderer.sortingOrder = 3;
 		}
 		lines = mapTransform.FindChild("Lines").gameObject;
 		grids = mapTransform.FindChild("Grid").gameObject;
@@ -111,6 +117,8 @@ public class MapGenerator : MonoBehaviour {
 		Debug.Log("actualWidth: " + actualWidth + ", actualHeight: " + actualHeight);
 		Debug.Log("newPos: " + newPos);
 		Debug.Log("End");
+		selectedPlayer = null;
+		lastPlayerPath = new ArrayList();
 		//		GameObject lrO = new GameObject();
 		
 		
@@ -144,7 +152,7 @@ public class MapGenerator : MonoBehaviour {
 		handleInput();
 	}
 
-	void resetPlayerPath() {
+	public void resetPlayerPath() {
 		if (lastPlayerPath!=null) {
 //			foreach (Vector2 v in lastPlayerPath) {
 //			foreach (GameObject p in path.transform.) {
@@ -166,10 +174,11 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	void setPlayerPath(ArrayList path1) {
+	public void setPlayerPath(ArrayList path1) {
 //		Debug.Log("Set Player Path");
 //		bool first = true;
 		for (int n=1;n<path1.Count;n++) {
+			Debug.Log("Set Path: " + n);
 			Vector2 v = (Vector2)path1[n];
 			Vector2 v0 = (Vector2)path1[n-1];
 //		foreach (Vector2 v in path1) {
@@ -234,7 +243,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 	
-	void resetAroundPlayer(Player player1, int view) {
+	public void resetAroundPlayer(Player player1, int view) {
 		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-player1.position.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y ++) {
 				GameObject go = gridArray[x,y];
@@ -250,7 +259,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 	
-	void setAroundPlayer(Player player1, int radius, int view, int attackRange) {
+	public void setAroundPlayer(Player player1, int radius, int view, int attackRange) {
 		int type = 4;
 		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-player1.transform.localPosition.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y++) {
@@ -362,15 +371,26 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleInput() {
+	//	Debug.Log("handleGUIPos");
+		handleGUIPos();
+	//	Debug.Log("handleMouseScrollWheel");
 		handleMouseScrollWheel();
+	//	Debug.Log("handleKeys");
 		handleKeys();
+	//	Debug.Log("handleMouseClicks");
 		handleMouseClicks();
+	//	Debug.Log("handleMouseMovement");
 		handleMouseMovement();
+	//	Debug.Log("handleMouseSelect");
 		handleMouseSelect();
 		//	handleKeyActions();
 	}
 	
-	
+
+	void handleGUIPos() {
+	//	isOnGUI = gui.moveButtonRect().Contains(new Vector2(Input.mousePosition.x, Input.mousePosition.y));
+		isOnGUI = gui.mouseIsOnGUI();
+	}
 	
 	
 	void handleMouseScrollWheel() {
@@ -409,21 +429,50 @@ public class MapGenerator : MonoBehaviour {
 
 	void handleMouseClicks() {
 		mouseLeftDown = Input.GetMouseButton(0);
-		if (!normalDraggin && !middleDraggin && !rightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (shiftDown && Input.GetMouseButtonDown(0)));
-		if (!shiftDraggin && !middleDraggin && !rightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!shiftDown && Input.GetMouseButtonDown(0)));
+		if (!normalDraggin && !middleDraggin && !rightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
+		if (!shiftDraggin && !middleDraggin && !rightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)));
 		mouseRightDown = Input.GetMouseButton(1);
-		if (!shiftDraggin && !middleDraggin && !normalDraggin) rightDraggin = (rightDraggin && mouseRightDown) || Input.GetMouseButtonDown(1);
+		if (!shiftDraggin && !middleDraggin && !normalDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!isOnGUI && Input.GetMouseButtonDown(1));
 		mouseMiddleDown = Input.GetMouseButton(2);
-		if (!shiftDraggin && !normalDraggin && !rightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || Input.GetMouseButtonDown(2);
+		if (!shiftDraggin && !normalDraggin && !rightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
 		bool mouseDown = Input.GetMouseButtonDown(0);
 		bool mouseUp = Input.GetMouseButtonUp(0);
-		if (mouseUp) {
-			if (!selectedPlayer) {
-				selectedPlayer = hoveredPlayer;
+		if (mouseDown && !shiftDown && !isOnGUI) {
+		//	Debug.Log("First");
+			if (!selectedPlayer || !selectedPlayer.GetComponent<Player>().moving) {
+				if (selectedPlayer!=null && currentGrid!=null) {
+					int x = (int)currentGrid.transform.localPosition.x;
+					int y = (int)currentGrid.transform.localPosition.y;
+					Player p = selectedPlayer.GetComponent<Player>();
+					editingPath = hoveredPlayer==null && isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y);
+				}
+		//	}
+		//	if (mouseUp && !shiftDown) {
+				if (!selectedPlayer || !editingPath) {
+					if (selectedPlayer) {
+						Player p = selectedPlayer.GetComponent<Player>();
+						resetAroundPlayer(p,p.viewDist);
+						resetPlayerPath();
+						lastPlayerPath = new ArrayList();
+						p.resetPath();
+					}
+					selectedPlayer = hoveredPlayer;
+					if (hoveredPlayer) {
+						Player p2 = selectedPlayer.GetComponent<Player>();
+						setAroundPlayer(p2, p2.currentMoveDist, p2.viewDist, p2.attackRange);
+						editingPath = true;
+					}
+				}
 			}
+		}
+		if (mouseUp && !shiftDown) {
+		//	Debug.Log("Second");
+			editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
 		}
-		if (normalDraggin) {
+		if (normalDraggin && editingPath) {		
+		//	Debug.Log("Third");
+
 			/*
 			int x = (int)currentGrid.transform.localPosition.x;
 			int y = (int)currentGrid.transform.localPosition.y;
@@ -451,9 +500,13 @@ public class MapGenerator : MonoBehaviour {
 
 			if (selectedPlayer && !Player.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
 				Player p = selectedPlayer.GetComponent<Player>();
-
+				Debug.Log(p.currentMoveDist + "     aaa!!");
 				resetPlayerPath();
 				if (!lastPlayerPathContains(v)) {
+				//	if (p.currentMoveDist <= 2)  {
+				//		Debug.Log("1111111 ====== " + lastPlayerPath.Count);
+				//		return;
+				//	}
 					lastPlayerPath = p.addPathTo(v);
 				}
 				else {
@@ -464,7 +517,8 @@ public class MapGenerator : MonoBehaviour {
 					s += v1.ToString() + ", ";
 				}
 				Debug.Log(s);
-				setPlayerPath(lastPlayerPath);
+				if (lastPlayerPath.Count > 1)
+					setPlayerPath(lastPlayerPath);
 				lastArrowPos = v;
 
 				/*
@@ -510,7 +564,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 	
 	
-	void resetMoveDistances() {
+	public void resetMoveDistances() {
 		bool reset = true;
 		foreach (GameObject player in players) {
 			Player p = player.GetComponent<Player>();
@@ -530,7 +584,7 @@ public class MapGenerator : MonoBehaviour {
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = mainCamera.ScreenToWorldPoint(mPos);
-		if (middleDraggin || scrolled) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (middleDraggin || scrolled || shiftDraggin) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			//= mainCamera.WorldToScreenPoint(cameraTransform.position);
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
 				float xDiff = pos1.x - lastPos.x;
@@ -557,7 +611,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	void handleMouseSelect() {
 		
-		
+	//	Debug.Log("Start Mouse Select");
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<9);
 		//		Physics2D.Ray
 		if (hit) {
@@ -630,7 +684,7 @@ public class MapGenerator : MonoBehaviour {
 			currentGrid = null;
 			currentSprite = null;
 		}
-		
+	//	Debug.Log("End Mouse Select");
 	}
 	
 }
