@@ -24,7 +24,7 @@ public class MapGenerator : MonoBehaviour {
 	public GameObject selectedPlayer;
 	GameObject hoveredPlayer;
 	ArrayList players;
-	ArrayList enemies;
+	public ArrayList enemies;
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
@@ -111,6 +111,7 @@ public class MapGenerator : MonoBehaviour {
 			enemy.transform.parent = mapTransform;
 			Enemy e = enemy.GetComponent<Enemy>();
 			e.setPosition(pos);
+			e.mapGenerator = this;
 			enemies.Add(enemy);
 			enemy.renderer.sortingOrder = 3;
 		}
@@ -484,6 +485,7 @@ public class MapGenerator : MonoBehaviour {
 						resetPlayerPath();
 						lastPlayerPath = new ArrayList();
 						p.resetPath();
+						p.attackEnemy = null;
 					}
 					selectedPlayer = hoveredPlayer;
 					if (hoveredPlayer) {

@@ -186,6 +186,10 @@ public class Player : MonoBehaviour {
 	void attackAnimation() {
 		Debug.Log("Attack!");
 		anim.SetTrigger("Attack");
+		attackEnemy.damage(3);
+		attackEnemy.attackPlayer = this;
+		attackEnemy.setRotationToAttackPlayer();
+	//	attackEnemy = null;
 	}
 
 	// Use this for initialization
@@ -235,14 +239,71 @@ public class Player : MonoBehaviour {
 	//	Debug.Log("Player Update End");
 	}
 
+	GUIStyle redStyle = null;
+	GUIStyle greenStyle = null;
+
+	void createStyle() {
+		if (redStyle == null) {
+			redStyle = new GUIStyle(GUI.skin.box);
+		}
+		if (greenStyle == null) {
+			greenStyle = new GUIStyle(GUI.skin.box);
+		}
+	}
+
+	void OnGUI() {
+		if (attackEnemy) {
+			float totalWidth = Screen.width * 0.7f;
+			float x = (Screen.width - totalWidth)/2.0f;
+			float y = 10.0f;
+			float height = 15.0f;
+			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)attackEnemy.hitPoints)/((float)attackEnemy.maxHitPoints)), 0.0f), totalWidth);
+		//	GUI.BeginGroup(new Rect(x, y, totalWidth, height));
+			createStyle();
+			redStyle.normal.background = makeTex((int)totalWidth, (int)height, Color.red);
+			GUI.Box(new Rect(x, y, totalWidth, height), "", redStyle);
+		//	currentStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green)
+//			if (heal
+			if (healthWidth > 0) {
+				greenStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green);
+				GUI.Box(new Rect(x, y, healthWidth, height), "", greenStyle);
+			}
+		//	GUI.EndGroup();
+		}
+	}
+
+	Texture2D makeTex( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
+
+
 	public void setRotatingPath() {
 		setRotationFrom((Vector2)currentPath[0],(Vector2)currentPath[1]);
+	}
+
+	public void setRotationToAttackEnemy() {
+		if (attackEnemy != null) {
+			setRotationToEnemy(attackEnemy);
+		}
 	}
 
 	public void setRotationFrom(Vector2 from, Vector2 to) {
 		rotateFrom = from;
 		rotateTo = to;
 		rotating = true;
+	}
+
+	public void setRotationToEnemy(Enemy enemy) {
+		setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(enemy.position.x, enemy.position.y));
 	}
 	
 	void rotateBy(float rotateDist) {
@@ -288,7 +349,7 @@ public class Player : MonoBehaviour {
 		else {
 			rot1.z += rotateDist * s;
 		}
-		while (rot1.z <= 0) rot1.z += 360.0f;
+		if (rot1.z <= 0) rot1.z += 360.0f;
 		transform.eulerAngles = rot1;
 		Debug.Log("Rotate Dist: " + rotateDist + " r1: " + rotation + " r2: " + rotation2 + "  m1: " + move1 + " m2: " + move2);
 //		rotating = false;
@@ -322,7 +383,7 @@ public class Player : MonoBehaviour {
 				if (attacking && attackEnemy) {
 					Debug.Log("Gonna set rotation");
 //					setRotationFrom(position, attackEnemy.position)
-					setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(attackEnemy.position.x, attackEnemy.position.y));
+					setRotationToAttackEnemy();
 				}
 			}
 			redrawGrid();

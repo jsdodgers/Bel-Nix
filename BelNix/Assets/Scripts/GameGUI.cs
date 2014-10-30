@@ -26,7 +26,7 @@ public class GameGUI : MonoBehaviour {
 	public Rect attackButtonRect() {
 		Rect r = moveButtonRect();
 		if (mapGenerator != null) {
-			if (mapGenerator.selectedPlayer!=null) {
+			if (mapGenerator.selectedPlayer!=null && !mapGenerator.selectedPlayer.GetComponent<Player>().moving) {
 				if (mapGenerator.lastPlayerPath.Count >1) {
 					r.y -= r.height + 10.0f;
 				}
@@ -39,13 +39,13 @@ public class GameGUI : MonoBehaviour {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (mapGenerator) {
 			if (mapGenerator.selectedPlayer!=null) {
-				if (mapGenerator.lastPlayerPath.Count >1) {
+				Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
+				if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 					if (moveButtonRect().Contains(mousePos)) {
 						return true;
 					}
 				}
-				Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-				if (p.attackEnemy!=null) {
+				if (p.attackEnemy!=null && !p.moving && !p.attacking) {
 					if (attackButtonRect().Contains(mousePos)) {
 						return true;
 					}
@@ -62,24 +62,25 @@ public class GameGUI : MonoBehaviour {
 		bool path = false;
 		if (mapGenerator.selectedPlayer!=null) {
 			Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-			if (mapGenerator.lastPlayerPath.Count >1) {
+			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 				path = true;
 				if(GUI.Button(moveButtonRect(), "Move")) {
 					Debug.Log("Move Player!");
-					p.moving = !p.moving;
+					p.moving = true;
 //					p.rotating = true;
 					p.setRotatingPath();
 			//		p.attacking = true;
 				}
 			}
-			if (p.attackEnemy!=null) {
+			if (p.attackEnemy!=null && !p.moving && !p.attacking) {
 				if (GUI.Button(attackButtonRect(), "Attack")) {
 					if (path) {
 						p.moving = true;
 						p.setRotatingPath();
 					}
 					else {
-						p.setRotationFrom(new Vector2(p.position.x + .001f, p.position.y), new Vector2(p.attackEnemy.position.x, p.attackEnemy.position.y));
+					//	p.setRotationFrom(new Vector2(p.position.x + .001f, p.position.y), new Vector2(p.attackEnemy.position.x, p.attackEnemy.position.y));
+						p.setRotationToAttackEnemy();
 					}
 					p.attacking = true;
 				}
