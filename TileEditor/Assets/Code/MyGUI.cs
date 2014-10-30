@@ -26,7 +26,7 @@ public class MyGUI : MonoBehaviour {
 	bool actuallyZeroRight = true;
 	bool actuallyZeroTrigger = true;
 	bool actuallyZeroAction = true;
-	bool colorChanged = true;
+	public bool colorChanged = true;
 
 	GUIStyle boxStyle = null;
 	
