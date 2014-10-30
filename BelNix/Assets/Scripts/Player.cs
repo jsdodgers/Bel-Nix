@@ -187,6 +187,8 @@ public class Player : MonoBehaviour {
 		Debug.Log("Attack!");
 		anim.SetTrigger("Attack");
 		attackEnemy.damage(3);
+		attackEnemy.attackPlayer = this;
+		attackEnemy.setRotationToAttackPlayer();
 	//	attackEnemy = null;
 	}
 
@@ -288,10 +290,20 @@ public class Player : MonoBehaviour {
 		setRotationFrom((Vector2)currentPath[0],(Vector2)currentPath[1]);
 	}
 
+	public void setRotationToAttackEnemy() {
+		if (attackEnemy != null) {
+			setRotationToEnemy(attackEnemy);
+		}
+	}
+
 	public void setRotationFrom(Vector2 from, Vector2 to) {
 		rotateFrom = from;
 		rotateTo = to;
 		rotating = true;
+	}
+
+	public void setRotationToEnemy(Enemy enemy) {
+		setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(enemy.position.x, enemy.position.y));
 	}
 	
 	void rotateBy(float rotateDist) {
@@ -371,7 +383,7 @@ public class Player : MonoBehaviour {
 				if (attacking && attackEnemy) {
 					Debug.Log("Gonna set rotation");
 //					setRotationFrom(position, attackEnemy.position)
-					setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(attackEnemy.position.x, attackEnemy.position.y));
+					setRotationToAttackEnemy();
 				}
 			}
 			redrawGrid();

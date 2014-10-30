@@ -79,7 +79,8 @@ public class GameGUI : MonoBehaviour {
 						p.setRotatingPath();
 					}
 					else {
-						p.setRotationFrom(new Vector2(p.position.x + .001f, p.position.y), new Vector2(p.attackEnemy.position.x, p.attackEnemy.position.y));
+					//	p.setRotationFrom(new Vector2(p.position.x + .001f, p.position.y), new Vector2(p.attackEnemy.position.x, p.attackEnemy.position.y));
+						p.setRotationToAttackEnemy();
 					}
 					p.attacking = true;
 				}
