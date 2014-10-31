@@ -539,8 +539,10 @@ public class GridManager : MonoBehaviour {
 		case RuntimePlatform.WindowsEditor:
 		case RuntimePlatform.WindowsPlayer:
 		case RuntimePlatform.WindowsWebPlayer:
+			Debug.Log("Windows");
 			return true;
 		default:
+			Debug.Log("Not Windows");
 			return false;
 		}
 	}
