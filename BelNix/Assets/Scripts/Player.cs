@@ -186,11 +186,16 @@ public class Player : MonoBehaviour {
 	void attackAnimation() {
 		Debug.Log("Attack!");
 		anim.SetTrigger("Attack");
+	//	attackEnemy = null;
+	}
+
+	void dealDamage() {
 		attackEnemy.damage(3);
 		attackEnemy.attackPlayer = this;
 		attackEnemy.setRotationToAttackPlayer();
-	//	attackEnemy = null;
 	}
+
+
 
 	// Use this for initialization
 	void Start () {

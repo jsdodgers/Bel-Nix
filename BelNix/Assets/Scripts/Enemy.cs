@@ -27,10 +27,10 @@ public class Enemy : MonoBehaviour {
 	}
 
 	public void damage(int damage) {
-		Debug.Log("Damage");
+	//	Debug.Log("Damage");
 		hitPoints -= damage;
 		if (hitPoints <= 0) died = true;
-		Debug.Log("EndDamage");
+	//	Debug.Log("EndDamage");
 	}
 
 	void doDeath() {
@@ -38,7 +38,8 @@ public class Enemy : MonoBehaviour {
 	//	mapGenerator.
 		if (died) dieTime += Time.deltaTime;
 	//	if (dieTime >= 1) Destroy(gameObject);
-		if (dieTime >= 0.5f) {
+	//	if (dieTime >= 0.5f) {
+		if (died) {
 			if (!mapGenerator.selectedPlayer || !mapGenerator.selectedPlayer.GetComponent<Player>().attacking) {
 				if (mapGenerator.selectedPlayer) {
 					Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
