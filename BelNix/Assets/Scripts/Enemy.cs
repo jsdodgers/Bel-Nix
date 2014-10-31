@@ -34,7 +34,7 @@ public class Enemy : MonoBehaviour {
 	}
 
 	void doDeath() {
-		Debug.Log("Do Death");
+	//	Debug.Log("Do Death");
 	//	mapGenerator.
 		if (died) dieTime += Time.deltaTime;
 	//	if (dieTime >= 1) Destroy(gameObject);
@@ -49,7 +49,7 @@ public class Enemy : MonoBehaviour {
 				Destroy(gameObject);
 			}
 		}
-		Debug.Log("End Death");
+	//	Debug.Log("End Death");
 	}
 
 	void doRotation() {

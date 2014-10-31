@@ -207,7 +207,7 @@ public class MapGenerator : MonoBehaviour {
 //		Debug.Log("Set Player Path");
 //		bool first = true;
 		for (int n=1;n<path1.Count;n++) {
-			Debug.Log("Set Path: " + n);
+		//	Debug.Log("Set Path: " + n);
 			Vector2 v = (Vector2)path1[n];
 			Vector2 v0 = (Vector2)path1[n-1];
 //		foreach (Vector2 v in path1) {
@@ -237,7 +237,7 @@ public class MapGenerator : MonoBehaviour {
 					int yDif1 = (int)(v2.y - v.y);
 					int xDif2 = (int)(v.x - v0.x);
 					int yDif2 = (int)(v.y - v0.y);
-					Debug.Log("xDif1: " + xDif1 + " yDif1: " + yDif1 + " xDif2: " + xDif2 + " yDif2: " + yDif2);
+			//		Debug.Log("xDif1: " + xDif1 + " yDif1: " + yDif1 + " xDif2: " + xDif2 + " yDif2: " + yDif2);
 					go = GameObject.Instantiate(arrowCurvePrefab) as GameObject;
 					float rot = 0.0f;
 					if (xDif1 == -1 && yDif2 == -1) rot = 270.0f;
@@ -499,19 +499,41 @@ public class MapGenerator : MonoBehaviour {
 		if (mouseUp && !shiftDown && !mouseDownGUI) {
 		//	Debug.Log("Second");
 			if (selectedPlayer && lastHit) {
-				Debug.Log("lastHit && selectedPlayer");
+			//	Debug.Log("lastHit && selectedPlayer");
 				Player p = selectedPlayer.GetComponent<Player>();
-				Debug.Log("lastHit.trans: " + lastHit.transform.localPosition);
+			//	Debug.Log("lastHit.trans: " + lastHit.transform.localPosition);
 				p.attackEnemy = null;
 			//	if (editingPath && isInPlayerRadius(p, p.currentMoveDist + p.attackRange, (int)lastHit.transform.localPosition.x, (int)lastHit.transform.localPosition.y)) {
 			//		Debug.Log("editingPath && isInPlayerRadius");
-					foreach (GameObject eGo in enemies) {
-						Enemy e = eGo.GetComponent<Enemy>();
-						if (Mathf.Floor(e.position.x) == Mathf.Floor(lastHit.transform.localPosition.x) && Mathf.Floor(e.position.y) == Mathf.Floor(lastHit.transform.localPosition.y)) {
-							Debug.Log("p.attackEnemy = e;");
-							p.attackEnemy = e;
+				foreach (GameObject eGo in enemies) {
+					Enemy e = eGo.GetComponent<Enemy>();
+					if (Mathf.Floor(e.position.x) == Mathf.Floor(lastHit.transform.localPosition.x) && Mathf.Floor(e.position.y) == Mathf.Floor(lastHit.transform.localPosition.y)) {
+			//			Debug.Log("p.attackEnemy = e;");
+						p.attackEnemy = e;
+					}
+				}
+				bool changed = false;
+				for (int n=p.currentPath.Count-1;n>=1;n--) {
+					bool end = true;
+					Vector2 v = (Vector2)p.currentPath[n];
+					foreach (GameObject pGo in players) {
+						Player p2 = pGo.GetComponent<Player>();
+						if (p2 != p) {
+							Debug.Log("x: " + p2.position.x + "  " + v.x + "  y: " + p2.position.y + "  " + v.y);
+							if (Mathf.Abs(p2.position.x - v.x) <= 0.01f && Mathf.Abs(p2.position.y + v.y) <= 0.01f) {
+								end = false;
+								changed = true;
+								p.currentPath.RemoveAt(n);
+								p.setPathCount();
+							}
 						}
-			//		}
+					}
+					if (end) break;
+				}
+				if (changed) {
+					resetPlayerPath();
+					lastPlayerPath = p.currentPath;
+					setPlayerPath(lastPlayerPath);
 				}
 			}
 			editingPath = false;

@@ -42,6 +42,10 @@ public class Player : MonoBehaviour {
 //		currentPath = new Vector2[currentMoveDist];
 	}
 
+	public void setPathCount() {
+		currentMaxPath = currentPath.Count - 1;
+	}
+
 	public ArrayList addPathTo(Vector2 pos) {
 		int diff;
 	//	if (currentPath.Count > 0) {
@@ -64,7 +68,7 @@ public class Player : MonoBehaviour {
 //			}
 		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
 			currentPath = calculatePathSubtractive((ArrayList)currentPath.Clone(), pos, currentMoveDist - currentMaxPath);
-			currentMaxPath = currentPath.Count - 1;
+		setPathCount();
 //		}
 		return currentPath;
 	}
@@ -356,7 +360,7 @@ public class Player : MonoBehaviour {
 		}
 		if (rot1.z <= 0) rot1.z += 360.0f;
 		transform.eulerAngles = rot1;
-		Debug.Log("Rotate Dist: " + rotateDist + " r1: " + rotation + " r2: " + rotation2 + "  m1: " + move1 + " m2: " + move2);
+//		Debug.Log("Rotate Dist: " + rotateDist + " r1: " + rotation + " r2: " + rotation2 + "  m1: " + move1 + " m2: " + move2);
 //		rotating = false;
 	}
 	
@@ -384,9 +388,9 @@ public class Player : MonoBehaviour {
 		//		attacking = true;
 			}
 			else {
-				Debug.Log("count less than 2");
+		//		Debug.Log("count less than 2");
 				if (attacking && attackEnemy) {
-					Debug.Log("Gonna set rotation");
+		//			Debug.Log("Gonna set rotation");
 //					setRotationFrom(position, attackEnemy.position)
 					setRotationToAttackEnemy();
 				}
