@@ -10,6 +10,7 @@ public class MyGUI : MonoBehaviour {
 	void Start () {
 		GameObject spritesObject = GameObject.Find("Background");
 		gridManager = spritesObject.GetComponent<GridManager>();
+		colorChanged = true;
 	}
 	
 	// Update is called once per frame
@@ -197,6 +198,7 @@ public class MyGUI : MonoBehaviour {
 		result.SetPixels( pix );
 		result.Apply();
 		colorChanged = false;
+		Resources.UnloadUnusedAssets();
 		return result;
 	}
 

@@ -17,6 +17,7 @@ public class GridManager : MonoBehaviour {
 	GameObject gridPrefab;
 	GameObject mouseOver;
 	GameObject mouseOver2;
+	MyGUI gui;
 
 	float cameraOriginalSize;
 	public float boxWidthPerc = .2f;
@@ -75,6 +76,8 @@ public class GridManager : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
+		GameObject gu = GameObject.Find("GUI");
+		gui = gu.GetComponent<MyGUI>();
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
 		cameraTransform = mainCameraObj.transform;
 		mainCamera = mainCameraObj.GetComponent<Camera>();
@@ -293,6 +296,7 @@ public class GridManager : MonoBehaviour {
 					red = t.red;
 					green = t.green;
 					blue = t.blue;
+					gui.colorChanged = true;
 //					passable = t.passable;
 					standable = t.standable;
 					passableUp = t.passableUp;
@@ -330,13 +334,16 @@ public class GridManager : MonoBehaviour {
 		//Debug.Log(str);
 		int currAdd = 0;
 		string fileDirectory = "../Files/Maps/Tile Maps";
+		if (isWindows()) fileDirectory = "..\\Files\\Maps\\Tile Maps";
 		string fileName = fileDirectory + "/" + imageFileName + (currAdd>0?"" +currAdd:"") + ".txt";
 		while (File.Exists(fileName)) {
 			currAdd++;
-			fileName = fileDirectory + "/" + imageFileName + (currAdd>0?""+currAdd:"") + ".txt";
+			fileName = fileDirectory + (isWindows()? "\\" : "/") + imageFileName + (currAdd>0?""+currAdd:"") + ".txt";
 		}
 //		string path = EditorUtility.OpenFolderPanel("Select Folder",fileDirectory,"pppppppppp");
-		string path = EditorUtility.SaveFilePanel("Save Tile Map","../Files/Maps/Tile Maps",imageFileName + (currAdd>0?"" +currAdd:""),"txt");
+		string p1 = "../Files/Maps/Tile Maps";
+		if (isWindows()) p1 = "..\\Files\\Maps\\Tile Maps";
+		string path = EditorUtility.SaveFilePanel("Save Tile Map",p1,imageFileName + (currAdd>0?"" +currAdd:""),"txt");
 		if (path.Length>0) {
 
 //		if (File.Exists(path + "/" + fileName))
@@ -360,9 +367,11 @@ public class GridManager : MonoBehaviour {
 	}
 
 	public IEnumerator importGrid() {
+		string p1 = "../Files/Maps/Tile Maps";
+		if (isWindows()) p1 = "..\\Files\\Maps\\Tile Maps";
 		string path = EditorUtility.OpenFilePanel(
 			"Overwrite with jpg",
-			"../Files/Maps/Tile Maps",
+			p1,
 			"txt");
 		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
 		//			Sprite sprite = new Sprite();
@@ -380,6 +389,9 @@ public class GridManager : MonoBehaviour {
 				//Debug.Log(Application.absoluteURL);
 			
 				string path1 = "../Files/Maps/Images/" + tiles[0] + ".jpg";
+				if (isWindows()) {
+					path1 = "..\\Files\\Maps\\Images\\" + tiles[0] + ".jpg";
+				}
 				string path2 = Path.GetFullPath(path1);
 				//Debug.Log(path2);
 				if (File.Exists(path2)) {
@@ -466,9 +478,11 @@ public class GridManager : MonoBehaviour {
 	}
 
 	public void loadNewBackgroundFile() {
+		string path1 = "../Files/Maps/Images";
+		if (isWindows()) path1 = "..\\Files\\Maps\\Images";
 		string path = EditorUtility.OpenFilePanel(
 			"Overwrite with jpg",
-			"../Files/Maps/Images",
+			path1,
 			"jpg");
 		//Debug.Log(path);
 		//			Sprite spr = ((SpriteRenderer)transform.GetComponent(SpriteRenderer)).sprite;
@@ -510,8 +524,25 @@ public class GridManager : MonoBehaviour {
 		Sprite spr = sprend.sprite;
 //		WWW www = new WWW("file://" + "/Users/Justin/Documents/UCI/ICS 169AB/Bel Nix/Images/Maps/none.jpg");
 		//Debug.Log(Application.dataPath);
-		WWW www = new WWW("file://" + Application.dataPath + "/Resources/Images/70.png");
+		WWW www;
+		if (isWindows()) {
+			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\70.png");
+		}
+		else {
+			www = new WWW("file://" + Application.dataPath + "/Resources/Images/70.png");
+		}
 		www.LoadImageIntoTexture(spr.texture);
+	}
+
+	bool isWindows() {
+		switch (Application.platform) {
+		case RuntimePlatform.WindowsEditor:
+		case RuntimePlatform.WindowsPlayer:
+		case RuntimePlatform.WindowsWebPlayer:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	/*
