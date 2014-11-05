@@ -108,6 +108,7 @@ public class MapGenerator : MonoBehaviour {
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
 //		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
 		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(17,-30,0), new Vector3(15, -31, 0)};
+//		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
 			GameObject player = GameObject.Instantiate(playerPrefab) as GameObject;
