@@ -377,7 +377,21 @@ public class MapGenerator : MonoBehaviour {
 			}*/
 		}
 	}
-	
+
+	public void resetPlayerRange() {
+		Player p = null;
+		if (this.selectedPlayer) p = this.selectedPlayer.GetComponent<Player>();
+		else if (this.hoveredPlayer) p = this.hoveredPlayer.GetComponent<Player>();
+		if (p != null) {
+			resetAroundPlayer(p);
+			setAroundPlayer(p);
+		}
+	}
+
+	public void resetAroundPlayer(Player player1) {
+		resetAroundPlayer(player1, player1.viewDist);
+	}
+
 	public void resetAroundPlayer(Player player1, int view) {
 		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-player1.position.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y ++) {
@@ -395,7 +409,11 @@ public class MapGenerator : MonoBehaviour {
 		}
 		setCurrentSpriteColor();
 	}
-	
+
+	public void setAroundPlayer(Player player1) {
+		setAroundPlayer(player1, player1.currentMoveDist, player1.viewDist, player1.attackRange);
+	}
+
 	public void setAroundPlayer(Player player1, int radius, int view, int attackRange) {
 		setPlayerCanStand((int)player1.position.x, (int)-player1.position.y, radius, 0, attackRange);
 		setCurrentSpriteColor();

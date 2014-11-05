@@ -46,7 +46,9 @@ public class Enemy : MonoBehaviour {
 					if (p.attackEnemy==this) p.attackEnemy = null;
 				}
 				mapGenerator.enemies.Remove(gameObject);
+				mapGenerator.tiles[(int)position.x, (int)-position.y].removeEnemy();
 				Destroy(gameObject);
+				mapGenerator.resetPlayerRange();
 			}
 		}
 	//	Debug.Log("End Death");
