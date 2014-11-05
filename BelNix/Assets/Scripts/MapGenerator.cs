@@ -24,6 +24,9 @@ public class MapGenerator : MonoBehaviour {
 	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
 	GameObject enemyPrefab;
+	GameObject warningRedPrefab;
+	GameObject warningYellowPrefab;
+	GameObject warningBothPrefab;
 	public GameObject selectedPlayer;
 	GameObject hoveredPlayer;
 	ArrayList players;
@@ -106,6 +109,9 @@ public class MapGenerator : MonoBehaviour {
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
+		warningRedPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningRedPrefab");
+		warningYellowPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningYellowPrefab");
+		warningBothPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningBothPrefab");
 //		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
 		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(17,-30,0), new Vector3(15, -31, 0)};
 //		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0)};
@@ -117,7 +123,7 @@ public class MapGenerator : MonoBehaviour {
 			p.mapGenerator = this;
 			p.setPosition(pos);
 			players.Add(player);
-			player.renderer.sortingOrder = 4;
+		//	player.renderer.sortingOrder = 4;
 			tiles[(int)pos.x,(int)-pos.y].setPlayer(player);
 		}
 		enemies = new ArrayList();
@@ -142,7 +148,7 @@ public class MapGenerator : MonoBehaviour {
 			e.position = new Vector3(x, y, pos.z);
 			e.mapGenerator = this;
 			enemies.Add(enemy);
-			enemy.renderer.sortingOrder = 3;
+	//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setEnemy(enemy);
 		}
 		StartCoroutine(importGrid());
@@ -336,10 +342,26 @@ public class MapGenerator : MonoBehaviour {
 					go.transform.eulerAngles = new Vector3(0.0f, 0.0f, rot);
 				}
 			}
-			go.renderer.sortingOrder = 2;
+		//	go.renderer.sortingOrder = 2;
 		//	= GameObject.Instantiate(arrowStraightPrefab) as GameObject;
 			go.transform.parent = path.transform;
 			go.transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, 0.0f);
+
+			Tile t = tiles[(int)v0.x,(int)v0.y];
+			Direction direction = Direction.Left;
+			if (v0.x < v.x) direction = Direction.Right;
+			if (v0.y < v.y) direction = Direction.Down;
+			if (v0.y > v.y) direction = Direction.Up;
+			bool isDifficult = t.isDifficultTerrain(direction);
+			bool provokes = t.playerProvokesOpportunity(direction);
+			if (isDifficult || provokes) {
+				GameObject warning;
+				if (isDifficult && provokes) warning = GameObject.Instantiate(warningBothPrefab) as GameObject;
+				else if (isDifficult) warning = GameObject.Instantiate(warningYellowPrefab) as GameObject;
+				else warning = GameObject.Instantiate(warningRedPrefab) as GameObject;
+				warning.transform.parent = path.transform;
+				warning.transform.localPosition = new Vector3(v0.x + (direction==Direction.Right ? 1.0f : (direction==Direction.Left ? 0.0f : 0.5f)), -v0.y - (direction==Direction.Down ? 1.0f : (direction==Direction.Up ? 0.0f : 0.5f)), 0.0f);
+			}
 
 		//	Debug.Log(v);
 			/*

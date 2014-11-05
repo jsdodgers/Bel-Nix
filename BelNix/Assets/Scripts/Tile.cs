@@ -95,8 +95,48 @@ public class Tile {
 		}
 	}
 
+	public bool isDifficultTerrain(Direction direction) {
+		switch (direction) {
+		case Direction.Left:
+			return this.passableLeft > 1;
+		case Direction.Right:
+			return this.passableRight > 1;
+		case Direction.Down:
+			return this.passableDown > 1;
+		case Direction.Up:
+			return this.passableUp > 1;
+		default:
+			return false;
+		}
+	}
 
+	public bool playerProvokesOpportunity(Direction direction) {
+//		switch (direction) {
+//		case Direction.Left:
+//			return (this.
+//		}
+		bool provokesOpportunity = false;
+		if (direction != Direction.Left) provokesOpportunity |= hasEnemyDirection(Direction.Left);
+		if (direction != Direction.Right) provokesOpportunity |= hasEnemyDirection(Direction.Right);
+		if (direction != Direction.Up) provokesOpportunity |= hasEnemyDirection(Direction.Up);
+		if (direction != Direction.Down) provokesOpportunity |= hasEnemyDirection(Direction.Down);
+		return provokesOpportunity;
+	}
 
+	public bool hasEnemyDirection(Direction direction) {
+		switch (direction) {
+		case Direction.Left:
+			return this.leftTile != null && this.leftTile.hasEnemy();
+		case Direction.Right:
+			return this.rightTile != null && this.rightTile.hasEnemy();
+		case Direction.Up:
+			return this.upTile != null && this.upTile.hasEnemy();
+		case Direction.Down:
+			return this.downTile != null && this.downTile.hasEnemy();
+		default:
+			return false;
+		}
+	}
 
 	
 	
