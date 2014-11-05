@@ -5,7 +5,7 @@ public class Player : MonoBehaviour {
 
 	public MapGenerator mapGenerator;
 	public int currentMoveDist = 5;
-	public int attackRange = 1;
+	public int attackRange = 2;
 	public int viewDist = 11;
 	public int maxMoveDist = 5;
 	public ArrayList currentPath = new ArrayList();

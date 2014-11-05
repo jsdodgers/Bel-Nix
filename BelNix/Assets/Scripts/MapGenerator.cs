@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System.IO;
 
 public class MapGenerator : MonoBehaviour {
-	
+
+
+	public string tileMapName;
 	int gridSize = 70;
 	
 	GameGUI gui;
@@ -104,7 +107,7 @@ public class MapGenerator : MonoBehaviour {
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
 //		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
-		Vector3[] positions = new Vector3[] {new Vector3(18, -29, 0), new Vector3(17,-29,0), new Vector3(15, -30, 0)};
+		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(17,-30,0), new Vector3(15, -31, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
 			GameObject player = GameObject.Instantiate(playerPrefab) as GameObject;
@@ -141,8 +144,36 @@ public class MapGenerator : MonoBehaviour {
 			enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setEnemy(enemy);
 		}
+		StartCoroutine(importGrid());
 	}
 
+
+	public IEnumerator importGrid() {
+		string pathName = Application.dataPath + "/Resources/Maps/Tile Maps/" + tileMapName;
+		if (!(tileMapName.Length >= 4 && tileMapName.EndsWith(".txt"))) {
+			pathName += ".txt";
+		}
+		if (File.Exists(pathName)) {
+			Debug.Log("Exists!");
+			WWW www = new WWW("file:///" + pathName);
+			yield return www;
+			string text = www.text;
+			string[] tiles = text.Split(new char[]{';'});
+			if (int.Parse(tiles[1])==actualWidth && int.Parse(tiles[2])==actualHeight) {
+				//Debug.Log("Works!");
+				parseTiles(tiles);
+			}
+		}
+	}
+	
+	void parseTiles(string[] tilesArr) {
+		for (int n=3;n<tilesArr.Length;n++) {
+			int x = Tile.xForTile(tilesArr[n]);
+			int y = Tile.yForTile(tilesArr[n]);
+			Tile t = tiles[x,y];
+			t.parseTile(tilesArr[n]);
+		}
+	}
 
 	void createGrid() {
 		
@@ -635,7 +666,8 @@ public class MapGenerator : MonoBehaviour {
 						}
 					}
 					if (end) break;*/
-					if (tiles[(int)v.x,(int)v.y].hasPlayer()) {
+				//	if (tiles[(int)v.x,(int)v.y].hasPlayer()) {
+					if (!tiles[(int)v.x,(int)v.y].canStand()) {
 						changed = true;
 						p.currentPath.RemoveAt(n);
 						p.setPathCount();

@@ -77,7 +77,7 @@ public class Tile {
 	}
 
 	public bool canStand() {
-		return standable && !player;
+		return standable && !player && !enemy;
 	}
 
 	public bool canPass(Direction direction) {
@@ -94,4 +94,51 @@ public class Tile {
 			return false;
 		}
 	}
+
+
+
+
+	
+	
+	
+	public void parseTile(string tile) {
+		string[] strs = tile.Split(new char[]{','});
+		int curr = 6;
+		passableUp = 0;
+		passableDown = 0;
+		passableLeft = 0;
+		passableRight = 0;
+		trigger = 0;
+		activation = 0;
+//		alpha = 0.4f;
+	//	x = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+	//	y = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+	//	red = float.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+	//	green = float.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+	//	blue = float.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+	//	alpha = float.Parse(strs[curr])/255.0f;if (alpha==0) alpha = .4f;curr++;if (strs.Length<=curr) return;
+	//	setSpriteColor();
+		if (strs.Length<=curr) return;
+		standable = int.Parse(strs[curr])==1;curr++;if (strs.Length<=curr) return;
+		passableUp = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		passableRight = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		passableDown = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		passableLeft = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		trigger = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		activation = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		//		passable = int.Parse(strs[curr])==1;curr++;
+	}
+
+	
+	
+	public static int xForTile(string tile) {
+		string[] strs = tile.Split(new char[]{','});
+		return int.Parse(strs[0]);
+	}
+	
+	public static int yForTile(string tile) {
+		string[] strs = tile.Split(new char[]{','});
+		return int.Parse(strs[1]);
+	}
+
 }
