@@ -28,7 +28,9 @@ public class MapGenerator : MonoBehaviour {
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
+	GameObject enemiesObj;
 	GameObject[,] gridArray;
+	public Tile[,] tiles;
 	public ArrayList lastPlayerPath;
 
 	bool editingPath = false;
@@ -84,6 +86,17 @@ public class MapGenerator : MonoBehaviour {
 		GameObject guiObj = GameObject.Find("GameGUI");
 		gui = guiObj.GetComponent<GameGUI>();
 		gui.mapGenerator = this;
+		
+		lines = mapTransform.FindChild("Lines").gameObject;
+		grids = mapTransform.FindChild("Grid").gameObject;
+		path = mapTransform.Find("Path").gameObject;
+		enemiesObj = mapTransform.Find("Enemies").gameObject;
+
+
+
+
+		createGrid();
+		createTiles();
 
 		players = new ArrayList();
 		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieAnimPrefab");
@@ -91,7 +104,7 @@ public class MapGenerator : MonoBehaviour {
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
 //		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
-		Vector3[] positions = new Vector3[] {new Vector3(18, -29, 0), new Vector3(11, -30, 0)};
+		Vector3[] positions = new Vector3[] {new Vector3(18, -29, 0), new Vector3(17,-29,0), new Vector3(15, -30, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
 			GameObject player = GameObject.Instantiate(playerPrefab) as GameObject;
@@ -101,24 +114,39 @@ public class MapGenerator : MonoBehaviour {
 			p.setPosition(pos);
 			players.Add(player);
 			player.renderer.sortingOrder = 4;
+			tiles[(int)pos.x,(int)-pos.y].setPlayer(player);
 		}
 		enemies = new ArrayList();
 		enemyPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieEnemy");
-		Vector3[] positions2 = new Vector3[] {new Vector3(15, -28, 0), new Vector3(17, -27, 0), new Vector3(4, -23, 0)};
+	/*	Vector3[] positions2 = new Vector3[] {new Vector3(15, -28, 0), new Vector3(17, -27, 0), new Vector3(4, -23, 0)};
 		for (int n=0;n<positions2.Length;n++) {
 			Vector3 pos = positions2[n];
 			GameObject enemy = GameObject.Instantiate(enemyPrefab) as GameObject;
-			enemy.transform.parent = mapTransform;
+			enemy.transform.parent = enemiesObj;
 			Enemy e = enemy.GetComponent<Enemy>();
 			e.setPosition(pos);
 			e.mapGenerator = this;
 			enemies.Add(enemy);
 			enemy.renderer.sortingOrder = 3;
+		}*/
+		GameObject[] mapEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+		foreach (GameObject enemy in mapEnemies) {
+			Vector3 pos = enemy.transform.position;
+			Enemy e = enemy.GetComponent<Enemy>();
+			int x = (int)(pos.x - 0.5f);
+			int y = (int)(pos.y + 0.5f);
+			e.position = new Vector3(x, y, pos.z);
+			e.mapGenerator = this;
+			enemies.Add(enemy);
+			enemy.renderer.sortingOrder = 3;
+			tiles[x,-y].setEnemy(enemy);
 		}
+	}
 
-		lines = mapTransform.FindChild("Lines").gameObject;
-		grids = mapTransform.FindChild("Grid").gameObject;
-		path = mapTransform.Find("Path").gameObject;
+
+	void createGrid() {
+		
+		
 		sprend = map.GetComponent<SpriteRenderer>();
 		spr = sprend.sprite;
 		Debug.Log("Start()");
@@ -137,14 +165,6 @@ public class MapGenerator : MonoBehaviour {
 		Debug.Log("End");
 		selectedPlayer = null;
 		lastPlayerPath = new ArrayList();
-		//		GameObject lrO = new GameObject();
-		
-		
-		//		LineRenderer lr = lrO.AddComponent<LineRenderer>();
-		//		lr.SetColors(Color.black,Color.black);
-		//		lr.SetPosition(0, new Vector3(0.0f, -actualHeight/2, 0.0f));
-		//		lr.SetPosition(1, new Vector3(actualWidth + 10, -actualHeight/2, 0.0f));
-		//		lr.material = Resources.Load("Materials/LineMaterial",typeof(Material)) as Material;
 		
 		for (int n=0;n<=actualHeight;n++) {
 			createLineRenderer(-0.025f, actualWidth + 0.025f, -n, -n);
@@ -155,6 +175,26 @@ public class MapGenerator : MonoBehaviour {
 		loadGrid(actualWidth, actualHeight);
 		//		setAroundPlayer(currentMoveDist, viewDist);
 	}
+
+	void createTiles() {
+		tiles = new Tile[actualWidth,actualHeight];
+		for (int n=0;n<actualWidth;n++) {
+			for (int m=0;m<actualHeight;m++) {
+				Tile t1 = new Tile();
+				tiles[n,m] = t1;
+				if (n>0) {
+					Tile t2 = tiles[n-1,m];
+					t2.rightTile = t1;
+					t1.leftTile = t2;
+				}
+				if (m>0) {
+					Tile t2 = tiles[n,m-1];
+					t2.downTile = t1;
+					t1.upTile = t2;
+				}
+			}
+		}
+	}
 	
 	void createLineRenderer(float xStart, float xEnd, float yStart, float yEnd) {
 		GameObject lrO = GameObject.Instantiate(Resources.Load("Materials/LineRenderer",typeof(GameObject)) as GameObject) as GameObject;
@@ -164,7 +204,19 @@ public class MapGenerator : MonoBehaviour {
 		lrO.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
 		lrO.transform.parent = lines.transform;
 	}
-	
+
+	public bool hasEnemy(int x, int y) {
+		return tiles[x,y].hasEnemy();
+	}
+
+	public bool hasPlayer(int x, int y) {
+		return tiles[x,y].hasPlayer();
+	}
+
+	public bool playerCanPass(Direction dir, int x, int y) {
+		return tiles[x,y].canPass(dir);
+	}
+
 	// Update is called once per frame
 	void Update () {
 		handleInput();
@@ -276,6 +328,7 @@ public class MapGenerator : MonoBehaviour {
 		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-player1.position.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y ++) {
 				GameObject go = gridArray[x,y];
+				tiles[x,y].resetStandability();
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
 				Color c = Color.clear;
 				if (sr!=currentSprite) {
@@ -286,14 +339,28 @@ public class MapGenerator : MonoBehaviour {
 				}
 			}
 		}
+		setCurrentSpriteColor();
 	}
 	
 	public void setAroundPlayer(Player player1, int radius, int view, int attackRange) {
+		setPlayerCanStand((int)player1.position.x, (int)-player1.position.y, radius, 0, attackRange);
+		setCurrentSpriteColor();
 		int type = 4;
 		for (int x = (int)Mathf.Max(player1.position.x - view,0); x < (int)Mathf.Min(player1.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-player1.transform.localPosition.y - view,0); y < (int)Mathf.Min(-player1.position.y + 1.0f + view, actualHeight); y++) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+				Tile t = tiles[x,y];
+				Color c = Color.clear;
+				if (t.canStandCurr) c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
+				else if (t.canAttackCurr) c = new Color(1.0f, 0.0f, 0.0f, 0.4f);
+				if (sr != currentSprite) {
+					sr.color = c;
+				}
+				else {
+					currentSpriteColor = c;
+				}
+				/*
 				if (isInPlayerRadius(player1,radius,x,y)) {
 					Color c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
 					if (sr!=currentSprite) {
@@ -320,11 +387,45 @@ public class MapGenerator : MonoBehaviour {
 					else {
 						currentSpriteColor = c;
 					}
-				}
+				}*/
 			}
 		}
 	}
-	
+
+	public void setPlayerCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange) {
+		if (currRadius == 0) Debug.Log(attackRange);
+		if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		if (t.canStandCurr && t.minDistCurr <= currRadius) return;
+		t.canStandCurr = true;
+		t.minDistCurr = currRadius;
+		setPlayerCanAttack(x, y, attackRange, 0);
+		if (radiusLeft == 0) return;
+		if (playerCanPass(Direction.Left, x, y))
+			setPlayerCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange);
+		if (playerCanPass(Direction.Right, x, y))
+			setPlayerCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange);
+		if (playerCanPass(Direction.Up, x, y))
+			setPlayerCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange);
+		if (playerCanPass(Direction.Down, x, y))
+			setPlayerCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange);
+	}
+
+	public void setPlayerCanAttack(int x, int y, int radiusLeft, int currRadius) {
+	if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		if (t.canStandCurr && currRadius != 0) return;
+		if (t.canAttackCurr && t.minAttackCurr <= currRadius) return;
+		t.canAttackCurr = true;
+		t.minAttackCurr = currRadius;
+		Debug.Log("can attack: " + x + ", " + y);
+		if (radiusLeft == 0) return;
+		setPlayerCanAttack(x-1,y,radiusLeft-1,currRadius+1);
+		setPlayerCanAttack(x+1,y,radiusLeft-1,currRadius+1);
+		setPlayerCanAttack(x,y-1,radiusLeft-1,currRadius+1);
+		setPlayerCanAttack(x,y+1,radiusLeft-1,currRadius+1);
+	}
+
 	bool isInPlayerRadius(Player player1, int radius, int x, int y) {
 		return Mathf.Abs(player1.position.x - x) + Mathf.Abs(-player1.position.y - y) <= radius;
 	}
@@ -505,18 +606,23 @@ public class MapGenerator : MonoBehaviour {
 				p.attackEnemy = null;
 			//	if (editingPath && isInPlayerRadius(p, p.currentMoveDist + p.attackRange, (int)lastHit.transform.localPosition.x, (int)lastHit.transform.localPosition.y)) {
 			//		Debug.Log("editingPath && isInPlayerRadius");
+				/*
 				foreach (GameObject eGo in enemies) {
 					Enemy e = eGo.GetComponent<Enemy>();
 					if (Mathf.Floor(e.position.x) == Mathf.Floor(lastHit.transform.localPosition.x) && Mathf.Floor(e.position.y) == Mathf.Floor(lastHit.transform.localPosition.y)) {
 			//			Debug.Log("p.attackEnemy = e;");
 						p.attackEnemy = e;
 					}
-				}
+				}*/
+				int posX = (int)lastHit.transform.localPosition.x;
+				int posY = -(int)lastHit.transform.localPosition.y;
+				p.attackEnemy = tiles[posX,posY].getEnemy();
+
 				bool changed = false;
 				for (int n=p.currentPath.Count-1;n>=1;n--) {
-					bool end = true;
+//					bool end = true;
 					Vector2 v = (Vector2)p.currentPath[n];
-					foreach (GameObject pGo in players) {
+/*					foreach (GameObject pGo in players) {
 						Player p2 = pGo.GetComponent<Player>();
 						if (p2 != p) {
 							Debug.Log("x: " + p2.position.x + "  " + v.x + "  y: " + p2.position.y + "  " + v.y);
@@ -528,7 +634,15 @@ public class MapGenerator : MonoBehaviour {
 							}
 						}
 					}
-					if (end) break;
+					if (end) break;*/
+					if (tiles[(int)v.x,(int)v.y].hasPlayer()) {
+						changed = true;
+						p.currentPath.RemoveAt(n);
+						p.setPathCount();
+					}
+					else {
+						break;
+					}
 				}
 				if (changed) {
 					resetPlayerPath();
@@ -722,28 +836,7 @@ public class MapGenerator : MonoBehaviour {
 						}
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
-						bool did = false;
-						if (selectedPlayer) {
-							Player p = selectedPlayer.GetComponent<Player>();
-						//	Debug.Log(" c: " + lastPlayerPath[0] + " d: " + new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y));
-					//		if (Player.exists(lastPlayerPath, new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y))) {
-						//		Debug.Log("Yup!");
-					//			spr.color = new Color(0.0f, 1.0f, 1.0f, 0.4f);
-					//			did = true;
-					//		}
-							if (isInPlayerRadius(p, p.currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-								spr.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
-								did = true;
-							}
-							else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-								did = true;
-								spr.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
-							}
-						}
-						if (!did) {
-						//	Debug.Log("Nope...");
-							spr.color = new Color(0.40f, 0.40f, 0.40f, 0.4f);
-						}
+						setCurrentSpriteColor();
 					}
 				}
 			}
@@ -754,6 +847,37 @@ public class MapGenerator : MonoBehaviour {
 			currentSprite = null;
 		}
 	//	Debug.Log("End Mouse Select");
+	}
+
+	public void setCurrentSpriteColor() {
+		if (currentSprite == null) return;
+		GameObject go = currentSprite.gameObject;
+		Transform transform = go.transform;
+		bool did = false;
+	//	if (selectedPlayer) {
+	//		Player p = selectedPlayer.GetComponent<Player>();
+			//	Debug.Log(" c: " + lastPlayerPath[0] + " d: " + new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y));
+			//		if (Player.exists(lastPlayerPath, new Vector2((int)currentGrid.transform.localPosition.x, (int)-currentGrid.transform.localPosition.y))) {
+			//		Debug.Log("Yup!");
+			//			spr.color = new Color(0.0f, 1.0f, 1.0f, 0.4f);
+			//			did = true;
+			//		}
+			//	if (isInPlayerRadius(p, p.currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+			Tile t = tiles[(int)transform.localPosition.x,(int)-transform.localPosition.y];
+			if (t.canStandCurr) {
+				currentSprite.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
+				did = true;
+			}
+			//							else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+			else if (t.canAttackCurr) {
+				did = true;
+				currentSprite.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
+			}
+	//	}
+		if (!did) {
+			//	Debug.Log("Nope...");
+			currentSprite.color = new Color(0.40f, 0.40f, 0.40f, 0.4f);
+		}
 	}
 	
 }
