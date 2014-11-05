@@ -695,6 +695,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		//Adding player first name.
 		characterStr += characterName + delimiter;
 		//If the player has a last name, add it.
+		characterStr += hasLastName.ToString() + delimiter;
 		if(hasLastName)
 		{
 			characterStr += characterLastName + delimiter;
