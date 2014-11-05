@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CharacterBuilder : MonoBehaviour
+public class CharacterSheetGUI : MonoBehaviour
 {
+
 
 	// Use this for initialization
 	void Start ()
