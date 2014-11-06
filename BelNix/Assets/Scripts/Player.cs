@@ -5,7 +5,7 @@ public class Player : MonoBehaviour {
 
 	public MapGenerator mapGenerator;
 	public int currentMoveDist = 5;
-	public int attackRange = 1;
+	public int attackRange = 2;
 	public int viewDist = 11;
 	public int maxMoveDist = 5;
 	public ArrayList currentPath = new ArrayList();
@@ -22,10 +22,23 @@ public class Player : MonoBehaviour {
 
 
 	public void setPosition(Vector3 pos) {
+		setNewTilePosition(pos);
 		position = pos;
 		transform.localPosition = new Vector3(pos.x + .5f, pos.y - .5f, pos.z);
 		currentMaxPath = 0;
 		resetPath();
+	}
+
+	public void setNewTilePosition(Vector3 pos) {
+		Debug.Log("setNewTilePosition(" + pos.x + "," + pos.y + "," + pos.z + ");");
+		if (mapGenerator && position.x > 0 && -position.y > 0) {
+			if (mapGenerator.tiles[(int)position.x,(int)-position.y].getPlayer()==this) {
+				mapGenerator.tiles[(int)position.x,(int)-position.y].removePlayer();
+			}
+		}
+		if (mapGenerator && pos.x > 0 && -pos.y > 0) {
+			mapGenerator.tiles[(int)pos.x,(int)-pos.y].setPlayer(gameObject);
+		}
 	}
 
 	public void followPath() {
@@ -73,24 +86,32 @@ public class Player : MonoBehaviour {
 		return currentPath;
 	}
 
+	bool canPass(Direction dir, Vector2 pos) {
+		return mapGenerator.playerCanPass(dir, (int)pos.x, (int)pos.y);
+	}
+
 	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0) {
 	//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
 
 		if (!first) {
-			if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
+		//	if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
 			curr.Add(posFrom);
 		}
 	//	if (maxDist == 0) Debug.Log("Last: " + curr.Count);
 		if (maxDist == 0) return curr;
 		ArrayList a = new ArrayList();
-		a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
-		a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
-		a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
-		a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
+		if (canPass(Direction.Left, posFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
+		if (canPass(Direction.Right, posFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
+		if (canPass(Direction.Up, posFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
+		if (canPass(Direction.Down, posFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
 		int dist = maxDist + 10000;
 		int minLength = maxDist + 10000;
-		ArrayList minArray = new ArrayList();
+		ArrayList minArray = curr;//new ArrayList();
 //		Debug.Log("dist: " + dist);
 		foreach (ArrayList b in a) {
 //			Debug.Log("From: " + posFrom + " To: " + posTo + " maxDist: " + maxDist + " num: " + num + " count: " + b.Count + " currCount: " + curr.Count);
@@ -377,6 +398,7 @@ public class Player : MonoBehaviour {
 		if (Mathf.Abs(dist - moveDist) <= 0.001f || moveDist >= dist) {
 //			moving = false;
 			unDrawGrid();
+			setNewTilePosition(new Vector3(one.x,-one.y,0.0f));
 			position = new Vector3(one.x, -one.y, 0.0f);
 			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, 0.0f);
 			currentPath.RemoveAt(0);
