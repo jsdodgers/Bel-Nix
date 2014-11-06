@@ -113,8 +113,8 @@ public class MapGenerator : MonoBehaviour {
 		warningYellowPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningYellowPrefab");
 		warningBothPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningBothPrefab");
 //		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
-		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(17,-30,0), new Vector3(15, -31, 0)};
-//		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0)};
+//		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(17,-30,0), new Vector3(15, -31, 0)};
+		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
 			GameObject player = GameObject.Instantiate(playerPrefab) as GameObject;
@@ -253,6 +253,11 @@ public class MapGenerator : MonoBehaviour {
 
 	public bool playerCanPass(Direction dir, int x, int y) {
 		return tiles[x,y].canPass(dir);
+	}
+
+	public bool playerCanAttack(Direction dir, int x, int y) {
+		int pass = tiles[x,y].passabilityInDirection(dir);
+		return pass >0 && pass <10;
 	}
 
 	// Update is called once per frame
@@ -488,14 +493,20 @@ public class MapGenerator : MonoBehaviour {
 		Tile t = tiles[x,y];
 		if (t.canStandCurr && currRadius != 0) return;
 		if (t.canAttackCurr && t.minAttackCurr <= currRadius) return;
-		t.canAttackCurr = true;
-		t.minAttackCurr = currRadius;
+		if (t.standable) {
+			t.canAttackCurr = true;
+			t.minAttackCurr = currRadius;
+		}
 		Debug.Log("can attack: " + x + ", " + y);
 		if (radiusLeft == 0) return;
-		setPlayerCanAttack(x-1,y,radiusLeft-1,currRadius+1);
-		setPlayerCanAttack(x+1,y,radiusLeft-1,currRadius+1);
-		setPlayerCanAttack(x,y-1,radiusLeft-1,currRadius+1);
-		setPlayerCanAttack(x,y+1,radiusLeft-1,currRadius+1);
+		if (playerCanAttack(Direction.Left, x, y))
+			setPlayerCanAttack(x-1,y,radiusLeft-1,currRadius+1);
+		if (playerCanAttack(Direction.Right, x, y))
+			setPlayerCanAttack(x+1,y,radiusLeft-1,currRadius+1);
+		if (playerCanAttack(Direction.Up, x, y))
+			setPlayerCanAttack(x,y-1,radiusLeft-1,currRadius+1);
+		if (playerCanAttack(Direction.Down, x, y))
+			setPlayerCanAttack(x,y+1,radiusLeft-1,currRadius+1);
 	}
 
 	bool isInPlayerRadius(Player player1, int radius, int x, int y) {

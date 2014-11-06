@@ -7,7 +7,7 @@ public class Tile {
 
 	GameObject player;
 	GameObject enemy;
-	bool standable;
+	public bool standable;
 	int passableLeft;
 	int passableRight;
 	int passableUp;
@@ -107,6 +107,22 @@ public class Tile {
 			return this.passableUp > 1;
 		default:
 			return false;
+		}
+	}
+
+
+	public int passabilityInDirection(Direction direction) {
+		switch (direction) {
+		case Direction.Left:
+			return this.passableLeft;
+		case Direction.Right:
+			return this.passableRight;
+		case Direction.Down:
+			return this.passableDown;
+		case Direction.Up:
+			return this.passableUp;
+		default:
+			return 0;
 		}
 	}
 
