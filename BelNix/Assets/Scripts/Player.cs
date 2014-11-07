@@ -17,6 +17,7 @@ public class Player : MonoBehaviour {
 	public Vector2 rotateFrom;
 	public Vector2 rotateTo;
 	Animator anim;
+	public int priority = 0;
 
 	public Vector3 position;
 
