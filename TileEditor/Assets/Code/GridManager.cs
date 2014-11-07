@@ -72,6 +72,25 @@ public class GridManager : MonoBehaviour {
 	public int action; 
 
 
+	public bool doRed = true;
+	public bool doGreen = true;
+	public bool doBlue = true;
+	public bool doStand = true;
+	public bool doUp = true;
+	public bool doRight = true;
+	public bool doDown = true;
+	public bool doLeft = true;
+	public bool doTrigger = true;
+	public bool doAction = true;
+
+	public bool doingAll() {
+		return doingAllColors() && doStand && doUp && doRight && doDown && doLeft && doTrigger && doAction;
+	}
+
+	public bool doingAllColors() {
+		return doRed && doGreen && doBlue;
+	}
+
 	public string imageFileName = "";
 	
 	// Use this for initialization
@@ -88,6 +107,16 @@ public class GridManager : MonoBehaviour {
 		gridsArray = new Tile[gridX,gridY];
 		gridPrefab = (GameObject)Resources.Load("Sprite/Square_70");
 		lines = GameObject.Find("Lines");
+		doRed = true;
+		doGreen = true;
+		doBlue = true;
+		doStand = true;
+		doUp = true;
+		doDown = true;
+		doLeft = true;
+		doRight = true;
+		doTrigger = true;
+		doAction = true;
 	//	linesArray = new ArrayList();
 	}
 	
@@ -311,15 +340,22 @@ public class GridManager : MonoBehaviour {
 	}
 
 	public void setProperties(Tile t) {
-		t.setColor(red, green, blue, 0.4f);
+		t.setColor((doRed ? red : t.red), (doGreen ? green : t.green), (doBlue ? blue : t.blue), 0.4f);
 		//					t.passable = passable;
-		t.standable = standable;
-		t.passableUp = passableUp;
-		t.passableRight = passableRight;
-		t.passableDown = passableDown;
-		t.passableLeft = passableLeft;
-		t.trigger = trigger;
-		t.action = action;
+		if (doStand)
+			t.standable = standable;
+		if (doUp)
+			t.passableUp = passableUp;
+		if (doRight)
+			t.passableRight = passableRight;
+		if (doDown)
+			t.passableDown = passableDown;
+		if (doLeft)
+			t.passableLeft = passableLeft;
+		if (doTrigger)
+			t.trigger = trigger;
+		if (doAction)
+			t.action = action;
 	}
 
 	public void printGrid() {
