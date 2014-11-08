@@ -54,7 +54,7 @@ public class MyGUI : MonoBehaviour {
 		float loadButtonY = scrollContentSize*.05f;
 		float loadButtonHeight = 30.0f;
 		float width = GUI.skin.verticalScrollbar.fixedWidth;
-		scrollPosition = GUI.BeginScrollView(new Rect(boxX-checkExtraX,boxY,boxWidth + checkExtraX,boxHeight), scrollPosition, new Rect(boxX-checkExtraX,boxY,scrollContentSize + checkExtraX,boxHeight*2.0f));
+		scrollPosition = GUI.BeginScrollView(new Rect(boxX-checkExtraX,boxY,boxWidth + checkExtraX,boxHeight), scrollPosition, new Rect(boxX-checkExtraX,boxY,scrollContentSize + checkExtraX,boxHeight*2.0f/2.0f));
 		if (GUI.Button(new Rect(loadButtonX,loadButtonY,loadButtonWidth,loadButtonHeight),"Load File...")) {
 			//Debug.Log("Button Press");
 			/* 			string path = EditorUtility.OpenFilePanel(

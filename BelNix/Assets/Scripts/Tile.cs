@@ -5,8 +5,9 @@ public enum Direction {Up, Down, Right, Left};
 
 public class Tile {
 
-	GameObject player;
-	GameObject enemy;
+//	GameObject player;
+//	GameObject enemy;
+	CharacterScript character;
 	public bool standable;
 	int passableLeft;
 	int passableRight;
@@ -24,8 +25,9 @@ public class Tile {
 	public bool canStandCurr;
 
 	public Tile() {
-		player = null;
-		enemy = null;
+	//	player = null;
+	//	enemy = null;
+		character = null;
 		standable = true;
 		passableLeft = 1;
 		passableRight = 1;
@@ -44,52 +46,56 @@ public class Tile {
 	}
 	
 
-	public void setEnemy(GameObject e) {
-		enemy = e;
+	public void setCharacter(CharacterScript cs) {
+		character = cs;
 	}
 
-	public void removeEnemy() {
-		enemy = null;
+	public void removeCharacter() {
+		character = null;
 	}
 
-	public bool hasEnemy() {
-		return enemy != null;
+	public bool hasEnemy(CharacterScript cs) {
+		return character != null && cs.isEnemyOf(character);
+//		return enemy != null;
 	}
 
-	public Enemy getEnemy() {
-		if (enemy == null) return null;
-		return enemy.GetComponent<Enemy>();
-	}
-	public void setPlayer(GameObject p) {
-		player = p;
+	public bool hasAlly(CharacterScript cs) {
+		return character != null && cs.isAllyOf(character);
 	}
 
-	public void removePlayer() {
-		player = null;
+	public CharacterScript getEnemy(CharacterScript cs) {
+		if (hasEnemy(cs)) {
+			return getCharacter();
+		}
+		return null;
 	}
 
-	public bool hasPlayer() {
-		return player != null;
+	public CharacterScript getAlly(CharacterScript cs) {
+		if (hasAlly(cs)) {
+			return getCharacter();
+		}
+		return null;
 	}
-	public Player getPlayer() {
-		if (player == null) return null;
-		return player.GetComponent<Player>();
+
+	public CharacterScript getCharacter() {
+		if (character == null) return null;
+		return character;
 	}
 
 	public bool canStand() {
-		return standable && !player && !enemy;
+		return standable && !character;
 	}
 
-	public bool canPass(Direction direction) {
+	public bool canPass(Direction direction, CharacterScript cs) {
 		switch (direction) {
 		case Direction.Left:
-			return this.leftTile!=null && !this.leftTile.hasEnemy() && this.passableLeft>0;
+			return this.leftTile!=null && !this.leftTile.hasEnemy(cs) && this.passableLeft>0;
 		case Direction.Right:
-			return this.rightTile!=null && !this.rightTile.hasEnemy() && this.passableRight>0;
+			return this.rightTile!=null && !this.rightTile.hasEnemy(cs) && this.passableRight>0;
 		case Direction.Down:
-			return this.downTile!=null && !this.downTile.hasEnemy() && this.passableDown>0;
+			return this.downTile!=null && !this.downTile.hasEnemy(cs) && this.passableDown>0;
 		case Direction.Up:
-			return this.upTile!=null && !this.upTile.hasEnemy() && this.passableUp>0;
+			return this.upTile!=null && !this.upTile.hasEnemy(cs) && this.passableUp>0;
 		default:
 			return false;
 		}
@@ -126,29 +132,29 @@ public class Tile {
 		}
 	}
 
-	public bool playerProvokesOpportunity(Direction direction) {
+	public bool provokesOpportunity(Direction direction, CharacterScript cs) {
 //		switch (direction) {
 //		case Direction.Left:
 //			return (this.
 //		}
 		bool provokesOpportunity = false;
-		if (direction != Direction.Left) provokesOpportunity |= hasEnemyDirection(Direction.Left);
-		if (direction != Direction.Right) provokesOpportunity |= hasEnemyDirection(Direction.Right);
-		if (direction != Direction.Up) provokesOpportunity |= hasEnemyDirection(Direction.Up);
-		if (direction != Direction.Down) provokesOpportunity |= hasEnemyDirection(Direction.Down);
+		if (direction != Direction.Left) provokesOpportunity |= hasEnemyDirection(Direction.Left, cs);
+		if (direction != Direction.Right) provokesOpportunity |= hasEnemyDirection(Direction.Right, cs);
+		if (direction != Direction.Up) provokesOpportunity |= hasEnemyDirection(Direction.Up, cs);
+		if (direction != Direction.Down) provokesOpportunity |= hasEnemyDirection(Direction.Down, cs);
 		return provokesOpportunity;
 	}
 
-	public bool hasEnemyDirection(Direction direction) {
+	public bool hasEnemyDirection(Direction direction, CharacterScript cs) {
 		switch (direction) {
 		case Direction.Left:
-			return this.leftTile != null && this.leftTile.hasEnemy();
+			return this.leftTile != null && this.leftTile.hasEnemy(cs);
 		case Direction.Right:
-			return this.rightTile != null && this.rightTile.hasEnemy();
+			return this.rightTile != null && this.rightTile.hasEnemy(cs);
 		case Direction.Up:
-			return this.upTile != null && this.upTile.hasEnemy();
+			return this.upTile != null && this.upTile.hasEnemy(cs);
 		case Direction.Down:
-			return this.downTile != null && this.downTile.hasEnemy();
+			return this.downTile != null && this.downTile.hasEnemy(cs);
 		default:
 			return false;
 		}
