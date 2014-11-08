@@ -55,12 +55,16 @@ public class Tile {
 	}
 
 	public bool hasEnemy(CharacterScript cs) {
-		return character != null && cs.isEnemyOf(character);
+		return hasCharacter() && cs.isEnemyOf(character);
 //		return enemy != null;
 	}
 
 	public bool hasAlly(CharacterScript cs) {
-		return character != null && cs.isAllyOf(character);
+		return hasCharacter() && cs.isAllyOf(character);
+	}
+
+	public bool hasCharacter() {
+		return character != null;
 	}
 
 	public CharacterScript getEnemy(CharacterScript cs) {

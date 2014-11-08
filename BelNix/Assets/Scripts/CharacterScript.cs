@@ -64,7 +64,7 @@ public class CharacterScript : MonoBehaviour {
 				mapGenerator.tiles[(int)position.x,(int)-position.y].removeCharacter();
 			}
 		}
-		if (mapGenerator && pos.x > 0 && -pos.y > 0) {
+		if (mapGenerator && !mapGenerator.tiles[(int)pos.x,(int)-pos.y].hasCharacter() && pos.x > 0 && -pos.y > 0) {
 			mapGenerator.tiles[(int)pos.x,(int)-pos.y].setCharacter(this);
 		}
 	}
@@ -467,6 +467,11 @@ public class CharacterScript : MonoBehaviour {
 		doRotation();
 		doAttack();
 		doDeath();
+		setLayer();
+	}
+
+	void setLayer() {
+		renderer.sortingOrder = (moving || attacking ? 11 : 10);
 	}
 
 	void doMovement() {
