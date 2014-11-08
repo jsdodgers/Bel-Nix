@@ -133,7 +133,7 @@ public class MapGenerator : MonoBehaviour {
 			tiles[(int)pos.x,(int)-pos.y].setCharacter(p);
 			p.setPriority();
 			priorityOrder.Add(p);
-			p.name = "Player" + (n+1);
+			p.characterName = "Player bla bla bla bla bla bla bla" + (n+1);
 		}
 		enemies = new ArrayList();
 		enemyPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieEnemy");
@@ -161,14 +161,14 @@ public class MapGenerator : MonoBehaviour {
 	//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(e);
 			e.setPriority();
-			e.name = "Enemy" + aaa;
+			e.characterName = "Enemy" + aaa;
 			priorityOrder.Add(e);
 			aaa++;
 		}
 		string b4 = "";
 		for (int n=0;n<priorityOrder.Count;n++) {
 			if (n!=0) b4 += "\n";
-			b4 += priorityOrder[n].name + "  " + priorityOrder[n].getPriority();
+			b4 += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
 		}
 		List<CharacterScript> po1 = new List<CharacterScript>();
 		foreach (CharacterScript cs in priorityOrder) {
@@ -179,7 +179,7 @@ public class MapGenerator : MonoBehaviour {
 		string after = "";
 		for (int n=0;n<priorityOrder.Count;n++) {
 			if (n!=0) after += "\n";
-			after += priorityOrder[n].name + "  " + priorityOrder[n].getPriority();
+			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
 		}
 		currentCharacter = 0;
 		Debug.Log(b4 + "\n\n" + after);
