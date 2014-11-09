@@ -90,7 +90,7 @@ public class GameGUI : MonoBehaviour {
 		GUIContent[] contents = new GUIContent[mapGenerator.priorityOrder.Count];
 		Vector2[] sizes = new Vector2[mapGenerator.priorityOrder.Count];
 		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
-			Debug.Log(n + " -- " + mapGenerator.priorityOrder[n].characterName);
+			//Debug.Log(n + " -- " + mapGenerator.priorityOrder[n].characterName);
 			contents[n] = new GUIContent(mapGenerator.priorityOrder[n].characterName);
 		}
 		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
@@ -129,7 +129,7 @@ public class GameGUI : MonoBehaviour {
 			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 				path = true;
 				if(GUI.Button(moveButtonRect(), "Move")) {
-					Debug.Log("Move Player!");
+				//	Debug.Log("Move Player!");
 					p.moving = true;
 //					p.rotating = true;
 					p.setRotatingPath();
