@@ -40,7 +40,7 @@ public class MapGenerator : MonoBehaviour {
 	public Tile[,] tiles;
 	public ArrayList lastPlayerPath;
 
-	bool editingPath = false;
+//	bool editingPath = false;
 	Vector2 lastArrowPos = new Vector2(-1, -1);
 
 	
@@ -133,7 +133,7 @@ public class MapGenerator : MonoBehaviour {
 			tiles[(int)pos.x,(int)-pos.y].setCharacter(p);
 			p.setPriority();
 			priorityOrder.Add(p);
-			p.characterName = "Player bla bla bla bla bla bla bla" + (n+1);
+			p.characterName = "Player" + (n+1);
 		}
 		enemies = new ArrayList();
 		enemyPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieEnemy");
@@ -181,16 +181,30 @@ public class MapGenerator : MonoBehaviour {
 			if (n!=0) after += "\n";
 			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
 		}
-		currentCharacter = 0;
+		StartCoroutine(importGrid());
 		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
-		StartCoroutine(importGrid());
 	}
 
 	public CharacterScript nextPlayer() {
 		currentCharacter++;
 		currentCharacter%=priorityOrder.Count;
+		resetPlayerPath();
+		if (selectedCharacter) {
+			resetAroundCharacter(selectedCharacter);
+			lastPlayerPath = new ArrayList();
+			selectedCharacter.resetPath();
+			selectedCharacter.attackEnemy = null;
+		}
+		if (hoveredCharacter) {
+			resetAroundCharacter(hoveredCharacter);
+		}
+		selectedCharacter = getCurrentCharacter();
+		if (selectedCharacter) {
+			setAroundCharacter(selectedCharacter);
+	//		editingPath = false;
+		}
 		return getCurrentCharacter();
 	}
 
@@ -213,6 +227,8 @@ public class MapGenerator : MonoBehaviour {
 				////Debug.Log("Works!");
 				parseTiles(tiles);
 			}
+			currentCharacter = -1;
+			nextPlayer();
 		}
 	}
 	
@@ -587,47 +603,40 @@ public class MapGenerator : MonoBehaviour {
 		if (!shiftDraggin && !normalDraggin && !rightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
 		bool mouseDown = Input.GetMouseButtonDown(0);
 		bool mouseUp = Input.GetMouseButtonUp(0);
+		bool mouseDownRight = Input.GetMouseButtonDown(1);
 		if (mouseDown) mouseDownGUI = isOnGUI;
-		if (mouseDown && !shiftDown && !isOnGUI) {
+	/*	if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin) {
 			//	if (!selectedCharacter || (!selectedCharacter.moving && !selectedCharacter.attacking)) {
-			if (!selectedCharacter || (!selectedCharacter.moving && !selectedCharacter.attacking)) {
+			if (selectedCharacter && (!selectedCharacter.moving && !selectedCharacter.attacking)) {
 				if (selectedCharacter!=null && currentGrid!=null) {
 					int x = (int)currentGrid.transform.localPosition.x;
 					int y = (int)currentGrid.transform.localPosition.y;
 				//	Player p = selectedPlayer.GetComponent<Player>();
-
-					editingPath = hoveredCharacter==null && (tiles[x,-y].canStandCurr || tiles[x,-y].canAttackCurr);//isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y);
-				}
-
-				if (!selectedCharacter || !editingPath) {
-					if (selectedCharacter) {
-					//	Player p = selectedPlayer.GetComponent<Player>();
-						resetAroundCharacter(selectedCharacter);
-//						resetAroundPlayer(p,p.viewDist);
-						resetPlayerPath();
-						lastPlayerPath = new ArrayList();
-						selectedCharacter.resetPath();
-						selectedCharacter.attackEnemy = null;
-					}
-					selectedCharacter = hoveredCharacter;
-					if (hoveredCharacter) {
-					//	Player p2 = selectedPlayer.GetComponent<Player>();
-						setAroundCharacter(selectedCharacter);
-//						setAroundPlayer(p2, p2.currentMoveDist, p2.viewDist, p2.attackRange);
-						editingPath = true;
-					}
+				
+			//		editingPath = true; // hoveredCharacter==null && (tiles[x,-y].canStandCurr || tiles[x,-y].canAttackCurr);//isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y);
 				}
 			}
+		}*/
+	//	Debug.Log("MouseDownRight: " + mouseDownRight + "  " + isOnGUI + "  " + normalDraggin);
+		if (mouseDownRight && !isOnGUI && !normalDraggin) {
+			if (selectedCharacter) {
+				resetAroundCharacter(selectedCharacter);
+				resetPlayerPath();
+				lastPlayerPath = new ArrayList();
+				selectedCharacter.resetPath();
+				selectedCharacter.attackEnemy = null;
+			}
+			selectedCharacter = hoveredCharacter;
+			if (selectedCharacter) {
+				setAroundCharacter(selectedCharacter);
+			}
 		}
-		if (mouseUp && !shiftDown && !mouseDownGUI) {
+		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin) {
 			if (selectedCharacter && lastHit) {
-			//	Player p = selectedPlayer.GetComponent<Player>();
-			//	p.attackEnemy = null;
 				selectedCharacter.attackEnemy = null;
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-		//		selectedCharacter.attackEnemy = tiles[posX,posY].getEnemy(selectedCharacter);
-
+		
 				bool changed = false;
 				for (int n=selectedCharacter.currentPath.Count-1;n>=1;n--) {
 					Vector2 v = (Vector2)selectedCharacter.currentPath[n];
@@ -652,10 +661,10 @@ public class MapGenerator : MonoBehaviour {
 					}
 				}
 			}
-			editingPath = false;
+		//	editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
 		}
-		if (normalDraggin && editingPath && !mouseDownGUI) {		
+		if (normalDraggin && !mouseDownGUI) {		
 		
 			int x = -1;
 			int y = 1;
