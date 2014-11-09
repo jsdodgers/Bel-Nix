@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Enemy : CharacterScript {
+public class Enemy : Unit {
 
 //	public MapGenerator mapGenerator;
 

@@ -7,7 +7,7 @@ public class Tile {
 
 //	GameObject player;
 //	GameObject enemy;
-	CharacterScript character;
+	Unit character;
 	public bool standable;
 	int passableLeft;
 	int passableRight;
@@ -46,7 +46,7 @@ public class Tile {
 	}
 	
 
-	public void setCharacter(CharacterScript cs) {
+	public void setCharacter(Unit cs) {
 		character = cs;
 	}
 
@@ -54,12 +54,12 @@ public class Tile {
 		character = null;
 	}
 
-	public bool hasEnemy(CharacterScript cs) {
+	public bool hasEnemy(Unit cs) {
 		return hasCharacter() && cs.isEnemyOf(character);
 //		return enemy != null;
 	}
 
-	public bool hasAlly(CharacterScript cs) {
+	public bool hasAlly(Unit cs) {
 		return hasCharacter() && cs.isAllyOf(character);
 	}
 
@@ -67,21 +67,21 @@ public class Tile {
 		return character != null;
 	}
 
-	public CharacterScript getEnemy(CharacterScript cs) {
+	public Unit getEnemy(Unit cs) {
 		if (hasEnemy(cs)) {
 			return getCharacter();
 		}
 		return null;
 	}
 
-	public CharacterScript getAlly(CharacterScript cs) {
+	public Unit getAlly(Unit cs) {
 		if (hasAlly(cs)) {
 			return getCharacter();
 		}
 		return null;
 	}
 
-	public CharacterScript getCharacter() {
+	public Unit getCharacter() {
 		if (character == null) return null;
 		return character;
 	}
@@ -90,7 +90,7 @@ public class Tile {
 		return standable && !character;
 	}
 
-	public bool canPass(Direction direction, CharacterScript cs) {
+	public bool canPass(Direction direction, Unit cs) {
 		switch (direction) {
 		case Direction.Left:
 			return this.leftTile!=null && !this.leftTile.hasEnemy(cs) && this.passableLeft>0;
@@ -136,7 +136,7 @@ public class Tile {
 		}
 	}
 
-	public bool provokesOpportunity(Direction direction, CharacterScript cs) {
+	public bool provokesOpportunity(Direction direction, Unit cs) {
 //		switch (direction) {
 //		case Direction.Left:
 //			return (this.
@@ -149,7 +149,7 @@ public class Tile {
 		return provokesOpportunity;
 	}
 
-	public bool hasEnemyDirection(Direction direction, CharacterScript cs) {
+	public bool hasEnemyDirection(Direction direction, Unit cs) {
 		switch (direction) {
 		case Direction.Left:
 			return this.leftTile != null && this.leftTile.hasEnemy(cs);

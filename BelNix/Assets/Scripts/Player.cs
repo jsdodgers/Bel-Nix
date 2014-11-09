@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Player : CharacterScript {
+public class Player : Unit {
 
 	public override void setPosition(Vector3 pos) {
 		setNewTilePosition(pos);

@@ -18,6 +18,8 @@ public class MapGenerator : MonoBehaviour {
 	SpriteRenderer sprend;
 	Sprite spr;
 
+	GameObject targetObject;
+
 	bool isOnGUI;
 	GameObject arrowStraightPrefab;
 	GameObject arrowCurvePrefab;
@@ -28,8 +30,8 @@ public class MapGenerator : MonoBehaviour {
 	GameObject warningYellowPrefab;
 	GameObject warningBothPrefab;
 //	public GameObject selectedPlayer;
-	public CharacterScript selectedCharacter;
-	CharacterScript hoveredCharacter;
+	public Unit selectedCharacter;
+	Unit hoveredCharacter;
 	ArrayList players;
 	public ArrayList enemies;
 	GameObject grids;
@@ -73,9 +75,9 @@ public class MapGenerator : MonoBehaviour {
 	int actualWidth = 0;
 	int actualHeight = 0;
 
-	public List<CharacterScript> priorityOrder;
+	public List<Unit> priorityOrder;
 
-	int currentCharacter;
+	int currentUnit;
 
 	// Use this for initialization
 	void Start () {
@@ -95,6 +97,7 @@ public class MapGenerator : MonoBehaviour {
 		map = GameObject.Find("Map");
 		mapTransform = map.transform;
 		GameObject guiObj = GameObject.Find("GameGUI");
+		targetObject = GameObject.Find("Target");
 		gui = guiObj.GetComponent<GameGUI>();
 		gui.mapGenerator = this;
 		
@@ -109,7 +112,7 @@ public class MapGenerator : MonoBehaviour {
 		createGrid();
 		createTiles();
 
-		priorityOrder = new List<CharacterScript>();
+		priorityOrder = new List<Unit>();
 		players = new ArrayList();
 		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieAnimPrefab");
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
@@ -170,8 +173,8 @@ public class MapGenerator : MonoBehaviour {
 			if (n!=0) b4 += "\n";
 			b4 += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
 		}
-		List<CharacterScript> po1 = new List<CharacterScript>();
-		foreach (CharacterScript cs in priorityOrder) {
+		List<Unit> po1 = new List<Unit>();
+		foreach (Unit cs in priorityOrder) {
 			po1.Add(cs);
 		}
 		priorityOrder.Sort((first, second) => (first.getPriority() > second.getPriority() ? -1 : (first.getPriority() == second.getPriority() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
@@ -187,29 +190,53 @@ public class MapGenerator : MonoBehaviour {
 //		priorityOrder = priorityOrder.
 	}
 
-	public CharacterScript nextPlayer() {
-		currentCharacter++;
-		currentCharacter%=priorityOrder.Count;
+	public void setTargetObjectPosition() {
+		if (selectedCharacter) {
+			targetObject.transform.position = selectedCharacter.transform.position;
+		}
+		else {
+			targetObject.transform.position = new Vector3(-1000.0f, 1000.0f, 0.0f);
+		}
+	}
+
+	public void setTargetObjectScale() {
+		if (selectedCharacter) {
+			float factor = 1.0f/10.0f;
+			float speed = 3.0f;
+			float addedScale = Mathf.Sin(Time.time * speed) * factor;
+			float scale = 1.1f + addedScale;
+			targetObject.transform.localScale = new Vector3(scale, scale, 1.0f);
+		}
+	}
+
+	public Unit nextPlayer() {
+		currentUnit++;
+		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
 		if (selectedCharacter) {
 			resetAroundCharacter(selectedCharacter);
 			lastPlayerPath = new ArrayList();
 			selectedCharacter.resetPath();
 			selectedCharacter.attackEnemy = null;
+			string color = "Materials/SelectionCircleGreen";
+			if (selectedCharacter.team != 0) color = "Materials/SelectionCircleRed";
+			selectedCharacter.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(color);
 		}
 		if (hoveredCharacter) {
 			resetAroundCharacter(hoveredCharacter);
 		}
-		selectedCharacter = getCurrentCharacter();
+		selectedCharacter = getCurrentUnit();
+		selectedCharacter.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
 		if (selectedCharacter) {
 			setAroundCharacter(selectedCharacter);
 	//		editingPath = false;
 		}
-		return getCurrentCharacter();
+		setTargetObjectPosition();
+		return getCurrentUnit();
 	}
 
-	public CharacterScript getCurrentCharacter() {
-		return priorityOrder[currentCharacter];
+	public Unit getCurrentUnit() {
+		return priorityOrder[currentUnit];
 	}
 
 	public IEnumerator importGrid() {
@@ -227,7 +254,7 @@ public class MapGenerator : MonoBehaviour {
 				////Debug.Log("Works!");
 				parseTiles(tiles);
 			}
-			currentCharacter = -1;
+			currentUnit = -1;
 			nextPlayer();
 		}
 	}
@@ -302,25 +329,25 @@ public class MapGenerator : MonoBehaviour {
 		lrO.transform.parent = lines.transform;
 	}
 
-	public void removeCharacter(CharacterScript cs) {
+	public void removeCharacter(Unit cs) {
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
 		if (players.Contains(cs.gameObject)) players.Remove(cs.gameObject);
 	}
 
-	public bool hasEnemy(int x, int y, CharacterScript cs) {
+	public bool hasEnemy(int x, int y, Unit cs) {
 		return tiles[x,y].hasEnemy(cs);
 	}
 
-	public bool hasAlly(int x, int y, CharacterScript cs) {
+	public bool hasAlly(int x, int y, Unit cs) {
 		return tiles[x,y].hasAlly(cs);
 	}
 
-	public bool canPass(Direction dir, int x, int y, CharacterScript cs) {
+	public bool canPass(Direction dir, int x, int y, Unit cs) {
 		return tiles[x,y].canPass(dir, cs);
 	}
 
-	public bool canAttack(Direction dir, int x, int y, CharacterScript cs) {
+	public bool canAttack(Direction dir, int x, int y, Unit cs) {
 		int pass = tiles[x,y].passabilityInDirection(dir);
 		return pass >0 && pass <10;
 	}
@@ -328,6 +355,7 @@ public class MapGenerator : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		handleInput();
+		setTargetObjectScale();
 	}
 
 	public void resetPlayerPath() {
@@ -408,7 +436,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void resetCharacterRange() {
-		CharacterScript p = null;
+		Unit p = null;
 		if (this.selectedCharacter) p = this.selectedCharacter;
 		else if (this.hoveredCharacter) p = this.hoveredCharacter;
 		if (p != null) {
@@ -417,11 +445,11 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	public void resetAroundCharacter(CharacterScript cs) {
+	public void resetAroundCharacter(Unit cs) {
 		resetAroundCharacter(cs, cs.viewDist);
 	}
 
-	public void resetAroundCharacter(CharacterScript cs, int view) {
+	public void resetAroundCharacter(Unit cs, int view) {
 		for (int x = (int)Mathf.Max(cs.position.x - view,0); x < (int)Mathf.Min(cs.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-cs.position.y - view,0); y < (int)Mathf.Min(-cs.position.y + 1.0f + view, actualHeight); y ++) {
 				GameObject go = gridArray[x,y];
@@ -439,11 +467,11 @@ public class MapGenerator : MonoBehaviour {
 		setCurrentSpriteColor();
 	}
 
-	public void setAroundCharacter(CharacterScript cs) {
+	public void setAroundCharacter(Unit cs) {
 		setAroundCharacter(cs, cs.currentMoveDist, cs.viewDist, cs.attackRange);
 	}
 
-	public void setAroundCharacter(CharacterScript cs, int radius, int view, int attackRange) {
+	public void setAroundCharacter(Unit cs, int radius, int view, int attackRange) {
 		setCharacterCanStand((int)cs.position.x, (int)-cs.position.y, radius, 0, attackRange, cs);
 		setCurrentSpriteColor();
 		int type = 4;
@@ -465,7 +493,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, CharacterScript cs) {
+	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs) {
 		if (currRadius == 0) //Debug.Log(attackRange);
 		if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
@@ -484,7 +512,7 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs);
 	}
 
-	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, CharacterScript cs) {
+	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs) {
 	if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
 		if (t.canStandCurr && currRadius != 0) return;
@@ -493,7 +521,7 @@ public class MapGenerator : MonoBehaviour {
 			t.canAttackCurr = true;
 			t.minAttackCurr = currRadius;
 		}
-		Debug.Log("can attack: " + x + ", " + y);
+	//	Debug.Log("can attack: " + x + ", " + y);
 		if (radiusLeft == 0) return;
 		if (canAttack(Direction.Left, x, y, cs))
 			setCharacterCanAttack(x-1,y,radiusLeft-1,currRadius+1, cs);
@@ -521,7 +549,7 @@ public class MapGenerator : MonoBehaviour {
 		return Mathf.Pow(player1.position.x - x,2) + Mathf.Pow(-player1.position.y - y,2) - 2 <= Mathf.Pow(radius,2);
 	}*/
 	
-	int totalMoveDist(CharacterScript cs, int x, int y) {
+	int totalMoveDist(Unit cs, int x, int y) {
 		return (int)Mathf.Abs(cs.position.x - x) + (int)Mathf.Abs(-cs.position.y  - y);
 	}
 	void loadGrid(int x, int y) {
@@ -630,8 +658,9 @@ public class MapGenerator : MonoBehaviour {
 			if (selectedCharacter) {
 				setAroundCharacter(selectedCharacter);
 			}
+			setTargetObjectPosition();
 		}
-		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin) {
+		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedCharacter) {
 			if (selectedCharacter && lastHit) {
 				selectedCharacter.attackEnemy = null;
 				int posX = (int)lastHit.transform.localPosition.x;
@@ -664,7 +693,7 @@ public class MapGenerator : MonoBehaviour {
 		//	editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
 		}
-		if (normalDraggin && !mouseDownGUI) {		
+		if (normalDraggin && !mouseDownGUI && getCurrentUnit()==selectedCharacter) {		
 		
 			int x = -1;
 			int y = 1;
@@ -675,7 +704,7 @@ public class MapGenerator : MonoBehaviour {
 			Vector2 v = new Vector2(x, -y);
 
 
-			if (selectedCharacter && !CharacterScript.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
+			if (selectedCharacter && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
 			//	Player p = selectedPlayer.GetComponent<Player>();
 				//Debug.Log(p.currentMoveDist + "     aaa!!");
 				resetPlayerPath();
@@ -685,53 +714,11 @@ public class MapGenerator : MonoBehaviour {
 				else {
 					lastPlayerPath = selectedCharacter.removeFromPathTo(v);
 				}
-		//		string s = "Path: ";
-		//		foreach (Vector2 v1 in lastPlayerPath) {
-		//			s += v1.ToString() + ", ";
-		//		}
-				//Debug.Log(s);
 				if (lastPlayerPath.Count > 1)
 					setPlayerPath(lastPlayerPath);
 				lastArrowPos = v;
 
-				/*
-				if (isInPlayerRadius(p,p.currentMoveDist,x,-y)) {
-					resetAroundPlayer(p,p.viewDist);
-//					p.currentMoveDist -= totalMoveDist(p,x,-y);
-					Vector3 pos = p.position;
-					pos.x = x;
-					pos.y = y;
-					//Debug.Log(pos);
-					p.setMoveDist(p.currentMoveDist - totalMoveDist(p,x,-y));
-					p.setPosition(pos);
-					if (p.currentMoveDist == 0) {
-						hoveredPlayer = selectedPlayer;
-						selectedPlayer = null;
-						resetMoveDistances();
-						setAroundPlayer(p, p.currentMoveDist, p.viewDist, p.attackRange);
-						//						resetAroundPlayer(p, p.viewDist);
-					}
-					else {
-						setAroundPlayer(p, p.currentMoveDist, p.viewDist, p.attackRange);
-					}
-					//		if (p.currentMoveDist == 0) {
-					//		}
-				}
-				else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y)) {
-					if (hoveredPlayer) {
-						resetAroundPlayer(p,p.viewDist);
-						selectedPlayer = hoveredPlayer;
-						Player p2 = selectedPlayer.GetComponent<Player>();
-						setAroundPlayer(p2, p2.currentMoveDist, p2.viewDist, p2.attackRange);
-					}
-				}
-				else {
-					selectedPlayer = hoveredPlayer;
-					resetAroundPlayer(p,p.viewDist);
-					Player p2 = selectedPlayer.GetComponent<Player>();
-					setAroundPlayer(p2, p2.currentMoveDist, p2.viewDist, p2.attackRange);
-				}
-			*/
+
 			}
 		}
 	}
@@ -743,7 +730,7 @@ public class MapGenerator : MonoBehaviour {
 	//		Player p = player.GetComponent<Player>();
 	//		if (p.currentMoveDist!=0) reset = false;
 	//	}
-		foreach (CharacterScript character in priorityOrder) {
+		foreach (Unit character in priorityOrder) {
 		///	Player p = player.GetComponent<Player>();
 //			if (reset) p.currentMoveDist = p.maxMoveDist;
 			character.setMoveDist(character.maxMoveDist);

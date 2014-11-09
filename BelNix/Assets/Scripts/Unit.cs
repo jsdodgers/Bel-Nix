@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CharacterScript : MonoBehaviour {
+public class Unit : MonoBehaviour {
 
 	int priority;
 	public string characterName;
@@ -15,7 +15,7 @@ public class CharacterScript : MonoBehaviour {
 	public float dieTime = 0;
 	
 	
-	public CharacterScript attackedByCharacter = null;
+	public Unit attackedByCharacter = null;
 
 	
 	public MapGenerator mapGenerator;
@@ -28,7 +28,8 @@ public class CharacterScript : MonoBehaviour {
 	public bool moving = false;
 	public bool rotating = false;
 	public bool attacking = false;
-	public CharacterScript attackEnemy = null;
+	public bool attackAnimating = false;
+	public Unit attackEnemy = null;
 	public Vector2 rotateFrom;
 	public Vector2 rotateTo;
 	Animator anim;
@@ -46,11 +47,11 @@ public class CharacterScript : MonoBehaviour {
 		return priority;
 	}
 
-	public bool isEnemyOf(CharacterScript cs) {
+	public bool isEnemyOf(Unit cs) {
 		return team != cs.team;
 	}
 
-	public bool isAllyOf(CharacterScript cs) {
+	public bool isAllyOf(Unit cs) {
 		return team != cs.team;
 	}
 
@@ -233,6 +234,10 @@ public class CharacterScript : MonoBehaviour {
 		return currentPath;
 	}
 
+	public void crushingSwingSFX() {
+
+	}
+
 	
 	void attackAnimation() {
 		Debug.Log("Attack!");
@@ -318,7 +323,7 @@ public class CharacterScript : MonoBehaviour {
 		rotating = true;
 	}
 	
-	public void setRotationToCharacter(CharacterScript enemy) {
+	public void setRotationToCharacter(Unit enemy) {
 		setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(enemy.position.x, enemy.position.y));
 	}
 	
@@ -471,7 +476,8 @@ public class CharacterScript : MonoBehaviour {
 	}
 
 	void setLayer() {
-		renderer.sortingOrder = (moving || attacking ? 11 : 10);
+		renderer.sortingOrder = (moving || attacking || attackAnimating ? 11 : 10);
+		transform.GetChild(0).renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
 	}
 
 	void doMovement() {
@@ -481,7 +487,7 @@ public class CharacterScript : MonoBehaviour {
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist);
-				
+				mapGenerator.setTargetObjectPosition();
 			}
 			else {
 				moving = false;
@@ -504,8 +510,13 @@ public class CharacterScript : MonoBehaviour {
 	void doAttack() {
 		if (attacking && !moving && !rotating) {
 			attackAnimation();
+			attackAnimating = true;
 			attacking = false;
 		}
+	}
+
+	void attackFinished() {
+		attackAnimating = false;
 	}
 
 	
@@ -526,7 +537,7 @@ public class CharacterScript : MonoBehaviour {
 			if (!mapGenerator.selectedCharacter || !mapGenerator.selectedCharacter.attacking) {
 				if (mapGenerator.selectedCharacter) {
 				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-					CharacterScript p = mapGenerator.selectedCharacter;
+					Unit p = mapGenerator.selectedCharacter;
 					if (p.attackEnemy==this) p.attackEnemy = null;
 				}
 //				mapGenerator.enemies.Remove(gameObject);
