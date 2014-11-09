@@ -7,6 +7,8 @@ public class GameGUI : MonoBehaviour {
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
 	Vector2 position = new Vector2(0.0f, 0.0f);
+	Rect scrollRect;
+	bool scrollShowing;
 
 	// Use this for initialization
 	void Start () {
@@ -18,16 +20,27 @@ public class GameGUI : MonoBehaviour {
 	
 	}
 
+	public Vector2 actionButtonsSize() {
+		return new Vector2(90.0f, 40.0f);
+	}
+
+	public Rect actionRect() {
+		float boxHeight = actionButtonsSize().y * 4;
+		return new Rect(0.0f, Screen.height - boxHeight, actionButtonsSize().x, boxHeight);
+	}
+
 	public Rect moveButtonRect() {
-		float moveWidth = 90.0f;
-		float moveHeight = 40.0f;
-		float moveX = 10.0f;
-		float moveY = Screen.height - moveHeight - 10.0f;
-		return new Rect(moveX, moveY, moveWidth, moveHeight);
+	//	float moveWidth = 90.0f;
+	//	float moveHeight = 40.0f;
+	//	float moveX = 10.0f;
+	//	float moveY = Screen.height - moveHeight - 10.0f;
+	//	return new Rect(moveX, moveY, moveWidth, moveHeight);
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 0, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect attackButtonRect() {
-		Rect r = moveButtonRect();
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 1, actionButtonsSize().x, actionButtonsSize().y);
+/*		Rect r = moveButtonRect();
 		if (mapGenerator != null) {
 			if (mapGenerator.selectedCharacter!=null && !mapGenerator.selectedCharacter.moving) {
 				if (mapGenerator.lastPlayerPath.Count >1) {
@@ -35,15 +48,25 @@ public class GameGUI : MonoBehaviour {
 				}
 			}
 		}
-		return r;
+		return r;*/
 	}
+
+	public Rect minorButtonRect() {	
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 2, actionButtonsSize().x, actionButtonsSize().y);
+	}
+
+	public Rect waitButtonRect() {
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 3, actionButtonsSize().x, actionButtonsSize().y);
+	}
+
+
 
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (mapGenerator) {
-			if (mapGenerator.selectedCharacter!=null) {
+			if (mapGenerator.selectedCharacter != null && mapGenerator.selectedCharacter == mapGenerator.getCurrentUnit()) {
 			//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-				if (mapGenerator.lastPlayerPath.Count >1 && !mapGenerator.selectedCharacter.moving) {
+			/*	if (mapGenerator.lastPlayerPath.Count >1 && !mapGenerator.selectedCharacter.moving) {
 					if (moveButtonRect().Contains(mousePos)) {
 						return true;
 					}
@@ -52,7 +75,18 @@ public class GameGUI : MonoBehaviour {
 					if (attackButtonRect().Contains(mousePos)) {
 						return true;
 					}
-				}
+				}*/
+				return actionRect().Contains(mousePos);
+			}
+		}
+		return false;
+	}
+
+	public bool mouseIsOnScrollView() {
+		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+		if (mapGenerator) {
+			if (scrollShowing) {
+				return scrollRect.Contains(mousePos);
 			}
 		}
 		return false;
@@ -115,6 +149,8 @@ public class GameGUI : MonoBehaviour {
 		GUI.Box (new Rect(boxX, 5.0f, boxWidth, boxHeight), "");
 		position = GUI.BeginScrollView(new Rect(boxX, 5.0f, boxWidth, boxHeight), position, new Rect(boxX, 5.0f, scrollWidth, scrollHeight));
 		float y = 5.0f;
+		scrollRect = new Rect(boxX, 5.0f, boxWidth, boxHeight);
+		scrollShowing = actualPlayerListHeight > maxPlayerListHeight;
 		for (int n=0; n<mapGenerator.priorityOrder.Count;n++) {
 			GUIStyle st = getNormalStyle();
 			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
@@ -123,31 +159,44 @@ public class GameGUI : MonoBehaviour {
 		}
 		GUI.EndScrollView();
 		bool path = false;
-		if (mapGenerator.selectedCharacter!=null) {
-		//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
+		if (mapGenerator.selectedCharacter != null && mapGenerator.selectedCharacter == mapGenerator.getCurrentUnit()) {
+			//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
 			Unit p = mapGenerator.selectedCharacter;
-			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
-				path = true;
-				if(GUI.Button(moveButtonRect(), "Move")) {
+//			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
+		//		path = true;
+			GUI.enabled = !p.usedMovement;
+			if(GUI.Button(moveButtonRect(), "Move")) {
 				//	Debug.Log("Move Player!");
+				if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
 					p.moving = true;
 //					p.rotating = true;
 					p.setRotatingPath();
 			//		p.attacking = true;
 				}
 			}
-			if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-				if (GUI.Button(attackButtonRect(), "Attack")) {
-					if (path) {
+	//		}
+			GUI.enabled = !p.usedStandard;
+		//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
+			if (GUI.Button(attackButtonRect(), "Attack")) {
+				if (p.attackEnemy!=null && !p.moving && !p.attacking) {
+					if (mapGenerator.lastPlayerPath.Count > 1) {
 						p.moving = true;
 						p.setRotatingPath();
 					}
 					else {
-					//	p.setRotationFrom(new Vector2(p.position.x + .001f, p.position.y), new Vector2(p.attackEnemy.position.x, p.attackEnemy.position.y));
 						p.setRotationToAttackEnemy();
 					}
 					p.attacking = true;
 				}
+			}
+			GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
+			if (GUI.Button(minorButtonRect(), "Minor")) {
+
+			}
+			GUI.enabled = true;
+			if (GUI.Button(waitButtonRect(), "Wait")) {
+				if (!p.moving && !p.attacking)
+					mapGenerator.nextPlayer();
 			}
 		}
 	//	Debug.Log("OnGUIEnd");
