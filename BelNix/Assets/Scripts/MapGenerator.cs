@@ -223,6 +223,7 @@ public class MapGenerator : MonoBehaviour {
 			string color = "Materials/SelectionCircleGreen";
 			if (selectedCharacter.team != 0) color = "Materials/SelectionCircleRed";
 			selectedCharacter.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(color);
+			selectedCharacter.resetVars();
 		}
 		if (hoveredCharacter) {
 			resetAroundCharacter(hoveredCharacter);
@@ -332,6 +333,8 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void removeCharacter(Unit cs) {
+		int index = priorityOrder.IndexOf(cs);
+		if (index <= currentUnit) currentUnit--;
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
 		if (players.Contains(cs.gameObject)) players.Remove(cs.gameObject);
@@ -591,6 +594,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	void handleMouseScrollWheel() {
 		//	if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (gui.mouseIsOnScrollView()) return;
 		Vector3 v3 = Input.mousePosition;
 		if (v3.x < 0 || v3.y < 0 || v3.x > Screen.width || v3.y > Screen.height) return;
 		float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
@@ -732,11 +736,11 @@ public class MapGenerator : MonoBehaviour {
 	//		Player p = player.GetComponent<Player>();
 	//		if (p.currentMoveDist!=0) reset = false;
 	//	}
-		foreach (Unit character in priorityOrder) {
+//		foreach (Unit character in priorityOrder) {
 		///	Player p = player.GetComponent<Player>();
 //			if (reset) p.currentMoveDist = p.maxMoveDist;
-			character.setMoveDist(character.maxMoveDist);
-		}
+		//	character.setMoveDist(character.maxMoveDist);
+//		}
 		
 	}
 	
@@ -776,7 +780,7 @@ public class MapGenerator : MonoBehaviour {
 	//	//Debug.Log("Start Mouse Select");
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<9);
 		//		Physics2D.Ray
-		if (hit) {
+		if (hit && !isOnGUI) {
 			GameObject go = hit.collider.gameObject;
 			if (go != lastHit) {
 				lastHit = go;

@@ -16,6 +16,7 @@ public class AudioBank : MonoBehaviour {
 	void Start () {
 		crushingSwing = Resources.Load<AudioClip>("Audio/SFX/Combat-CrushSwing");
 		crushingHit = Resources.Load<AudioClip>("Audio/SFX/Combat-CrushHit");
+	//	crushingHit = Resources.Load<AudioClip>("Audio/SFX/Scratchy Record");
 	}
 	
 	// Update is called once per frame
@@ -25,17 +26,19 @@ public class AudioBank : MonoBehaviour {
 
 	public void playClipAtPoint(ClipName clipName, Vector3 position) {
 		AudioClip clip = null;
+		float volume = 1.0f;
 		switch (clipName) {
 		case ClipName.CrushingSwing:
 			clip = crushingSwing;
 			break;
 		case ClipName.CrushingHit:
 			clip = crushingHit;
+			volume = 1.0f;
 			break;
 		default:
 			break;
 		}
 		if (clip != null)
-			AudioSource.PlayClipAtPoint(clip, position);
+			AudioSource.PlayClipAtPoint(clip, position, volume);
 	}
 }

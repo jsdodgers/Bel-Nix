@@ -33,14 +33,26 @@ public class Unit : MonoBehaviour {
 	public Vector2 rotateFrom;
 	public Vector2 rotateTo;
 	Animator anim;
+	public bool usedMovement;
+	public bool usedStandard;
+	public bool usedMinor1;
+	public bool usedMinor2;
 
 
 	public virtual void setPosition(Vector3 position) {
 
 	}
 
+	public void resetVars() {
+		usedMovement = false;
+		usedStandard = false;
+		usedMinor1 = false;
+		usedMinor2 = false;
+		currentMoveDist = maxMoveDist;
+	}
+
 	public void setPriority() {
-		priority = Random.Range(1,11);
+		priority = Random.Range(1,21);
 	}
 
 	public int getPriority() {
@@ -249,7 +261,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void dealDamage() {
-		attackEnemy.damage(Random.Range(-3, 3));
+		attackEnemy.damage(Random.Range(1, 11));
 		attackEnemy.attackedByCharacter = this;
 		attackEnemy.setRotationToAttackedByCharacter();
 	}
@@ -496,6 +508,7 @@ public class Unit : MonoBehaviour {
 				moving = false;
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
+				if (currentMoveDist == 0) usedMovement = true;
 			}
 		}
 	}
@@ -515,6 +528,11 @@ public class Unit : MonoBehaviour {
 			attackAnimation();
 			attackAnimating = true;
 			attacking = false;
+			usedStandard = true;
+			if (currentMoveDist < maxMoveDist) {
+				usedMovement = true;
+				currentMoveDist = 0;
+			}
 		}
 	}
 
