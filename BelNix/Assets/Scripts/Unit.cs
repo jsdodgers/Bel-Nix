@@ -235,18 +235,21 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void crushingSwingSFX() {
-
+		if (mapGenerator && mapGenerator.audioBank) {
+			mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingSwing, transform.position);
+		}
 	}
 
 	
 	void attackAnimation() {
+	//	crushingSwingSFX();
 		Debug.Log("Attack!");
 		anim.SetTrigger("Attack");
 		//	attackEnemy = null;
 	}
 	
 	void dealDamage() {
-		attackEnemy.damage(3);
+		attackEnemy.damage(Random.Range(-3, 3));
 		attackEnemy.attackedByCharacter = this;
 		attackEnemy.setRotationToAttackedByCharacter();
 	}
@@ -519,11 +522,17 @@ public class Unit : MonoBehaviour {
 		attackAnimating = false;
 	}
 
+	public void crushingHitSFX() {
+		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
+	}
 	
 	public void damage(int damage) {
 		//	Debug.Log("Damage");
-		hitPoints -= damage;
-		if (hitPoints <= 0) died = true;
+		if (damage > 0) {
+			crushingHitSFX();
+			hitPoints -= damage;
+			if (hitPoints <= 0) died = true;
+		}
 		//	Debug.Log("EndDamage");
 	}
 	

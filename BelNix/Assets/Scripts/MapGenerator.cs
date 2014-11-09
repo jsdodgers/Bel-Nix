@@ -10,6 +10,7 @@ public class MapGenerator : MonoBehaviour {
 	int gridSize = 70;
 	
 	GameGUI gui;
+	public AudioBank audioBank;
 	GameObject lastHit;
 	GameObject map;
 	Transform mapTransform;
@@ -98,6 +99,7 @@ public class MapGenerator : MonoBehaviour {
 		mapTransform = map.transform;
 		GameObject guiObj = GameObject.Find("GameGUI");
 		targetObject = GameObject.Find("Target");
+		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
 		gui = guiObj.GetComponent<GameGUI>();
 		gui.mapGenerator = this;
 		
