@@ -95,7 +95,7 @@ public class GameGUI : MonoBehaviour {
 		}
 		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
 			GUIStyle st = getNormalStyle();
-			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentCharacter()) st = getBoldStyle();
+			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
 			Vector2 size = st.CalcSize(contents[n]);
 			sizes[n] = size;
 			actualPlayerListWidth = Mathf.Max(actualPlayerListWidth, size.x + between*2);
@@ -117,7 +117,7 @@ public class GameGUI : MonoBehaviour {
 		float y = 5.0f;
 		for (int n=0; n<mapGenerator.priorityOrder.Count;n++) {
 			GUIStyle st = getNormalStyle();
-			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentCharacter()) st = getBoldStyle();
+			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
 			GUI.Label(new Rect(boxX + between, y, sizes[n].x, sizes[n].y), contents[n], st);
 			y += sizes[n].y + between;
 		}
@@ -125,7 +125,7 @@ public class GameGUI : MonoBehaviour {
 		bool path = false;
 		if (mapGenerator.selectedCharacter!=null) {
 		//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-			CharacterScript p = mapGenerator.selectedCharacter;
+			Unit p = mapGenerator.selectedCharacter;
 			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 				path = true;
 				if(GUI.Button(moveButtonRect(), "Move")) {
