@@ -218,9 +218,9 @@ public class MapGenerator : MonoBehaviour {
 			lastPlayerPath = new ArrayList();
 			selectedCharacter.resetPath();
 			selectedCharacter.attackEnemy = null;
-			string color = "Materials/SelectionCircleGreen.png";
-			if (selectedCharacter.team == 1) color = "Materials/SelectionCircleRed.png";
-			selectedCharacter.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load(color) as Sprite;
+			string color = "Materials/SelectionCircleGreen";
+			if (selectedCharacter.team != 0) color = "Materials/SelectionCircleRed";
+			selectedCharacter.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(color);
 		}
 		if (hoveredCharacter) {
 			resetAroundCharacter(hoveredCharacter);
