@@ -44,15 +44,17 @@ public class MyGUI : MonoBehaviour {
 		float boxWidth = Screen.width*boxWidthPerc;
 		float boxX = Screen.width*(1-boxWidthPerc);
 		float boxY = 0.0f;
+		float checkExtraX = 20.0f;
+		float checkLeftX = boxX - checkExtraX + 5.0f;
 		float boxHeight = Screen.height;
-		GUI.Box(new Rect(boxX,boxY,boxWidth,boxHeight),"");
+		GUI.Box(new Rect(boxX - checkExtraX,boxY,boxWidth + checkExtraX,boxHeight),"");
 		float scrollContentSize = boxWidth - 16.0f;
 		float loadButtonWidth = scrollContentSize * .9f;
 		float loadButtonX = Screen.width - boxWidth + scrollContentSize*.05f;
 		float loadButtonY = scrollContentSize*.05f;
 		float loadButtonHeight = 30.0f;
 		float width = GUI.skin.verticalScrollbar.fixedWidth;
-		scrollPosition = GUI.BeginScrollView(new Rect(boxX,boxY,boxWidth,boxHeight), scrollPosition, new Rect(boxX,boxY,scrollContentSize,boxHeight*2.0f));
+		scrollPosition = GUI.BeginScrollView(new Rect(boxX-checkExtraX,boxY,boxWidth + checkExtraX,boxHeight), scrollPosition, new Rect(boxX-checkExtraX,boxY,scrollContentSize + checkExtraX,boxHeight*2.0f/2.0f));
 		if (GUI.Button(new Rect(loadButtonX,loadButtonY,loadButtonWidth,loadButtonHeight),"Load File...")) {
 			//Debug.Log("Button Press");
 			/* 			string path = EditorUtility.OpenFilePanel(
@@ -81,9 +83,14 @@ public class MyGUI : MonoBehaviour {
 		float red = gridManager.red;
 		float green = gridManager.green;
 		float blue = gridManager.blue;
+		bool allColors = gridManager.doingAllColors();
+		bool allEverything = gridManager.doingAll();
 		GUI.Label(new Rect(textLabelX,redY,longTextLabelW,textFieldHeight),"R");
 		GUI.Label(new Rect(textLabelX,greenY,longTextLabelW,textFieldHeight),"G");
 		GUI.Label(new Rect(textLabelX,blueY,longTextLabelW,textFieldHeight),"B");
+		gridManager.doRed = GUI.Toggle(new Rect(checkLeftX, redY, checkExtraX, textFieldHeight), gridManager.doRed, "");
+		gridManager.doGreen = GUI.Toggle(new Rect(checkLeftX, greenY, checkExtraX, textFieldHeight), gridManager.doGreen, "");
+		gridManager.doBlue = GUI.Toggle(new Rect(checkLeftX, blueY, checkExtraX, textFieldHeight), gridManager.doBlue, "");
 		GUI.SetNextControlName("red");string redS = GUI.TextField(new Rect(textFieldX,redY,textFieldWidth,textFieldHeight),(red==0.0f?(actuallyZeroRed||!GUI.GetNameOfFocusedControl().Equals("red")?"0":""):((int)red).ToString()));
 		GUI.SetNextControlName("green");string greenS = GUI.TextField(new Rect(textFieldX,greenY,textFieldWidth,textFieldHeight),(green==0.0f?(actuallyZeroGreen||!GUI.GetNameOfFocusedControl().Equals("green")?"0":""):((int)green).ToString()));
 		GUI.SetNextControlName("blue");string blueS = GUI.TextField(new Rect(textFieldX,blueY,textFieldWidth,textFieldHeight),(blue==0.0f?(actuallyZeroBlue||!GUI.GetNameOfFocusedControl().Equals("blue")?"0":""):((int)blue).ToString()));
@@ -120,6 +127,12 @@ public class MyGUI : MonoBehaviour {
 		}
 		float colorBoxY = blueY + textFieldHeight + 5.0f;
 		GUI.Box(new Rect(loadButtonX, colorBoxY, loadButtonWidth, colorBoxHeight),"", boxStyle);
+		bool allChecked = GUI.Toggle(new Rect(checkLeftX, colorBoxY, checkExtraX, textFieldHeight), allColors, "");
+		if (allChecked != allColors) {
+			gridManager.doRed = allChecked;
+			gridManager.doGreen = allChecked;
+			gridManager.doBlue = allChecked;
+		}
 	//	GUI.skin.box.normal.background = oldTexture;
 		float checkHeight = colorBoxHeight;
 		float checkWidth = loadButtonWidth;
@@ -127,6 +140,7 @@ public class MyGUI : MonoBehaviour {
 		float standableY = colorBoxY + colorBoxHeight + 5.0f;
 		float passableY = standableY + checkHeight + 10.0f;
 		gridManager.standable = GUI.Toggle(new Rect(checkX,standableY,checkWidth,checkHeight),gridManager.standable,"Can Stand On");
+		gridManager.doStand = GUI.Toggle(new Rect(checkLeftX, standableY, checkExtraX, textFieldHeight), gridManager.doStand, "");
 	//	gridManager.passable = GUI.Toggle(new Rect(checkX,passableY,checkWidth,checkHeight),gridManager.passable,"Can Pass Through");
 		GUI.Label(new Rect(textLabelX,passableY,loadButtonWidth,textFieldHeight),"Passability:");
 		float longTextLabelWidth = 50.0f;
@@ -150,6 +164,12 @@ public class MyGUI : MonoBehaviour {
 		GUI.SetNextControlName("left");string leftS = GUI.TextField(new Rect(longTextFieldX,passableLeftY,longTextFieldWidth,textFieldHeight),(gridManager.passableLeft==0?(actuallyZeroLeft||!GUI.GetNameOfFocusedControl().Equals("left")?"0":""):((int)gridManager.passableLeft).ToString()));
 		GUI.SetNextControlName("trigger");string triggerS = GUI.TextField(new Rect(longTextFieldX,triggerY,longTextFieldWidth,textFieldHeight),(gridManager.trigger==0?(actuallyZeroTrigger||!GUI.GetNameOfFocusedControl().Equals("trigger")?"0":""):((int)gridManager.trigger).ToString()));
 		GUI.SetNextControlName("action");string actionS = GUI.TextField(new Rect(longTextFieldX,actionY,longTextFieldWidth,textFieldHeight),(gridManager.action==0?(actuallyZeroAction||!GUI.GetNameOfFocusedControl().Equals("action")?"0":""):((int)gridManager.action).ToString()));
+		gridManager.doUp = GUI.Toggle(new Rect(checkLeftX, passableUpY, checkExtraX, textFieldHeight), gridManager.doUp, "");
+		gridManager.doRight = GUI.Toggle(new Rect(checkLeftX, passableRightY, checkExtraX, textFieldHeight), gridManager.doRight, "");
+		gridManager.doDown = GUI.Toggle(new Rect(checkLeftX, passableDownY, checkExtraX, textFieldHeight), gridManager.doDown, "");
+		gridManager.doLeft = GUI.Toggle(new Rect(checkLeftX, passableLeftY, checkExtraX, textFieldHeight), gridManager.doLeft, "");
+		gridManager.doTrigger = GUI.Toggle(new Rect(checkLeftX, triggerY, checkExtraX, textFieldHeight), gridManager.doTrigger, "");
+		gridManager.doAction = GUI.Toggle(new Rect(checkLeftX, actionY, checkExtraX, textFieldHeight), gridManager.doAction, "");
 		bool upParsed = int.TryParse(upS,out gridManager.passableUp);
 		bool rightParsed = int.TryParse(rightS,out gridManager.passableRight);
 		bool downParsed = int.TryParse(downS,out gridManager.passableDown);
@@ -164,9 +184,22 @@ public class MyGUI : MonoBehaviour {
 		actuallyZeroTrigger = (gridManager.trigger==0.0f && (triggerS.Length>0 && (triggerS.ToCharArray()[0]=='0' || triggerS.ToCharArray()[triggerS.ToCharArray().Length-1]=='0')));
 		actuallyZeroAction = (gridManager.action==0.0f && (actionS.Length>0 && (actionS.ToCharArray()[0]=='0' || actionS.ToCharArray()[actionS.ToCharArray().Length-1]=='0')));
 
+		float allCheckY = actionY + checkHeight + 15.0f;
+		allChecked = GUI.Toggle(new Rect(checkLeftX, allCheckY, checkWidth, textFieldHeight), allEverything, "Select All");
+		if (allChecked != allEverything) {
+			gridManager.doRed = allChecked;
+			gridManager.doGreen = allChecked;
+			gridManager.doBlue = allChecked;
+			gridManager.doStand = allChecked;
+			gridManager.doLeft = allChecked;
+			gridManager.doRight = allChecked;
+			gridManager.doUp = allChecked;
+			gridManager.doDown = allChecked;
+			gridManager.doTrigger = allChecked;
+			gridManager.doAction = allChecked;
+		}
 
-
-		float printY = actionY + checkHeight + 15.0f;
+		float printY = allCheckY + checkHeight + 15.0f;
 		GUI.enabled = gridManager.imageFileName != null && !gridManager.imageFileName.Equals("");
 		if (GUI.Button(new Rect(loadButtonX,printY,loadButtonWidth,loadButtonHeight),"Save Tile Map")) {
 			gridManager.printGrid();
