@@ -42,7 +42,7 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 1, actionButtonsSize().x, actionButtonsSize().y);
 /*		Rect r = moveButtonRect();
 		if (mapGenerator != null) {
-			if (mapGenerator.selectedCharacter!=null && !mapGenerator.selectedCharacter.moving) {
+			if (mapGenerator.selectedUnit!=null && !mapGenerator.selectedUnit.moving) {
 				if (mapGenerator.lastPlayerPath.Count >1) {
 					r.y -= r.height + 10.0f;
 				}
@@ -64,14 +64,14 @@ public class GameGUI : MonoBehaviour {
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (mapGenerator) {
-			if (mapGenerator.selectedCharacter != null && mapGenerator.selectedCharacter == mapGenerator.getCurrentUnit()) {
+			if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
 			//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-			/*	if (mapGenerator.lastPlayerPath.Count >1 && !mapGenerator.selectedCharacter.moving) {
+				/*	if (mapGenerator.lastPlayerPath.Count >1 && !mapGenerator.selectedUnit.moving) {
 					if (moveButtonRect().Contains(mousePos)) {
 						return true;
 					}
 				}
-				if (mapGenerator.selectedCharacter.attackEnemy!=null && !mapGenerator.selectedCharacter.moving && !mapGenerator.selectedCharacter.attacking) {
+				if (mapGenerator.selectedUnit.attackEnemy!=null && !mapGenerator.selectedUnit.moving && !mapGenerator.selectedUnit.attacking) {
 					if (attackButtonRect().Contains(mousePos)) {
 						return true;
 					}
@@ -159,9 +159,9 @@ public class GameGUI : MonoBehaviour {
 		}
 		GUI.EndScrollView();
 		bool path = false;
-		if (mapGenerator.selectedCharacter != null && mapGenerator.selectedCharacter == mapGenerator.getCurrentUnit()) {
+		if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
 			//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-			Unit p = mapGenerator.selectedCharacter;
+			Unit p = mapGenerator.selectedUnit;
 //			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 		//		path = true;
 			GUI.enabled = !p.usedMovement;

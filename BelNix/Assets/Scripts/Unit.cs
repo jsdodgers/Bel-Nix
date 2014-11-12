@@ -38,6 +38,44 @@ public class Unit : MonoBehaviour {
 	public bool usedMinor1;
 	public bool usedMinor2;
 
+	public bool isSelected;
+	public bool isTarget;
+	SpriteRenderer targetSprite;
+
+
+	public void setSelected() {
+		isSelected = true;
+		isTarget = false;
+		targetSprite.enabled = true;
+		targetSprite.color = Color.white;
+		setTargetObjectScale();
+	}
+
+	public void setTarget() {
+		isSelected = false;
+		isTarget = true;
+		targetSprite.enabled = true;
+		targetSprite.color = Color.red;
+		setTargetObjectScale();
+	}
+
+	public void deselect() {
+		isSelected = false;
+		isTarget = false;
+		targetSprite.enabled = false;
+	}
+
+	
+	public void setTargetObjectScale() {
+		if (isSelected || isTarget) {
+			float factor = 1.0f/10.0f;
+			float speed = 3.0f;
+			float addedScale = Mathf.Sin(Time.time * speed) * factor;
+			float scale = 1.0f + factor + addedScale;
+			targetSprite.transform.localScale = new Vector3(scale, scale, 1.0f);
+		}
+	}
+
 
 	public virtual void setPosition(Vector3 position) {
 
@@ -478,6 +516,9 @@ public class Unit : MonoBehaviour {
 		maxMoveDist = 5;
 		anim = gameObject.GetComponent<Animator>();
 		currentMaxPath = 0;
+		Debug.Log("Children: " + transform.childCount + "  Team: " + team);
+		targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
+		deselect();
 //		resetPath();
 	}
 	
@@ -488,6 +529,7 @@ public class Unit : MonoBehaviour {
 		doAttack();
 		doDeath();
 		setLayer();
+		setTargetObjectScale();
 	}
 
 	void setLayer() {
@@ -502,7 +544,6 @@ public class Unit : MonoBehaviour {
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist);
-				mapGenerator.setTargetObjectPosition();
 			}
 			else {
 				moving = false;
@@ -561,10 +602,10 @@ public class Unit : MonoBehaviour {
 		//	if (dieTime >= 1) Destroy(gameObject);
 		//	if (dieTime >= 0.5f) {
 		if (died) {
-			if (!mapGenerator.selectedCharacter || !mapGenerator.selectedCharacter.attacking) {
-				if (mapGenerator.selectedCharacter) {
+			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
+				if (mapGenerator.selectedUnit) {
 				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-					Unit p = mapGenerator.selectedCharacter;
+					Unit p = mapGenerator.selectedUnit;
 					if (p.attackEnemy==this) p.attackEnemy = null;
 				}
 //				mapGenerator.enemies.Remove(gameObject);
