@@ -83,6 +83,8 @@ public class MapGenerator : MonoBehaviour {
 	bool shiftRightDragginCancelled = false;
 	
 	Vector3 lastPos = new Vector3(0.0f, 0.0f, 0.0f);
+	Vector3 cameraMoveToPos;
+	bool movingCamera;
 	
 	int actualWidth = 0;
 	int actualHeight = 0;
@@ -241,6 +243,7 @@ public class MapGenerator : MonoBehaviour {
 			setAroundCharacter(selectedUnit);
 			selectedUnit.setSelected();
 			selectedUnit.setCurrent();
+			moveCameraToSelected();
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -268,6 +271,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 			currentUnit = -1;
 			nextPlayer();
+			moveCameraToSelected(true);
 		}
 	}
 	
@@ -369,7 +373,46 @@ public class MapGenerator : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		handleInput();
+		moveCamera();
 	//	setTargetObjectScale();
+	}
+
+	void moveCamera() {
+		if (!movingCamera) return;
+		float speed = 12.0f;
+		float dist = speed * Time.deltaTime;
+//		float distLeft = Mathf.
+		Vector3 pos = Camera.main.transform.position;
+		Vector3 left = new Vector3(cameraMoveToPos.x - pos.x, cameraMoveToPos.y - pos.y, cameraMoveToPos.z - pos.z);
+		float distLeft = Mathf.Sqrt(Mathf.Pow(left.x,2) + Mathf.Pow(left.y,2) + Mathf.Pow(left.z,2));
+		if (distLeft <= dist) {
+			Camera.main.transform.position = cameraMoveToPos;
+			movingCamera = false;
+		}
+		else {
+			Vector3 move = new Vector3(left.x, left.y, left.z);
+			move.x /= distLeft;
+			move.y /= distLeft;
+			move.z /= distLeft;
+			move.x *= dist;
+			move.y *= dist;
+			move.z *= dist;
+			pos += move;
+			Camera.main.transform.position = pos;
+		}
+	}
+
+	void moveCameraToSelected(bool instantly = false) {
+		if (selectedUnit == null) return;
+		Vector3 sel = selectedUnit.transform.position;
+		sel.z = Camera.main.transform.position.z;
+		if (instantly) {
+			Camera.main.transform.position = sel;
+		}
+		else {
+			movingCamera = true;
+			cameraMoveToPos = sel;
+		}
 	}
 
 	public void resetPlayerPath() {
@@ -638,6 +681,13 @@ public class MapGenerator : MonoBehaviour {
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
 		handleArrows();
+		handleSpace();
+	}
+
+	void handleSpace() {
+		if (Input.GetKeyDown(KeyCode.Space)) {
+			moveCameraToSelected();
+		}
 	}
 
 	void handleArrows() {
@@ -887,7 +937,7 @@ public class MapGenerator : MonoBehaviour {
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = mainCamera.ScreenToWorldPoint(mPos);
-		if (middleDraggin || scrolled || shiftDraggin) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if ((middleDraggin || scrolled || shiftDraggin) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			//= mainCamera.WorldToScreenPoint(cameraTransform.position);
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
 				float xDiff = pos1.x - lastPos.x;
@@ -906,6 +956,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleKeyPan() {
+		if (movingCamera) return;
 		float xDiff = 0;
 		float yDiff = 0;
 		float eachFrame = 4.0f;
