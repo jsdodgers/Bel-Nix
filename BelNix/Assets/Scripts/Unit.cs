@@ -17,7 +17,7 @@ public class Unit : MonoBehaviour {
 	
 	public Unit attackedByCharacter = null;
 
-	
+	Transform trail;
 	public MapGenerator mapGenerator;
 	public int currentMoveDist = 5;
 	public int attackRange = 1;
@@ -38,6 +38,7 @@ public class Unit : MonoBehaviour {
 	public bool usedMinor1;
 	public bool usedMinor2;
 
+	public bool isCurrent;
 	public bool isSelected;
 	public bool isTarget;
 	SpriteRenderer targetSprite;
@@ -65,7 +66,43 @@ public class Unit : MonoBehaviour {
 		targetSprite.enabled = false;
 	}
 
-	
+	public void setCurrent() {
+		isCurrent = true;
+		addTrail();
+	}
+
+	public void removeCurrent() {
+		isCurrent = false;
+		removeTrail();
+	}
+
+	public void removeTrail() {
+		if (trail) {
+			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
+			tr.enabled = false;
+			tr.time = 0.0f;
+		}
+	}
+
+	public void addTrail() {
+		if (trail) {
+			setTrailRendererPosition();
+			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
+			tr.enabled = true;
+			tr.time = 2.2f;
+		}
+	}
+
+	public void setTrailRendererPosition() {
+		if (trail || (isCurrent && trail)) {
+			float factor = 0.5f - trail.GetComponent<TrailRenderer>().startWidth/2.0f;
+			float speed = 3.0f;
+			float x = Mathf.Sin(Time.time * speed) * factor;
+			float y = Mathf.Cos(Time.time * speed) * factor;
+			trail.localPosition = new Vector3(x, y, trail.localPosition.z);
+		}
+	}
+
 	public void setTargetObjectScale() {
 		if (isSelected || isTarget) {
 			float factor = 1.0f/10.0f;
@@ -123,7 +160,7 @@ public class Unit : MonoBehaviour {
 	public void followPath() {
 		moving = true;
 	}
-	
+
 	public void resetPath() {
 		currentPath = new ArrayList();
 		currentPath.Add(new Vector2(position.x, -position.y));
@@ -510,6 +547,7 @@ public class Unit : MonoBehaviour {
 		moving = false;
 		attacking = false;
 		rotating = false;
+		isCurrent = false;
 		currentMoveDist = 5;
 		attackRange = 1;
 		viewDist = 11;
@@ -518,6 +556,11 @@ public class Unit : MonoBehaviour {
 		currentMaxPath = 0;
 		Debug.Log("Children: " + transform.childCount + "  Team: " + team);
 		targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
+		trail = transform.FindChild("Trail");
+		if (trail) {
+			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
+			tr.sortingOrder = 7;
+		}
 		deselect();
 //		resetPath();
 	}
@@ -530,11 +573,12 @@ public class Unit : MonoBehaviour {
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
+		setTrailRendererPosition();
 	}
 
 	void setLayer() {
 		renderer.sortingOrder = (moving || attacking || attackAnimating ? 11 : 10);
-		transform.GetChild(0).renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
+		transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
 	}
 
 	void doMovement() {
@@ -547,6 +591,7 @@ public class Unit : MonoBehaviour {
 			}
 			else {
 				moving = false;
+				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;

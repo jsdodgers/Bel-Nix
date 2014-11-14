@@ -43,6 +43,10 @@ public class MapGenerator : MonoBehaviour {
 	GameObject[,] gridArray;
 	public Tile[,] tiles;
 	public ArrayList lastPlayerPath;
+	GameObject mouseOver;
+	Vector2 startSquare;
+	Vector2 lastPosDrag;
+	Vector3 startSquareActual;
 
 //	bool editingPath = false;
 	Vector2 lastArrowPos = new Vector2(-1, -1);
@@ -67,10 +71,16 @@ public class MapGenerator : MonoBehaviour {
 	bool escapeDown;
 	
 	bool shiftDraggin = false;
+	bool shiftRightDraggin = false;
 	bool middleDraggin = false;
 	bool normalDraggin = false;
 	bool rightDraggin = false;
 	bool scrolled = false;
+
+	bool wasRightDraggin = false;
+	bool rightDragginCancelled = false;
+	bool wasShiftRightDraggin = false;
+	bool shiftRightDragginCancelled = false;
 	
 	Vector3 lastPos = new Vector3(0.0f, 0.0f, 0.0f);
 	
@@ -198,6 +208,8 @@ public class MapGenerator : MonoBehaviour {
 
 
 	public Unit nextPlayer() {
+		if (currentUnit >=0 && currentUnit < priorityOrder.Count)
+			getCurrentUnit().removeCurrent();
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
@@ -209,7 +221,7 @@ public class MapGenerator : MonoBehaviour {
 			string color = "Materials/SelectionCircleGreen";
 			if (selectedUnit.team != 0) color = "Materials/SelectionCircleRed";
 		//	selectedUnit.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(color);
-			selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(color);
+	//		selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(color);
 			selectedUnit.resetVars();
 			selectedUnit.deselect();
 		}
@@ -224,10 +236,11 @@ public class MapGenerator : MonoBehaviour {
 			resetAroundCharacter(hoveredCharacter);
 		}
 		selectedUnit = getCurrentUnit();
-		selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
+	//	selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
 		if (selectedUnit) {
 			setAroundCharacter(selectedUnit);
 			selectedUnit.setSelected();
+			selectedUnit.setCurrent();
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -509,7 +522,7 @@ public class MapGenerator : MonoBehaviour {
 		if (t.canStandCurr && t.minDistCurr <= currRadius) return;
 		t.canStandCurr = true;
 		t.minDistCurr = currRadius;
-		setCharacterCanAttack(x, y, attackRange, 0, cs);
+	//	setCharacterCanAttack(x, y, attackRange, 0, cs);
 		if (radiusLeft == 0) return;
 		if (canPass(Direction.Left, x, y, cs))
 			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs);
@@ -622,7 +635,53 @@ public class MapGenerator : MonoBehaviour {
 		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
-		handleKeyPan();
+		handleArrows();
+	}
+
+	void handleArrows() {
+		if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.RightArrow)) {
+			if (selectedUnit) {
+
+				if (selectedUnits.Count == 0) {
+					int curr = priorityOrder.IndexOf(selectedUnit);
+					curr++;
+					curr %= priorityOrder.Count;
+					resetAroundCharacter(selectedUnit);
+					resetPlayerPath();
+					lastPlayerPath = new ArrayList();
+					selectedUnit.resetPath();
+					selectedUnit.attackEnemy = null;
+					selectedUnit.deselect();
+					selectedUnit = null;
+					selectUnit(priorityOrder[curr], false);
+				}
+			}
+			else {
+				selectUnit(getCurrentUnit(), false);
+			}
+		}
+		if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.LeftArrow)) {
+
+			if (selectedUnit) {
+				if (selectedUnits.Count == 0) {
+					int curr = priorityOrder.IndexOf(selectedUnit);
+					curr--;
+					while (curr < 0) curr += priorityOrder.Count;
+					curr %= priorityOrder.Count;
+					resetAroundCharacter(selectedUnit);
+					resetPlayerPath();
+					lastPlayerPath = new ArrayList();
+					selectedUnit.resetPath();
+					selectedUnit.attackEnemy = null;
+					selectedUnit.deselect();
+					selectedUnit = null;
+					selectUnit(priorityOrder[curr], false);
+				}
+			}
+			else {
+				selectUnit(getCurrentUnit(), false);
+			}
+		}
 	}
 	
 	bool lastPlayerPathContains(Vector2 v) {
@@ -634,13 +693,23 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleMouseClicks() {
+		wasShiftRightDraggin = shiftRightDraggin;
+		wasRightDraggin = rightDraggin;
+		if (escapeDown) {
+			if (rightDraggin) rightDragginCancelled = true;
+			rightDraggin = false;
+			if (shiftRightDraggin) shiftRightDragginCancelled = true;
+			shiftRightDraggin = false;
+		}
+
 		mouseLeftDown = Input.GetMouseButton(0);
-		if (!normalDraggin && !middleDraggin && !rightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
-		if (!shiftDraggin && !middleDraggin && !rightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)));
+		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
+		if (!shiftDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)));
 		mouseRightDown = Input.GetMouseButton(1);
-		if (!shiftDraggin && !middleDraggin && !normalDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!isOnGUI && Input.GetMouseButtonDown(1));
+		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDraggin) shiftRightDraggin = ((shiftRightDraggin && mouseRightDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(1)));
+		if (!shiftDraggin && !middleDraggin && !normalDraggin && !shiftRightDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(1));
 		mouseMiddleDown = Input.GetMouseButton(2);
-		if (!shiftDraggin && !normalDraggin && !rightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
+		if (!shiftDraggin && !normalDraggin && !rightDraggin && !shiftRightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
 		bool mouseDown = Input.GetMouseButtonDown(0);
 		bool mouseUp = Input.GetMouseButtonUp(0);
 		bool mouseDownRight = Input.GetMouseButtonDown(1);
@@ -684,45 +753,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 			else {
 				Unit u = hoveredCharacter;
-				if (u) {
-					if (!selectedUnit) {
-						selectedUnit = u;
-						setAroundCharacter(u);
-						u.setSelected();
-					}
-					else {
-						if (selectedUnits.Count == 0) {
-							resetPlayerPath();
-							lastPlayerPath = new ArrayList();
-							selectedUnit.resetPath();
-							selectedUnit.attackEnemy = null;
-						}
-						if (selectedUnit == u) {
-							selectedUnit.deselect();
-							selectedUnit = null;
-							if (selectedUnits.Count != 0) {
-								selectedUnit = selectedUnits[0];
-								selectedUnits.RemoveAt(0);
-							}
-							resetCharacterRange();
-						}
-						else if (selectedUnits.Contains(u)) {
-							u.deselect();
-							selectedUnits.Remove(u);
-							resetCharacterRange();
-						}
-						else {
-							if (u != getCurrentUnit())
-								selectedUnits.Add(u);
-							else {
-								selectedUnits.Add(selectedUnit);
-								selectedUnit = u;
-							}
-							setAroundCharacter(u);
-							u.setSelected();
-						}
-					}
-				}
+				selectUnit(u, true);
 			}
 		}
 		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit) {
@@ -787,7 +818,52 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 	}
-	
+
+	public void selectUnit(Unit u, bool remove) {
+		if (u) {
+			if (!selectedUnit) {
+				selectedUnit = u;
+				setAroundCharacter(u);
+				u.setSelected();
+			}
+			else {
+				if (selectedUnits.Count == 0) {
+					resetPlayerPath();
+					lastPlayerPath = new ArrayList();
+					selectedUnit.resetPath();
+					selectedUnit.attackEnemy = null;
+				}
+				if (selectedUnit == u) {
+					if (remove) {
+						selectedUnit.deselect();
+						selectedUnit = null;
+						if (selectedUnits.Count != 0) {
+							selectedUnit = selectedUnits[0];
+							selectedUnits.RemoveAt(0);
+						}
+						resetCharacterRange();
+					}
+				}
+				else if (selectedUnits.Contains(u)) {
+					if (remove) {
+						u.deselect();
+						selectedUnits.Remove(u);
+						resetCharacterRange();
+					}
+				}
+				else {
+					if (u != getCurrentUnit())
+						selectedUnits.Add(u);
+					else {
+						selectedUnits.Add(selectedUnit);
+						selectedUnit = u;
+					}
+					setAroundCharacter(u);
+					u.setSelected();
+				}
+			}
+		}
+	}
 	
 	public void resetMoveDistances() {
 	//	bool reset = true;
@@ -814,32 +890,38 @@ public class MapGenerator : MonoBehaviour {
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
 				float xDiff = pos1.x - lastPos.x;
 				float yDiff = pos1.y - lastPos.y;
-				Vector3 pos = mapTransform.position;
-				pos.x += xDiff;
-				pos.y += yDiff;
-				mapTransform.position = pos;
+			//	Vector3 pos = mapTransform.position;
+			//	pos.x += xDiff;
+			//	pos.y += yDiff;
+			//	mapTransform.position = pos;
+				Vector3 pos = mainCamera.transform.position;
+				pos.x -= xDiff;
+				pos.y -= yDiff;
+				mainCamera.transform.position = pos;
 			}
 		}
-		lastPos = pos1;
+		lastPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
 	}
 
 	void handleKeyPan() {
 		float xDiff = 0;
 		float yDiff = 0;
-		float eachFrame = 2.0f;
-		if (shiftDown) eachFrame = 1.0f;
+		float eachFrame = 4.0f;
+		if (shiftDown) eachFrame = 1.5f;
 		eachFrame *= Time.deltaTime;
 		if (Input.GetKey(KeyCode.W)) yDiff -= eachFrame;
 		if (Input.GetKey(KeyCode.S)) yDiff += eachFrame;
 		if (Input.GetKey(KeyCode.A)) xDiff += eachFrame;
 		if (Input.GetKey(KeyCode.D)) xDiff -= eachFrame;
 		if (xDiff==0 && yDiff==0) return;
-		Vector3 pos = mapTransform.position;
-		pos.x += xDiff;
-		pos.y += yDiff;
-		mapTransform.position = pos;
-		lastPos.x += xDiff;
-		lastPos.y += yDiff;
+	//	Vector3 pos = mapTransform.position;
+		Vector3 pos = mainCamera.transform.position;
+		pos.x -= xDiff;
+		pos.y -= yDiff;
+		mainCamera.transform.position = pos;
+	//	mapTransform.position = pos;
+		lastPos.x -= xDiff;
+		lastPos.y -= yDiff;
 	}
 
 	void rotatePlayerTowardsMouse() {
@@ -860,6 +942,108 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleMouseSelect() {
+		if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI)) {
+			Vector3 v3 = Input.mousePosition;
+			v3.z = 10.0f;
+			v3 = mainCamera.ScreenToWorldPoint(v3);
+			Vector3 posActual = new Vector3(v3.x,v3.y,v3.z);
+		//	v3.x += gridX/2.0f;
+		//	v3.y += gridY/2.0f;
+		//	v3.y = gridY - v3.y;
+			v3 -= mapTransform.position;
+			v3.x = Mathf.Floor(v3.x);
+			v3.y = Mathf.Floor(-v3.y);
+			//Debug.Log(v3);
+			if (!(wasRightDraggin || wasShiftRightDraggin)) {
+				startSquareActual = posActual;
+				startSquare = new Vector2(v3.x,v3.y);
+				//	startSquareActual = startSquare;
+				mouseOver = (GameObject)Instantiate(gridPrefab);
+				mouseOver.transform.parent = mapTransform;
+				SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
+				sr.color = new Color(1.0f,1.0f,1.0f,0.4f);
+				sr.sortingOrder = 200;
+			}
+			else if (spaceDown) {
+				Vector3 v4 = startSquareActual;
+				v4.x += (posActual.x - lastPosDrag.x);
+				v4.y += (posActual.y - lastPosDrag.y);
+				Vector3 posActual4 = new Vector3(v4.x,v4.y,v4.z);
+			//	v4.x += gridX/2.0f;
+			//	v4.y += gridY/2.0f;
+			//	v4.y = gridY - v4.y;
+			//	v4.x = Mathf.Floor(v4.x);
+			//	v4.y = Mathf.Floor(v4.y);
+				startSquareActual = posActual4;
+				startSquare = new Vector2(v4.x,-v4.y);
+			}
+			
+			
+			lastPosDrag = posActual;
+			//			posActual = v3;
+			Vector2 min = new Vector2(Mathf.Min(posActual.x,startSquareActual.x),Mathf.Min(posActual.y,startSquareActual.y));
+			Vector2 max = new Vector2(Mathf.Max(posActual.x,startSquareActual.x),Mathf.Max(posActual.y,startSquareActual.y));
+			//		Vector2 min2 = new Vector2(Mathf.Min(Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) - (((int)gridX)%2==1 ? 0.5f : 0.0f),Mathf.Min(Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) - (((int)gridY)%2==1 ? 0.5f : 0.0f));
+			//		Vector2 max2 = new Vector2(Mathf.Max (Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) + (((int)gridX)%2==1 ? 0.5f : 1.0f) ,Mathf.Max (Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) + (((int)gridY)%2==1 ? 0.5f : 1.0f));
+	//		Vector2 min2 = new Vector2(Mathf.Min(gridX, Mathf.Max(0.0f, Mathf.Min(v3.x, startSquare.x))) - gridX/2.0f, gridY/2.0f - Mathf.Min(gridY, Mathf.Max(0.0f, Mathf.Min(v3.y, startSquare.y))));
+	//		Vector2 max2 = new Vector2(Mathf.Max(0.0f, Mathf.Min(gridX-1.0f,Mathf.Max(v3.x, startSquare.x)) + 1.0f) - gridX/2.0f, gridY/2.0f - Mathf.Max(0.0f, 1.0f + Mathf.Min(gridY-1.0f, Mathf.Max(v3.y, startSquare.y))));
+			mouseOver.transform.localScale = new Vector3(max.x - min.x,max.y - min.y, 1.0f);
+		//	mouseOver.transform.position = new Vector3((max.x + min.x)/2.0f,(max.y + min.y)/2.0f, 2.0f);
+			mouseOver.transform.position = new Vector3(min.x,max.y, 2.0f);
+		//	mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
+		//	mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
+		}
+		else if (rightDragginCancelled || shiftRightDragginCancelled) {
+			Destroy(mouseOver);
+			mouseOver = null;
+			if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
+				setAroundCharacter(hoveredCharacter);
+			}
+			setCurrentSpriteColor();
+	//		Destroy(mouseOver2);
+	//		mouseOver2 = null;
+		}
+		else if (wasRightDraggin || wasShiftRightDraggin) {
+			Vector3 v3 = Input.mousePosition;
+			v3.z = 10.0f;
+			v3 = mainCamera.ScreenToWorldPoint(v3);
+		//	v3.x += gridX/2.0f;
+		//	v3.y += gridY/2.0f;
+		//	v3.y = gridY - v3.y;
+			v3 = v3 - mapTransform.position;
+			v3.x = Mathf.Floor(v3.x);
+			v3.y = Mathf.Floor(-v3.y);
+		//	startSquare.x -= mapTransform.position.x;
+		//	startSquare.y += mapTransform.position.y;
+		
+			//Debug.Log("Start: " + startSquare);
+			//Debug.Log("End: " + v3);
+			Vector2 min = new Vector2(Mathf.Min(v3.x,startSquare.x),Mathf.Min(v3.y,startSquare.y));
+			Vector2 max = new Vector2(Mathf.Max(v3.x,startSquare.x),Mathf.Max(v3.y,startSquare.y));
+			Destroy(mouseOver);
+			mouseOver = null;
+	//		Destroy(mouseOver2);
+	//		mouseOver2 = null;
+			Debug.Log(min + "   " + max);
+			if (Mathf.Abs (v3.x - startSquare.x) >= 0.0001f || Mathf.Abs(v3.y - startSquare.y) >= 0.0001f) {
+				for (int n = (int)min.x; n <= (int)max.x;n++) {
+					if (n >= 0 && n < actualWidth) {
+						for (int m = (int)min.y; m <= (int)max.y; m++) {
+							if (m >= 0 && m < actualHeight) {
+								Tile t = tiles[n,m];
+								if (t.hasCharacter()) {
+//								t.getCharacter().setSelected();
+									selectUnit(t.getCharacter(), false);
+								}
+							}
+//							setProperties(t);
+						}
+					}
+				}
+			}
+		}
+
+
 		
 	//	//Debug.Log("Start Mouse Select");
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<9);
@@ -886,7 +1070,7 @@ public class MapGenerator : MonoBehaviour {
 				}*/
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
-				if (!selectedUnit && hoveredCharacter) {
+				if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
 					setAroundCharacter(hoveredCharacter);
 				}
 
@@ -907,7 +1091,9 @@ public class MapGenerator : MonoBehaviour {
 						}
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
-						setCurrentSpriteColor();
+						if (!(rightDraggin || shiftRightDraggin)) {
+							setCurrentSpriteColor();
+						}
 					}
 				}
 			}

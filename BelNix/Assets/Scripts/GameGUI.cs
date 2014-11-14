@@ -169,6 +169,7 @@ public class GameGUI : MonoBehaviour {
 				//	Debug.Log("Move Player!");
 				if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
 					p.moving = true;
+					p.removeTrail();
 //					p.rotating = true;
 					p.setRotatingPath();
 			//		p.attacking = true;
@@ -181,6 +182,7 @@ public class GameGUI : MonoBehaviour {
 				if (p.attackEnemy!=null && !p.moving && !p.attacking) {
 					if (mapGenerator.lastPlayerPath.Count > 1) {
 						p.moving = true;
+						p.removeTrail();
 						p.setRotatingPath();
 					}
 					else {
