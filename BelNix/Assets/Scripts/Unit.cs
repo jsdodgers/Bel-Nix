@@ -336,9 +336,14 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void dealDamage() {
-		attackEnemy.damage(Random.Range(1, 11));
+		int mod = 3;
+		int hit = Random.Range(1,21) + mod;
+		int wapoon = Random.Range(1, 11);
+		if (hit > 14)
+			attackEnemy.damage(wapoon);
 		attackEnemy.attackedByCharacter = this;
 		attackEnemy.setRotationToAttackedByCharacter();
+		Debug.Log((hit > 14 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
 	}
 
 
@@ -643,7 +648,7 @@ public class Unit : MonoBehaviour {
 	void doDeath() {
 		//	Debug.Log("Do Death");
 		//	mapGenerator.
-		if (died) dieTime += Time.deltaTime;
+	//	if (died) dieTime += Time.deltaTime;
 		//	if (dieTime >= 1) Destroy(gameObject);
 		//	if (dieTime >= 0.5f) {
 		if (died) {
