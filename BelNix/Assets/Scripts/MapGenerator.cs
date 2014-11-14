@@ -612,7 +612,9 @@ public class MapGenerator : MonoBehaviour {
 	
 	void handleMouseScrollWheel() {
 		//	if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		Camera.main.orthographicSize = Screen.height / 128.0f;
 		if (gui.mouseIsOnScrollView()) return;
+		return;
 		Vector3 v3 = Input.mousePosition;
 		if (v3.x < 0 || v3.y < 0 || v3.x > Screen.width || v3.y > Screen.height) return;
 		float mouseWheel = Input.GetAxis("Mouse ScrollWheel");

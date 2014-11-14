@@ -89,9 +89,18 @@ public class Unit : MonoBehaviour {
 			setTrailRendererPosition();
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
 			tr.enabled = true;
-			tr.time = 2.2f;
+			StartCoroutine(resetTrailDist());
+//			tr.time = 2.2f;
 		}
 	}
+
+	
+	IEnumerator resetTrailDist() {
+		yield return new WaitForSeconds(.1f);
+		trail.GetComponent<TrailRenderer>().time=2.2f;
+		
+	}
+
 
 	public void setTrailRendererPosition() {
 		if (trail || (isCurrent && trail)) {
