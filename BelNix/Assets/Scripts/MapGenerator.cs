@@ -997,7 +997,7 @@ public class MapGenerator : MonoBehaviour {
 			Destroy(mouseOver);
 			mouseOver = null;
 			if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
-				setAroundCharacter(hoveredCharacter);
+			//	setAroundCharacter(hoveredCharacter);
 			}
 			setCurrentSpriteColor();
 	//		Destroy(mouseOver2);
@@ -1071,7 +1071,7 @@ public class MapGenerator : MonoBehaviour {
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
 				if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
-					setAroundCharacter(hoveredCharacter);
+				//	setAroundCharacter(hoveredCharacter);
 				}
 
 			}
