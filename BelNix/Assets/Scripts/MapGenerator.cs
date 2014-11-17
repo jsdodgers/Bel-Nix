@@ -216,6 +216,9 @@ public class MapGenerator : MonoBehaviour {
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
+		if (selectedUnit) {
+			selectedUnit.resetVars();
+		}
 		/*
 		if (selectedUnit) {
 			resetAroundCharacter(selectedUnit);
