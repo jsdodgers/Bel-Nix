@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using CharacterInfo;
 
 public class Unit : MonoBehaviour {
-
+	Character characterSheet;
 	int priority;
 	public string characterName;
 	public int team = 0;
@@ -345,14 +346,13 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void dealDamage() {
-		int mod = 3;
-		int hit = Random.Range(1,21) + mod;
-		int wapoon = Random.Range(1, 11);
-		if (hit > 14)
+		int hit = Random.Range(1,21);
+		int wapoon = characterSheet.mainHand.rollDamage();
+		if (hit >= gameObject.GetComponent<CharacterLoadout>().getAC())
 			attackEnemy.damage(wapoon);
 		attackEnemy.attackedByCharacter = this;
 		attackEnemy.setRotationToAttackedByCharacter();
-		Debug.Log((hit > 14 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
+		Debug.Log((hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
 	}
 
 
@@ -557,6 +557,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual void initializeVariables() {
+		characterSheet = gameObject.GetComponent<Character>();
 		hitPoints = maxHitPoints;
 		moving = false;
 		attacking = false;

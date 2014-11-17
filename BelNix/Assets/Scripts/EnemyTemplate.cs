@@ -5,8 +5,7 @@ using CharacterInfo;
 public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator}
 public enum RaceName {Berrind, Ashpian, Rorrul}
 
-[RequireComponent (typeof (Character))]
-public class EnemyTemplate : MonoBehaviour
+public class EnemyTemplate : Character
 {
 
 

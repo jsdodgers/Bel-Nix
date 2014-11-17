@@ -8,8 +8,10 @@ public class Character : MonoBehaviour
 	CharacterProgress characterProgress;
 	AbilityScores abilityScores;
 	CombatScores combatScores;
+	CharacterLoadout characterLoadout;
 	SkillScores skillScores;
 	CharacterSheet characterSheet;
+	public ItemWeapon mainHand;
 
 	// Use this for initialization
 	void Start () 
@@ -19,7 +21,7 @@ public class Character : MonoBehaviour
 		// Then Stats
 		// then combat scores (this sets itself up using personal info, character class, and ability scores)
 		// then skill scores
-
+		characterLoadout = new CharacterLoadout();
 		// Let's experiement by recreating the enigmatic Dr. Alfred Clearwater
 		/*PersonalInformation personalInfo = new PersonalInformation(new CharacterName("Alfred", "Clearwater"), 
 		                                                           new Race_Berrind(), CharacterSex.MALE, 
@@ -68,6 +70,10 @@ public class Character : MonoBehaviour
 
 	// Class Features (Skills)
 
+	public CharacterLoadout getCharacterLoadout()
+	{
+		return characterLoadout;
+	}
 
 	// Equipment
 		// Head
