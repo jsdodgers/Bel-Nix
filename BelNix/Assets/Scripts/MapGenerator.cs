@@ -88,6 +88,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	int actualWidth = 0;
 	int actualHeight = 0;
+	float timeSinceSpace = 500.0f;
 
 	public List<Unit> priorityOrder;
 
@@ -215,6 +216,7 @@ public class MapGenerator : MonoBehaviour {
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
+		/*
 		if (selectedUnit) {
 			resetAroundCharacter(selectedUnit);
 			lastPlayerPath = new ArrayList();
@@ -233,7 +235,8 @@ public class MapGenerator : MonoBehaviour {
 			resetAroundCharacter(u);
 			u.deselect();
 			selectedUnits.RemoveAt(0);
-		}
+		}*/
+		deselectAllUnits();
 		if (hoveredCharacter) {
 			resetAroundCharacter(hoveredCharacter);
 		}
@@ -683,10 +686,16 @@ public class MapGenerator : MonoBehaviour {
 		handleArrows();
 		handleSpace();
 	}
-
+	float maxTimeSpace = .25f;
 	void handleSpace() {
+		timeSinceSpace += Time.deltaTime * Time.timeScale;
 		if (Input.GetKeyDown(KeyCode.Space)) {
+			if (timeSinceSpace <= maxTimeSpace) {
+				deselectAllUnits();
+				selectUnit(getCurrentUnit(),false);
+			}
 			moveCameraToSelected();
+			timeSinceSpace = 0.0f;
 		}
 	}
 
@@ -698,13 +707,15 @@ public class MapGenerator : MonoBehaviour {
 					int curr = priorityOrder.IndexOf(selectedUnit);
 					curr++;
 					curr %= priorityOrder.Count;
+
+					/*
 					resetAroundCharacter(selectedUnit);
 					resetPlayerPath();
 					lastPlayerPath = new ArrayList();
 					selectedUnit.resetPath();
 					selectedUnit.attackEnemy = null;
-					selectedUnit.deselect();
-					selectedUnit = null;
+					selectedUnit.deselect();*/
+					deselectAllUnits();
 					selectUnit(priorityOrder[curr], false);
 				}
 			}
@@ -720,13 +731,15 @@ public class MapGenerator : MonoBehaviour {
 					curr--;
 					while (curr < 0) curr += priorityOrder.Count;
 					curr %= priorityOrder.Count;
+					/*
 					resetAroundCharacter(selectedUnit);
 					resetPlayerPath();
 					lastPlayerPath = new ArrayList();
 					selectedUnit.resetPath();
 					selectedUnit.attackEnemy = null;
 					selectedUnit.deselect();
-					selectedUnit = null;
+					selectedUnit = null;*/
+					deselectAllUnits();
 					selectUnit(priorityOrder[curr], false);
 				}
 			}
@@ -781,21 +794,7 @@ public class MapGenerator : MonoBehaviour {
 	//	Debug.Log("MouseDownRight: " + mouseDownRight + "  " + isOnGUI + "  " + normalDraggin);
 		if (mouseDownRight && !isOnGUI && !normalDraggin) {
 			if (!shiftDown) {
-				if (selectedUnit) {
-					resetAroundCharacter(selectedUnit);
-					resetPlayerPath();
-					lastPlayerPath = new ArrayList();
-					selectedUnit.resetPath();
-					selectedUnit.attackEnemy = null;
-					selectedUnit.deselect();
-				}
-				Unit u;
-				while (selectedUnits.Count != 0) {
-					u = selectedUnits[0];
-					resetAroundCharacter(u);
-					u.deselect();
-					selectedUnits.RemoveAt(0);
-				}
+				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
 				if (selectedUnit) {
 					setAroundCharacter(selectedUnit);
@@ -914,6 +913,25 @@ public class MapGenerator : MonoBehaviour {
 					u.setSelected();
 				}
 			}
+		}
+	}
+
+	public void deselectAllUnits() {
+		if (selectedUnit) {
+			resetAroundCharacter(selectedUnit);
+			resetPlayerPath();
+			lastPlayerPath = new ArrayList();
+			selectedUnit.resetPath();
+			selectedUnit.attackEnemy = null;
+			selectedUnit.deselect();
+			selectedUnit = null;
+		}
+		Unit u;
+		while (selectedUnits.Count != 0) {
+			u = selectedUnits[0];
+			resetAroundCharacter(u);
+			u.deselect();
+			selectedUnits.RemoveAt(0);
 		}
 	}
 	
