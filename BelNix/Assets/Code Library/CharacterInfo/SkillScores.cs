@@ -1,7 +1,7 @@
 using System;
 namespace CharacterInfo
 {
-	public enum Skill {ATHLETICS = 0, MELEE, RANGED, STEALTH, MECHANICAL, MEDICINAL, HISTORICAL, POLITICAL}
+	public enum Skill {Athletics = 0, Melee, Ranged, Stealth, Mechanical, Medicinal, Historical, Political}
 	public class SkillScores
 	{
 		private CombatScores cScores;
@@ -14,11 +14,11 @@ namespace CharacterInfo
 		{
 			cScores = combatScores;
 			cProgress = characterProgress;
-			physiqueMod 	= cScores.INITIATIVE();
-			prowessMod		= cScores.CRITICAL();
-			masteryMod		= cScores.HANDLING();
-			knowledgeMod	= cScores.DOMINION();
-			scores = cProgress.CHARACTER_CLASS().CLASS_MODIFIERS().SKILL_MODIFERS();
+			physiqueMod 	= cScores.getInitiative();
+			prowessMod		= cScores.getCritical();
+			masteryMod		= cScores.getHandling();
+			knowledgeMod	= cScores.getDominion();
+			scores = cProgress.getCharacterClass().getClassModifiers().getSkillModifiers();
 		}
 		public void incrementScore(Skill skill)
 		{
@@ -31,11 +31,11 @@ namespace CharacterInfo
 		{
 			int modifier;
 
-			if(skill.Equals(Skill.ATHLETICS) || skill.Equals(Skill.MELEE))
+			if(skill.Equals(Skill.Athletics) || skill.Equals(Skill.Melee))
 				modifier = physiqueMod;
-			else if(skill.Equals(Skill.RANGED) || skill.Equals(Skill.STEALTH))
+			else if(skill.Equals(Skill.Ranged) || skill.Equals(Skill.Stealth))
 				modifier = prowessMod;
-			else if(skill.Equals(Skill.MECHANICAL) || skill.Equals(Skill.MEDICINAL))
+			else if(skill.Equals(Skill.Mechanical) || skill.Equals(Skill.Medicinal))
 				modifier = masteryMod;
 			else
 				modifier = knowledgeMod;

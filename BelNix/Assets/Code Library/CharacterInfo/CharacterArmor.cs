@@ -12,9 +12,9 @@ namespace CharacterInfo
         //      - Question? Will we be able to equip things besides equipment? For example, could key items like 
         //          briefcases, wallets, etc be held in main/offhand
         //          I need to know whether to make these slots for Item or for Equipment
-        Item HEAD, SHOULDER, CHEST, BACK, 
-             GLOVES, PANTS, BOOTS, 
-             WEAPON_RIGHT, WEAPON_LEFT;
+        Item head, shoulder, chest, back, 
+             gloves, pants, boots, 
+             rightWeapon, leftWeapon;
 
         public int getAC()
         {

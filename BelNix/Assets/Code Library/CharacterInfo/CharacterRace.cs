@@ -1,24 +1,24 @@
 using System;
 namespace CharacterInfo
 {
-	public enum PrimalState {RECKLESS, PASSIVE, THREATENED}
-	public enum CharacterBackground {FALLEN_NOBLE, WHITE_GEM, IMMIGRANT, COMMONER, SERVANT, UNKNOWN}
+	public enum PrimalState {Reckless, Passive, Threatened}
+	public enum CharacterBackground {FallenNoble, WhiteGem, Immigrant, Commoner, Servant, Unknown}
 	public abstract class CharacterRace
 	{
 		//racial modifiers
-		public abstract int 		HEALTH_MODIFIER();
-		public abstract int 		COMPOSURE_MODIFIER();
-		public abstract PrimalState PRIMAL_STATE();
+		public abstract int 		getHealthModifier();
+		public abstract int 		getComposureModifier();
+		public abstract PrimalState getPrimalState();
 		public abstract string getRaceString();
 		public string getPrimalStateString()
 		{
-			switch(PRIMAL_STATE())
+			switch(getPrimalState())
 			{
-			case PrimalState.RECKLESS:
+			case PrimalState.Reckless:
 				return "Reckless";
-			case PrimalState.PASSIVE:
+			case PrimalState.Passive:
 				return "Passive";
-			case PrimalState.THREATENED:
+			case PrimalState.Threatened:
 				return "Threatened";
 			default:
 				return "";
@@ -28,25 +28,25 @@ namespace CharacterInfo
 
 	public class Race_Berrind : CharacterRace
 	{
-		public override int 		HEALTH_MODIFIER() 		{return -2;}
-		public override int 		COMPOSURE_MODIFIER()  	{return  2;}
-		public override PrimalState PRIMAL_STATE()			{return PrimalState.RECKLESS;}
-		public override string		getRaceString()			{return "Berrind";}
+		public override int 		getHealthModifier() 		{return -2;}
+		public override int 		getComposureModifier()  	{return  2;}
+		public override PrimalState getPrimalState()			{return PrimalState.Reckless;}
+		public override string		getRaceString()				{return "Berrind";}
 	}
 
 	public class Race_Ashpian : CharacterRace
 	{
-		public override int 		HEALTH_MODIFIER() 		{return  0;}
-		public override int 		COMPOSURE_MODIFIER()  	{return  0;}
-		public override PrimalState PRIMAL_STATE()			{return PrimalState.PASSIVE;}
-		public override string		getRaceString()			{return "Ashpian";}	
+		public override int 		getHealthModifier() 		{return  0;}
+		public override int 		getComposureModifier()  	{return  0;}
+		public override PrimalState getPrimalState()			{return PrimalState.Passive;}
+		public override string		getRaceString()				{return "Ashpian";}	
 	}
 
 	public class Race_Rorrul : CharacterRace
 	{
-		public override int 		HEALTH_MODIFIER() 		{return  2;}
-		public override int 		COMPOSURE_MODIFIER()  	{return -2;}
-		public override PrimalState PRIMAL_STATE()			{return PrimalState.THREATENED;}
-		public override string		getRaceString()			{return "Rorrul";}
+		public override int 		getHealthModifier() 		{return  2;}
+		public override int 		getComposureModifier()  	{return -2;}
+		public override PrimalState getPrimalState()			{return PrimalState.Threatened;}
+		public override string		getRaceString()				{return "Rorrul";}
 	}
 }

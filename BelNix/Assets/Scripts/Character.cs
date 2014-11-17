@@ -9,7 +9,7 @@ public class Character : MonoBehaviour
 	AbilityScores abilityScores;
 	CombatScores combatScores;
 	SkillScores skillScores;
-	CharacterSheet CHARACTER_SHEET;
+	CharacterSheet characterSheet;
 
 	// Use this for initialization
 	void Start () 
@@ -57,27 +57,13 @@ public class Character : MonoBehaviour
 		combatScores = new CombatScores(ref abilityScores, ref personalInfo, ref characterProgress);
 		skillScores = new SkillScores(ref combatScores, ref characterProgress);
 		
-		CHARACTER_SHEET = new CharacterSheet(abilityScores, personalInfo, 
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
 		                                     characterProgress, combatScores, skillScores);
 	}
 
 
 
 
-	PersonalInformation PERSONAL_INFORMATION;
-
-	CharacterProgress CHARACTER_PROGRESS;
-
-		// Talents
-
-
-	AbilityScores ABILITY_SCORES;
-
-
-		// CP - Max
-		// CP - Current
-
-	CombatScores COMBAT_SCORES;
 
 
 	// Class Features (Skills)

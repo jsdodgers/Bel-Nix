@@ -2,46 +2,44 @@ using System;
 using UnityEngine;
 namespace CharacterInfo
 {
-	public enum LifeStatus {ALIVE, UNCONSCIOUS, DEAD}
+	public enum LifeStatus {Alive, Unconscious, Dead}
 	public class CombatScores
 	{
-		private AbilityScores ABILITY_SCORES;
-		private PersonalInformation PERSONAL_INFORMATION;
-		private CharacterProgress CHARACTER_PROGRESS;
+		private AbilityScores abilityScores;
+		private PersonalInformation personalInformation;
+		private CharacterProgress characterProgress;
 		
 		private int currentHealth;
 		private int currentComposure;
 
-		private LifeStatus lifeStatus = LifeStatus.ALIVE;
+		private LifeStatus lifeStatus = LifeStatus.Alive;
 
-		public CombatScores (ref AbilityScores abilityScores, ref PersonalInformation personalInformation, 
-		                     ref CharacterProgress characterProgress)
+		public CombatScores (ref AbilityScores abilityScore, ref PersonalInformation personalInfo, 
+		                     ref CharacterProgress characterProg)
 		{
-			ABILITY_SCORES 			= abilityScores;
-			PERSONAL_INFORMATION 	= personalInformation;
-			CHARACTER_PROGRESS 		= characterProgress;
+			abilityScores 			= abilityScore;
+			personalInformation 	= personalInfo;
+			characterProgress 		= characterProg;
 
-			currentHealth 		= MAX_HEALTH();
-			currentComposure 	= MAX_COMPOSURE();
+			currentHealth 		= getMaxHealth();
+			currentComposure 	= getMaxComposure();
 		}
 
 
-		public int MAX_HEALTH()
-		{
-			return 	ABILITY_SCORES.STURDY() + ABILITY_SCORES.PERCEPTION() + 
-					PERSONAL_INFORMATION.CHARACTER_RACE().HEALTH_MODIFIER() +
-					CHARACTER_PROGRESS.CHARACTER_CLASS().CLASS_MODIFIERS().HEALTH_MODIFIER();
+		public int getMaxHealth() {
+			return 	abilityScores.getSturdy() + abilityScores.getPerception() + 
+					personalInformation.getCharacterRace().getHealthModifier() +
+					characterProgress.getCharacterClass().getClassModifiers().getHealthModifier();
 		}
 
-		public int MAX_COMPOSURE()
-		{
-			return 	ABILITY_SCORES.TECHNIQUE() + ABILITY_SCORES.WELL_VERSED() +
-					PERSONAL_INFORMATION.CHARACTER_RACE().COMPOSURE_MODIFIER() +
-					CHARACTER_PROGRESS.CHARACTER_CLASS().CLASS_MODIFIERS().COMPOSURE_MODIFIER();
+		public int getMaxComposure() {
+			return 	abilityScores.getTechnique() + abilityScores.getWellVersed() +
+					personalInformation.getCharacterRace().getComposureModifier() +
+					characterProgress.getCharacterClass().getClassModifiers().getComposureModifier();
 		}
 
-		public int CURRENT_HEALTH() 	{ return currentHealth; }
-		public int CURRENT_COMPOSURE()  { return currentComposure; }
+		public int getCurrentHealth() 	{ return currentHealth; }
+		public int getCurrentComposure()  { return currentComposure; }
 
 		public int addHealth(int addedHealth)
 		{
@@ -67,17 +65,17 @@ namespace CharacterInfo
 
 		public void faint()
 		{
-			lifeStatus = LifeStatus.UNCONSCIOUS;
+			lifeStatus = LifeStatus.Unconscious;
 		}
 
 		public void die()
 		{
-			lifeStatus = LifeStatus.DEAD;
+			lifeStatus = LifeStatus.Dead;
 		}
 
 		public void recover()
 		{
-			lifeStatus = LifeStatus.ALIVE;
+			lifeStatus = LifeStatus.Alive;
 		}
 
 		public LifeStatus checkLifeStatus()
@@ -85,13 +83,13 @@ namespace CharacterInfo
 			return lifeStatus;
 		}
 
-		public int INITIATIVE() {return CalculateMod(ABILITY_SCORES.STURDY());}		// Initiative is based on Sturdy
-		public int CRITICAL()	{return CalculateMod(ABILITY_SCORES.PERCEPTION());} // Critical is based on Perception
-		public int HANDLING()	{return CalculateMod(ABILITY_SCORES.TECHNIQUE());}	// Handling is based on Technique
-		public int DOMINION()	{return CalculateMod(ABILITY_SCORES.WELL_VERSED());}// Dominion is based on Well-Versed
+		public int getInitiative() 	{return calculateMod(abilityScores.getSturdy());}		// Initiative is based on Sturdy
+		public int getCritical()	{return calculateMod(abilityScores.getPerception());} // Critical is based on Perception
+		public int getHandling()	{return calculateMod(abilityScores.getTechnique());}	// Handling is based on Technique
+		public int getDominion()	{return calculateMod(abilityScores.getWellVersed());}// Dominion is based on Well-Versed
 
 		// Helper for calculating modifiers from base stats
-		private int CalculateMod(int baseStat)
+		private int calculateMod(int baseStat)
 		{
 			return (int) Mathf.Floor(baseStat / 2);
 		}

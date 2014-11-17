@@ -3,22 +3,22 @@ namespace CharacterInfo
 {
 	public class CharacterSheet
 	{
-		public AbilityScores ABILITY_SCORES;
-		public PersonalInformation PERSONAL_INFORMATION;
-		public CharacterProgress CHARACTER_PROGRESS;
-		public CombatScores COMBAT_SCORES;
-		public SkillScores SKILL_SCORES;
-        public CharacterArmor CHARACTER_ARMOR;
-        public Inventory INVENTORY;
+		public AbilityScores abilityScores;
+		public PersonalInformation personalInformation;
+		public CharacterProgress characterProgress;
+		public CombatScores combatScores;
+		public SkillScores skillScores;
+        public CharacterArmor characterArmor;
+        public Inventory inventory;
 
-		public CharacterSheet (AbilityScores abilityScores, PersonalInformation personalInformation, 
-		                       CharacterProgress characterProgress, CombatScores combatScores, SkillScores skillScores)
+		public CharacterSheet (AbilityScores abilityScore, PersonalInformation personalInfo, 
+		                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores)
 		{
-			ABILITY_SCORES			= abilityScores;
-			PERSONAL_INFORMATION	= personalInformation;
-			CHARACTER_PROGRESS		= characterProgress;
-			COMBAT_SCORES			= combatScores;
-			SKILL_SCORES			= skillScores;
+			abilityScores			= abilityScore;
+			personalInformation		= personalInfo;
+			characterProgress		= characterProg;
+			combatScores			= cScores;
+			skillScores				= sScores;
             // Character Armor
             // Character Inventory
 		}
