@@ -8,7 +8,7 @@ namespace CharacterInfo
 		public CharacterProgress CHARACTER_PROGRESS;
 		public CombatScores COMBAT_SCORES;
 		public SkillScores SKILL_SCORES;
-        public CharacterArmor CHARACTER_ARMOR;
+        public CharacterLoadout CHARACTER_LOADOUT;
         public Inventory INVENTORY;
 
 		public CharacterSheet (AbilityScores abilityScores, PersonalInformation personalInformation, 
@@ -22,6 +22,11 @@ namespace CharacterInfo
             // Character Armor
             // Character Inventory
 		}
+	}
+
+	public class CharacterConstants
+	{
+		public const int BASE_AC = 5;
 	}
 }
 

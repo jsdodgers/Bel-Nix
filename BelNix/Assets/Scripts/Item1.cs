@@ -8,15 +8,5 @@ public class Item1 : MonoBehaviour {
 	public string itemName;
 	public ItemType itemType;
 	public int gold, silver, copper;
-	// Use this for initialization
-	void Start()
-	{
-	
-	}
-	
-	// Update is called once per frame
-	void Update()
-	{
-	
-	}
+	public bool isKeyItem;
 }
