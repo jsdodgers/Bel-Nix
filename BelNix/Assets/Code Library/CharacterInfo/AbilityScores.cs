@@ -5,19 +5,19 @@ namespace CharacterInfo
 	{
 		private int sturdy, perception, technique, well_versed;
 
-		public AbilityScores (int STU, int PER, int TEC, int W_VER)
+		public AbilityScores (int stu, int per, int tec, int wVer)
 		{
 			// Initialize default scores
-			sturdy		= (STU > 0)   ? STU   : 1;
-			perception	= (PER > 0)   ? PER   : 1;
-			technique	= (TEC > 0)   ? TEC   : 1;
-			well_versed	= (W_VER > 0) ? W_VER : 1;
+			sturdy		= (stu > 0)   ? stu   : 1;
+			perception	= (per > 0)   ? per   : 1;
+			technique	= (tec > 0)   ? tec   : 1;
+			well_versed	= (wVer > 0) ? wVer : 1;
 		}
 
-		public int STURDY()			{return sturdy;}
-		public int PERCEPTION()		{return perception;}
-		public int TECHNIQUE()		{return technique;}
-		public int WELL_VERSED()	{return well_versed;}
+		public int getSturdy()			{return sturdy;}
+		public int getPerception()		{return perception;}
+		public int getTechnique()		{return technique;}
+		public int getWellVersed()		{return well_versed;}
 	}
 }
 

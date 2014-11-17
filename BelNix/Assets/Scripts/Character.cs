@@ -8,10 +8,10 @@ public class Character : MonoBehaviour
 	CharacterProgress characterProgress;
 	AbilityScores abilityScores;
 	CombatScores combatScores;
+	CharacterLoadout characterLoadout;
 	SkillScores skillScores;
-    //CharacterArmor characterArmor;
-	CharacterSheet CHARACTER_SHEET;
-    
+	CharacterSheet characterSheet;
+	public ItemWeapon mainHand;
 
 	// Use this for initialization
 	void Start () 
@@ -21,7 +21,7 @@ public class Character : MonoBehaviour
 		// Then Stats
 		// then combat scores (this sets itself up using personal info, character class, and ability scores)
 		// then skill scores
-
+		characterLoadout = new CharacterLoadout();
 		// Let's experiement by recreating the enigmatic Dr. Alfred Clearwater
 		/*PersonalInformation personalInfo = new PersonalInformation(new CharacterName("Alfred", "Clearwater"), 
 		                                                           new Race_Berrind(), CharacterSex.MALE, 
@@ -59,35 +59,21 @@ public class Character : MonoBehaviour
 		combatScores = new CombatScores(ref abilityScores, ref personalInfo, ref characterProgress);
 		skillScores = new SkillScores(ref combatScores, ref characterProgress);
 		
-		CHARACTER_SHEET = new CharacterSheet(abilityScores, personalInfo, 
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
 		                                     characterProgress, combatScores, skillScores);
 	}
 
 
 
 
-	PersonalInformation PERSONAL_INFORMATION;
 
-	CharacterProgress CHARACTER_PROGRESS;
-
-		// Talents
-
-
-	AbilityScores ABILITY_SCORES;
-
-
-		// CP - Max
-		// CP - Current
-
-	CombatScores COMBAT_SCORES;
-
-    void messWithAMeshRenderer(MeshRenderer mr)
-    {
-        mr.ge
-    }
 
 	// Class Features (Skills)
 
+	public CharacterLoadout getCharacterLoadout()
+	{
+		return characterLoadout;
+	}
 
 	// Equipment
 		// Head

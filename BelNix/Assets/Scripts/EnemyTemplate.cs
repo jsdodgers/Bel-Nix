@@ -2,11 +2,10 @@
 using System.Collections;
 using CharacterInfo;
 
-public enum ClassName {EX_SOLDIER, ENGINEER, INVESTIGATOR, RESEARCHER, ORATOR}
-public enum RaceName {BERRIND, ASHPIAN, RORRUL}
+public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator}
+public enum RaceName {Berrind, Ashpian, Rorrul}
 
-[RequireComponent (typeof (Character))]
-public class EnemyTemplate : MonoBehaviour
+public class EnemyTemplate : Character
 {
 
 
@@ -28,13 +27,13 @@ public class EnemyTemplate : MonoBehaviour
 
 		switch(mCRaceName)
 		{
-		case RaceName.BERRIND:
+		case RaceName.Berrind:
 			mCRace = new Race_Berrind();
 			break;
-		case RaceName.ASHPIAN:
+		case RaceName.Ashpian:
 			mCRace = new Race_Ashpian();
 			break;
-		case RaceName.RORRUL:
+		case RaceName.Rorrul:
 			mCRace = new Race_Rorrul();
 			break;
 		default:
@@ -44,19 +43,19 @@ public class EnemyTemplate : MonoBehaviour
 
 		switch(mCClassName)
 		{
-		case ClassName.EX_SOLDIER:
+		case ClassName.ExSoldier:
 			mCClass = new Class_ExSoldier();
 			break;
-		case ClassName.ENGINEER:
+		case ClassName.Engineer:
 			mCClass = new Class_Engineer();
 			break;
-		case ClassName.INVESTIGATOR:
+		case ClassName.Investigator:
 			mCClass = new Class_Investigator();
 			break;
-		case ClassName.RESEARCHER:
+		case ClassName.Researcher:
 			mCClass = new Class_Researcher();
 			break;
-		case ClassName.ORATOR:
+		case ClassName.Orator:
 			mCClass = new Class_Orator();
 			break;
 		default:

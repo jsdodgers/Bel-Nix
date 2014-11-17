@@ -15,7 +15,7 @@ namespace CharacterInfo
 			// Historical
 			// Political
 		protected ClassModifiers cModifiers;
-		public ClassModifiers CLASS_MODIFIERS() {return cModifiers;}
+		public ClassModifiers getClassModifiers() {return cModifiers;}
 
 		// 
 	}
@@ -65,17 +65,17 @@ namespace CharacterInfo
 			mHistorical = historical;
 			mPolitical 	= political;
 		}
-		public int HEALTH_MODIFIER()		{return mHealth;}
-		public int COMPOSURE_MODIFIER()	{return mComposure;}
-		public int ATHLETICS_MODIFIER()	{return mAthletics;}
-		public int MELEE_MODIFIER()		{return mMelee;}
-		public int RANGED_MODIFIER()		{return mRanged;}
-		public int STEALTH_MODIFIER()		{return mStealth;}
-		public int MECHANICAL_MODIFIER()	{return mMechanical;}
-		public int MEDICINAL_MODIFIER()	{return mMedicinal;}
-		public int HISTORICAL_MODIFIER()	{return mHistorical;}
-		public int POLITICAL_MODIFIER()	{return mPolitical;}
-		public int[] SKILL_MODIFERS() {return new int[]{mAthletics, mMelee, mRanged, mStealth, mMechanical, mMedicinal, mHistorical, mPolitical};}
+		public int getHealthModifier()		{return mHealth;}
+		public int getComposureModifier()	{return mComposure;}
+		public int getAthleticsModifier()	{return mAthletics;}
+		public int getMeleeModifier()		{return mMelee;}
+		public int getRangedModifier()		{return mRanged;}
+		public int getStealthModifier()		{return mStealth;}
+		public int getMechanicalModifier()	{return mMechanical;}
+		public int getMedicinalModifier()	{return mMedicinal;}
+		public int getHistoricalModifier()	{return mHistorical;}
+		public int getPoliticalModifier()	{return mPolitical;}
+		public int[] getSkillModifiers() {return new int[]{mAthletics, mMelee, mRanged, mStealth, mMechanical, mMedicinal, mHistorical, mPolitical};}
 	}
 }
 

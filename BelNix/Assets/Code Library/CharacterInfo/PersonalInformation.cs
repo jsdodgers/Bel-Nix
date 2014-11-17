@@ -3,11 +3,11 @@ namespace CharacterInfo
 {
 	public struct 	CharacterName 
 	{ 
-		public string FIRST_NAME;
-		public string LAST_NAME;
-		public CharacterName(string firstName, string lastName) {FIRST_NAME = firstName; LAST_NAME = lastName;}
+		public string firstName;
+		public string lastName;
+		public CharacterName(string fN, string lN) {firstName = fN; lastName = lN;}
 	}
-	public enum 	CharacterSex {MALE, FEMALE, OTHER}
+	public enum 	CharacterSex {Male, Female, Other}
 
 	public struct 	CharacterHeight 
 	{ 
@@ -16,6 +16,11 @@ namespace CharacterInfo
 		{
 			feet = ft;
 			inches = inch;
+		}
+
+		public CharacterHeight(int inch) {
+			feet = inch/12;
+			inches = inch%12;
 		}
 	}
 	public struct 	CharacterWeight 
@@ -37,7 +42,7 @@ namespace CharacterInfo
 		                            CharacterSex characterSex, CharacterBackground characterBackground, 
 		                            CharacterHeight characterHeight,CharacterWeight characterWeight)
 		{
-			cName 	= characterName;
+			cName 		= characterName;
 			cRace 		= characterRace;
 			cSex 		= characterSex;
 			cBackground = characterBackground;
@@ -45,12 +50,12 @@ namespace CharacterInfo
 			cWeight		= characterWeight;
 		}
 
-		public CharacterName CHARACTER_NAME() 				{ return cName; }
-		public CharacterRace CHARACTER_RACE() 				{ return cRace; }
-		public CharacterSex CHARACTER_SEX() 				{ return cSex; }
-		public CharacterBackground CHARACTER_BACKGROUND() 	{ return cBackground; }
-		public CharacterHeight CHARACTER_HEIGHT() 			{ return cHeight; }
-		public CharacterWeight CHARACTER_WEIGHT()			{ return cWeight; }
+		public CharacterName getCharacterName() 			{ return cName; }
+		public CharacterRace getCharacterRace() 			{ return cRace; }
+		public CharacterSex getCharacterSex() 				{ return cSex; }
+		public CharacterBackground getCharacterBackground() { return cBackground; }
+		public CharacterHeight getCharacterHeight() 		{ return cHeight; }
+		public CharacterWeight getCharacterWeight()			{ return cWeight; }
 	}
 }
 

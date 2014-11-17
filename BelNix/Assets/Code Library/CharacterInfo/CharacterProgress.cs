@@ -12,9 +12,9 @@ namespace CharacterInfo
 			cLevel 		= 1;
 			cExperience = 0;
 		}
-		public CharacterClass CHARACTER_CLASS() { return cClass; }
-		public int CHARACTER_LEVEL() 			{ return cLevel; }
-		public int CHARACTER_EXPERIENCE() 		{ return cExperience; }
+		public CharacterClass getCharacterClass() 	{ return cClass; }
+		public int getCharacterLevel() 				{ return cLevel; }
+		public int getCharacterExperience() 		{ return cExperience; }
 	}
 }
 
