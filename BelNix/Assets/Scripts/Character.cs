@@ -9,7 +9,9 @@ public class Character : MonoBehaviour
 	AbilityScores abilityScores;
 	CombatScores combatScores;
 	SkillScores skillScores;
+    //CharacterArmor characterArmor;
 	CharacterSheet CHARACTER_SHEET;
+    
 
 	// Use this for initialization
 	void Start () 
@@ -79,6 +81,10 @@ public class Character : MonoBehaviour
 
 	CombatScores COMBAT_SCORES;
 
+    void messWithAMeshRenderer(MeshRenderer mr)
+    {
+        mr.ge
+    }
 
 	// Class Features (Skills)
 
