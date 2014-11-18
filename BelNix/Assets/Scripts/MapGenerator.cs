@@ -552,7 +552,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void setAroundCharacter(Unit cs) {
-		setAroundCharacter(cs, cs.currentMoveDist, cs.viewDist, cs.attackRange);
+		setAroundCharacter(cs, ((cs == getCurrentUnit() && selectedUnits.Count==0) ? cs.currentMoveDist : cs.moveDistLeft), cs.viewDist, cs.attackRange);
 	}
 
 	public void setAroundCharacter(Unit cs, int radius, int view, int attackRange) {

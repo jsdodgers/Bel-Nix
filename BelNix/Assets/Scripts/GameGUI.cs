@@ -289,6 +289,7 @@ public class GameGUI : MonoBehaviour {
 				if (selectedMovement && p.usedMovement) {
 					selectedMovement = false;
 					selectedMovementType = MovementType.None;
+					mapGenerator.resetRanges();
 				}
 				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					//	Debug.Log("Move Player!");
@@ -317,17 +318,7 @@ public class GameGUI : MonoBehaviour {
 					}
 					selectedStandard = true;
 					selectedMinor = false;
-					if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-						if (mapGenerator.lastPlayerPath.Count > 1) {
-							p.moving = true;
-							p.removeTrail();
-							p.setRotatingPath();
-						}
-						else {
-							p.setRotationToAttackEnemy();
-						}
-						p.attacking = true;
-					}
+
 				}
 				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
 				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
@@ -387,6 +378,18 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 				}
+				else if (selectedStandard) {
+					StandardType[] types = mapGenerator.getCurrentUnit().getStandardTypes();
+					for (int n=0;n<types.Length;n++) {
+						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), getNonSelectedSubMenuTurnStyle())) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
+							if (types[n] == selectedStandardType) selectedStandardType = StandardType.None;
+							else selectedStandardType = types[n];
+							selectStandardType(selectedStandardType);
+						}
+					}
+				}
 
 			}
 			else {
@@ -410,6 +413,28 @@ public class GameGUI : MonoBehaviour {
 		}
 	//	Debug.Log("OnGUIEnd");
 	}
+
+	public void selectStandardType(StandardType t) {
+		Unit p = mapGenerator.selectedUnit;
+		switch (t) {
+		case StandardType.Attack:
+			if (p.attackEnemy!=null && !p.moving && !p.attacking) {
+				if (mapGenerator.lastPlayerPath.Count > 1) {
+					p.moving = true;
+					p.removeTrail();
+					p.setRotatingPath();
+				}
+				else {
+					p.setRotationToAttackEnemy();
+				}
+				p.attacking = true;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	
 	public void selectMovementType(MovementType t) {
 		switch (t) {
 		case MovementType.Cancel:

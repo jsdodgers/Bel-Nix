@@ -572,7 +572,7 @@ public class Unit : MonoBehaviour {
 	
 	void unDrawGrid() {
 //		mapGenerator.resetAroundPlayer(this, viewDist);
-		mapGenerator.resetAroundCharacter(this);
+//		mapGenerator.resetAroundCharacter(this);
 	}
 	
 	void redrawGrid() {
@@ -582,6 +582,7 @@ public class Unit : MonoBehaviour {
 //		mapGenerator.resetPlayerPath();
 //		mapGenerator.setPlayerPath(currentPath);
 //		mapGenerator.setAroundPlayer(this, currentMoveDist, viewDist, attackRange);
+		mapGenerator.resetRanges();
 		mapGenerator.resetPlayerPath();
 		mapGenerator.setPlayerPath(currentPath);
 		mapGenerator.setAroundCharacter(this);
