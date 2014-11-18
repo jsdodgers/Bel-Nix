@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ItemInfo
 {
-    abstract class Equipment : StandardItem, IEquipable
+    abstract class Equipment : StandardItem
     {
 
     }
