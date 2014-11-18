@@ -6,6 +6,8 @@ public class GameGUI : MonoBehaviour {
 	public MapGenerator mapGenerator;
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
+	GUIStyle selectedButtonStyle;
+	GUIStyle nonSelectedButtonStyle;
 	Vector2 position = new Vector2(0.0f, 0.0f);
 	Rect scrollRect;
 	bool scrollShowing;
@@ -112,6 +114,13 @@ public class GameGUI : MonoBehaviour {
 		return playerBoldStyle;
 	}
 
+	GUIStyle getSelectedButtonStyle() {
+		if (selectedButtonStyle == null) {
+			selectedButtonStyle = new GUIStyle(GUI.skin.button);
+		}
+		return selectedButtonStyle;
+	}
+
 	void OnGUI() {
 	//	Debug.Log("OnGUI");
 		if (mapGenerator == null) return;
@@ -159,46 +168,54 @@ public class GameGUI : MonoBehaviour {
 		}
 		GUI.EndScrollView();
 		bool path = false;
-		if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
-			//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-			Unit p = mapGenerator.selectedUnit;
-//			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
-		//		path = true;
-			GUI.enabled = !p.usedMovement;
-			if(GUI.Button(moveButtonRect(), "Move")) {
-				//	Debug.Log("Move Player!");
-				if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
-					p.moving = true;
-					p.removeTrail();
-//					p.rotating = true;
-					p.setRotatingPath();
-			//		p.attacking = true;
-				}
-			}
-	//		}
-			GUI.enabled = !p.usedStandard;
-		//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-			if (GUI.Button(attackButtonRect(), "Attack")) {
-				if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-					if (mapGenerator.lastPlayerPath.Count > 1) {
+		if (mapGenerator.selectedUnit != null) {
+
+			if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
+				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
+				Unit p = mapGenerator.selectedUnit;
+				//			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
+				//		path = true;
+				GUI.enabled = !p.usedMovement;
+				if(GUI.Button(moveButtonRect(), "Move")) {
+					//	Debug.Log("Move Player!");
+					if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
 						p.moving = true;
 						p.removeTrail();
+						//					p.rotating = true;
 						p.setRotatingPath();
+						//		p.attacking = true;
 					}
-					else {
-						p.setRotationToAttackEnemy();
+				}
+				//		}
+				GUI.enabled = !p.usedStandard;
+				//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
+				if (GUI.Button(attackButtonRect(), "Attack")) {
+					if (p.attackEnemy!=null && !p.moving && !p.attacking) {
+						if (mapGenerator.lastPlayerPath.Count > 1) {
+							p.moving = true;
+							p.removeTrail();
+							p.setRotatingPath();
+						}
+						else {
+							p.setRotationToAttackEnemy();
+						}
+						p.attacking = true;
 					}
-					p.attacking = true;
+				}
+				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
+				if (GUI.Button(minorButtonRect(), "Minor")) {
+					
+				}
+				GUI.enabled = true;
+				if (GUI.Button(waitButtonRect(), "Wait")) {
+					if (!p.moving && !p.attacking)
+						mapGenerator.nextPlayer();
 				}
 			}
-			GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
-			if (GUI.Button(minorButtonRect(), "Minor")) {
+			else {
 
-			}
-			GUI.enabled = true;
-			if (GUI.Button(waitButtonRect(), "Wait")) {
-				if (!p.moving && !p.attacking)
-					mapGenerator.nextPlayer();
+				GUI.SelectionGrid(new Rect(0, 0, 100, 100), -1, new string[]{"Movement"}, 1);
+				GUI.SelectionGrid(new Rect(0, 100, 100, 100), 0, new string[]{"Attack"}, 1);
 			}
 		}
 	//	Debug.Log("OnGUIEnd");
