@@ -6,79 +6,130 @@ public class GameGUI : MonoBehaviour {
 	public MapGenerator mapGenerator;
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
-	GUIStyle selectedButtonStyle;
-	GUIStyle nonSelectedButtonStyle;
+	GUIStyle selectedButtonStyle = null;
+	GUIStyle nonSelectedButtonStyle = null;
+	GUIStyle selectedSubMenuTurnStyle = null;
+	GUIStyle nonSelectedSubMenuTurnStyle = null;
 	Vector2 position = new Vector2(0.0f, 0.0f);
 	Rect scrollRect;
 	bool scrollShowing;
+	bool first = true;
+
+	public bool showAttack = false;
+	public bool showMovement = false;
+
+	Vector2 notTurnMoveRangeSize = new Vector2(150.0f, 50.0f);
+	Vector2 subMenuTurnActionSize = new Vector2(100.0f, 35.0f);
+
+	public bool selectedMovement = false;
+	public bool selectedStandard = false;
+	public bool selectedMinor = false;
+	public MovementType selectedMovementType = MovementType.None;
+	public StandardType selectedStandardType = StandardType.None;
+
 
 	// Use this for initialization
 	void Start () {
 		position = new Vector2(0.0f, 0.0f);
+		//selectedButtonStyle = null;
+		//nonSelectedButtonStyle = null;
+		first = true;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
 	}
+	
+	Texture2D makeTex( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+		//	Debug.Log("it is: " + (i/width));
+			if (i/width == 0 || i/width == height-1) pix[i] = Color.black;
+			else if (i%width == 0 || i % width == width-1) pix[i] = Color.black;
+			else pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
 
 	public Vector2 actionButtonsSize() {
-		return new Vector2(90.0f, 40.0f);
+//		return new Vector2(90.0f, 50.0f);
+		return notTurnMoveRangeSize;
+//		return new Vector2(90.0f, 40.0f);
+	}
+
+	public Rect rangeRect() {
+		return new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y*2 + 1, notTurnMoveRangeSize.x, notTurnMoveRangeSize.y*2-1);
 	}
 
 	public Rect actionRect() {
-		float boxHeight = actionButtonsSize().y * 4;
+		float boxHeight = actionButtonsSize().y * 4 - 3;
 		return new Rect(0.0f, Screen.height - boxHeight, actionButtonsSize().x, boxHeight);
 	}
 
 	public Rect moveButtonRect() {
-	//	float moveWidth = 90.0f;
-	//	float moveHeight = 40.0f;
-	//	float moveX = 10.0f;
-	//	float moveY = Screen.height - moveHeight - 10.0f;
-	//	return new Rect(moveX, moveY, moveWidth, moveHeight);
 		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 0, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect attackButtonRect() {
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 1, actionButtonsSize().x, actionButtonsSize().y);
-/*		Rect r = moveButtonRect();
-		if (mapGenerator != null) {
-			if (mapGenerator.selectedUnit!=null && !mapGenerator.selectedUnit.moving) {
-				if (mapGenerator.lastPlayerPath.Count >1) {
-					r.y -= r.height + 10.0f;
-				}
-			}
-		}
-		return r;*/
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 1 - 1, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect minorButtonRect() {	
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 2, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 2 - 2, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect waitButtonRect() {
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 3, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 3 - 3, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
+	public Rect subMenuButtonsRect() {
+//		System.Enum[] values = null;
+		int values = 0;
+		if (selectedMovement)
+			values = mapGenerator.getCurrentUnit().numberMovements();
+//			values = mapGenerator.getCurrentUnit().getMovementTypes();
+		else if (selectedStandard)
+			values = mapGenerator.getCurrentUnit().numberStandards();
+//			values = mapGenerator.getCurrentUnit().getStandardTypes();
+		if (values == 0) return new Rect(1000000.0f, 1000000.0f, 0.0f, 0.0f);
+		float height = subMenuTurnActionSize.y * values - values + 1;
+		float y = Mathf.Min(actionRect().y, Screen.height - height);
+		float x = actionRect().width - 1;
+		float width = subMenuTurnActionSize.x;
+		return new Rect(x, y, width, height);
+	}
 
+	public Rect subMenuButtonRect(int i) {
+		Rect r = subMenuButtonsRect();
+		return new Rect(r.x, r.y + i * (subMenuTurnActionSize.y - 1), subMenuTurnActionSize.x, subMenuTurnActionSize.y);
+	}
+
+	public Rect confirmButtonRect() {
+		Rect r = subMenuButtonsRect();
+		return new Rect(r.x + r.width - 1, r.y, subMenuTurnActionSize.x, subMenuTurnActionSize.y);
+	}
+
+	public bool hasConfirmButton() {
+		return selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move);
+	}
 
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (mapGenerator) {
-			if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
-			//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-				/*	if (mapGenerator.lastPlayerPath.Count >1 && !mapGenerator.selectedUnit.moving) {
-					if (moveButtonRect().Contains(mousePos)) {
-						return true;
-					}
+			if (mapGenerator.selectedUnit != null) {
+
+				if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
+					return actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos));
 				}
-				if (mapGenerator.selectedUnit.attackEnemy!=null && !mapGenerator.selectedUnit.moving && !mapGenerator.selectedUnit.attacking) {
-					if (attackButtonRect().Contains(mousePos)) {
-						return true;
-					}
-				}*/
-				return actionRect().Contains(mousePos);
+				else {
+					return rangeRect().Contains(mousePos);
+				}
 			}
 		}
 		return false;
@@ -116,13 +167,68 @@ public class GameGUI : MonoBehaviour {
 
 	GUIStyle getSelectedButtonStyle() {
 		if (selectedButtonStyle == null) {
+			Debug.Log("Is Null! SEl");
 			selectedButtonStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			selectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
+			selectedButtonStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			selectedButtonStyle.active.background = tex;
+			selectedButtonStyle.hover.textColor = Color.black;
+			selectedButtonStyle.normal.textColor = Color.black;
+			selectedButtonStyle.active.textColor = Color.black;
 		}
 		return selectedButtonStyle;
 	}
 
+	GUIStyle getNonSelectedButtonStyle() {
+		if (nonSelectedButtonStyle == null) {
+			Debug.Log("Is Null! Non");
+			nonSelectedButtonStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			nonSelectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
+			nonSelectedButtonStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
+			nonSelectedButtonStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
+			nonSelectedButtonStyle.active.textColor = nonSelectedButtonStyle.normal.textColor = nonSelectedButtonStyle.hover.textColor = Color.black;
+		}
+		return nonSelectedButtonStyle;
+	}
+
+	GUIStyle getSelectedSubMenuTurnStyle() {
+		if (selectedSubMenuTurnStyle == null) {
+			selectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			selectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
+			selectedSubMenuTurnStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			selectedSubMenuTurnStyle.active.background = tex;
+			selectedSubMenuTurnStyle.hover.textColor = Color.black;
+			selectedSubMenuTurnStyle.normal.textColor = Color.black;
+			selectedSubMenuTurnStyle.active.textColor = Color.black;
+		}
+		return selectedSubMenuTurnStyle;
+	}
+
+	GUIStyle getNonSelectedSubMenuTurnStyle() {
+		if (nonSelectedSubMenuTurnStyle == null) {
+			nonSelectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			nonSelectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
+			nonSelectedSubMenuTurnStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
+			nonSelectedSubMenuTurnStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
+			nonSelectedSubMenuTurnStyle.active.textColor = nonSelectedSubMenuTurnStyle.normal.textColor = nonSelectedSubMenuTurnStyle.hover.textColor = Color.black;
+		}
+		return nonSelectedSubMenuTurnStyle;
+	}
+
+
 	void OnGUI() {
 	//	Debug.Log("OnGUI");
+		if (first) {
+			first = false;
+			getSelectedButtonStyle();
+			getSelectedSubMenuTurnStyle();
+			getNonSelectedButtonStyle();
+			getNonSelectedSubMenuTurnStyle();
+		}
 		if (mapGenerator == null) return;
 
 		float maxPlayerListWidth = 200.0f;
@@ -168,7 +274,11 @@ public class GameGUI : MonoBehaviour {
 		}
 		GUI.EndScrollView();
 		bool path = false;
-		if (mapGenerator.selectedUnit != null) {
+		if (mapGenerator.selectedUnit == null) {
+			showAttack = false;
+			showMovement = false;
+		}
+		else {
 
 			if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
 				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
@@ -176,20 +286,37 @@ public class GameGUI : MonoBehaviour {
 				//			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 				//		path = true;
 				GUI.enabled = !p.usedMovement;
-				if(GUI.Button(moveButtonRect(), "Move")) {
+				if (selectedMovement && p.usedMovement) {
+					selectedMovement = false;
+					selectedMovementType = MovementType.None;
+				}
+				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					//	Debug.Log("Move Player!");
-					if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
-						p.moving = true;
-						p.removeTrail();
-						//					p.rotating = true;
-						p.setRotatingPath();
-						//		p.attacking = true;
+					if (selectedStandard) {
+						selectedStandardType = StandardType.None;
+						selectedStandard = false;
+						mapGenerator.resetRanges();
 					}
+					selectedMovement = true;
+					selectedMinor = false;
+
 				}
 				//		}
 				GUI.enabled = !p.usedStandard;
+				if (selectedStandard && p.usedStandard) {
+					selectedStandard = false;
+					selectedStandardType = StandardType.None;
+				}
 				//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-				if (GUI.Button(attackButtonRect(), "Attack")) {
+				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+					if (selectedMovement) {
+						selectedMovement = false;
+						selectedMovementType = MovementType.None;
+						mapGenerator.resetRanges();
+						mapGenerator.removePlayerPath();
+					}
+					selectedStandard = true;
+					selectedMinor = false;
 					if (p.attackEnemy!=null && !p.moving && !p.attacking) {
 						if (mapGenerator.lastPlayerPath.Count > 1) {
 							p.moving = true;
@@ -203,22 +330,104 @@ public class GameGUI : MonoBehaviour {
 					}
 				}
 				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
-				if (GUI.Button(minorButtonRect(), "Minor")) {
-					
+				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
+				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+					if (selectedMovement) {
+						selectedMovementType = MovementType.None;
+						selectedMovement = false;
+						mapGenerator.resetRanges();
+						mapGenerator.removePlayerPath();
+					}
+					if (selectedStandard) {
+						selectedStandardType = StandardType.None;
+						selectedStandard = false;
+						mapGenerator.resetRanges();
+					}
+					selectedMinor = true;
 				}
 				GUI.enabled = true;
-				if (GUI.Button(waitButtonRect(), "Wait")) {
+				if (GUI.Button(waitButtonRect(), "Wait", getNonSelectedButtonStyle())) {
+					if (selectedMovement) {
+						selectedMovementType = MovementType.None;
+						selectedMovement = false;
+						mapGenerator.resetRanges();
+						mapGenerator.removePlayerPath();
+					}
+					if (selectedStandard) {
+						selectedStandardType = StandardType.None;
+						selectedStandard = false;
+						mapGenerator.resetRanges();
+					}
+					selectedMinor = false;
 					if (!p.moving && !p.attacking)
 						mapGenerator.nextPlayer();
 				}
+
+				if (selectedMovement) {
+					MovementType[] types = mapGenerator.getCurrentUnit().getMovementTypes();
+					for (int n=0;n<types.Length;n++) {
+						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
+							if (types[n] == selectedMovementType) selectedMovementType = MovementType.None;
+							else selectedMovementType = types[n];
+							selectMovementType(selectedMovementType);
+						}
+					}
+
+					if (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
+							if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
+								p.moving = true;
+								p.removeTrail();
+								//					p.rotating = true;
+								p.setRotatingPath();
+								//		p.attacking = true;
+							}
+						}
+					}
+				}
+
 			}
 			else {
-
-				GUI.SelectionGrid(new Rect(0, 0, 100, 100), -1, new string[]{"Movement"}, 1);
-				GUI.SelectionGrid(new Rect(0, 100, 100, 100), 0, new string[]{"Attack"}, 1);
+				
+				selectedMovement = false;
+				selectedStandard = false;
+				selectedMinor = false;
+				selectedMovementType = MovementType.None;
+				selectedStandardType = StandardType.None;
+//				GUI.SelectionGrid(new Rect(0, 0, 100, 100), -1, new string[]{"Movement"}, 1);
+//				GUI.SelectionGrid(new Rect(0, 100, 100, 100), 0, new string[]{"Attack"}, 1);
+				if (GUI.Button(new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y, notTurnMoveRangeSize.x,notTurnMoveRangeSize.y), "Show Movement", (showMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+					showMovement = !showMovement;
+					mapGenerator.resetRanges();
+				}
+				if (GUI.Button(new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y*2 + 1, notTurnMoveRangeSize.x,notTurnMoveRangeSize.y), "Show Attack Range", (showAttack ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+					showAttack = !showAttack;
+					mapGenerator.resetRanges();
+				}
 			}
 		}
 	//	Debug.Log("OnGUIEnd");
 	}
+	public void selectMovementType(MovementType t) {
+		switch (t) {
+		case MovementType.Cancel:
+			selectedMovementType = MovementType.None;
+			selectedMovement = false;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
+			break;
+		case MovementType.Move:
+		case MovementType.BackStep:
+			mapGenerator.getCurrentUnit().selectMovementType(t);
+			break;
+		default:
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
+			break;
+		}
+	}
+
 
 }

@@ -240,13 +240,14 @@ public class MapGenerator : MonoBehaviour {
 			selectedUnits.RemoveAt(0);
 		}*/
 		deselectAllUnits();
-		if (hoveredCharacter) {
-			resetAroundCharacter(hoveredCharacter);
-		}
+//		if (hoveredCharacter) {
+//			resetAroundCharacter(hoveredCharacter);
+//		}
 		selectedUnit = getCurrentUnit();
 	//	selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
 		if (selectedUnit) {
-			setAroundCharacter(selectedUnit);
+//			setAroundCharacter(selectedUnit);
+			addCharacterRange(selectedUnit);
 			selectedUnit.setSelected();
 			selectedUnit.setCurrent();
 			moveCameraToSelected();
@@ -538,30 +539,34 @@ public class MapGenerator : MonoBehaviour {
 		setCurrentSpriteColor();
 	}
 
+	public void setSpriteColor(Tile t, SpriteRenderer sr) {
+		Color c = Color.clear;
+		if (t.canStandCurr) c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
+		else if (t.canAttackCurr) c = new Color(1.0f, 0.0f, 0.0f, 0.4f);
+		if (sr != currentSprite) {
+			sr.color = c;
+		}
+		else {
+			currentSpriteColor = c;
+		}
+	}
+
 	public void setAroundCharacter(Unit cs) {
 		setAroundCharacter(cs, cs.currentMoveDist, cs.viewDist, cs.attackRange);
 	}
 
 	public void setAroundCharacter(Unit cs, int radius, int view, int attackRange) {
 		setCharacterCanStand((int)cs.position.x, (int)-cs.position.y, radius, 0, attackRange, cs);
-		setCurrentSpriteColor();
 		int type = 4;
+		/*
 		for (int x = (int)Mathf.Max(cs.position.x - view,0); x < (int)Mathf.Min(cs.position.x + 1 + view, actualWidth); x++) {
 			for (int y = (int)Mathf.Max(-cs.transform.localPosition.y - view,0); y < (int)Mathf.Min(-cs.position.y + 1.0f + view, actualHeight); y++) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
 				Tile t = tiles[x,y];
-				Color c = Color.clear;
-				if (t.canStandCurr) c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
-				else if (t.canAttackCurr) c = new Color(1.0f, 0.0f, 0.0f, 0.4f);
-				if (sr != currentSprite) {
-					sr.color = c;
-				}
-				else {
-					currentSpriteColor = c;
-				}
+				setSpriteColor(t, sr);
 			}
-		}
+		}*/
 	}
 
 	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs) {
@@ -571,7 +576,8 @@ public class MapGenerator : MonoBehaviour {
 		if (t.canStandCurr && t.minDistCurr <= currRadius) return;
 		t.canStandCurr = true;
 		t.minDistCurr = currRadius;
-	//	setCharacterCanAttack(x, y, attackRange, 0, cs);
+		if ((selectedUnits.Count != 0 || selectedUnit != getCurrentUnit()) && gui.showAttack)
+			setCharacterCanAttack(x, y, attackRange, 0, cs);
 		if (radiusLeft == 0) return;
 		if (canPass(Direction.Left, x, y, cs))
 			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs);
@@ -800,7 +806,8 @@ public class MapGenerator : MonoBehaviour {
 				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
 				if (selectedUnit) {
-					setAroundCharacter(selectedUnit);
+//					setAroundCharacter(selectedUnit);
+					addCharacterRange(selectedUnit);
 					selectedUnit.setSelected();
 				}
 //			setTargetObjectPosition();
@@ -873,18 +880,23 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
+	public void removePlayerPath() {
+		resetPlayerPath();
+		lastPlayerPath = new ArrayList();
+		selectedUnit.resetPath();
+	}
+	
 	public void selectUnit(Unit u, bool remove) {
 		if (u) {
 			if (!selectedUnit) {
 				selectedUnit = u;
-				setAroundCharacter(u);
+//				setAroundCharacter(u);
+				addCharacterRange(u);
 				u.setSelected();
 			}
 			else {
 				if (selectedUnits.Count == 0) {
-					resetPlayerPath();
-					lastPlayerPath = new ArrayList();
-					selectedUnit.resetPath();
+					removePlayerPath();
 					selectedUnit.attackEnemy = null;
 				}
 				if (selectedUnit == u) {
@@ -895,14 +907,16 @@ public class MapGenerator : MonoBehaviour {
 							selectedUnit = selectedUnits[0];
 							selectedUnits.RemoveAt(0);
 						}
-						resetCharacterRange();
+//						resetCharacterRange();
+						resetRanges();
 					}
 				}
 				else if (selectedUnits.Contains(u)) {
 					if (remove) {
 						u.deselect();
 						selectedUnits.Remove(u);
-						resetCharacterRange();
+					//	resetCharacterRange();
+						resetRanges();
 					}
 				}
 				else {
@@ -912,7 +926,8 @@ public class MapGenerator : MonoBehaviour {
 						selectedUnits.Add(selectedUnit);
 						selectedUnit = u;
 					}
-					setAroundCharacter(u);
+//					setAroundCharacter(u);
+					addCharacterRange(u);
 					u.setSelected();
 				}
 			}
@@ -921,7 +936,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void deselectAllUnits() {
 		if (selectedUnit) {
-			resetAroundCharacter(selectedUnit);
+		//	resetAroundCharacter(selectedUnit);
 			resetPlayerPath();
 			lastPlayerPath = new ArrayList();
 			selectedUnit.resetPath();
@@ -932,12 +947,63 @@ public class MapGenerator : MonoBehaviour {
 		Unit u;
 		while (selectedUnits.Count != 0) {
 			u = selectedUnits[0];
-			resetAroundCharacter(u);
+		//	resetAroundCharacter(u);
 			u.deselect();
 			selectedUnits.RemoveAt(0);
 		}
+		removeAllRanges();
 	}
-	
+
+	public void drawAllRanges() {
+		drawRanges(0, 0, actualWidth, actualHeight);
+	}
+
+	public void drawRanges(int minX, int minY, int maxX, int maxY) {
+		setCurrentSpriteColor();
+		for (int x = minX; x < maxX; x++) {
+			for (int y=minY; y < maxY; y++) {
+				Tile t = tiles[x,y];
+				SpriteRenderer sr = gridArray[x, y].GetComponent<SpriteRenderer>();
+				setSpriteColor(t, sr);
+			}
+		}
+	}
+
+	public void resetRanges() {
+		removeAllRanges(false);
+		if (selectedUnit) {
+			addCharacterRange(selectedUnit, false);
+			foreach (Unit u in selectedUnits) {
+				addCharacterRange(u, false);
+			}
+		}
+		drawAllRanges();
+	//	}
+	}
+
+	public void removeAllRanges() {
+		removeAllRanges(true);
+	}
+
+	public void removeAllRanges(bool draw) {
+		foreach (Tile t in tiles) {
+			t.resetStandability();
+		}
+		if (draw) drawAllRanges();
+	}
+	public void addCharacterRange(Unit u) {
+		addCharacterRange(u, true);
+	}
+
+	public void addCharacterRange(Unit u, bool draw) {
+		bool isOther = selectedUnit != getCurrentUnit() || selectedUnits.Count > 0;
+		if ((gui.showMovement && isOther) || (gui.selectedMovement && gui.selectedMovementType != MovementType.None && !isOther))
+			setAroundCharacter(u);
+		else if ((gui.showAttack && isOther) || (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack && !isOther))
+			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
+		if (draw) drawAllRanges();
+	}
+
 	public void resetMoveDistances() {
 	//	bool reset = true;
 	//	foreach (GameObject player in players) {
@@ -1128,7 +1194,7 @@ public class MapGenerator : MonoBehaviour {
 				lastHit = go;
 				if (!selectedUnit) {
 					if (hoveredCharacter) {
-						resetAroundCharacter(hoveredCharacter, hoveredCharacter.viewDist);
+					//	resetAroundCharacter(hoveredCharacter, hoveredCharacter.viewDist);
 					}
 				}
 		/*		hoveredCharacter = null;

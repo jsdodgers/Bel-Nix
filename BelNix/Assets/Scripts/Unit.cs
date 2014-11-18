@@ -2,6 +2,10 @@
 using System.Collections;
 using CharacterInfo;
 
+
+public enum MovementType {Move, BackStep, Recover, Cancel, None}
+public enum StandardType {Attack, Reload, Inventory, Cancel, None}
+
 public class Unit : MonoBehaviour {
 	Character characterSheet;
 	int priority;
@@ -20,6 +24,7 @@ public class Unit : MonoBehaviour {
 
 	Transform trail;
 	public MapGenerator mapGenerator;
+	public int moveDistLeft = 5;
 	public int currentMoveDist = 5;
 	public int attackRange = 1;
 	public int viewDist = 11;
@@ -43,6 +48,41 @@ public class Unit : MonoBehaviour {
 	public bool isSelected;
 	public bool isTarget;
 	SpriteRenderer targetSprite;
+
+	public void selectMovementType(MovementType t) {
+		switch(t) {
+		case MovementType.BackStep:
+			currentMoveDist = 1;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
+			break;
+		case MovementType.Move:
+			currentMoveDist = moveDistLeft;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
+			break;
+		default:
+			currentMoveDist = 0;
+			mapGenerator.removePlayerPath();
+			break;
+		}
+	}
+
+	public MovementType[] getMovementTypes() {
+		return new MovementType[] {MovementType.Move, MovementType.BackStep, MovementType.Cancel};
+	}
+
+	public StandardType[] getStandardTypes() {
+		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
+	}
+
+	public int numberMovements() {
+		return getMovementTypes().Length;
+	}
+
+	public int numberStandards() {
+		return getStandardTypes().Length;
+	}
 
 
 	public void setSelected() {
@@ -133,7 +173,8 @@ public class Unit : MonoBehaviour {
 		usedStandard = false;
 		usedMinor1 = false;
 		usedMinor2 = false;
-		currentMoveDist = maxMoveDist;
+		currentMoveDist = 0;
+		moveDistLeft = maxMoveDist;
 	}
 
 	public void setPriority() {
@@ -178,6 +219,7 @@ public class Unit : MonoBehaviour {
 	
 	public void setMoveDist(int newMoveDist) {
 		currentMoveDist = newMoveDist;
+		moveDistLeft = newMoveDist;
 		//		currentPath = new Vector2[currentMoveDist];
 	}
 	
@@ -499,6 +541,7 @@ public class Unit : MonoBehaviour {
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
 			currentMoveDist--;
+			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
@@ -563,10 +606,11 @@ public class Unit : MonoBehaviour {
 		attacking = false;
 		rotating = false;
 		isCurrent = false;
-		currentMoveDist = 5;
+		currentMoveDist = 0;
 		attackRange = 1;
 		viewDist = 11;
 		maxMoveDist = 5;
+		moveDistLeft = 5;
 		anim = gameObject.GetComponent<Animator>();
 		currentMaxPath = 0;
 		Debug.Log("Children: " + transform.childCount + "  Team: " + team);
