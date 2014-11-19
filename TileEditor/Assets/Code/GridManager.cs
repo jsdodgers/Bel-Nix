@@ -137,7 +137,7 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void handleMouseScrollWheel() {
-		if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
 			float cameraSize = mainCamera.orthographicSize;
 			float maxCameraSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize * 6.0f/5.0f;
@@ -213,7 +213,7 @@ public class GridManager : MonoBehaviour {
 		float mouseX = Input.GetAxis("Mouse X");
 		float mouseY = Input.GetAxis("Mouse Y");
 		mouseFactor = 18.0f;
-		if (middleDraggin  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (middleDraggin  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			Vector3 pos = mainCamera.WorldToScreenPoint(cameraTransform.position);
 			pos.x -= mouseX * mouseFactor;
 			pos.y -= mouseY * mouseFactor;
@@ -223,7 +223,7 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void handleMouseSelect() {
-		if (shiftDraggin && (wasShiftDraggin || Input.mousePosition.x < Screen.width*(1-boxWidthPerc))) {
+		if (shiftDraggin && (wasShiftDraggin || Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -310,7 +310,7 @@ public class GridManager : MonoBehaviour {
 				}
 			}
 		}
-		if ((normalDraggin || rightDraggin) && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if ((normalDraggin || rightDraggin) && Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
 			if (hit) {
 				GameObject go = hit.collider.gameObject;

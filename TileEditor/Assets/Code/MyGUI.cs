@@ -28,6 +28,7 @@ public class MyGUI : MonoBehaviour {
 	bool actuallyZeroTrigger = true;
 	bool actuallyZeroAction = true;
 	public bool colorChanged = true;
+	public float checkExtraX = 20.0f;
 
 	GUIStyle boxStyle = null;
 	
@@ -44,7 +45,7 @@ public class MyGUI : MonoBehaviour {
 		float boxWidth = Screen.width*boxWidthPerc;
 		float boxX = Screen.width*(1-boxWidthPerc);
 		float boxY = 0.0f;
-		float checkExtraX = 20.0f;
+		//checkExtraX = 20.0f;
 		float checkLeftX = boxX - checkExtraX + 5.0f;
 		float boxHeight = Screen.height;
 		GUI.Box(new Rect(boxX - checkExtraX,boxY,boxWidth + checkExtraX,boxHeight),"");
