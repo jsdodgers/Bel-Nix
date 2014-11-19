@@ -1058,7 +1058,7 @@ public class MapGenerator : MonoBehaviour {
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = mainCamera.ScreenToWorldPoint(mPos);
-		if ((middleDraggin || scrolled || shiftDraggin) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if ((middleDraggin || scrolled || shiftDraggin || Input.touchCount == 2) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			//= mainCamera.WorldToScreenPoint(cameraTransform.position);
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
 				float xDiff = pos1.x - lastPos.x;
