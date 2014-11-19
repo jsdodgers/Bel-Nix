@@ -752,7 +752,7 @@ public class Unit : MonoBehaviour {
 			attackAnimating = true;
 			attacking = false;
 			usedStandard = true;
-			if (currentMoveDist < maxMoveDist) {
+			if (moveDistLeft < maxMoveDist) {
 				usedMovement = true;
 				currentMoveDist = 0;
 			}
