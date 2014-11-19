@@ -31,6 +31,9 @@ public class Unit : MonoBehaviour {
 	public int maxMoveDist = 5;
 	public ArrayList currentPath = new ArrayList();
 	public int currentMaxPath = 0;
+	public bool beingAttacked = false;
+	public bool wasBeingAttacked = false;
+	public int shouldMove = 0;
 	public bool moving = false;
 	public bool rotating = false;
 	public bool attacking = false;
@@ -48,6 +51,7 @@ public class Unit : MonoBehaviour {
 	public bool isSelected;
 	public bool isTarget;
 	SpriteRenderer targetSprite;
+	public bool doAttOpp = true;
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -213,6 +217,8 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void resetPath() {
+		Debug.Log("reset path");
+		currentMaxPath = 0;
 		currentPath = new ArrayList();
 		currentPath.Add(new Vector2(position.x, -position.y));
 	}
@@ -267,7 +273,7 @@ public class Unit : MonoBehaviour {
 			curr.Add(posFrom);
 		}
 		//	if (maxDist == 0) Debug.Log("Last: " + curr.Count);
-		if (maxDist == 0) return curr;
+		if (maxDist <= 0) return curr;
 		ArrayList a = new ArrayList();
 		if (canPass(Direction.Left, posFrom))
 			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
@@ -392,8 +398,15 @@ public class Unit : MonoBehaviour {
 		int wapoon = characterSheet.mainHand.rollDamage();
 		if (hit >= gameObject.GetComponent<CharacterLoadout>().getAC())
 			attackEnemy.damage(wapoon);
-		attackEnemy.attackedByCharacter = this;
-		attackEnemy.setRotationToAttackedByCharacter();
+		if (!attackEnemy.moving) {
+			attackEnemy.attackedByCharacter = this;
+			attackEnemy.setRotationToAttackedByCharacter();
+			attackEnemy.beingAttacked = true;
+		}
+		else {
+			attackEnemy.shouldMove--;
+			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
+		}
 		Debug.Log((hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
 	}
 
@@ -413,7 +426,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void OnGUI() {
-		if (attackEnemy) {
+		if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
 			float totalWidth = Screen.width * 0.7f;
 			float x = (Screen.width - totalWidth)/2.0f;
 			float y = 10.0f;
@@ -472,6 +485,10 @@ public class Unit : MonoBehaviour {
 	public void setRotationToCharacter(Unit enemy) {
 		setRotationFrom(new Vector2(position.x + .001f, position.y), new Vector2(enemy.position.x, enemy.position.y));
 	}
+
+	public void setRotationToTile(Vector2 tile) {
+		setRotationFrom(new Vector2(position.x + .001f, position.y), tile);
+	}
 	
 	void rotateBy(float rotateDist) {
 		float midSlope = (rotateTo.y - rotateFrom.y)/(rotateTo.x - rotateFrom.x);
@@ -521,7 +538,59 @@ public class Unit : MonoBehaviour {
 		//		Debug.Log("Rotate Dist: " + rotateDist + " r1: " + rotation + " r2: " + rotation2 + "  m1: " + move1 + " m2: " + move2);
 		//		rotating = false;
 	}
-	
+
+	public int attackOfOpp(Vector2 one) {
+		int move = 0;
+		for (int n=-1;n<=1;n++) {
+			for (int m=-1;m<=1;m++) {
+				if ((n==0 && m==0) || !(n==0 || m==0)) continue;
+				int x = (int)one.x + n;
+				int y = (int)one.y + m;
+				if (x >=0 && y >= 0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
+					Tile t = mapGenerator.tiles[x,y];
+					if (t.hasEnemy(this)) {
+						move++;
+						Unit enemy = t.getEnemy(this);
+						enemy.attackEnemy = this;
+						//								enemy.setRotationToAttackEnemy();
+						
+					//	enemy.setRotationToCharacter(this);
+						enemy.setRotationToTile(new Vector2(one.x,-one.y));
+						enemy.attackAnimation();
+						enemy.attackAnimating = true;
+						//								attacking = false;
+						//								usedStandard = true;
+						//		if (currentMoveDist < maxMoveDist) {
+						//			usedMovement = true;
+						//			currentMoveDist = 0;
+						//		}
+						
+					}
+				}
+			}
+		}
+		return move;
+	}
+
+
+	public void startMoving(bool backStepping) {
+		if (currentPath.Count <= 1) return;
+		//					p.rotating = true;
+		setRotatingPath();
+		shouldMove = 0;
+		if (!backStepping) {
+			shouldMove = attackOfOpp((Vector2)currentPath[0]);
+		}
+		startMovingActually();
+	//	if (shouldMove == 0) startMovingActually();
+	}
+
+	public void startMovingActually() {
+		moving = true;
+		removeTrail();
+	}
+
+
 	void moveBy(float moveDist) {
 		Vector2 one = (Vector2)currentPath[1];
 		Vector2 zero = (Vector2)currentPath[0];
@@ -530,6 +599,10 @@ public class Unit : MonoBehaviour {
 		float directionY = -sign(one.y - zero.y);
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
+		if (dist <= 0.5f && doAttOpp && currentPath.Count >= 3) {
+			attackOfOpp(one);
+			doAttOpp = false;
+		}
 		//		float distX = one.x - zero.x;
 		//		float distY = one.y - zero.y;
 		if (Mathf.Abs(dist - moveDist) <= 0.001f || moveDist >= dist) {
@@ -543,6 +616,7 @@ public class Unit : MonoBehaviour {
 			currentMoveDist--;
 			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
+			doAttOpp = true;
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
 				//		attacking = true;
@@ -642,7 +716,10 @@ public class Unit : MonoBehaviour {
 	}
 
 	void doMovement() {
-		if (moving) {
+		if (moving && shouldMove == 0) {// && !beingAttacked) {
+		//	if (wasBeingAttacked) {
+		//		setRotatingPath();
+		//	}
 			if (currentPath.Count >= 2) {
 				float speed = 2.0f;
 				float time = Time.deltaTime;
@@ -684,6 +761,14 @@ public class Unit : MonoBehaviour {
 
 	void attackFinished() {
 		attackAnimating = false;
+		if (attackEnemy) {
+			attackEnemy.wasBeingAttacked = attackEnemy.beingAttacked;
+			attackEnemy.beingAttacked = false;
+			attackEnemy.attackedByCharacter = null;
+		}
+		mapGenerator.resetAttack(this);
+		if (this == mapGenerator.getCurrentUnit())
+			mapGenerator.resetRanges();
 	}
 
 	public void crushingHitSFX() {

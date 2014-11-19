@@ -294,12 +294,17 @@ public class GameGUI : MonoBehaviour {
 				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					//	Debug.Log("Move Player!");
 					if (selectedStandard) {
-						selectedStandardType = StandardType.None;
+				//		selectedStandardType = StandardType.None;
 						selectedStandard = false;
 						mapGenerator.resetRanges();
 					}
-					selectedMovement = true;
+					if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
+						selectedMovementType = MovementType.Move;
+						selectMovementType(selectedMovementType);
+					}
+					selectedMovement = !selectedMovement;//true;
 					selectedMinor = false;
+					mapGenerator.resetRanges();
 
 				}
 				//		}
@@ -312,40 +317,44 @@ public class GameGUI : MonoBehaviour {
 				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					if (selectedMovement) {
 						selectedMovement = false;
-						selectedMovementType = MovementType.None;
-						mapGenerator.resetRanges();
+					//	selectedMovementType = MovementType.None;
 						mapGenerator.removePlayerPath();
 					}
-					selectedStandard = true;
+				//	if (selectedStandard == false) {// && selectedStandardType == StandardType.None) {
+						selectedStandardType = StandardType.Attack;	
+						selectStandardType(selectedStandardType);
+				//	}
+					selectedStandard = !selectedStandard;//true;
 					selectedMinor = false;
+					mapGenerator.resetRanges();
 
 				}
 				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
 				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
 				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					if (selectedMovement) {
-						selectedMovementType = MovementType.None;
+				//		selectedMovementType = MovementType.None;
 						selectedMovement = false;
 						mapGenerator.resetRanges();
 						mapGenerator.removePlayerPath();
 					}
 					if (selectedStandard) {
-						selectedStandardType = StandardType.None;
+				//		selectedStandardType = StandardType.None;
 						selectedStandard = false;
 						mapGenerator.resetRanges();
 					}
-					selectedMinor = true;
+					selectedMinor = !selectedMinor;//true;
 				}
 				GUI.enabled = true;
 				if (GUI.Button(waitButtonRect(), "Wait", getNonSelectedButtonStyle())) {
 					if (selectedMovement) {
-						selectedMovementType = MovementType.None;
+				//		selectedMovementType = MovementType.None;
 						selectedMovement = false;
 						mapGenerator.resetRanges();
 						mapGenerator.removePlayerPath();
 					}
 					if (selectedStandard) {
-						selectedStandardType = StandardType.None;
+				//		selectedStandardType = StandardType.None;
 						selectedStandard = false;
 						mapGenerator.resetRanges();
 					}
@@ -369,10 +378,7 @@ public class GameGUI : MonoBehaviour {
 					if (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
 							if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
-								p.moving = true;
-								p.removeTrail();
-								//					p.rotating = true;
-								p.setRotatingPath();
+								p.startMoving(selectedMovementType == MovementType.BackStep);
 								//		p.attacking = true;
 							}
 						}
@@ -382,11 +388,31 @@ public class GameGUI : MonoBehaviour {
 					StandardType[] types = mapGenerator.getCurrentUnit().getStandardTypes();
 					for (int n=0;n<types.Length;n++) {
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), getNonSelectedSubMenuTurnStyle())) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedStandardType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							if (types[n] == selectedStandardType) selectedStandardType = StandardType.None;
 							else selectedStandardType = types[n];
 							selectStandardType(selectedStandardType);
+						}
+					}
+
+					if (selectedStandardType == StandardType.Attack) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
+						
+							
+							if (p.attackEnemy!=null && !p.moving && !p.attacking) {
+							/*
+								if (mapGenerator.lastPlayerPath.Count > 1) {
+									p.moving = true;
+									p.removeTrail();
+									p.setRotatingPath();
+								}
+								else {
+									p.setRotationToAttackEnemy();
+								}*/
+
+								p.attacking = true;
+							}
 						}
 					}
 				}
@@ -417,20 +443,16 @@ public class GameGUI : MonoBehaviour {
 	public void selectStandardType(StandardType t) {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
+		case StandardType.Cancel:
+			selectedStandardType = StandardType.None;
+			selectedStandard = false;
+			mapGenerator.resetRanges();
+			break;
 		case StandardType.Attack:
-			if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-				if (mapGenerator.lastPlayerPath.Count > 1) {
-					p.moving = true;
-					p.removeTrail();
-					p.setRotatingPath();
-				}
-				else {
-					p.setRotationToAttackEnemy();
-				}
-				p.attacking = true;
-			}
+			mapGenerator.resetRanges();
 			break;
 		default:
+			mapGenerator.resetRanges();
 			break;
 		}
 	}
@@ -443,9 +465,12 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			mapGenerator.removePlayerPath();
 			break;
-		case MovementType.Move:
 		case MovementType.BackStep:
+		case MovementType.Move:
+
 			mapGenerator.getCurrentUnit().selectMovementType(t);
+			if (t == MovementType.BackStep)
+				Debug.Log("BackStep: " + mapGenerator.lastPlayerPath.Count + "\n\n" + mapGenerator.selectedUnit.currentPath.Count);
 			break;
 		default:
 			mapGenerator.resetRanges();

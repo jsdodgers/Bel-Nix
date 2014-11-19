@@ -86,8 +86,8 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 cameraMoveToPos;
 	bool movingCamera;
 	
-	int actualWidth = 0;
-	int actualHeight = 0;
+	public int actualWidth = 0;
+	public int actualHeight = 0;
 	float timeSinceSpace = 500.0f;
 
 	public List<Unit> priorityOrder;
@@ -138,7 +138,7 @@ public class MapGenerator : MonoBehaviour {
 		warningYellowPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningYellowPrefab");
 		warningBothPrefab = (GameObject)Resources.Load("Materials/Arrow/WarningBothPrefab");
 //		Vector3[] positions = new Vector3[] {new Vector3(20, -36, 0), new Vector3(10, -36, 0)};
-		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(17,-30,0), new Vector3(15, -31, 0)};
+		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0), new Vector3(14,-30,0), new Vector3(15, -31, 0)};
 //		Vector3[] positions = new Vector3[] {new Vector3(18, -30, 0)};
 		for (int n=0;n<positions.Length;n++) {
 			Vector3 pos = positions[n];
@@ -251,6 +251,7 @@ public class MapGenerator : MonoBehaviour {
 			selectedUnit.setSelected();
 			selectedUnit.setCurrent();
 			moveCameraToSelected();
+			lastPlayerPath = selectedUnit.currentPath;
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -486,7 +487,7 @@ public class MapGenerator : MonoBehaviour {
 			if (v0.y < v.y) direction = Direction.Down;
 			if (v0.y > v.y) direction = Direction.Up;
 			bool isDifficult = t.isDifficultTerrain(direction);
-			bool provokes = t.provokesOpportunity(direction, selectedUnit);
+			bool provokes = (gui.selectedMovementType == MovementType.Move && t.provokesOpportunity(direction, selectedUnit));
 			if (isDifficult || provokes) {
 				GameObject warning;
 				if (isDifficult && provokes) warning = GameObject.Instantiate(warningBothPrefab) as GameObject;
@@ -702,6 +703,7 @@ public class MapGenerator : MonoBehaviour {
 			if (timeSinceSpace <= maxTimeSpace) {
 				deselectAllUnits();
 				selectUnit(getCurrentUnit(),false);
+				lastPlayerPath = selectedUnit.currentPath;
 			}
 			moveCameraToSelected();
 			timeSinceSpace = 0.0f;
@@ -726,6 +728,7 @@ public class MapGenerator : MonoBehaviour {
 					selectedUnit.deselect();*/
 					deselectAllUnits();
 					selectUnit(priorityOrder[curr], false);
+					lastPlayerPath = selectedUnit.currentPath;
 				}
 			}
 			else {
@@ -750,6 +753,7 @@ public class MapGenerator : MonoBehaviour {
 					selectedUnit = null;*/
 					deselectAllUnits();
 					selectUnit(priorityOrder[curr], false);
+					lastPlayerPath = selectedUnit.currentPath;
 				}
 			}
 			else {
@@ -809,6 +813,7 @@ public class MapGenerator : MonoBehaviour {
 //					setAroundCharacter(selectedUnit);
 					addCharacterRange(selectedUnit);
 					selectedUnit.setSelected();
+					lastPlayerPath = selectedUnit.currentPath;
 				}
 //			setTargetObjectPosition();
 			}
@@ -817,12 +822,13 @@ public class MapGenerator : MonoBehaviour {
 				selectUnit(u, true);
 			}
 		}
-		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit) {
+		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
 			if (selectedUnit && lastHit) {
-				selectedUnit.attackEnemy = null;
+//				selectedUnit.attackEnemy = null;
+
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-		
+				if (gui.selectedMovement) {
 				bool changed = false;
 				for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
 					Vector2 v = (Vector2)selectedUnit.currentPath[n];
@@ -840,12 +846,24 @@ public class MapGenerator : MonoBehaviour {
 					lastPlayerPath = selectedUnit.currentPath;
 					setPlayerPath(lastPlayerPath);
 				}
-				if (lastPlayerPath.Count > 0) {
+			/*	if (lastPlayerPath.Count > 0) {
 					Vector2 last = (Vector2)lastPlayerPath[lastPlayerPath.Count-1];
 					if (Mathf.Abs((int)last.x - posX) + Mathf.Abs((int)last.y - posY) <= selectedUnit.attackRange) {
 						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 					}
+				}*/
 				}
+				else if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
+					if (tiles[posX,posY].canAttackCurr) {
+						if (selectedUnit.attackEnemy)
+							selectedUnit.attackEnemy.deselect();
+						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
+						selectedUnit.setRotationToAttackEnemy();
+					}
+					if (selectedUnit.attackEnemy)
+						selectedUnit.attackEnemy.setTarget();
+				}
+
 			}
 		//	editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
@@ -864,7 +882,8 @@ public class MapGenerator : MonoBehaviour {
 			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
 			//	Player p = selectedPlayer.GetComponent<Player>();
 				//Debug.Log(p.currentMoveDist + "     aaa!!");
-				resetPlayerPath();
+				if (gui.selectedMovement) {
+					resetPlayerPath();
 				if (!lastPlayerPathContains(v)) {
 					lastPlayerPath = selectedUnit.addPathTo(v);
 				}
@@ -874,7 +893,7 @@ public class MapGenerator : MonoBehaviour {
 				if (lastPlayerPath.Count > 1)
 					setPlayerPath(lastPlayerPath);
 				lastArrowPos = v;
-
+				}
 
 			}
 		}
@@ -882,8 +901,9 @@ public class MapGenerator : MonoBehaviour {
 
 	public void removePlayerPath() {
 		resetPlayerPath();
-		lastPlayerPath = new ArrayList();
+//		lastPlayerPath = new ArrayList();
 		selectedUnit.resetPath();
+		lastPlayerPath = selectedUnit.currentPath;
 	}
 	
 	public void selectUnit(Unit u, bool remove) {
@@ -898,6 +918,7 @@ public class MapGenerator : MonoBehaviour {
 				if (selectedUnits.Count == 0) {
 					removePlayerPath();
 					selectedUnit.attackEnemy = null;
+					lastPlayerPath = selectedUnit.currentPath;
 				}
 				if (selectedUnit == u) {
 					if (remove) {
@@ -906,6 +927,7 @@ public class MapGenerator : MonoBehaviour {
 						if (selectedUnits.Count != 0) {
 							selectedUnit = selectedUnits[0];
 							selectedUnits.RemoveAt(0);
+							lastPlayerPath = selectedUnit.currentPath;
 						}
 //						resetCharacterRange();
 						resetRanges();
@@ -925,6 +947,7 @@ public class MapGenerator : MonoBehaviour {
 					else {
 						selectedUnits.Add(selectedUnit);
 						selectedUnit = u;
+						lastPlayerPath = selectedUnit.currentPath;
 					}
 //					setAroundCharacter(u);
 					addCharacterRange(u);
@@ -967,6 +990,17 @@ public class MapGenerator : MonoBehaviour {
 				setSpriteColor(t, sr);
 			}
 		}
+	}
+
+	public void resetAttack() {
+		resetAttack(getCurrentUnit());
+	}
+
+	public void resetAttack(Unit u) {
+		if (u.attackEnemy && u.attackEnemy.isTarget) {
+			u.attackEnemy.deselect();
+		}
+		u.attackEnemy = null;
 	}
 
 	public void resetRanges() {
