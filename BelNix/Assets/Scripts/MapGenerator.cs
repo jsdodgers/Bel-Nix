@@ -7,7 +7,7 @@ public class MapGenerator : MonoBehaviour {
 
 
 	public string tileMapName;
-	int gridSize = 70;
+	public int gridSize = 70;
 	
 	GameGUI gui;
 	public AudioBank audioBank;
@@ -321,7 +321,7 @@ public class MapGenerator : MonoBehaviour {
 		//Debug.Log("Start()");
 		int width = spr.texture.width;
 		int height = spr.texture.height;
-		if (spr.texture.width % 64 == 0) gridSize = 64;
+//		if (spr.texture.width % 64 == 0) gridSize = 64;
 		actualWidth = width / gridSize;
 		actualHeight = height / gridSize;
 		Camera.main.orthographicSize = Mathf.Min(Mathf.Max(actualWidth/3, actualHeight/2) + 2, 10.0f);
