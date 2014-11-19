@@ -105,7 +105,7 @@ public class GridManager : MonoBehaviour {
 		spr = sprend.sprite;
 		grids = GameObject.Find("Grids");
 		gridsArray = new Tile[gridX,gridY];
-		gridPrefab = (GameObject)Resources.Load("Sprite/Square_70");
+		gridPrefab = (GameObject)Resources.Load("Sprite/Square_64");
 		lines = GameObject.Find("Lines");
 		doRed = true;
 		doGreen = true;
@@ -562,10 +562,10 @@ public class GridManager : MonoBehaviour {
 		//Debug.Log(Application.dataPath);
 		WWW www;
 		if (isWindows()) {
-			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\70.png");
+			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\64.png");
 		}
 		else {
-			www = new WWW("file://" + Application.dataPath + "/Resources/Images/70.png");
+			www = new WWW("file://" + Application.dataPath + "/Resources/Images/64.png");
 		}
 		www.LoadImageIntoTexture(spr.texture);
 	}
