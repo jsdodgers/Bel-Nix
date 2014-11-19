@@ -218,6 +218,9 @@ public class MapGenerator : MonoBehaviour {
 		resetPlayerPath();
 		if (selectedUnit) {
 			selectedUnit.resetVars();
+			if (selectedUnit.attackEnemy) {
+				selectedUnit.attackEnemy.deselect();
+			}
 		}
 		/*
 		if (selectedUnit) {
