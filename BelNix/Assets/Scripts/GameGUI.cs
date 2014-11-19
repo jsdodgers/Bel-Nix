@@ -116,7 +116,8 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public bool hasConfirmButton() {
-		return selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move);
+		return (selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) ||
+			(selectedStandard && (selectedStandardType == StandardType.Attack));
 	}
 
 	public bool mouseIsOnGUI() {
