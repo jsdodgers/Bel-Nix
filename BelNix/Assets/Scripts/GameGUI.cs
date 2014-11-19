@@ -294,9 +294,8 @@ public class GameGUI : MonoBehaviour {
 				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					//	Debug.Log("Move Player!");
 					if (selectedStandard) {
-				//		selectedStandardType = StandardType.None;
-						selectedStandard = false;
-						mapGenerator.resetRanges();
+						//		selectedStandardType = StandardType.None;
+						deselectStandard();
 					}
 					if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
 						selectedMovementType = MovementType.Move;
@@ -340,8 +339,7 @@ public class GameGUI : MonoBehaviour {
 					}
 					if (selectedStandard) {
 				//		selectedStandardType = StandardType.None;
-						selectedStandard = false;
-						mapGenerator.resetRanges();
+						deselectStandard();
 					}
 					selectedMinor = !selectedMinor;//true;
 				}
@@ -355,8 +353,7 @@ public class GameGUI : MonoBehaviour {
 					}
 					if (selectedStandard) {
 				//		selectedStandardType = StandardType.None;
-						selectedStandard = false;
-						mapGenerator.resetRanges();
+						deselectStandard();
 					}
 					selectedMinor = false;
 					if (!p.moving && !p.attacking)
@@ -438,6 +435,15 @@ public class GameGUI : MonoBehaviour {
 			}
 		}
 	//	Debug.Log("OnGUIEnd");
+	}
+
+	void deselectStandard() {
+		
+		selectedStandard = false;
+		if (mapGenerator.selectedUnit.attackEnemy) {
+			mapGenerator.selectedUnit.attackEnemy.deselect();
+		}
+		mapGenerator.resetRanges();
 	}
 
 	public void selectStandardType(StandardType t) {
