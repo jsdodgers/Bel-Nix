@@ -168,7 +168,6 @@ public class GameGUI : MonoBehaviour {
 
 	GUIStyle getSelectedButtonStyle() {
 		if (selectedButtonStyle == null) {
-			Debug.Log("Is Null! SEl");
 			selectedButtonStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
 			selectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
@@ -183,7 +182,6 @@ public class GameGUI : MonoBehaviour {
 
 	GUIStyle getNonSelectedButtonStyle() {
 		if (nonSelectedButtonStyle == null) {
-			Debug.Log("Is Null! Non");
 			nonSelectedButtonStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
 			nonSelectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));

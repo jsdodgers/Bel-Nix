@@ -18,11 +18,11 @@ public class Unit : MonoBehaviour {
 	public int hitPoints;
 	public bool died = false;
 	public float dieTime = 0;
-	
+
 	
 	public Unit attackedByCharacter = null;
 
-	Transform trail;
+	public Transform trail;
 	public MapGenerator mapGenerator;
 	public int moveDistLeft = 5;
 	public int currentMoveDist = 5;
@@ -52,6 +52,8 @@ public class Unit : MonoBehaviour {
 	public bool isTarget;
 	SpriteRenderer targetSprite;
 	public bool doAttOpp = true;
+
+	public GameObject damagePrefab;
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -92,23 +94,23 @@ public class Unit : MonoBehaviour {
 	public void setSelected() {
 		isSelected = true;
 		isTarget = false;
-		targetSprite.enabled = true;
-		targetSprite.color = Color.white;
+		getTargetSprite().enabled = true;
+		getTargetSprite().color = Color.white;
 		setTargetObjectScale();
 	}
 
 	public void setTarget() {
 		isSelected = false;
 		isTarget = true;
-		targetSprite.enabled = true;
-		targetSprite.color = Color.red;
+		getTargetSprite().enabled = true;
+		getTargetSprite().color = Color.red;
 		setTargetObjectScale();
 	}
 
 	public void deselect() {
 		isSelected = false;
 		isTarget = false;
-		targetSprite.enabled = false;
+		getTargetSprite().enabled = false;
 	}
 
 	public void setCurrent() {
@@ -130,7 +132,9 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void addTrail() {
+		Debug.Log("Add Trail: " + characterName);
 		if (trail) {
+			Debug.Log("Has Trail");
 			setTrailRendererPosition();
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
 			tr.enabled = true;
@@ -163,7 +167,7 @@ public class Unit : MonoBehaviour {
 			float speed = 3.0f;
 			float addedScale = Mathf.Sin(Time.time * speed) * factor;
 			float scale = 1.0f + factor + addedScale;
-			targetSprite.transform.localScale = new Vector3(scale, scale, 1.0f);
+			getTargetSprite().transform.localScale = new Vector3(scale, scale, 1.0f);
 		}
 	}
 
@@ -217,7 +221,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void resetPath() {
-		Debug.Log("reset path");
+//		Debug.Log("reset path");
 		currentMaxPath = 0;
 		currentPath = new ArrayList();
 		currentPath.Add(new Vector2(position.x, -position.y));
@@ -253,7 +257,7 @@ public class Unit : MonoBehaviour {
 		//			foreach (Vector2 v in newObjs) {
 		//				currentPath.Add(v);
 		//			}
-		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
+//		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
 		currentPath = calculatePathSubtractive((ArrayList)currentPath.Clone(), pos, currentMoveDist - currentMaxPath);
 		setPathCount();
 		//		}
@@ -396,7 +400,10 @@ public class Unit : MonoBehaviour {
 	void dealDamage() {
 		int hit = Random.Range(1,21);
 		int wapoon = characterSheet.mainHand.rollDamage();
-		if (hit >= gameObject.GetComponent<CharacterLoadout>().getAC())
+		bool didHit = hit >= gameObject.GetComponent<CharacterLoadout>().getAC();
+		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+		damageDisplay.begin(wapoon, didHit, attackEnemy.transform.position);
+		if (didHit)
 			attackEnemy.damage(wapoon);
 		if (!attackEnemy.moving) {
 			attackEnemy.attackedByCharacter = this;
@@ -408,6 +415,7 @@ public class Unit : MonoBehaviour {
 			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
 		}
 		Debug.Log((hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
+//		damageDisplay.begin(
 	}
 
 
@@ -426,6 +434,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void OnGUI() {
+		return;
 		if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
 			float totalWidth = Screen.width * 0.7f;
 			float x = (Screen.width - totalWidth)/2.0f;
@@ -516,7 +525,7 @@ public class Unit : MonoBehaviour {
 		float m = move1;
 		float d = difference1;
 		if (difference2 < d) {// || difference1 > 180.0f) {
-			Debug.Log("Use 2!!");
+	//		Debug.Log("Use 2!!");
 			s = sign2;
 			m = move2;
 			d = difference2;
@@ -674,6 +683,13 @@ public class Unit : MonoBehaviour {
 		initializeVariables();
 	}
 
+	public SpriteRenderer getTargetSprite() {
+		if (targetSprite == null) {
+			targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
+		}
+		return targetSprite;
+	}
+
 	public virtual void initializeVariables() {
 		characterSheet = gameObject.GetComponent<Character>();
 		hitPoints = maxHitPoints;
@@ -688,14 +704,22 @@ public class Unit : MonoBehaviour {
 		moveDistLeft = 5;
 		anim = gameObject.GetComponent<Animator>();
 		currentMaxPath = 0;
-		Debug.Log("Children: " + transform.childCount + "  Team: " + team);
-		targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
-		trail = transform.FindChild("Trail");
+	//	Debug.Log("Children: " + transform.childCount + "  Team: " + team);
+	//	trail = transform.FindChild("Trail");
 		if (trail) {
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
 			tr.sortingOrder = 7;
 		}
-		deselect();
+		if (isCurrent) {
+			addTrail();
+		}
+//		if (isSelected) {
+//			setSelected();
+//		}
+//		else if (isTarget) {
+//			setTarget();
+//		}
+//		deselect();
 //		resetPath();
 	}
 	

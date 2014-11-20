@@ -18,6 +18,7 @@ public class MapGenerator : MonoBehaviour {
 	Camera mainCamera;
 	SpriteRenderer sprend;
 	Sprite spr;
+	float tapTime = 0.0f;
 
 	GameObject targetObject;
 
@@ -47,7 +48,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector2 startSquare;
 	Vector2 lastPosDrag;
 	Vector3 startSquareActual;
-
+	int oldTouchCount;
 //	bool editingPath = false;
 	Vector2 lastArrowPos = new Vector2(-1, -1);
 
@@ -63,6 +64,9 @@ public class MapGenerator : MonoBehaviour {
 	bool mouseRightDown;
 	bool mouseMiddleDown;
 	bool mouseDownGUI = false;
+	bool mouseDown;
+	bool mouseDownRight;
+	bool mouseUp;
 	
 	bool shiftDown;
 	bool altDown;
@@ -82,6 +86,7 @@ public class MapGenerator : MonoBehaviour {
 	bool wasShiftRightDraggin = false;
 	bool shiftRightDragginCancelled = false;
 	
+
 	Vector3 lastPos = new Vector3(0.0f, 0.0f, 0.0f);
 	Vector3 cameraMoveToPos;
 	bool movingCamera;
@@ -220,7 +225,8 @@ public class MapGenerator : MonoBehaviour {
 			if (n!=0) after += "\n";
 			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
 		}
-		StartCoroutine(importGrid());
+		importGrid();
+//		StartCoroutine(importGrid());
 		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
@@ -283,12 +289,25 @@ public class MapGenerator : MonoBehaviour {
 		return priorityOrder[currentUnit];
 	}
 
-	public IEnumerator importGrid() {
+	public void importGrid() {
+		string text = Resources.Load<TextAsset>("Maps/Tile Maps/" + tileMapName).text;// + ((tileMapName.Length >= 4 && tileMapName.EndsWith(".txt")) ? "" : ".txt")).text;
+		string[] tiles = text.Split(new char[]{';'});
+		if (int.Parse(tiles[1])==actualWidth && int.Parse(tiles[2])==actualHeight) {
+			////Debug.Log("Works!");
+			parseTiles(tiles);
+		}
+		currentUnit = -1;
+		nextPlayer();
+		Debug.Log (getCurrentUnit().characterName);
+		moveCameraToSelected(true);
+		/*
 		string pathName = Application.dataPath + "/Resources/Maps/Tile Maps/" + tileMapName;
 		if (!(tileMapName.Length >= 4 && tileMapName.EndsWith(".txt"))) {
 			pathName += ".txt";
 		}
+		Debug.Log(pathName);
 		if (File.Exists(pathName)) {
+			Debug.Log("File Exists");
 			//Debug.Log("Exists!");
 			WWW www = new WWW("file:///" + pathName);
 			yield return www;
@@ -300,8 +319,9 @@ public class MapGenerator : MonoBehaviour {
 			}
 			currentUnit = -1;
 			nextPlayer();
+			Debug.Log (getCurrentUnit().characterName);
 			moveCameraToSelected(true);
-		}
+		}*/
 	}
 	
 	void parseTiles(string[] tilesArr) {
@@ -675,10 +695,11 @@ public class MapGenerator : MonoBehaviour {
 		handleGUIPos();
 		handleMouseScrollWheel();
 		handleKeys();
+		handleMouseButtons();
 		handleKeyPan();
+		handleMouseSelect();
 		handleMouseClicks();
 		handleMouseMovement();
-		handleMouseSelect();
 	}
 	
 
@@ -792,28 +813,57 @@ public class MapGenerator : MonoBehaviour {
 		return false;
 	}
 
-	void handleMouseClicks() {
-		wasShiftRightDraggin = shiftRightDraggin;
-		wasRightDraggin = rightDraggin;
-		if (escapeDown) {
-			if (rightDraggin) rightDragginCancelled = true;
-			rightDraggin = false;
-			if (shiftRightDraggin) shiftRightDragginCancelled = true;
-			shiftRightDraggin = false;
+	bool leftClickIsMakingSelection() {
+		return selectedUnit == getCurrentUnit() && selectedUnits.Count == 0 && guiSelectionType();
+	}
+
+	bool guiSelectionType() {
+		return (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack) ||
+			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep));
+	}
+
+
+	void handleMouseButtons() {
+		wasShiftRightDraggin = shiftDraggin;
+		wasRightDraggin = normalDraggin;
+		if (escapeDown && !leftClickIsMakingSelection()) {
+			if (normalDraggin) rightDragginCancelled = true;
+			normalDraggin = false;
+			if (shiftDraggin) shiftRightDragginCancelled = true;
+			shiftDraggin = false;
 		}
+		
 
 		mouseLeftDown = Input.GetMouseButton(0);
+		mouseMiddleDown = Input.GetMouseButton(2);
+		if (Input.touchCount == 2) Debug.Log("Time elapsed: " + (Time.time - tapTime));
+		if (!shiftDraggin && (!normalDraggin || Time.time - tapTime <= 0.25f) && !rightDraggin && !shiftRightDraggin) {
+		//	Debug.Log("Middle Set: " +   (middleDraggin && mouseMiddleDown) + "   "  + (!isOnGUI && Input.GetMouseButtonDown(2)) 
+			middleDraggin = (middleDraggin && (mouseMiddleDown || (mouseLeftDown && Input.touchCount == 2))) || (!isOnGUI && Input.GetMouseButtonDown(2)) || (!isOnGUI && (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && normalDraggin)) && (Input.touchCount >= 2 && (oldTouchCount == 2 || true)));
+			normalDraggin = normalDraggin && !middleDraggin;
+		}
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
-		if (!shiftDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)));
+		if (!shiftDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) {
+			if (normalDraggin && mouseLeftDown) {
+				normalDraggin = true;
+			}
+			else if (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)) {
+				normalDraggin = true;
+				tapTime = Time.time;
+			}
+			else normalDraggin = false;
+		}
 		mouseRightDown = Input.GetMouseButton(1);
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDraggin) shiftRightDraggin = ((shiftRightDraggin && mouseRightDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(1)));
 		if (!shiftDraggin && !middleDraggin && !normalDraggin && !shiftRightDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(1));
-		mouseMiddleDown = Input.GetMouseButton(2);
-		if (!shiftDraggin && !normalDraggin && !rightDraggin && !shiftRightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
-		bool mouseDown = Input.GetMouseButtonDown(0);
-		bool mouseUp = Input.GetMouseButtonUp(0);
-		bool mouseDownRight = Input.GetMouseButtonDown(1);
+		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount != 2;
+		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount != 2;
+		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount != 2;
 		if (mouseDown) mouseDownGUI = isOnGUI;
+//		oldTouchCount = Input.touchCount;
+	}
+
+	void handleMouseClicks() {
 	/*	if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin) {
 			//	if (!selectedUnit || (!selectedUnit.moving && !selectedUnit.attacking)) {
 			if (selectedUnit && (!selectedUnit.moving && !selectedUnit.attacking)) {
@@ -826,8 +876,10 @@ public class MapGenerator : MonoBehaviour {
 				}
 			}
 		}*/
+
 	//	Debug.Log("MouseDownRight: " + mouseDownRight + "  " + isOnGUI + "  " + normalDraggin);
-		if (mouseDownRight && !isOnGUI && !normalDraggin) {
+	//	if (mouseDownRight && !isOnGUI && !normalDraggin) {
+		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
 			if (!shiftDown) {
 				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
@@ -844,7 +896,8 @@ public class MapGenerator : MonoBehaviour {
 				selectUnit(u, true);
 			}
 		}
-		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
+	//	if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
+		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && leftClickIsMakingSelection()) {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
 			if (selectedUnit && lastHit) {
 //				selectedUnit.attackEnemy = null;
 
@@ -890,7 +943,7 @@ public class MapGenerator : MonoBehaviour {
 		//	editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
 		}
-		if (normalDraggin && !mouseDownGUI && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {		
+		if ((normalDraggin && leftClickIsMakingSelection()) && !mouseDownGUI) {		
 		
 			int x = -1;
 			int y = 1;
@@ -1080,7 +1133,7 @@ public class MapGenerator : MonoBehaviour {
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = mainCamera.ScreenToWorldPoint(mPos);
-		if ((middleDraggin || scrolled || shiftDraggin || Input.touchCount == 2) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (((middleDraggin && Input.touchCount == oldTouchCount) || scrolled || rightDraggin) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			//= mainCamera.WorldToScreenPoint(cameraTransform.position);
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
 				float xDiff = pos1.x - lastPos.x;
@@ -1096,6 +1149,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		lastPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+		oldTouchCount = Input.touchCount;
 	}
 
 	void handleKeyPan() {
@@ -1138,7 +1192,8 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleMouseSelect() {
-		if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI)) {
+	//	if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI)) {
+		if (!leftClickIsMakingSelection() && (shiftDraggin || normalDraggin) && ((wasRightDraggin || wasShiftRightDraggin) || !isOnGUI)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -1189,7 +1244,7 @@ public class MapGenerator : MonoBehaviour {
 		//	mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
 		//	mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
 		}
-		else if (rightDragginCancelled || shiftRightDragginCancelled) {
+		else if (!leftClickIsMakingSelection() && (rightDragginCancelled || shiftRightDragginCancelled)) {
 			Destroy(mouseOver);
 			mouseOver = null;
 			if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
@@ -1199,7 +1254,7 @@ public class MapGenerator : MonoBehaviour {
 	//		Destroy(mouseOver2);
 	//		mouseOver2 = null;
 		}
-		else if (wasRightDraggin || wasShiftRightDraggin) {
+		else if (!leftClickIsMakingSelection() && (wasRightDraggin || wasShiftRightDraggin)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -1220,7 +1275,7 @@ public class MapGenerator : MonoBehaviour {
 			mouseOver = null;
 	//		Destroy(mouseOver2);
 	//		mouseOver2 = null;
-			Debug.Log(min + "   " + max);
+	//		Debug.Log(min + "   " + max);
 			if (Mathf.Abs (v3.x - startSquare.x) >= 0.0001f || Mathf.Abs(v3.y - startSquare.y) >= 0.0001f) {
 				for (int n = (int)min.x; n <= (int)max.x;n++) {
 					if (n >= 0 && n < actualWidth) {
@@ -1266,9 +1321,9 @@ public class MapGenerator : MonoBehaviour {
 				}*/
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
-				if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
+			//	if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
 				//	setAroundCharacter(hoveredCharacter);
-				}
+			//	}
 
 			}
 			if (middleDraggin) {
@@ -1287,7 +1342,8 @@ public class MapGenerator : MonoBehaviour {
 						}
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
-						if (!(rightDraggin || shiftRightDraggin)) {
+					//	if (!(rightDraggin || shiftRightDraggin)) {
+						if (!((normalDraggin || shiftDraggin) && !leftClickIsMakingSelection())) {
 							setCurrentSpriteColor();
 						}
 					}

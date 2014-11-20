@@ -749,6 +749,6 @@ public class GraphicalUserInterface : MonoBehaviour
 		sr.WriteLine(characterStr);
 		sr.Close();
 
-		Debug.Log(characterStr);
+	//	Debug.Log(characterStr);
 	}
 }
