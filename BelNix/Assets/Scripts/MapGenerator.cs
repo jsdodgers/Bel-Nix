@@ -397,10 +397,15 @@ public class MapGenerator : MonoBehaviour {
 
 	public void removeCharacter(Unit cs) {
 		int index = priorityOrder.IndexOf(cs);
-		if (index <= currentUnit) currentUnit--;
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
 		if (players.Contains(cs.gameObject)) players.Remove(cs.gameObject);
+		if (index < currentUnit) currentUnit--;
+		else if (index == currentUnit) {
+			currentUnit--;
+			gui.selectedMovement = false;
+			nextPlayer();
+		}
 	}
 
 	public bool hasEnemy(int x, int y, Unit cs) {
