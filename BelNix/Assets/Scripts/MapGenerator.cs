@@ -85,6 +85,10 @@ public class MapGenerator : MonoBehaviour {
 	bool rightDragginCancelled = false;
 	bool wasShiftRightDraggin = false;
 	bool shiftRightDragginCancelled = false;
+
+	float lastClickTime = 0.0f;
+	Tile lastClickTile = null;
+	float doubleClickTime = 0.25f;
 	
 
 	Vector3 lastPos = new Vector3(0.0f, 0.0f, 0.0f);
@@ -526,7 +530,7 @@ public class MapGenerator : MonoBehaviour {
 		//	go.renderer.sortingOrder = 2;
 		//	= GameObject.Instantiate(arrowStraightPrefab) as GameObject;
 			go.transform.parent = path.transform;
-			go.transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, 0.0f);
+			go.transform.localPosition = new Vector3(v.x + 0.5f - 1/64.0f, -v.y - 0.5f - 1/64.0f, 0.0f);
 
 			Tile t = tiles[(int)v0.x,(int)v0.y];
 			Direction direction = Direction.Left;
@@ -903,50 +907,74 @@ public class MapGenerator : MonoBehaviour {
 		}
 	//	if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
 		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && leftClickIsMakingSelection()) {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
-			if (selectedUnit && lastHit) {
+			if (lastHit) {
 //				selectedUnit.attackEnemy = null;
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
+				if (gui.selectedMovement || (gui.selectedStandard && gui.selectedStandardType==StandardType.Attack)) {
+					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
+						if (gui.selectedMovement) {
+							if (tiles[posX, posY].getCharacter() != selectedUnit) {
+								selectedUnit.startMoving(gui.selectedMovementType==MovementType.BackStep);
+							}
+						}
+						else if (gui.selectedStandard) {
+							if (selectedUnit.attackEnemy) {
+								selectedUnit.startAttacking();
+							}
+						}
+					}
+				}
 				if (gui.selectedMovement) {
-				bool changed = false;
-				for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
-					Vector2 v = (Vector2)selectedUnit.currentPath[n];
-					if (!tiles[(int)v.x,(int)v.y].canStand()) {
-						changed = true;
-						selectedUnit.currentPath.RemoveAt(n);
-						selectedUnit.setPathCount();
+					bool changed = false;
+					for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
+						Vector2 v = (Vector2)selectedUnit.currentPath[n];
+						if (!tiles[(int)v.x,(int)v.y].canStand()) {
+							changed = true;
+							selectedUnit.currentPath.RemoveAt(n);
+							selectedUnit.setPathCount();
+						}
+						else {
+							break;
+						}
 					}
-					else {
-						break;
+					if (changed) {
+						resetPlayerPath();
+						lastPlayerPath = selectedUnit.currentPath;
+						setPlayerPath(lastPlayerPath);
 					}
-				}
-				if (changed) {
-					resetPlayerPath();
-					lastPlayerPath = selectedUnit.currentPath;
-					setPlayerPath(lastPlayerPath);
-				}
-			/*	if (lastPlayerPath.Count > 0) {
-					Vector2 last = (Vector2)lastPlayerPath[lastPlayerPath.Count-1];
-					if (Mathf.Abs((int)last.x - posX) + Mathf.Abs((int)last.y - posY) <= selectedUnit.attackRange) {
-						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
-					}
-				}*/
+					Vector2 v2 = (Vector2)lastPlayerPath[lastPlayerPath.Count-1];
+					lastClickTile = tiles[(int)v2.x,(int)v2.y];
+					lastClickTime = Time.time;
 				}
 				else if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
+					lastClickTile = tiles[posX, posY];
+					lastClickTime = Time.time;
+				}
+
+			}
+		//	editingPath = false;
+			lastArrowPos = new Vector2(-1000, -1000);
+		}
+		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
+			if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
+				if (lastHit) {
+					int posX = (int)lastHit.transform.localPosition.x;
+					int posY = -(int)lastHit.transform.localPosition.y;
+
+					if (selectedUnit.attackEnemy) {
+						selectedUnit.attackEnemy.deselect();
+						selectedUnit.attackEnemy = null;
+					}
 					if (tiles[posX,posY].canAttackCurr) {
-						if (selectedUnit.attackEnemy)
-							selectedUnit.attackEnemy.deselect();
 						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 						selectedUnit.setRotationToAttackEnemy();
 					}
 					if (selectedUnit.attackEnemy)
 						selectedUnit.attackEnemy.setTarget();
 				}
-
 			}
-		//	editingPath = false;
-			lastArrowPos = new Vector2(-1000, -1000);
 		}
 		if ((normalDraggin && leftClickIsMakingSelection()) && !mouseDownGUI) {		
 		

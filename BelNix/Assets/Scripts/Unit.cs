@@ -402,7 +402,7 @@ public class Unit : MonoBehaviour {
 		int wapoon = characterSheet.mainHand.rollDamage();
 		bool didHit = hit >= gameObject.GetComponent<CharacterLoadout>().getAC();
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
-		damageDisplay.begin(wapoon, didHit, attackEnemy.transform.position);
+		damageDisplay.begin(wapoon, didHit, attackEnemy);
 		if (didHit)
 			attackEnemy.damage(wapoon);
 		if (!attackEnemy.moving) {
@@ -418,14 +418,23 @@ public class Unit : MonoBehaviour {
 //		damageDisplay.begin(
 	}
 
+	public int damageNumber = 0;
+
+	public void addDamageDisplay() {
+		damageNumber++;
+	}
+
+	public void removeDamageDisplay() {
+		damageNumber--;
+	}
 
 
-	float redStyleWidth = 0.0f;
-	float greenStyleWidth = 0.0f;
-	float healthHeight = 15.0f;
-	GUIStyle redStyle = null;
-	GUIStyle greenStyle = null;
-	Texture2D[] greenTextures;
+	static float redStyleWidth = 0.0f;
+	static float greenStyleWidth = 0.0f;
+	static float healthHeight = 15.0f;
+	static GUIStyle redStyle = null;
+	static GUIStyle greenStyle = null;
+	static Texture2D[] greenTextures;
 	/*
 	void createStyle() {
 		if (redStyle == null) {
@@ -471,10 +480,10 @@ public class Unit : MonoBehaviour {
 	void OnGUI() {
 //		return;
 	//	if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
-		if (mapGenerator.selectedUnit == this) {
+		if (mapGenerator.selectedUnit == this || (mapGenerator.selectedUnit && mapGenerator.selectedUnit.attackEnemy == this)) {
 			float totalWidth = Screen.width * 0.7f;
 			float x = (Screen.width - totalWidth)/2.0f;
-			float y = 10.0f;
+			float y = 10.0f + (mapGenerator.selectedUnit == this ? 0.0f : healthHeight + 10.0f);
 			float height = healthHeight;
 			//			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)attackEnemy.hitPoints)/((float)attackEnemy.maxHitPoints)), 0.0f), totalWidth);
 			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)hitPoints)/((float)maxHitPoints)), 0.0f), totalWidth);
@@ -619,7 +628,12 @@ public class Unit : MonoBehaviour {
 		return move;
 	}
 
-
+	public void startAttacking() {
+		if (attackEnemy!=null && !moving) {
+			attacking = true;
+		}
+	}
+	
 	public void startMoving(bool backStepping) {
 		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;

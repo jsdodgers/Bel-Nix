@@ -116,8 +116,8 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public bool hasConfirmButton() {
-		return (selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) ||
-			(selectedStandard && (selectedStandardType == StandardType.Attack));
+		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
+			((selectedStandard && (selectedStandardType == StandardType.Attack)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -371,7 +371,7 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 
-					if (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move) {
+					if ((selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move) && mapGenerator.getCurrentUnit().currentPath.Count > 1) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
 							if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
 								p.startMoving(selectedMovementType == MovementType.BackStep);
@@ -392,23 +392,10 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 
-					if (selectedStandardType == StandardType.Attack) {
+					if (selectedStandardType == StandardType.Attack && mapGenerator.getCurrentUnit().attackEnemy != null) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
-						
-							
-							if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-							/*
-								if (mapGenerator.lastPlayerPath.Count > 1) {
-									p.moving = true;
-									p.removeTrail();
-									p.setRotatingPath();
-								}
-								else {
-									p.setRotationToAttackEnemy();
-								}*/
-
-								p.attacking = true;
-							}
+ 						
+							p.startAttacking();
 						}
 					}
 				}
