@@ -420,10 +420,13 @@ public class Unit : MonoBehaviour {
 
 
 
-	
+	float redStyleWidth = 0.0f;
+	float greenStyleWidth = 0.0f;
+	float healthHeight = 15.0f;
 	GUIStyle redStyle = null;
 	GUIStyle greenStyle = null;
-	
+	Texture2D[] greenTextures;
+	/*
 	void createStyle() {
 		if (redStyle == null) {
 			redStyle = new GUIStyle(GUI.skin.box);
@@ -431,25 +434,60 @@ public class Unit : MonoBehaviour {
 		if (greenStyle == null) {
 			greenStyle = new GUIStyle(GUI.skin.box);
 		}
+	}*/
+
+	GUIStyle getRedStyle(float width) {
+		if (redStyle == null) {
+			redStyle = new GUIStyle("box");
+		}
+		if (width != redStyleWidth) {
+			redStyleWidth = width;
+			redStyle.normal.background = makeTex((int)width, (int)healthHeight, Color.red);
+		}
+		return redStyle;
+	}
+
+	GUIStyle getGreenStyle(int width) {
+		if (greenStyle == null) {
+			greenStyle = new GUIStyle("box");
+		}
+		if (greenTextures == null || greenTextures.Length != (int)Screen.width) {
+			Texture2D[] tex = new Texture2D[(int)Screen.width];
+			for (int n=0;n<Mathf.Min(tex.Length, (greenTextures != null ? greenTextures.Length : 0)); n++) {
+				tex[n] = greenTextures[n];
+			}
+			greenTextures = tex;
+		}
+		if (greenTextures[width] == null) {
+			greenTextures[width] = makeTex((int)width, (int)healthHeight, Color.green);
+		}
+		if (greenStyleWidth != width) {
+			greenStyle.normal.background = greenTextures[width];
+			greenStyleWidth = width;
+		}
+		return greenStyle;
 	}
 	
 	void OnGUI() {
-		return;
-		if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
+//		return;
+	//	if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
+		if (mapGenerator.selectedUnit == this) {
 			float totalWidth = Screen.width * 0.7f;
 			float x = (Screen.width - totalWidth)/2.0f;
 			float y = 10.0f;
-			float height = 15.0f;
-			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)attackEnemy.hitPoints)/((float)attackEnemy.maxHitPoints)), 0.0f), totalWidth);
+			float height = healthHeight;
+			//			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)attackEnemy.hitPoints)/((float)attackEnemy.maxHitPoints)), 0.0f), totalWidth);
+			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)hitPoints)/((float)maxHitPoints)), 0.0f), totalWidth);
 			//	GUI.BeginGroup(new Rect(x, y, totalWidth, height));
-			createStyle();
-			redStyle.normal.background = makeTex((int)totalWidth, (int)height, Color.red);
-			GUI.Box(new Rect(x, y, totalWidth, height), "", redStyle);
+		//	createStyle();
+		//	redStyle.normal.background = makeTex((int)totalWidth, (int)height, Color.red);
+			GUIStyle red = getRedStyle(totalWidth);
+			GUI.Box(new Rect(x, y, totalWidth, height), "", red);
 			//	currentStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green)
 			//			if (heal
 			if (healthWidth > 0) {
-				greenStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green);
-				GUI.Box(new Rect(x, y, healthWidth, height), "", greenStyle);
+				//greenStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green);
+				GUI.Box(new Rect(x, y, healthWidth, height), "", getGreenStyle((int)healthWidth));
 			}
 			//	GUI.EndGroup();
 		}
