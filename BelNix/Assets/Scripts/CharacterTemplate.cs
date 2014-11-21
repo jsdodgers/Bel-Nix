@@ -21,15 +21,24 @@ public class CharacterTemplate : Character
 	void Start ()
 	{
 	//	Character character = gameObject.GetComponent<Character>();
+
+	}
+
+	public override void loadData() {
+		loadData(null);
+	}
+
+	public override void loadData(string textFile2) {
+		if (textFile2 != null && textFile2 != "") textFile = textFile2;
 		if (textFile != null && textFile != "") {
 			loadCharacterFromTextFile(textFile);
 		}
 		else {
 			CharacterRace mCRace = CharacterRace.getRace(mCRaceName);
 			CharacterClass mCClass = CharacterClass.getClass(mCClassName);
-
-
-
+			
+			
+			
 			loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
 			              mCSturdy, mCPerception, mCTechnique, mCWellVersed);

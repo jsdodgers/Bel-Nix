@@ -1,7 +1,7 @@
 using System;
 namespace CharacterInfo
 {
-	public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator}
+	public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator, None}
 
 	public abstract class CharacterClass
 	{
@@ -36,6 +36,7 @@ namespace CharacterInfo
 				return new Class_ExSoldier();
 			}
 		}
+		public virtual ClassName getClassName() {return ClassName.None;}
 
 		// 
 	}
@@ -44,26 +45,31 @@ namespace CharacterInfo
 	{
 		public Class_ExSoldier()
 		{cModifiers = new ClassModifiers(2, 0, 1, 0, 1, 0, 0, 0, 0, 0);}
+		public override ClassName getClassName() {return ClassName.ExSoldier;}
 	}
 	public class Class_Engineer : CharacterClass
 	{
 		public Class_Engineer()
 		{cModifiers = new ClassModifiers(0, 0, 0, 0, 0, 0, 2, 0, 0, 0);}
+		public override ClassName getClassName() {return ClassName.Engineer;}
 	}
 	public class Class_Investigator : CharacterClass
 	{
 		public Class_Investigator()
 		{cModifiers = new ClassModifiers(1, 1, 0, 1, 0, 1, 0, 0, 0, 0);}
+		public override ClassName getClassName() {return ClassName.Investigator;}
 	}
 	public class Class_Researcher : CharacterClass
 	{
 		public Class_Researcher()
 		{cModifiers = new ClassModifiers(0, 2, 0, 0, 0, 0, 0, 1, 1, 0);}
+		public override ClassName getClassName() {return ClassName.Researcher;}
 	}
 	public class Class_Orator : CharacterClass
 	{
 		public Class_Orator()
 		{cModifiers = new ClassModifiers(0, 0, 0, 0, 0, 0, 0, 0, 0, 2);}
+		public override ClassName getClassName() {return ClassName.Orator;}
 	}
 
 

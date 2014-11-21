@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
+public enum Tab {M, C, K, I, T, None}
+public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
 
 	public MapGenerator mapGenerator;
@@ -27,6 +30,9 @@ public class GameGUI : MonoBehaviour {
 	public MovementType selectedMovementType = MovementType.None;
 	public StandardType selectedStandardType = StandardType.None;
 
+
+	public Tab openTab = Tab.None;
+	public Mission openMission = Mission.Primary;
 
 	// Use this for initialization
 	void Start () {
@@ -83,9 +89,13 @@ public class GameGUI : MonoBehaviour {
 	public Rect minorButtonRect() {	
 		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 2 - 2, actionButtonsSize().x, actionButtonsSize().y);
 	}
-
+	
 	public Rect waitButtonRect() {
 		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 3 - 3, actionButtonsSize().x, actionButtonsSize().y);
+	}
+
+	public Rect waitButtonAlwaysRect() {
+		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect subMenuButtonsRect() {
@@ -124,12 +134,14 @@ public class GameGUI : MonoBehaviour {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (mapGenerator) {
 			if (mapGenerator.selectedUnit != null) {
-
+				bool onPlayer = mapGenerator.selectedUnits.Count == 0 && mapGenerator.selectedUnit.guiContainsMouse(mousePos);
+				bool onWait = waitButtonAlwaysRect().Contains(mousePos);
+				bool others = onPlayer || onWait;
 				if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
-					return actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos));
+					return actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others;
 				}
 				else {
-					return rangeRect().Contains(mousePos);
+					return rangeRect().Contains(mousePos) || others;
 				}
 			}
 		}
@@ -230,11 +242,28 @@ public class GameGUI : MonoBehaviour {
 		}
 		if (mapGenerator == null) return;
 
+		
+		if (GUI.Button(waitButtonAlwaysRect(), "Wait", getNonSelectedButtonStyle())) {
+			if (selectedMovement) {
+				//		selectedMovementType = MovementType.None;
+				selectedMovement = false;
+				mapGenerator.resetRanges();
+				mapGenerator.removePlayerPath();
+			}
+			if (selectedStandard) {
+				//		selectedStandardType = StandardType.None;
+				deselectStandard();
+			}
+			selectedMinor = false;
+			if (!mapGenerator.getCurrentUnit().moving && !mapGenerator.getCurrentUnit().attacking)
+				mapGenerator.nextPlayer();
+		}
+
 		if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnits.Count==0) {
 			Unit u = mapGenerator.selectedUnit;
 			u.drawGUI();
 		}
-
+		/*
 		float maxPlayerListWidth = 200.0f;
 		float maxPlayerListHeight = 300.0f;
 		float actualPlayerListWidth = 0.0f;
@@ -276,7 +305,7 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(boxX + between, y, sizes[n].x, sizes[n].y), contents[n], st);
 			y += sizes[n].y + between;
 		}
-		GUI.EndScrollView();
+		GUI.EndScrollView();*/
 		bool path = false;
 		if (mapGenerator.selectedUnit == null) {
 			showAttack = false;

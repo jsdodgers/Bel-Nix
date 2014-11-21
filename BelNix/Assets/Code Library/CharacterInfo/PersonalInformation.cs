@@ -6,6 +6,7 @@ namespace CharacterInfo
 		public string firstName;
 		public string lastName;
 		public CharacterName(string fN, string lN) {firstName = fN; lastName = lN;}
+		public string fullName() { return firstName + " " + lastName;}
 	}
 	public enum 	CharacterSex {Male, Female, Other}
 

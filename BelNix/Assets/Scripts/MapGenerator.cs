@@ -9,7 +9,7 @@ public class MapGenerator : MonoBehaviour {
 	public string tileMapName;
 	public int gridSize = 70;
 	
-	GameGUI gui;
+	public GameGUI gui;
 	public AudioBank audioBank;
 	GameObject lastHit;
 	GameObject map;
@@ -101,7 +101,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public List<Unit> priorityOrder;
 
-	int currentUnit;
+	public int currentUnit;
 
 	// Use this for initialization
 	void Start () {
@@ -186,10 +186,12 @@ public class MapGenerator : MonoBehaviour {
 			int y = (int)(pos.y + 0.5f);
 			p.setPosition(new Vector3(x, y, pos.z));
 			p.mapGenerator = this;
+			p.gui = gui;
 			players.Add(player);
 			//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(p);
-			p.setPriority();
+			p.loadCharacterSheet();
+			p.rollInitiative();
 			p.characterName = "Player" + bbb;
 			priorityOrder.Add(p);
 			//		e.deselect();
@@ -204,10 +206,12 @@ public class MapGenerator : MonoBehaviour {
 			int y = (int)(pos.y + 0.5f);
 			e.setPosition(new Vector3(x, y, pos.z));
 			e.mapGenerator = this;
+			e.gui = gui;
 			enemies.Add(enemy);
 	//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(e);
-			e.setPriority();
+			e.loadCharacterSheet();
+			e.rollInitiative();
 			e.characterName = "Enemy" + aaa;
 			priorityOrder.Add(e);
 	//		e.deselect();
@@ -216,18 +220,18 @@ public class MapGenerator : MonoBehaviour {
 		string b4 = "";
 		for (int n=0;n<priorityOrder.Count;n++) {
 			if (n!=0) b4 += "\n";
-			b4 += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
+			b4 += priorityOrder[n].characterName + "  " + priorityOrder[n].getInitiative();
 		}
 		List<Unit> po1 = new List<Unit>();
 		foreach (Unit cs in priorityOrder) {
 			po1.Add(cs);
 		}
-		priorityOrder.Sort((first, second) => (first.getPriority() > second.getPriority() ? -1 : (first.getPriority() == second.getPriority() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
+		priorityOrder.Sort((first, second) => (first.getInitiative() > second.getInitiative() ? -1 : (first.getInitiative() == second.getInitiative() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
 		
 		string after = "";
 		for (int n=0;n<priorityOrder.Count;n++) {
 			if (n!=0) after += "\n";
-			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
+			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getInitiative();
 		}
 		importGrid();
 //		StartCoroutine(importGrid());
@@ -745,6 +749,21 @@ public class MapGenerator : MonoBehaviour {
 		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
+		if (Input.GetKeyDown(KeyCode.M)) {
+			gui.openTab = (gui.openTab==Tab.M ? Tab.None : Tab.M);
+		}
+		if (Input.GetKeyDown(KeyCode.C)) {
+			gui.openTab = (gui.openTab==Tab.C ? Tab.None : Tab.C);
+		}
+		if (Input.GetKeyDown(KeyCode.K)) {
+			gui.openTab = (gui.openTab==Tab.K ? Tab.None : Tab.K);
+		}
+		if (Input.GetKeyDown(KeyCode.I)) {
+			gui.openTab = (gui.openTab==Tab.I ? Tab.None : Tab.I);
+		}
+		if (Input.GetKeyDown(KeyCode.T)) {
+			gui.openTab = (gui.openTab==Tab.T ? Tab.None : Tab.T);
+		}
 		handleArrows();
 		handleSpace();
 	}
@@ -848,7 +867,7 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.touchCount == 2) Debug.Log("Time elapsed: " + (Time.time - tapTime));
 		if (!shiftDraggin && (!normalDraggin || Time.time - tapTime <= 0.25f) && !rightDraggin && !shiftRightDraggin) {
 		//	Debug.Log("Middle Set: " +   (middleDraggin && mouseMiddleDown) + "   "  + (!isOnGUI && Input.GetMouseButtonDown(2)) 
-			middleDraggin = (middleDraggin && (mouseMiddleDown || (mouseLeftDown && Input.touchCount == 2))) || (!isOnGUI && Input.GetMouseButtonDown(2)) || (!isOnGUI && (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && normalDraggin)) && (Input.touchCount >= 2 && (oldTouchCount == 2 || true)));
+			middleDraggin = (middleDraggin && (mouseMiddleDown || (mouseLeftDown && Input.touchCount == 2))) || ((!isOnGUI || isOnGUI) && Input.GetMouseButtonDown(2)) || ((!isOnGUI || isOnGUI) && (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && normalDraggin)) && (Input.touchCount >= 2 && (oldTouchCount == 2 || true)));
 			normalDraggin = normalDraggin && !middleDraggin;
 		}
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
@@ -864,7 +883,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		mouseRightDown = Input.GetMouseButton(1);
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDraggin) shiftRightDraggin = ((shiftRightDraggin && mouseRightDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(1)));
-		if (!shiftDraggin && !middleDraggin && !normalDraggin && !shiftRightDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(1));
+		if (!shiftDraggin && !middleDraggin && !normalDraggin && !shiftRightDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!shiftDown && Input.GetMouseButtonDown(1));
 		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount != 2;
 		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount != 2;
 		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount != 2;
@@ -1337,23 +1356,8 @@ public class MapGenerator : MonoBehaviour {
 					//	resetAroundCharacter(hoveredCharacter, hoveredCharacter.viewDist);
 					}
 				}
-		/*		hoveredCharacter = null;
-				foreach (GameObject pGo in players) {
-					Player p = pGo.GetComponent<Player>();
-					if (Mathf.Floor(p.position.x) == Mathf.Floor(go.transform.localPosition.x) && Mathf.Floor(p.position.y) == Mathf.Floor(go.transform.localPosition.y)) {
-					//	//Debug.Log ("Is a Player!");
-						hoveredPlayer = pGo;
-						if (!selectedPlayer) {
-							setAroundPlayer(p, p.currentMoveDist, p.viewDist, p.attackRange);
-						}
-					}
-				}*/
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
-			//	if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
-				//	setAroundCharacter(hoveredCharacter);
-			//	}
-
 			}
 			if (middleDraggin) {
 				//	Tile t = go.GetComponent<TileHolder>().tile;

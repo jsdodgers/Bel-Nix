@@ -6,8 +6,8 @@ public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Inventory, Cancel, None}
 
 public class Unit : MonoBehaviour {
-	Character characterSheet;
-	int priority;
+	public Character characterSheet;
+	int initiative;
 	public string characterName;
 	public int team = 0;
 
@@ -17,7 +17,7 @@ public class Unit : MonoBehaviour {
 	public int hitPoints;
 	public bool died = false;
 	public float dieTime = 0;
-
+	Vector2 turnOrderScrollPos = new Vector2(0.0f, 0.0f);
 	
 	public Unit attackedByCharacter = null;
 
@@ -51,8 +51,10 @@ public class Unit : MonoBehaviour {
 	public bool isTarget;
 	SpriteRenderer targetSprite;
 	public bool doAttOpp = true;
+	public GameGUI gui;
 
 	public GameObject damagePrefab;
+
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -182,12 +184,12 @@ public class Unit : MonoBehaviour {
 		moveDistLeft = maxMoveDist;
 	}
 
-	public void setPriority() {
-		priority = Random.Range(1,21);
+	public void rollInitiative() {
+		initiative = Random.Range(1,21) + characterSheet.combatScores.getInitiative();
 	}
 
-	public int getPriority() {
-		return priority;
+	public int getInitiative() {
+		return initiative;
 	}
 
 	public bool isEnemyOf(Unit cs) {
@@ -485,6 +487,15 @@ public class Unit : MonoBehaviour {
 		}
 		return paperDollTexturesHead;
 	}
+
+	private Texture[] paperDollTexturesFull;
+	public Texture[] getPaperDollTexturesFull() {
+		if (paperDollTexturesFull == null) {
+			paperDollTexturesFull = new Texture[]{Resources.Load<Texture>("Characters/Jackie/JackiePaperdoll")};
+		}
+		return paperDollTexturesFull;
+	}
+
 	/*
 	GUIStyle paperDollHealthBannerStyle = null;
 	
@@ -505,20 +516,102 @@ public class Unit : MonoBehaviour {
 		return paperDollHealthBannerTexture;
 	}
 
+	static Texture2D paperDollFullBackgroundTexture = null;
+	static int lastWidthFull = 0;
+	Texture2D getPaperDollFullBackgroundTexture(int width, int height) {
+		if (paperDollFullBackgroundTexture == null || width != lastWidthFull) {
+			paperDollFullBackgroundTexture = makeTexBorder(width, height, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			lastWidthFull = width;
+		}
+		return paperDollFullBackgroundTexture;
+	}
+
+	static Texture2D missionObjectivesBackgroundTexture = null;
+	Texture2D getMissionObjectivesBackgroundTexture() {
+		if (missionObjectivesBackgroundTexture == null) {
+			missionObjectivesBackgroundTexture = makeTexBorder((int)missionObjectivesWidth, (int)missionObjectivesHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return missionObjectivesBackgroundTexture;
+	}
+
+	static Texture2D missionTitleBackgroundTexture = null;
+	Texture2D getMissionTitleBackgroundTexture() {
+		if (missionTitleBackgroundTexture == null) {
+			missionTitleBackgroundTexture = makeTexBorder((int)missionObjectivesWidth + (int)missionTabWidth - 1, (int)missionTopHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return missionTitleBackgroundTexture;
+	}
+
+	static Texture2D turnOrderBackgroundTexture = null;
+	Texture2D getTurnOrderBackgroundTexture() {
+		if (turnOrderBackgroundTexture == null) {
+			turnOrderBackgroundTexture = makeTexBorder((int)turnOrderWidth, (int)paperDollFullHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return turnOrderBackgroundTexture;
+	}
 	
+	static Texture2D turnOrderNameBackgroundTexture = null;
+	Texture2D getTurnOrderNameBackgroundTexture() {
+		if (turnOrderNameBackgroundTexture == null) {
+			turnOrderNameBackgroundTexture = makeTexBorder((int)turnOrderNameWidth, (int)turnOrderSectionHeight, new Color(0.5f, 0.8f, 0.1f));
+		}
+		return turnOrderNameBackgroundTexture;
+	}
+	
+	static Texture2D turnOrderSectionBackgroundTexture = null;
+	Texture2D getTurnOrderSectionBackgroundTexture() {
+		if (turnOrderSectionBackgroundTexture == null) {
+					turnOrderSectionBackgroundTexture = makeTexBorder((int)turnOrderSectionHeight, (int)turnOrderSectionHeight, new Color(0.5f, 0.8f, 0.1f));
+		}
+		return turnOrderSectionBackgroundTexture;
+	}
+	
+	static Texture2D turnOrderNameBackgroundTextureEnemy = null;
+	Texture2D getTurnOrderNameBackgroundTextureEnemy() {
+		if (turnOrderNameBackgroundTextureEnemy == null) {
+			turnOrderNameBackgroundTextureEnemy = makeTexBorder((int)turnOrderNameWidth, (int)turnOrderSectionHeight, new Color(0.8f, 0.2f, 0.1f));
+		}
+		return turnOrderNameBackgroundTextureEnemy;
+	}
+	
+	static Texture2D turnOrderSectionBackgroundTextureEnemy = null;
+	Texture2D getTurnOrderSectionBackgroundTextureEnemy() {
+		if (turnOrderSectionBackgroundTextureEnemy == null) {
+			turnOrderSectionBackgroundTextureEnemy = makeTexBorder((int)turnOrderSectionHeight, (int)turnOrderSectionHeight, new Color(0.8f, 0.2f, 0.1f));
+		}
+		return turnOrderSectionBackgroundTextureEnemy;
+	}
 	
 	Texture2D makeTexBanner( int width, int height, Color col )
 	{
 		Color[] pix = new Color[width * height];
-		for( int i = 0; i < pix.Length; ++i )
+		for(int i = 0; i < pix.Length; i++)
 		{
-			pix[ i ] = col;
+			pix[i] = col;
 		}
 		for (int n=0;n<width;n++) {
 			for (int m=0;m<height;m++) {
-				if (width - n > (height - m)/2) pix[n + m * width] = col;
+				if (n == 0 || m == height-1 || (m == 0 && width - n >= (height - m)/2) || (width - n == (height-m)/2)) pix[n + m * width] = Color.black;
+				else if (width - n > (height - m)/2) pix[n + m * width] = col;
 				else pix[n + m * width] = Color.clear;
 			}
+		}
+		Texture2D result = new Texture2D(width, height);
+		result.SetPixels(pix);
+		result.Apply();
+		return result;
+	}
+
+	
+	Texture2D makeTexBorder( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			//	Debug.Log("it is: " + (i/width));
+			if (i/width == 0 || i/width == height-1) pix[i] = Color.black;
+			else if (i%width == 0 || i % width == width-1) pix[i] = Color.black;
+			else pix[ i ] = col;
 		}
 		Texture2D result = new Texture2D( width, height );
 		result.SetPixels( pix );
@@ -526,53 +619,357 @@ public class Unit : MonoBehaviour {
 		return result;
 	}
 	
-	GUIStyle healthTextStyle = null;
-	public GUIStyle getHealthTextStyle() {
+	static GUIStyle healthTextStyle = null;
+	public GUIStyle getHealthTextStyle(int fontSize) {
 		if (healthTextStyle == null) {
 			healthTextStyle = new GUIStyle("Label");
 			healthTextStyle.normal.textColor = Color.red;
-			healthTextStyle.fontSize = 25;
 		}
+		healthTextStyle.fontSize = fontSize;
 		return healthTextStyle;
 	}
 	
 	
-	GUIStyle composureTextStyle = null;
-	public GUIStyle getComposureTextStyle() {
+	static GUIStyle composureTextStyle = null;
+	public GUIStyle getComposureTextStyle(int fontSize) {
 		if (composureTextStyle == null) {
 			composureTextStyle = new GUIStyle("Label");
-			composureTextStyle.normal.textColor = Color.green;
-			composureTextStyle.fontSize = 25;
+			composureTextStyle.normal.textColor = new Color(.316f, 0.0f, .316f);
 		}
+		composureTextStyle.fontSize = fontSize;
 		return composureTextStyle;
 	}
 
-	public void drawGUI() {
-		float paperDollHeadSize = 100.0f;
-		float bannerWidth = 300.0f;
-		Texture[] textures = getPaperDollTexturesHead();
-//		GUIStyle headStyle = getPaperDollHeadStyle();
-		foreach (Texture2D texture in textures) {
-//			headStyle.normal.background = texture;
-			GUI.DrawTexture(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), texture);
-//			GUI.Label(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), "", headStyle);
+	static GUIStyle titleTextStyle = null;
+	public GUIStyle getTitleTextStyle() {
+		if (titleTextStyle == null) {
+			titleTextStyle = new GUIStyle("Label");
+			titleTextStyle.normal.textColor = Color.white;
+			titleTextStyle.fontSize = 20;
 		}
-		GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize));
+		return titleTextStyle;
+	}
+
+	static GUIStyle selectedButtonStyle;
+	static float styleWidth = 0.0f;
+	GUIStyle getSelectedButtonStyle(float width) {
+		if (selectedButtonStyle == null || styleWidth != width) {
+			selectedButtonStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTexBorder((int)width,(int)width, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			selectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
+			selectedButtonStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			selectedButtonStyle.active.background = tex;
+			selectedButtonStyle.hover.textColor = Color.white;
+			selectedButtonStyle.normal.textColor = Color.white;
+			selectedButtonStyle.active.textColor = Color.white;
+			styleWidth = width;
+		}
+		return selectedButtonStyle;
+	}
+
+	static GUIStyle nonSelectedButtonStyle;
+	static float nonStyleWidth = 0.0f;
+	GUIStyle getNonSelectedButtonStyle(float width) {
+		if (nonSelectedButtonStyle == null || width != nonStyleWidth) {
+			nonSelectedButtonStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTexBorder((int)width,(int)width,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			nonSelectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
+			nonSelectedButtonStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
+			nonSelectedButtonStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
+			nonSelectedButtonStyle.active.textColor = nonSelectedButtonStyle.normal.textColor = nonSelectedButtonStyle.hover.textColor = Color.white;
+			nonStyleWidth = width;
+		}
+		return nonSelectedButtonStyle;
+	}
+	
+	static GUIStyle nonSelectedMissionButtonStyle;
+	GUIStyle getNonSelectedMissionButtonStyle() {
+		if (nonSelectedMissionButtonStyle == null) {
+			nonSelectedMissionButtonStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTexBorder((int)missionTabWidth, (int)missionTabHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			nonSelectedMissionButtonStyle.normal.background = nonSelectedMissionButtonStyle.hover.background = nonSelectedMissionButtonStyle.active.background = tex;
+			nonSelectedMissionButtonStyle.active.textColor = nonSelectedMissionButtonStyle.hover.textColor = nonSelectedMissionButtonStyle.active.textColor = Color.white;
+		}
+		return nonSelectedMissionButtonStyle;
+	}
+
+	static GUIStyle selectedMissionButtonStyle;
+	GUIStyle getselectedMissionButtonStyle() {
+		if (selectedMissionButtonStyle == null) {
+			selectedMissionButtonStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTexBorder((int)missionTabWidth, (int)missionTabHeight, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			selectedMissionButtonStyle.normal.background = selectedMissionButtonStyle.hover.background = selectedMissionButtonStyle.active.background = tex;
+			selectedMissionButtonStyle.active.textColor = selectedMissionButtonStyle.hover.textColor = selectedMissionButtonStyle.active.textColor = Color.white;
+		}
+		return selectedMissionButtonStyle;
+	}
+
+	static GUIStyle playerInfoStyle;
+	GUIStyle getPlayerInfoStyle() {
+		if (playerInfoStyle == null) {
+			playerInfoStyle = new GUIStyle("Label");
+			playerInfoStyle.normal.textColor = Color.white;
+			playerInfoStyle.fontSize = 14;
+		}
+		return playerInfoStyle;
+	}
+	
+	const float paperDollHeadSize = 100.0f;
+	const float bannerWidth = 300.0f;
+	const float paperDollFullWidth = 201.0f;
+	const float paperDollFullHeight = 400.0f;
+	const float tabButtonsWidth = 51.0f;
+	const float missionTopHeight = 31.0f;
+	const float missionTabHeight = 124.0f;
+	const float missionObjectivesHeight = paperDollFullHeight - missionTopHeight + 1;
+	const float missionTabWidth = 80.0f;
+	const float missionObjectivesWidth = 150.0f;
+	const float turnOrderWidth = 200.0f;
+	const float turnOrderSectionHeight = 30.0f;
+	const float turnOrderTableX = 15.0f;
+	const float turnOrderNameWidth = turnOrderWidth - turnOrderTableX * 2 - turnOrderSectionHeight * 2 - 1.0f;
+	public bool guiContainsMouse(Vector2 mousePos) {
+		if (gui.openTab == Tab.None) {
+			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
+			if (mousePos.y <= paperDollHeadSize + tabButtonsWidth && mousePos.x <= (tabButtonsWidth - 1.0f) * 5 + 1) return true;
+		}
+		else {
+			if (fullCharacterRect().Contains(mousePos) || fullTabsRect().Contains(mousePos)) return true;
+			switch (gui.openTab) {
+			case Tab.M:
+				return fullMRect().Contains(mousePos);
+			case Tab.T:
+				return fullTRect().Contains(mousePos);
+			default:
+				return false;
+			}
+		}
+		return false;
+	}
+	public Rect fullCharacterRect() {
+		return new Rect(0.0f, 0.0f, paperDollFullWidth, paperDollFullHeight);
+	}
+	public Rect fullTabsRect() {
+		return new Rect(0.0f, paperDollFullHeight, (tabButtonsWidth - 1.0f) * 5 + 1, tabButtonsWidth);
+	}
+	public Rect fullMRect() {
+		return new Rect(paperDollFullWidth - 1.0f, 0.0f, missionTabWidth + missionObjectivesWidth, paperDollFullHeight);
+	}
+	public Rect fullTRect() {
+		return new Rect(paperDollFullWidth - 1.0f, 0.0f, turnOrderWidth, paperDollFullHeight);
+	}
+
+	public void drawGUI() {
+	/*	float healthX = -1.0f;
+		float healthY = 0.0f;
+		float healthCenter = -1.0f;
+		float healthCompY = 0.0f;
+		float compY = 25.0f;*/
+		float tabButtonsY = 0.0f;
+	//	int healthFont = 0;
 		string healthText = "Health: " + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth();
-		GUIStyle healthStyle = getHealthTextStyle();
 		GUIContent healthContent = new GUIContent(healthText);
-		Vector2 healthSize = healthStyle.CalcSize(healthContent);
 		string composureText = "Composure: " + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure();
-		GUIStyle compStyle = getComposureTextStyle();
 		GUIContent composureContent = new GUIContent(composureText);
-		Vector2 composureSize = compStyle.CalcSize(composureContent);
-		float totalHeight = composureSize.y + healthSize.y;
-		float healthX = 35.0f + paperDollHeadSize;
-		float between = 0.0f;
-		float healthY = (paperDollHeadSize - between )/2.0f - healthSize.y;
-		float compY = (paperDollHeadSize + between)/2.0f;
-		GUI.Label(new Rect(healthX, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
-		GUI.Label(new Rect(healthX, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+		if (gui.openTab == Tab.None) {
+			Texture[] textures = getPaperDollTexturesHead();
+//			GUIStyle headStyle = getPaperDollHeadStyle();
+			foreach (Texture2D texture in textures) {
+//			headStyle.normal.background = texture;
+				GUI.DrawTexture(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), texture);
+	//			GUI.Label(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), "", headStyle);
+			}
+			GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize + 1), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize + 1));
+			float healthX = 35.0f + paperDollHeadSize;
+			float healthCompY = paperDollHeadSize/2.0f;
+			tabButtonsY = paperDollHeadSize;
+			GUIStyle healthStyle = getHealthTextStyle(25);
+			GUIStyle compStyle = getComposureTextStyle(25);
+			Vector2 healthSize = healthStyle.CalcSize(healthContent);
+			Vector2 composureSize = compStyle.CalcSize(composureContent);
+			//	float totalHeight = composureSize.y + healthSize.y;
+			float healthY = healthCompY - healthSize.y;
+			float compY = healthCompY;
+			GUI.Label(new Rect(healthX, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
+			GUI.Label(new Rect(healthX, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+		}
+		else {
+			tabButtonsY = paperDollFullHeight - 1;
+			GUI.DrawTexture(new Rect(0.0f, 0.0f, paperDollFullWidth, paperDollFullHeight), getPaperDollFullBackgroundTexture((int)paperDollFullWidth, (int)paperDollFullHeight));
+			float y = 0.0f;
+			GUIStyle textStyle = getPlayerInfoStyle();
+			GUIContent name = new GUIContent(characterSheet.personalInfo.getCharacterName().fullName());
+			Vector2 nameSize = textStyle.CalcSize(name);
+			GUI.Label(new Rect((paperDollFullWidth - nameSize.x)/2.0f, y, nameSize.x, nameSize.y), name, textStyle);
+			y += nameSize.y;
+			Texture[] textures = getPaperDollTexturesFull();
+			if (textures.Length >= 1) {
+				Texture t1 = textures[0];
+				float widths = paperDollFullWidth * 0.7f;
+				float heights = widths * (t1.height/t1.width);
+				float paperDollX = (paperDollFullWidth - widths)/2.0f;
+				foreach (Texture2D texture in textures) {
+					GUI.DrawTexture(new Rect(paperDollX, y, widths, heights), texture);
+				}
+				y += heights;
+			}
+			float healthCenter = paperDollFullWidth/2.0f;
+//			healthCompY = y + 20.0f;
+			float healthY = y;
+			GUIStyle healthStyle = getHealthTextStyle(12);
+			GUIStyle compStyle = getComposureTextStyle(12);
+			Vector2 healthSize = healthStyle.CalcSize(healthContent);
+			Vector2 composureSize = compStyle.CalcSize(composureContent);
+		//	float totalHeight = composureSize.y + healthSize.y;
+			//healthY = healthCompY - healthSize.y;
+			float mid = 8.0f;
+			float compY = healthY + healthSize.y - mid;
+			GUI.Label(new Rect(healthCenter - healthSize.x/2.0f, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
+			GUI.Label(new Rect(healthCenter - composureSize.x/2.0f, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+			y = compY + composureSize.y - mid;
+			GUIContent profession = new GUIContent(characterSheet.characterProgress.getCharacterClass().getClassName().ToString());
+			Vector2 professionSize = textStyle.CalcSize(profession);
+			GUI.Label(new Rect((paperDollFullWidth - professionSize.x)/2.0f, y, professionSize.x, professionSize.y), profession, textStyle);
+			y += professionSize.y - mid;
+			GUIContent race = new GUIContent(characterSheet.personalInfo.getCharacterRace().getRaceString());
+			Vector2 raceSize = textStyle.CalcSize(race);
+			GUI.Label(new Rect((paperDollFullWidth - raceSize.x)/2.0f, y, raceSize.x, raceSize.y), race, textStyle);
+			y += raceSize.y - mid;
+			GUIContent background = new GUIContent(characterSheet.personalInfo.getCharacterBackground().ToString());
+			Vector2 backgroundSize = textStyle.CalcSize(background);
+			GUI.Label(new Rect((paperDollFullWidth - backgroundSize.x)/2.0f, y, backgroundSize.x, backgroundSize.y), background, textStyle);
+			y += backgroundSize.y;
+			GUIContent level = new GUIContent("Level: " + characterSheet.characterProgress.getCharacterLevel());
+			Vector2 levelSize = textStyle.CalcSize(level);
+			GUI.Label(new Rect(5.0f, y, levelSize.x, levelSize.y), level, textStyle);
+			GUIContent experience = new GUIContent(characterSheet.characterProgress.getCharacterExperience() + " exp");
+			Vector2 experienceSize = textStyle.CalcSize(experience);
+			GUI.Label(new Rect(paperDollFullWidth - experienceSize.x - 5.0f, y, experienceSize.x, experienceSize.y), experience, textStyle);
+		}
+		if (gui.openTab == Tab.M) {
+			GUI.DrawTexture(new Rect(paperDollFullWidth - 1.0f, 0.0f, missionTabWidth + missionObjectivesWidth - 1.0f, missionTopHeight), getMissionTitleBackgroundTexture());
+			GUI.DrawTexture(new Rect(paperDollFullWidth + missionTabWidth - 2.0f, missionTopHeight - 1.0f, missionObjectivesWidth, missionObjectivesHeight), getMissionObjectivesBackgroundTexture());
+
+			GUIStyle titleStyle = getTitleTextStyle();
+			GUIContent missions = new GUIContent("Missions");
+			GUIContent objectives = new GUIContent("Objectives");
+			Vector2 missionsSize = titleStyle.CalcSize(missions);
+			Vector2 objectivesSize = titleStyle.CalcSize(objectives);
+			GUI.Label(new Rect(paperDollFullWidth + (missionTabWidth + missionObjectivesWidth - 1.0f - missionsSize.x)/2.0f, (missionTopHeight - missionsSize.y)/2.0f, missionsSize.x, missionsSize.y), missions, titleStyle);
+
+		//	GUI.BeginScrollView(new Rect()
+
+			GUI.Label(new Rect(paperDollFullWidth + missionTabWidth + (missionObjectivesWidth - 1.0f - objectivesSize.x)/2.0f, missionTopHeight, objectivesSize.x, objectivesSize.y), objectives, titleStyle);
+
+
+			float y = missionTopHeight + objectivesSize.y + 20.0f;
+			float x = paperDollFullWidth + missionTabWidth + 10.0f;
+			float toggleHeight = 20.0f;
+			float toggleWidth = 200.0f;
+//			GUI.enabled = false;
+			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (gui.openMission == Mission.Optional ? true : false), "Main Objective");
+			x += 20.0f;
+			y += toggleHeight;
+			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), true, (gui.openMission == Mission.Primary ? "How you do it" : (gui.openMission == Mission.Secondary ? "Destroy Enemy" : "Enjoy the view")));
+			y += toggleHeight;
+			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (gui.openMission != Mission.Secondary ? true : false), (gui.openMission == Mission.Primary ? "This too" : (gui.openMission == Mission.Secondary ? "Reinforcements" : "Daydream")));
+			y += toggleHeight;
+			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (gui.openMission != Mission.Primary ? true : false), (gui.openMission == Mission.Primary ? "And this as well" : (gui.openMission == Mission.Secondary ? "Conquer" : "Eat Snacks")));
+			y += toggleHeight;
+			if (gui.openMission == Mission.Optional) {
+				GUI.Toggle (new Rect(x, y, toggleWidth, toggleHeight), true, "Nap Time!");
+				y += toggleHeight;
+			}
+
+			
+			
+			if (GUI.Button(new Rect(paperDollFullWidth - 1, missionTopHeight - 1.0f + (missionTabHeight - 1.0f) * 0, missionTabWidth, missionTabHeight), "Primary", (gui.openMission==Mission.Primary ? getselectedMissionButtonStyle() : getNonSelectedMissionButtonStyle()))) {
+				gui.openMission = Mission.Primary;
+			}
+			if (GUI.Button(new Rect(paperDollFullWidth - 1, missionTopHeight - 1.0f + (missionTabHeight - 1.0f) * 1, missionTabWidth, missionTabHeight), "Secondary", (gui.openMission==Mission.Secondary ? getselectedMissionButtonStyle() : getNonSelectedMissionButtonStyle()))) {
+				gui.openMission = Mission.Secondary;
+			}
+			if (GUI.Button(new Rect(paperDollFullWidth - 1, missionTopHeight - 1.0f + (missionTabHeight - 1.0f) * 2, missionTabWidth, missionTabHeight), "Optional", (gui.openMission==Mission.Optional ? getselectedMissionButtonStyle() : getNonSelectedMissionButtonStyle()))) {
+				gui.openMission = Mission.Optional;
+			}
+
+		}
+		else if (gui.openTab == Tab.T) {
+			GUI.DrawTexture(fullTRect(), getTurnOrderBackgroundTexture());
+			GUIStyle titleStyle = getTitleTextStyle();
+			GUIContent turnOrder = new GUIContent("Turn Order");
+			Vector2 turnOrderSize = titleStyle.CalcSize(turnOrder);
+			GUI.Label(new Rect(paperDollFullWidth + (turnOrderWidth - 1.0f - turnOrderSize.x)/2.0f, 0.0f, turnOrderSize.x, turnOrderSize.y), turnOrder, titleStyle);
+			float y = turnOrderSize.y;
+			int numPlayers = mapGenerator.priorityOrder.Count;
+			int currentPlayer = mapGenerator.currentUnit;
+
+			turnOrderScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth, y, turnOrderWidth - 4.0f, paperDollFullHeight - y - 1.0f), turnOrderScrollPos, new Rect(paperDollFullWidth, y, turnOrderWidth - 16.0f - 4.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f));
+
+			GUIStyle st = getPlayerInfoStyle();
+			st.wordWrap = false;
+			float x = paperDollFullWidth + turnOrderTableX;
+			GUIContent num = new GUIContent("Pos");
+			Vector2 numSize = st.CalcSize(num);
+			GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
+			x += turnOrderSectionHeight - 1.0f;
+			GUIContent name = new GUIContent("Name");
+			Vector2 nameSize = st.CalcSize(name);
+			GUI.Label(new Rect(x + (turnOrderNameWidth - nameSize.x)/2.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, nameSize.x, nameSize.y), name, getPlayerInfoStyle());
+			x += turnOrderNameWidth - 1.0f;
+			GUIContent initiative = new GUIContent("Roll");
+			Vector2 initiativeSize = st.CalcSize(initiative);
+			GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
+			y+=turnOrderSectionHeight;
+			for (int n=0;n<numPlayers;n++) {
+				int playerNum = (n + currentPlayer) % numPlayers;
+				Unit player = mapGenerator.priorityOrder[playerNum];
+				x = paperDollFullWidth + turnOrderTableX;
+				Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
+			//	Rect r2 = new Rect(x + (turnOrderSectionHeight
+				GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+				num = new GUIContent("" + (playerNum + 1));
+				numSize = st.CalcSize(num);
+				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
+				x += turnOrderSectionHeight - 1.0f;
+				r = new Rect(x, y, turnOrderNameWidth, turnOrderSectionHeight);
+				GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderNameBackgroundTexture() : getTurnOrderNameBackgroundTextureEnemy()));
+				name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
+				nameSize = st.CalcSize(name);
+				GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
+				x += turnOrderNameWidth - 1.0f;
+				r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
+				GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+				initiative = new GUIContent(player.getInitiative() + "");
+				initiativeSize = st.CalcSize(initiative);
+				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
+				y += turnOrderSectionHeight - 1.0f;
+			}
+
+			GUI.EndScrollView();
+
+
+		}
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+			if (gui.openTab == Tab.M) gui.openTab = Tab.None;
+			else gui.openTab = Tab.M;
+		}
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+			if (gui.openTab == Tab.C) gui.openTab = Tab.None;
+			else gui.openTab = Tab.C;
+		}
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+			if (gui.openTab == Tab.K) gui.openTab = Tab.None;
+			else gui.openTab = Tab.K;
+		}
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*3, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+			if (gui.openTab == Tab.I) gui.openTab = Tab.None;
+			else gui.openTab = Tab.I;
+		}
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+			if (gui.openTab == Tab.T) gui.openTab = Tab.None;
+			else gui.openTab = Tab.T;
+		}
 	}
 	
 	void OnGUI() {
@@ -842,9 +1239,17 @@ public class Unit : MonoBehaviour {
 		return targetSprite;
 	}
 
-	public virtual void initializeVariables() {
-		characterSheet = gameObject.GetComponent<Character>();
+	bool characterSheetLoaded = false;
+	public void loadCharacterSheet() {
+		if (characterSheetLoaded) return;
+		characterSheetLoaded = true;
+		characterSheet.loadData();
 		characterSheet.unit = this;
+	}
+
+	public virtual void initializeVariables() {
+//		characterSheet = gameObject.GetComponent<Character>();
+		loadCharacterSheet();
 		hitPoints = maxHitPoints;
 		moving = false;
 		attacking = false;

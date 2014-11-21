@@ -75,6 +75,14 @@ public class Character : MonoBehaviour
 
 	}
 
+	public virtual void loadData() {
+		Debug.Log("????");
+	}
+
+	public virtual void loadData(string textFile2) {
+		loadCharacterFromTextFile(textFile2);
+	}
+
 	public void loadCharacter(string firstName, string lastName, CharacterSex mCSex, CharacterRace mCRace, int age,
 	                   CharacterBackground mCBackground, int height, int weight, CharacterClass mCClass,
 	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed)
