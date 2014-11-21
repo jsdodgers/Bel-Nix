@@ -302,7 +302,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		currentUnit = -1;
 		nextPlayer();
-		Debug.Log (getCurrentUnit().characterName);
+	//	Debug.Log (getCurrentUnit().characterName);
 		moveCameraToSelected(true);
 		/*
 		string pathName = Application.dataPath + "/Resources/Maps/Tile Maps/" + tileMapName;
@@ -868,26 +868,18 @@ public class MapGenerator : MonoBehaviour {
 		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount != 2;
 		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount != 2;
 		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount != 2;
+		if (mouseDown || mouseUp)
+			Debug.Log("MouseDown: " + mouseDown + " MouseUp: " + mouseUp);
 		if (mouseDown) mouseDownGUI = isOnGUI;
 //		oldTouchCount = Input.touchCount;
 	}
 
 	void handleMouseClicks() {
-	/*	if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin) {
-			//	if (!selectedUnit || (!selectedUnit.moving && !selectedUnit.attacking)) {
-			if (selectedUnit && (!selectedUnit.moving && !selectedUnit.attacking)) {
-				if (selectedUnit!=null && currentGrid!=null) {
-					int x = (int)currentGrid.transform.localPosition.x;
-					int y = (int)currentGrid.transform.localPosition.y;
-				//	Player p = selectedPlayer.GetComponent<Player>();
-				
-			//		editingPath = true; // hoveredCharacter==null && (tiles[x,-y].canStandCurr || tiles[x,-y].canAttackCurr);//isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y);
-				}
-			}
-		}*/
+		handleMouseDown();
+		handleMouseUp();
+	}
 
-	//	Debug.Log("MouseDownRight: " + mouseDownRight + "  " + isOnGUI + "  " + normalDraggin);
-	//	if (mouseDownRight && !isOnGUI && !normalDraggin) {
+	void handleMouseDown() {
 		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
 			if (!shiftDown) {
 				deselectAllUnits();
@@ -905,7 +897,59 @@ public class MapGenerator : MonoBehaviour {
 				selectUnit(u, true);
 			}
 		}
-	//	if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
+	
+		
+		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
+			if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
+				if (lastHit) {
+					int posX = (int)lastHit.transform.localPosition.x;
+					int posY = -(int)lastHit.transform.localPosition.y;
+					
+					if (selectedUnit.attackEnemy) {
+						selectedUnit.attackEnemy.deselect();
+						selectedUnit.attackEnemy = null;
+					}
+					if (tiles[posX,posY].canAttackCurr) {
+						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
+						selectedUnit.setRotationToAttackEnemy();
+					}
+					if (selectedUnit.attackEnemy)
+						selectedUnit.attackEnemy.setTarget();
+				}
+			}
+		}
+		if ((normalDraggin && leftClickIsMakingSelection()) && !mouseDownGUI) {		
+			
+			int x = -1;
+			int y = 1;
+			if (currentGrid!=null) {
+				x = (int)currentGrid.transform.localPosition.x;
+				y = (int)currentGrid.transform.localPosition.y;
+			}
+			Vector2 v = new Vector2(x, -y);
+			
+			
+			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
+				//	Player p = selectedPlayer.GetComponent<Player>();
+				//Debug.Log(p.currentMoveDist + "     aaa!!");
+				if (gui.selectedMovement) {
+					resetPlayerPath();
+					if (!lastPlayerPathContains(v)) {
+						lastPlayerPath = selectedUnit.addPathTo(v);
+					}
+					else {
+						lastPlayerPath = selectedUnit.removeFromPathTo(v);
+					}
+					if (lastPlayerPath.Count > 1)
+						setPlayerPath(lastPlayerPath);
+					lastArrowPos = v;
+				}
+				
+			}
+		}
+	}
+
+	void handleMouseUp() {
 		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && leftClickIsMakingSelection()) {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
 			if (lastHit) {
 //				selectedUnit.attackEnemy = null;
@@ -956,54 +1000,6 @@ public class MapGenerator : MonoBehaviour {
 			}
 		//	editingPath = false;
 			lastArrowPos = new Vector2(-1000, -1000);
-		}
-		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
-				if (lastHit) {
-					int posX = (int)lastHit.transform.localPosition.x;
-					int posY = -(int)lastHit.transform.localPosition.y;
-
-					if (selectedUnit.attackEnemy) {
-						selectedUnit.attackEnemy.deselect();
-						selectedUnit.attackEnemy = null;
-					}
-					if (tiles[posX,posY].canAttackCurr) {
-						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
-						selectedUnit.setRotationToAttackEnemy();
-					}
-					if (selectedUnit.attackEnemy)
-						selectedUnit.attackEnemy.setTarget();
-				}
-			}
-		}
-		if ((normalDraggin && leftClickIsMakingSelection()) && !mouseDownGUI) {		
-		
-			int x = -1;
-			int y = 1;
-			if (currentGrid!=null) {
-				x = (int)currentGrid.transform.localPosition.x;
-				y = (int)currentGrid.transform.localPosition.y;
-			}
-			Vector2 v = new Vector2(x, -y);
-
-
-			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
-			//	Player p = selectedPlayer.GetComponent<Player>();
-				//Debug.Log(p.currentMoveDist + "     aaa!!");
-				if (gui.selectedMovement) {
-					resetPlayerPath();
-				if (!lastPlayerPathContains(v)) {
-					lastPlayerPath = selectedUnit.addPathTo(v);
-				}
-				else {
-					lastPlayerPath = selectedUnit.removeFromPathTo(v);
-				}
-				if (lastPlayerPath.Count > 1)
-					setPlayerPath(lastPlayerPath);
-				lastArrowPos = v;
-				}
-
-			}
 		}
 	}
 

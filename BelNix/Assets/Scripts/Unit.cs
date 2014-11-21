@@ -132,9 +132,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void addTrail() {
-		Debug.Log("Add Trail: " + characterName);
 		if (trail) {
-			Debug.Log("Has Trail");
 			setTrailRendererPosition();
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
 			tr.enabled = true;
