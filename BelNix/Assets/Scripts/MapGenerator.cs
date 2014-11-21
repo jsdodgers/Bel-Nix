@@ -18,6 +18,7 @@ public class MapGenerator : MonoBehaviour {
 	Camera mainCamera;
 	SpriteRenderer sprend;
 	Sprite spr;
+	float tapTime = 0.0f;
 
 	GameObject targetObject;
 
@@ -47,7 +48,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector2 startSquare;
 	Vector2 lastPosDrag;
 	Vector3 startSquareActual;
-
+	int oldTouchCount;
 //	bool editingPath = false;
 	Vector2 lastArrowPos = new Vector2(-1, -1);
 
@@ -63,6 +64,9 @@ public class MapGenerator : MonoBehaviour {
 	bool mouseRightDown;
 	bool mouseMiddleDown;
 	bool mouseDownGUI = false;
+	bool mouseDown;
+	bool mouseDownRight;
+	bool mouseUp;
 	
 	bool shiftDown;
 	bool altDown;
@@ -81,7 +85,12 @@ public class MapGenerator : MonoBehaviour {
 	bool rightDragginCancelled = false;
 	bool wasShiftRightDraggin = false;
 	bool shiftRightDragginCancelled = false;
+
+	float lastClickTime = 0.0f;
+	Tile lastClickTile = null;
+	float doubleClickTime = 0.25f;
 	
+
 	Vector3 lastPos = new Vector3(0.0f, 0.0f, 0.0f);
 	Vector3 cameraMoveToPos;
 	bool movingCamera;
@@ -220,7 +229,8 @@ public class MapGenerator : MonoBehaviour {
 			if (n!=0) after += "\n";
 			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getPriority();
 		}
-		StartCoroutine(importGrid());
+		importGrid();
+//		StartCoroutine(importGrid());
 		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
@@ -283,12 +293,25 @@ public class MapGenerator : MonoBehaviour {
 		return priorityOrder[currentUnit];
 	}
 
-	public IEnumerator importGrid() {
+	public void importGrid() {
+		string text = Resources.Load<TextAsset>("Maps/Tile Maps/" + tileMapName).text;// + ((tileMapName.Length >= 4 && tileMapName.EndsWith(".txt")) ? "" : ".txt")).text;
+		string[] tiles = text.Split(new char[]{';'});
+		if (int.Parse(tiles[1])==actualWidth && int.Parse(tiles[2])==actualHeight) {
+			////Debug.Log("Works!");
+			parseTiles(tiles);
+		}
+		currentUnit = -1;
+		nextPlayer();
+	//	Debug.Log (getCurrentUnit().characterName);
+		moveCameraToSelected(true);
+		/*
 		string pathName = Application.dataPath + "/Resources/Maps/Tile Maps/" + tileMapName;
 		if (!(tileMapName.Length >= 4 && tileMapName.EndsWith(".txt"))) {
 			pathName += ".txt";
 		}
+		Debug.Log(pathName);
 		if (File.Exists(pathName)) {
+			Debug.Log("File Exists");
 			//Debug.Log("Exists!");
 			WWW www = new WWW("file:///" + pathName);
 			yield return www;
@@ -300,8 +323,9 @@ public class MapGenerator : MonoBehaviour {
 			}
 			currentUnit = -1;
 			nextPlayer();
+			Debug.Log (getCurrentUnit().characterName);
 			moveCameraToSelected(true);
-		}
+		}*/
 	}
 	
 	void parseTiles(string[] tilesArr) {
@@ -377,10 +401,15 @@ public class MapGenerator : MonoBehaviour {
 
 	public void removeCharacter(Unit cs) {
 		int index = priorityOrder.IndexOf(cs);
-		if (index <= currentUnit) currentUnit--;
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
 		if (players.Contains(cs.gameObject)) players.Remove(cs.gameObject);
+		if (index < currentUnit) currentUnit--;
+		else if (index == currentUnit) {
+			currentUnit--;
+			gui.selectedMovement = false;
+			nextPlayer();
+		}
 	}
 
 	public bool hasEnemy(int x, int y, Unit cs) {
@@ -501,7 +530,7 @@ public class MapGenerator : MonoBehaviour {
 		//	go.renderer.sortingOrder = 2;
 		//	= GameObject.Instantiate(arrowStraightPrefab) as GameObject;
 			go.transform.parent = path.transform;
-			go.transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, 0.0f);
+			go.transform.localPosition = new Vector3(v.x + 0.5f - 1/64.0f, -v.y - 0.5f - 1/64.0f, 0.0f);
 
 			Tile t = tiles[(int)v0.x,(int)v0.y];
 			Direction direction = Direction.Left;
@@ -675,10 +704,11 @@ public class MapGenerator : MonoBehaviour {
 		handleGUIPos();
 		handleMouseScrollWheel();
 		handleKeys();
+		handleMouseButtons();
 		handleKeyPan();
+		handleMouseSelect();
 		handleMouseClicks();
 		handleMouseMovement();
-		handleMouseSelect();
 	}
 	
 
@@ -792,42 +822,65 @@ public class MapGenerator : MonoBehaviour {
 		return false;
 	}
 
-	void handleMouseClicks() {
-		wasShiftRightDraggin = shiftRightDraggin;
-		wasRightDraggin = rightDraggin;
-		if (escapeDown) {
-			if (rightDraggin) rightDragginCancelled = true;
-			rightDraggin = false;
-			if (shiftRightDraggin) shiftRightDragginCancelled = true;
-			shiftRightDraggin = false;
+	bool leftClickIsMakingSelection() {
+		return selectedUnit == getCurrentUnit() && selectedUnits.Count == 0 && guiSelectionType();
+	}
+
+	bool guiSelectionType() {
+		return (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack) ||
+			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep));
+	}
+
+
+	void handleMouseButtons() {
+		wasShiftRightDraggin = shiftDraggin;
+		wasRightDraggin = normalDraggin;
+		if (escapeDown && !leftClickIsMakingSelection()) {
+			if (normalDraggin) rightDragginCancelled = true;
+			normalDraggin = false;
+			if (shiftDraggin) shiftRightDragginCancelled = true;
+			shiftDraggin = false;
 		}
+		
 
 		mouseLeftDown = Input.GetMouseButton(0);
+		mouseMiddleDown = Input.GetMouseButton(2);
+		if (Input.touchCount == 2) Debug.Log("Time elapsed: " + (Time.time - tapTime));
+		if (!shiftDraggin && (!normalDraggin || Time.time - tapTime <= 0.25f) && !rightDraggin && !shiftRightDraggin) {
+		//	Debug.Log("Middle Set: " +   (middleDraggin && mouseMiddleDown) + "   "  + (!isOnGUI && Input.GetMouseButtonDown(2)) 
+			middleDraggin = (middleDraggin && (mouseMiddleDown || (mouseLeftDown && Input.touchCount == 2))) || (!isOnGUI && Input.GetMouseButtonDown(2)) || (!isOnGUI && (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && normalDraggin)) && (Input.touchCount >= 2 && (oldTouchCount == 2 || true)));
+			normalDraggin = normalDraggin && !middleDraggin;
+		}
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
-		if (!shiftDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)));
+		if (!shiftDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) {
+			if (normalDraggin && mouseLeftDown) {
+				normalDraggin = true;
+			}
+			else if (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(0)) {
+				normalDraggin = true;
+				tapTime = Time.time;
+			}
+			else normalDraggin = false;
+		}
 		mouseRightDown = Input.GetMouseButton(1);
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDraggin) shiftRightDraggin = ((shiftRightDraggin && mouseRightDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(1)));
 		if (!shiftDraggin && !middleDraggin && !normalDraggin && !shiftRightDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!isOnGUI && !shiftDown && Input.GetMouseButtonDown(1));
-		mouseMiddleDown = Input.GetMouseButton(2);
-		if (!shiftDraggin && !normalDraggin && !rightDraggin && !shiftRightDraggin) middleDraggin = (middleDraggin && mouseMiddleDown) || (!isOnGUI && Input.GetMouseButtonDown(2));
-		bool mouseDown = Input.GetMouseButtonDown(0);
-		bool mouseUp = Input.GetMouseButtonUp(0);
-		bool mouseDownRight = Input.GetMouseButtonDown(1);
+		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount != 2;
+		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount != 2;
+		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount != 2;
+		if (mouseDown || mouseUp)
+			Debug.Log("MouseDown: " + mouseDown + " MouseUp: " + mouseUp);
 		if (mouseDown) mouseDownGUI = isOnGUI;
-	/*	if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin) {
-			//	if (!selectedUnit || (!selectedUnit.moving && !selectedUnit.attacking)) {
-			if (selectedUnit && (!selectedUnit.moving && !selectedUnit.attacking)) {
-				if (selectedUnit!=null && currentGrid!=null) {
-					int x = (int)currentGrid.transform.localPosition.x;
-					int y = (int)currentGrid.transform.localPosition.y;
-				//	Player p = selectedPlayer.GetComponent<Player>();
-				
-			//		editingPath = true; // hoveredCharacter==null && (tiles[x,-y].canStandCurr || tiles[x,-y].canAttackCurr);//isInPlayerRadius(p, p.currentMoveDist + p.attackRange, x, -y);
-				}
-			}
-		}*/
-	//	Debug.Log("MouseDownRight: " + mouseDownRight + "  " + isOnGUI + "  " + normalDraggin);
-		if (mouseDownRight && !isOnGUI && !normalDraggin) {
+//		oldTouchCount = Input.touchCount;
+	}
+
+	void handleMouseClicks() {
+		handleMouseDown();
+		handleMouseUp();
+	}
+
+	void handleMouseDown() {
+		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
 			if (!shiftDown) {
 				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
@@ -844,54 +897,29 @@ public class MapGenerator : MonoBehaviour {
 				selectUnit(u, true);
 			}
 		}
-		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
-			if (selectedUnit && lastHit) {
-//				selectedUnit.attackEnemy = null;
-
-				int posX = (int)lastHit.transform.localPosition.x;
-				int posY = -(int)lastHit.transform.localPosition.y;
-				if (gui.selectedMovement) {
-				bool changed = false;
-				for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
-					Vector2 v = (Vector2)selectedUnit.currentPath[n];
-					if (!tiles[(int)v.x,(int)v.y].canStand()) {
-						changed = true;
-						selectedUnit.currentPath.RemoveAt(n);
-						selectedUnit.setPathCount();
+	
+		
+		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
+			if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
+				if (lastHit) {
+					int posX = (int)lastHit.transform.localPosition.x;
+					int posY = -(int)lastHit.transform.localPosition.y;
+					
+					if (selectedUnit.attackEnemy) {
+						selectedUnit.attackEnemy.deselect();
+						selectedUnit.attackEnemy = null;
 					}
-					else {
-						break;
-					}
-				}
-				if (changed) {
-					resetPlayerPath();
-					lastPlayerPath = selectedUnit.currentPath;
-					setPlayerPath(lastPlayerPath);
-				}
-			/*	if (lastPlayerPath.Count > 0) {
-					Vector2 last = (Vector2)lastPlayerPath[lastPlayerPath.Count-1];
-					if (Mathf.Abs((int)last.x - posX) + Mathf.Abs((int)last.y - posY) <= selectedUnit.attackRange) {
-						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
-					}
-				}*/
-				}
-				else if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
 					if (tiles[posX,posY].canAttackCurr) {
-						if (selectedUnit.attackEnemy)
-							selectedUnit.attackEnemy.deselect();
 						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 						selectedUnit.setRotationToAttackEnemy();
 					}
 					if (selectedUnit.attackEnemy)
 						selectedUnit.attackEnemy.setTarget();
 				}
-
 			}
-		//	editingPath = false;
-			lastArrowPos = new Vector2(-1000, -1000);
 		}
-		if (normalDraggin && !mouseDownGUI && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {		
-		
+		if ((normalDraggin && leftClickIsMakingSelection()) && !mouseDownGUI) {		
+			
 			int x = -1;
 			int y = 1;
 			if (currentGrid!=null) {
@@ -899,25 +927,79 @@ public class MapGenerator : MonoBehaviour {
 				y = (int)currentGrid.transform.localPosition.y;
 			}
 			Vector2 v = new Vector2(x, -y);
-
-
+			
+			
 			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
-			//	Player p = selectedPlayer.GetComponent<Player>();
+				//	Player p = selectedPlayer.GetComponent<Player>();
 				//Debug.Log(p.currentMoveDist + "     aaa!!");
 				if (gui.selectedMovement) {
 					resetPlayerPath();
-				if (!lastPlayerPathContains(v)) {
-					lastPlayerPath = selectedUnit.addPathTo(v);
+					if (!lastPlayerPathContains(v)) {
+						lastPlayerPath = selectedUnit.addPathTo(v);
+					}
+					else {
+						lastPlayerPath = selectedUnit.removeFromPathTo(v);
+					}
+					if (lastPlayerPath.Count > 1)
+						setPlayerPath(lastPlayerPath);
+					lastArrowPos = v;
 				}
-				else {
-					lastPlayerPath = selectedUnit.removeFromPathTo(v);
+				
+			}
+		}
+	}
+
+	void handleMouseUp() {
+		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && leftClickIsMakingSelection()) {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
+			if (lastHit) {
+//				selectedUnit.attackEnemy = null;
+
+				int posX = (int)lastHit.transform.localPosition.x;
+				int posY = -(int)lastHit.transform.localPosition.y;
+				if (gui.selectedMovement || (gui.selectedStandard && gui.selectedStandardType==StandardType.Attack)) {
+					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
+						if (gui.selectedMovement) {
+							if (tiles[posX, posY].getCharacter() != selectedUnit) {
+								selectedUnit.startMoving(gui.selectedMovementType==MovementType.BackStep);
+							}
+						}
+						else if (gui.selectedStandard) {
+							if (selectedUnit.attackEnemy) {
+								selectedUnit.startAttacking();
+							}
+						}
+					}
 				}
-				if (lastPlayerPath.Count > 1)
-					setPlayerPath(lastPlayerPath);
-				lastArrowPos = v;
+				if (gui.selectedMovement) {
+					bool changed = false;
+					for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
+						Vector2 v = (Vector2)selectedUnit.currentPath[n];
+						if (!tiles[(int)v.x,(int)v.y].canStand()) {
+							changed = true;
+							selectedUnit.currentPath.RemoveAt(n);
+							selectedUnit.setPathCount();
+						}
+						else {
+							break;
+						}
+					}
+					if (changed) {
+						resetPlayerPath();
+						lastPlayerPath = selectedUnit.currentPath;
+						setPlayerPath(lastPlayerPath);
+					}
+					Vector2 v2 = (Vector2)lastPlayerPath[lastPlayerPath.Count-1];
+					lastClickTile = tiles[(int)v2.x,(int)v2.y];
+					lastClickTime = Time.time;
+				}
+				else if (gui.selectedStandard == true && gui.selectedStandardType == StandardType.Attack) {
+					lastClickTile = tiles[posX, posY];
+					lastClickTime = Time.time;
 				}
 
 			}
+		//	editingPath = false;
+			lastArrowPos = new Vector2(-1000, -1000);
 		}
 	}
 
@@ -1080,7 +1162,7 @@ public class MapGenerator : MonoBehaviour {
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = mainCamera.ScreenToWorldPoint(mPos);
-		if ((middleDraggin || scrolled || shiftDraggin || Input.touchCount == 2) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (((middleDraggin && Input.touchCount == oldTouchCount) || scrolled || rightDraggin) && !movingCamera) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
 			//= mainCamera.WorldToScreenPoint(cameraTransform.position);
 			if (!Input.GetMouseButtonDown(0) || scrolled) {
 				float xDiff = pos1.x - lastPos.x;
@@ -1096,6 +1178,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		lastPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+		oldTouchCount = Input.touchCount;
 	}
 
 	void handleKeyPan() {
@@ -1138,7 +1221,8 @@ public class MapGenerator : MonoBehaviour {
 	
 	
 	void handleMouseSelect() {
-		if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI)) {
+	//	if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI)) {
+		if (!leftClickIsMakingSelection() && (shiftDraggin || normalDraggin) && ((wasRightDraggin || wasShiftRightDraggin) || !isOnGUI)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -1189,7 +1273,7 @@ public class MapGenerator : MonoBehaviour {
 		//	mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
 		//	mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
 		}
-		else if (rightDragginCancelled || shiftRightDragginCancelled) {
+		else if (!leftClickIsMakingSelection() && (rightDragginCancelled || shiftRightDragginCancelled)) {
 			Destroy(mouseOver);
 			mouseOver = null;
 			if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
@@ -1199,7 +1283,7 @@ public class MapGenerator : MonoBehaviour {
 	//		Destroy(mouseOver2);
 	//		mouseOver2 = null;
 		}
-		else if (wasRightDraggin || wasShiftRightDraggin) {
+		else if (!leftClickIsMakingSelection() && (wasRightDraggin || wasShiftRightDraggin)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -1220,7 +1304,7 @@ public class MapGenerator : MonoBehaviour {
 			mouseOver = null;
 	//		Destroy(mouseOver2);
 	//		mouseOver2 = null;
-			Debug.Log(min + "   " + max);
+	//		Debug.Log(min + "   " + max);
 			if (Mathf.Abs (v3.x - startSquare.x) >= 0.0001f || Mathf.Abs(v3.y - startSquare.y) >= 0.0001f) {
 				for (int n = (int)min.x; n <= (int)max.x;n++) {
 					if (n >= 0 && n < actualWidth) {
@@ -1266,9 +1350,9 @@ public class MapGenerator : MonoBehaviour {
 				}*/
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
-				if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
+			//	if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
 				//	setAroundCharacter(hoveredCharacter);
-				}
+			//	}
 
 			}
 			if (middleDraggin) {
@@ -1287,7 +1371,8 @@ public class MapGenerator : MonoBehaviour {
 						}
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
-						if (!(rightDraggin || shiftRightDraggin)) {
+					//	if (!(rightDraggin || shiftRightDraggin)) {
+						if (!((normalDraggin || shiftDraggin) && !leftClickIsMakingSelection())) {
 							setCurrentSpriteColor();
 						}
 					}

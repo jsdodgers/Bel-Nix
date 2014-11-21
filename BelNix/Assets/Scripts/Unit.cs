@@ -18,11 +18,11 @@ public class Unit : MonoBehaviour {
 	public int hitPoints;
 	public bool died = false;
 	public float dieTime = 0;
-	
+
 	
 	public Unit attackedByCharacter = null;
 
-	Transform trail;
+	public Transform trail;
 	public MapGenerator mapGenerator;
 	public int moveDistLeft = 5;
 	public int currentMoveDist = 5;
@@ -52,6 +52,8 @@ public class Unit : MonoBehaviour {
 	public bool isTarget;
 	SpriteRenderer targetSprite;
 	public bool doAttOpp = true;
+
+	public GameObject damagePrefab;
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -92,23 +94,23 @@ public class Unit : MonoBehaviour {
 	public void setSelected() {
 		isSelected = true;
 		isTarget = false;
-		targetSprite.enabled = true;
-		targetSprite.color = Color.white;
+		getTargetSprite().enabled = true;
+		getTargetSprite().color = Color.white;
 		setTargetObjectScale();
 	}
 
 	public void setTarget() {
 		isSelected = false;
 		isTarget = true;
-		targetSprite.enabled = true;
-		targetSprite.color = Color.red;
+		getTargetSprite().enabled = true;
+		getTargetSprite().color = Color.red;
 		setTargetObjectScale();
 	}
 
 	public void deselect() {
 		isSelected = false;
 		isTarget = false;
-		targetSprite.enabled = false;
+		getTargetSprite().enabled = false;
 	}
 
 	public void setCurrent() {
@@ -163,7 +165,7 @@ public class Unit : MonoBehaviour {
 			float speed = 3.0f;
 			float addedScale = Mathf.Sin(Time.time * speed) * factor;
 			float scale = 1.0f + factor + addedScale;
-			targetSprite.transform.localScale = new Vector3(scale, scale, 1.0f);
+			getTargetSprite().transform.localScale = new Vector3(scale, scale, 1.0f);
 		}
 	}
 
@@ -217,7 +219,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void resetPath() {
-		Debug.Log("reset path");
+//		Debug.Log("reset path");
 		currentMaxPath = 0;
 		currentPath = new ArrayList();
 		currentPath.Add(new Vector2(position.x, -position.y));
@@ -253,7 +255,7 @@ public class Unit : MonoBehaviour {
 		//			foreach (Vector2 v in newObjs) {
 		//				currentPath.Add(v);
 		//			}
-		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
+//		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
 		currentPath = calculatePathSubtractive((ArrayList)currentPath.Clone(), pos, currentMoveDist - currentMaxPath);
 		setPathCount();
 		//		}
@@ -396,7 +398,10 @@ public class Unit : MonoBehaviour {
 	void dealDamage() {
 		int hit = Random.Range(1,21);
 		int wapoon = characterSheet.mainHand.rollDamage();
-		if (hit >= gameObject.GetComponent<CharacterLoadout>().getAC())
+		bool didHit = hit >= gameObject.GetComponent<CharacterLoadout>().getAC();
+		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+		damageDisplay.begin(wapoon, didHit, attackEnemy);
+		if (didHit)
 			attackEnemy.damage(wapoon);
 		if (!attackEnemy.moving) {
 			attackEnemy.attackedByCharacter = this;
@@ -408,14 +413,27 @@ public class Unit : MonoBehaviour {
 			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
 		}
 		Debug.Log((hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
+//		damageDisplay.begin(
+	}
+
+	public int damageNumber = 0;
+
+	public void addDamageDisplay() {
+		damageNumber++;
+	}
+
+	public void removeDamageDisplay() {
+		damageNumber--;
 	}
 
 
-
-	
-	GUIStyle redStyle = null;
-	GUIStyle greenStyle = null;
-	
+	static float redStyleWidth = 0.0f;
+	static float greenStyleWidth = 0.0f;
+	static float healthHeight = 15.0f;
+	static GUIStyle redStyle = null;
+	static GUIStyle greenStyle = null;
+	static Texture2D[] greenTextures;
+	/*
 	void createStyle() {
 		if (redStyle == null) {
 			redStyle = new GUIStyle(GUI.skin.box);
@@ -423,24 +441,60 @@ public class Unit : MonoBehaviour {
 		if (greenStyle == null) {
 			greenStyle = new GUIStyle(GUI.skin.box);
 		}
+	}*/
+
+	GUIStyle getRedStyle(float width) {
+		if (redStyle == null) {
+			redStyle = new GUIStyle("box");
+		}
+		if (width != redStyleWidth) {
+			redStyleWidth = width;
+			redStyle.normal.background = makeTex((int)width, (int)healthHeight, Color.red);
+		}
+		return redStyle;
+	}
+
+	GUIStyle getGreenStyle(int width) {
+		if (greenStyle == null) {
+			greenStyle = new GUIStyle("box");
+		}
+		if (greenTextures == null || greenTextures.Length != (int)Screen.width) {
+			Texture2D[] tex = new Texture2D[(int)Screen.width];
+			for (int n=0;n<Mathf.Min(tex.Length, (greenTextures != null ? greenTextures.Length : 0)); n++) {
+				tex[n] = greenTextures[n];
+			}
+			greenTextures = tex;
+		}
+		if (greenTextures[width] == null) {
+			greenTextures[width] = makeTex((int)width, (int)healthHeight, Color.green);
+		}
+		if (greenStyleWidth != width) {
+			greenStyle.normal.background = greenTextures[width];
+			greenStyleWidth = width;
+		}
+		return greenStyle;
 	}
 	
 	void OnGUI() {
-		if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
+//		return;
+	//	if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
+		if (mapGenerator.selectedUnit == this || (mapGenerator.selectedUnit && mapGenerator.selectedUnit.attackEnemy == this)) {
 			float totalWidth = Screen.width * 0.7f;
 			float x = (Screen.width - totalWidth)/2.0f;
-			float y = 10.0f;
-			float height = 15.0f;
-			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)attackEnemy.hitPoints)/((float)attackEnemy.maxHitPoints)), 0.0f), totalWidth);
+			float y = 10.0f + (mapGenerator.selectedUnit == this ? 0.0f : healthHeight + 10.0f);
+			float height = healthHeight;
+			//			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)attackEnemy.hitPoints)/((float)attackEnemy.maxHitPoints)), 0.0f), totalWidth);
+			float healthWidth = Mathf.Min(Mathf.Max(totalWidth * (((float)hitPoints)/((float)maxHitPoints)), 0.0f), totalWidth);
 			//	GUI.BeginGroup(new Rect(x, y, totalWidth, height));
-			createStyle();
-			redStyle.normal.background = makeTex((int)totalWidth, (int)height, Color.red);
-			GUI.Box(new Rect(x, y, totalWidth, height), "", redStyle);
+		//	createStyle();
+		//	redStyle.normal.background = makeTex((int)totalWidth, (int)height, Color.red);
+			GUIStyle red = getRedStyle(totalWidth);
+			GUI.Box(new Rect(x, y, totalWidth, height), "", red);
 			//	currentStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green)
 			//			if (heal
 			if (healthWidth > 0) {
-				greenStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green);
-				GUI.Box(new Rect(x, y, healthWidth, height), "", greenStyle);
+				//greenStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green);
+				GUI.Box(new Rect(x, y, healthWidth, height), "", getGreenStyle((int)healthWidth));
 			}
 			//	GUI.EndGroup();
 		}
@@ -516,7 +570,7 @@ public class Unit : MonoBehaviour {
 		float m = move1;
 		float d = difference1;
 		if (difference2 < d) {// || difference1 > 180.0f) {
-			Debug.Log("Use 2!!");
+	//		Debug.Log("Use 2!!");
 			s = sign2;
 			m = move2;
 			d = difference2;
@@ -572,7 +626,12 @@ public class Unit : MonoBehaviour {
 		return move;
 	}
 
-
+	public void startAttacking() {
+		if (attackEnemy!=null && !moving) {
+			attacking = true;
+		}
+	}
+	
 	public void startMoving(bool backStepping) {
 		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
@@ -674,6 +733,13 @@ public class Unit : MonoBehaviour {
 		initializeVariables();
 	}
 
+	public SpriteRenderer getTargetSprite() {
+		if (targetSprite == null) {
+			targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
+		}
+		return targetSprite;
+	}
+
 	public virtual void initializeVariables() {
 		characterSheet = gameObject.GetComponent<Character>();
 		hitPoints = maxHitPoints;
@@ -688,14 +754,22 @@ public class Unit : MonoBehaviour {
 		moveDistLeft = 5;
 		anim = gameObject.GetComponent<Animator>();
 		currentMaxPath = 0;
-		Debug.Log("Children: " + transform.childCount + "  Team: " + team);
-		targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
-		trail = transform.FindChild("Trail");
+	//	Debug.Log("Children: " + transform.childCount + "  Team: " + team);
+	//	trail = transform.FindChild("Trail");
 		if (trail) {
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
 			tr.sortingOrder = 7;
 		}
-		deselect();
+		if (isCurrent) {
+			addTrail();
+		}
+//		if (isSelected) {
+//			setSelected();
+//		}
+//		else if (isTarget) {
+//			setTarget();
+//		}
+//		deselect();
 //		resetPath();
 	}
 	
