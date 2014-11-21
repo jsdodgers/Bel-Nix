@@ -143,7 +143,7 @@ public class Unit : MonoBehaviour {
 	
 	IEnumerator resetTrailDist() {
 		yield return new WaitForSeconds(.1f);
-		trail.GetComponent<TrailRenderer>().time=2.2f;
+		trail.GetComponent<TrailRenderer>().time=1.0f;//2.2f;
 		
 	}
 
