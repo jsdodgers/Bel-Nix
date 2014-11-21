@@ -9,7 +9,6 @@ public class GraphicalUserInterface : MonoBehaviour
 	public string[] cCProgression = new string[] {"Personal Information"};
 	int cCProgressionSelect = 0;
 	//bool abilityScoresHasBeenTriggered, skillsHasBeenTriggered, talentHasBeenTriggered = false;
-	bool hasLastName = true;
 	public string[] sex = new string[] {"Male", "Female"};
 	public string[] race = new string[] {"Berrind", "Ashpian", "Rorrul"};
 	public string[] backgroundBerrind = new string[] {"Fallen Noble", "White Gem"};
@@ -253,11 +252,8 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Personal Information");
 				GUI.Box(new Rect(10, calculateBoxHeight(3), 250, 20), "First Name:");
 				characterName = GUI.TextField(new Rect(260, calculateBoxHeight(3), 250, 20), characterName);
-				hasLastName = GUI.Toggle(new Rect(10, calculateBoxHeight(4), 20, 20), hasLastName, "");
-				GUI.enabled = hasLastName;
-				GUI.Box(new Rect(30, calculateBoxHeight(4), 230, 20), "Last Name:");
+				GUI.Box(new Rect(10, calculateBoxHeight(4), 230, 20), "Last Name:");
 				characterLastName = GUI.TextField(new Rect(260, calculateBoxHeight(4), 250, 20), characterLastName);
-				GUI.enabled = true;
 				GUI.Box(new Rect(10, calculateBoxHeight(5), 250, 20), "Sex:");
 				sexSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(5), 250, 20),sexSelect, sex, 2);
 				GUI.Box(new Rect(10, calculateBoxHeight(6), 250, 20), "Race:");
@@ -699,11 +695,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		//Adding player first name.
 		characterStr += characterName + delimiter;
 		//If the player has a last name, add it.
-		characterStr += hasLastName.ToString() + delimiter;
-		if(hasLastName)
-		{
-			characterStr += characterLastName + delimiter;
-		}
+		characterStr += characterLastName + delimiter;
 		//sexSelect 0 = Male, 1 = Female
 		characterStr += sexSelect.ToString() + delimiter;
 		//raceSelect 0 = Berrind, 1 = Ashpian, 2 = Rorrul
