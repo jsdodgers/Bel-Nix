@@ -619,6 +619,14 @@ public class Unit : MonoBehaviour {
 		}
 		return skillsMidSectionTexture;
 	}
+
+	static Texture2D inventoryBackgroundTexture = null;
+	Texture2D getInventoryBackgroundTexture() {
+		if (inventoryBackgroundTexture == null) {
+			inventoryBackgroundTexture = makeTexBorder((int)inventoryWidth, (int)inventoryHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return inventoryBackgroundTexture;
+	}
 	
 	Texture2D makeTexBanner( int width, int height, Color col )
 	{
@@ -808,6 +816,8 @@ public class Unit : MonoBehaviour {
 	const float characterStatsHeight = 250.0f;
 	const float skillsWidth = 225.0f;
 	const float skillsHeight = paperDollFullHeight;
+	const float inventoryWidth = 300.0f;
+	const float inventoryHeight = paperDollFullHeight;
 	public bool guiContainsMouse(Vector2 mousePos) {
 		if (gui.openTab == Tab.None) {
 			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
@@ -824,6 +834,8 @@ public class Unit : MonoBehaviour {
 				return fullCRect().Contains(mousePos);
 			case Tab.K:
 				return fullKRect().Contains(mousePos);
+			case Tab.I:
+				return fullIRect().Contains(mousePos);
 			default:
 				return false;
 			}
@@ -847,6 +859,9 @@ public class Unit : MonoBehaviour {
 	}
 	public Rect fullKRect() {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, skillsWidth, skillsHeight);
+	}
+	public Rect fullIRect() {
+		return new Rect(paperDollFullWidth - 1.0f, 0.0f, inventoryWidth, inventoryHeight);
 	}
 
 	public void drawGUI() {
@@ -1101,7 +1116,7 @@ public class Unit : MonoBehaviour {
 			GUIStyle titleStyle = getTitleTextStyle();
 			GUIContent skills = new GUIContent("Skills");
 			Vector2 skillSize = titleStyle.CalcSize(skills);
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - 1.0f - skillSize.x)/2.0f, 0.0f, skillSize.x, skillSize.y), skills, titleStyle);
+			GUI.Label(new Rect(paperDollFullWidth + (skillsWidth - 1.0f - skillSize.x)/2.0f, 0.0f, skillSize.x, skillSize.y), skills, titleStyle);
 			string[] skillCategories = new string[]{"Physique", "Prowess", "Mastery", "Knowledge"};
 			string[] skillNames = new string[]{"Athletics","Melee","Ranged","Stealth","Mechanical","Medicinal","Historical","Political"};
 			string[] skillScores = new string[]{"" + characterSheet.skillScores.getScore(Skill.Athletics),"" + characterSheet.skillScores.getScore(Skill.Melee),"" + characterSheet.skillScores.getScore(Skill.Ranged),"" + characterSheet.skillScores.getScore(Skill.Stealth),"" + characterSheet.skillScores.getScore(Skill.Mechanical),"" + characterSheet.skillScores.getScore(Skill.Medicinal),"" + characterSheet.skillScores.getScore(Skill.Historical),"" + characterSheet.skillScores.getScore(Skill.Political)};
@@ -1154,6 +1169,17 @@ public class Unit : MonoBehaviour {
 				y += featuresHeight;
 			}
 			GUI.EndScrollView();
+		}
+		else if (gui.openTab == Tab.I) {
+			GUI.DrawTexture(fullIRect(), getInventoryBackgroundTexture());
+			GUIStyle titleStyle = getTitleTextStyle();
+			GUIContent armour = new GUIContent("Armour");
+			Vector2 armourSize = titleStyle.CalcSize(armour);
+			GUI.Label(new Rect(paperDollFullWidth - 1.0f + inventoryWidth/3.0f - armourSize.x/2.0f, 0.0f, armourSize.x, armourSize.y), armour, titleStyle);
+			GUIContent inventory = new GUIContent("Inventroy");
+			Vector2 inventorySize = titleStyle.CalcSize(inventory);
+			GUI.Label(new Rect(paperDollFullWidth - 1.0f + inventoryWidth*2.0f/3.0f - inventorySize.x/2.0f, 0.0f, inventorySize.x, inventorySize.y), inventory, titleStyle);
+
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			if (gui.openTab == Tab.M) gui.openTab = Tab.None;

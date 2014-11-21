@@ -765,6 +765,9 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.T)) {
 			gui.openTab = (gui.openTab==Tab.T ? Tab.None : Tab.T);
 		}
+		if (Input.GetKeyDown(KeyCode.Escape) && !normalDraggin && !shiftDraggin) {
+			gui.openTab = Tab.None;
+		}
 		handleArrows();
 		handleSpace();
 	}
