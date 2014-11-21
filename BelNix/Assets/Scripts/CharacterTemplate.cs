@@ -14,6 +14,7 @@ public class CharacterTemplate : Character
 	public int age;
 	public int height, weight;
 	public int mClevel;
+	public int mCexperience;
 	public ClassName mCClassName;
 	public int mCSturdy, mCPerception, mCTechnique, mCWellVersed;
 
@@ -42,6 +43,9 @@ public class CharacterTemplate : Character
 			loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
 			              mCSturdy, mCPerception, mCTechnique, mCWellVersed);
+			int level = characterProgress.setLevel(mClevel);
+			int experience = characterProgress.setExperience(mCexperience);
+			Debug.Log("level: " + level + "  experience: " + experience);
 		}
 	}
 	

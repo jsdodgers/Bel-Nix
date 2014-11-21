@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using CharacterInfo;
 
@@ -17,8 +17,9 @@ public class Unit : MonoBehaviour {
 	public int hitPoints;
 	public bool died = false;
 	public float dieTime = 0;
-	Vector2 turnOrderScrollPos = new Vector2(0.0f, 0.0f);
-	
+	static Vector2 turnOrderScrollPos = new Vector2(0.0f, 0.0f);
+	Vector2 classFeaturesScrollPos = new Vector2(0.0f, 0.0f);
+
 	public Unit attackedByCharacter = null;
 
 	public Transform trail;
@@ -170,6 +171,18 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void setCircleScale() {
+		if (isHovering) {
+			float factor = 1.0f/10.0f;
+			float speed = 3.0f;
+			float addedScale = Mathf.Sin(Time.time * speed) * factor;
+			float scale = 1.0f + factor + addedScale;
+			getCircleSprite().transform.localScale = new Vector3(scale, scale, 1.0f);
+		}
+		else {
+			getCircleSprite().transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+		}
+	}
 
 	public virtual void setPosition(Vector3 position) {
 
@@ -401,10 +414,11 @@ public class Unit : MonoBehaviour {
 		Hit hit = characterSheet.rollHit();
 		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
 		Hit critHit = characterSheet.rollHit();
-		int wapoon = characterSheet.rollDamage(hit.crit && critHit.hit  >= enemyAC);//.characterLoadout.rightHand.rollDamage();
+		bool crit = hit.crit && critHit.hit  >= enemyAC;
+		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
-		damageDisplay.begin(wapoon, didHit, attackEnemy);
+		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
 		if (didHit)
 			attackEnemy.damage(wapoon);
 		if (!attackEnemy.moving) {
@@ -581,6 +595,30 @@ public class Unit : MonoBehaviour {
 		}
 		return turnOrderSectionBackgroundTextureEnemy;
 	}
+
+	static Texture2D characterStatsBackgroundTexture = null;
+	Texture2D getCharacterStatsBackgroundTexture() {
+		if (characterStatsBackgroundTexture == null) {
+			characterStatsBackgroundTexture = makeTexBorder((int)characterStatsWidth, (int)characterStatsHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return characterStatsBackgroundTexture;
+	}
+
+	static Texture2D skillsBackgroundTexture = null;
+	Texture2D getSkillsBackgroundTexture() {
+		if (skillsBackgroundTexture == null) {
+			skillsBackgroundTexture = makeTexBorder((int)skillsWidth, (int)skillsHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return skillsBackgroundTexture;
+	}
+
+	static Texture2D skillsMidSectionTexture = null;
+	Texture2D getSkillsMidSectionTexture() {
+		if (skillsMidSectionTexture == null) {
+			skillsMidSectionTexture = makeTex((int)skillsWidth, 2, new Color(0.08f, 0.08f, 0.2f));
+		}
+		return skillsMidSectionTexture;
+	}
 	
 	Texture2D makeTexBanner( int width, int height, Color col )
 	{
@@ -704,6 +742,44 @@ public class Unit : MonoBehaviour {
 		return selectedMissionButtonStyle;
 	}
 
+	static GUIStyle turnOrderNameStyle;
+	static GUIStyle turnOrderNameStyleEnemy;
+	GUIStyle getTurnOrderNameStyle(Unit u) {
+		if (u.team == 0) {
+			if (turnOrderNameStyle == null) {
+				turnOrderNameStyle = new GUIStyle("button");
+				turnOrderNameStyle.normal.background = turnOrderNameStyle.hover.background = turnOrderNameStyle.active.background = getTurnOrderNameBackgroundTexture();
+			}
+			return turnOrderNameStyle;
+		}
+		else {
+			if (turnOrderNameStyleEnemy == null) {
+				turnOrderNameStyleEnemy = new GUIStyle("button");
+				turnOrderNameStyleEnemy.normal.background = turnOrderNameStyleEnemy.hover.background = turnOrderNameStyleEnemy.active.background = getTurnOrderNameBackgroundTextureEnemy();
+			}
+			return turnOrderNameStyleEnemy;
+		}
+	}
+
+	static GUIStyle turnOrderSectionStyle;
+	static GUIStyle turnOrderSectionStyleEnemy;
+	GUIStyle getTurnOrderSectionStyle(Unit u) {
+		if (u.team == 0) {
+			if (turnOrderSectionStyle == null) {
+				turnOrderSectionStyle = new GUIStyle("button");
+				turnOrderSectionStyle.normal.background = turnOrderSectionStyle.hover.background = turnOrderSectionStyle.active.background = getTurnOrderSectionBackgroundTexture();
+			}
+			return turnOrderSectionStyle;
+		}
+		else {
+			if (turnOrderSectionStyleEnemy == null) {
+				turnOrderSectionStyleEnemy = new GUIStyle("button");
+				turnOrderSectionStyleEnemy.normal.background = turnOrderSectionStyleEnemy.hover.background = turnOrderSectionStyleEnemy.active.background = getTurnOrderSectionBackgroundTextureEnemy();
+			}
+			return turnOrderSectionStyleEnemy;
+		}
+	}
+
 	static GUIStyle playerInfoStyle;
 	GUIStyle getPlayerInfoStyle() {
 		if (playerInfoStyle == null) {
@@ -728,6 +804,10 @@ public class Unit : MonoBehaviour {
 	const float turnOrderSectionHeight = 30.0f;
 	const float turnOrderTableX = 15.0f;
 	const float turnOrderNameWidth = turnOrderWidth - turnOrderTableX * 2 - turnOrderSectionHeight * 2 - 1.0f;
+	const float characterStatsWidth = 150.0f;
+	const float characterStatsHeight = 250.0f;
+	const float skillsWidth = 225.0f;
+	const float skillsHeight = paperDollFullHeight;
 	public bool guiContainsMouse(Vector2 mousePos) {
 		if (gui.openTab == Tab.None) {
 			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
@@ -740,6 +820,10 @@ public class Unit : MonoBehaviour {
 				return fullMRect().Contains(mousePos);
 			case Tab.T:
 				return fullTRect().Contains(mousePos);
+			case Tab.C:
+				return fullCRect().Contains(mousePos);
+			case Tab.K:
+				return fullKRect().Contains(mousePos);
 			default:
 				return false;
 			}
@@ -757,6 +841,12 @@ public class Unit : MonoBehaviour {
 	}
 	public Rect fullTRect() {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, turnOrderWidth, paperDollFullHeight);
+	}
+	public Rect fullCRect() {
+		return new Rect(paperDollFullWidth - 1.0f, 0.0f, characterStatsWidth, characterStatsHeight);
+	}
+	public Rect fullKRect() {
+		return new Rect(paperDollFullWidth - 1.0f, 0.0f, skillsWidth, skillsHeight);
 	}
 
 	public void drawGUI() {
@@ -908,7 +998,7 @@ public class Unit : MonoBehaviour {
 
 			GUIStyle st = getPlayerInfoStyle();
 			st.wordWrap = false;
-			float x = paperDollFullWidth + turnOrderTableX;
+			float x = paperDollFullWidth + turnOrderTableX - 5.0f;
 			GUIContent num = new GUIContent("Pos");
 			Vector2 numSize = st.CalcSize(num);
 			GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
@@ -924,22 +1014,31 @@ public class Unit : MonoBehaviour {
 			for (int n=0;n<numPlayers;n++) {
 				int playerNum = (n + currentPlayer) % numPlayers;
 				Unit player = mapGenerator.priorityOrder[playerNum];
-				x = paperDollFullWidth + turnOrderTableX;
+				x = paperDollFullWidth + turnOrderTableX - 5.0f;
 				Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
 			//	Rect r2 = new Rect(x + (turnOrderSectionHeight
-				GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+			//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
+					selectUnit(player);
+				}
 				num = new GUIContent("" + (playerNum + 1));
 				numSize = st.CalcSize(num);
 				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
 				x += turnOrderSectionHeight - 1.0f;
 				r = new Rect(x, y, turnOrderNameWidth, turnOrderSectionHeight);
-				GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderNameBackgroundTexture() : getTurnOrderNameBackgroundTextureEnemy()));
+			//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderNameBackgroundTexture() : getTurnOrderNameBackgroundTextureEnemy()));
+				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderNameStyle(player))) {
+					selectUnit(player);
+				}
 				name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
 				nameSize = st.CalcSize(name);
 				GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
 				x += turnOrderNameWidth - 1.0f;
 				r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
-				GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+			//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
+					selectUnit(player);
+				}
 				initiative = new GUIContent(player.getInitiative() + "");
 				initiativeSize = st.CalcSize(initiative);
 				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
@@ -947,8 +1046,114 @@ public class Unit : MonoBehaviour {
 			}
 
 			GUI.EndScrollView();
-
-
+		}
+		else if (gui.openTab == Tab.C) {
+			GUI.DrawTexture(fullCRect(), getCharacterStatsBackgroundTexture());
+			GUIStyle titleStyle = getTitleTextStyle();
+			GUIContent characterStats = new GUIContent("Character Stats");
+			Vector2 characterStatsSize = titleStyle.CalcSize(characterStats);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - 1.0f - characterStatsSize.x)/2.0f, 0.0f, characterStatsSize.x, characterStatsSize.y), characterStats, titleStyle);
+		//	float y = turnOrderSize.y;
+			float statX = paperDollFullWidth + 10.0f;
+			float statWidth = 40.0f;
+			float baseX = statX + statWidth;
+			float baseWidth = 40.0f;
+			float modX = baseX + baseWidth;
+			float modWidth = baseWidth;
+			float y = characterStatsSize.y + 5.0f;
+			GUIStyle st = getPlayerInfoStyle();
+			string[] stats = new string[]{"", "STR", "PER", "TEC", "W-VER"};
+			string[] bases = new string[]{"Base", "" + characterSheet.abilityScores.getSturdy(), "" + characterSheet.abilityScores.getPerception(), "" + characterSheet.abilityScores.getTechnique(), "" + characterSheet.abilityScores.getWellVersed()};
+			string[] mods = new string[]{"Mod", "" + characterSheet.combatScores.getInitiative(), "" + characterSheet.combatScores.getCritical(), "" + characterSheet.combatScores.getHandling(), "" + characterSheet.combatScores.getDominion()};
+			for (int n=0;n<stats.Length;n++) {
+				GUIContent stat = new GUIContent(stats[n]);
+				Vector2 statSize = st.CalcSize(stat);
+				GUI.Label(new Rect(statX + (statWidth - statSize.x)/2.0f, y, statSize.x, statSize.y), stat, st);
+				GUIContent baseContent = new GUIContent(bases[n]);
+				Vector2 baseSize = st.CalcSize(baseContent);
+				GUI.Label(new Rect(baseX + (baseWidth - baseSize.x)/2.0f, y, baseSize.x, baseSize.y), baseContent, st);
+				GUIContent mod = new GUIContent(mods[n]);
+				Vector2 modSize = st.CalcSize(mod);
+				GUI.Label(new Rect(modX + (modWidth - modSize.x)/2.0f, y, modSize.x, modSize.y), mod, st);
+				y += Mathf.Max(new float[]{statSize.y, modSize.y, baseSize.y});
+			}
+			y += 10.0f;
+			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterLoadout.getAC());
+			Vector2 armorClassSize = st.CalcSize(armorClass);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClass, st);
+			y += armorClassSize.y + 10.0f;
+			GUIContent healthTitle = new GUIContent("Health");
+			GUIContent healthAmount = new GUIContent(characterSheet.combatScores.getMaxHealth() + "");
+			GUIContent composureTitle = new GUIContent("Composure");
+			GUIContent composureAmount = new GUIContent(characterSheet.combatScores.getMaxComposure() + "");
+			Vector2 healthTitleSize = st.CalcSize(healthTitle);
+			Vector2 healthSize = st.CalcSize(healthAmount);
+			Vector2 composureTitleSize = st.CalcSize(composureTitle);
+			Vector2 composureSize = st.CalcSize(composureAmount);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth/4.0f - healthTitleSize.x/2.0f), y, healthTitleSize.x, healthTitleSize.y), healthTitle, st);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth*2.0f/3.0f - composureTitleSize.x/2.0f), y, composureTitleSize.x, composureTitleSize.y), composureTitle, st);
+			y += healthTitleSize.y;
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth/4.0f - healthSize.x/2.0f), y, healthSize.x, healthSize.y), healthAmount, st);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth*2.0f/3.0f - composureSize.x/2.0f), y, composureSize.x, composureSize.y), composureAmount, st);
+		}
+		else if (gui.openTab == Tab.K) {
+			GUI.DrawTexture(fullKRect(), getSkillsBackgroundTexture());
+			GUIStyle titleStyle = getTitleTextStyle();
+			GUIContent skills = new GUIContent("Skills");
+			Vector2 skillSize = titleStyle.CalcSize(skills);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - 1.0f - skillSize.x)/2.0f, 0.0f, skillSize.x, skillSize.y), skills, titleStyle);
+			string[] skillCategories = new string[]{"Physique", "Prowess", "Mastery", "Knowledge"};
+			string[] skillNames = new string[]{"Athletics","Melee","Ranged","Stealth","Mechanical","Medicinal","Historical","Political"};
+			string[] skillScores = new string[]{"" + characterSheet.skillScores.getScore(Skill.Athletics),"" + characterSheet.skillScores.getScore(Skill.Melee),"" + characterSheet.skillScores.getScore(Skill.Ranged),"" + characterSheet.skillScores.getScore(Skill.Stealth),"" + characterSheet.skillScores.getScore(Skill.Mechanical),"" + characterSheet.skillScores.getScore(Skill.Medicinal),"" + characterSheet.skillScores.getScore(Skill.Historical),"" + characterSheet.skillScores.getScore(Skill.Political)};
+			float skillCategoryX = paperDollFullWidth + 5.0f;
+			float skillCategoryWidth = 80.0f;
+			float skillNameX = skillCategoryX + skillCategoryWidth;
+			float skillNameWidth = 100.0f;
+			float skillScoreX = skillNameX + skillNameWidth;
+			float skillScoreWidth = 30.0f;
+			GUIStyle st = getPlayerInfoStyle();
+			float y = skillSize.y + 5.0f;
+			for (int n=0;n<skillCategories.Length;n++) {
+				GUIContent skillCategory = new GUIContent(skillCategories[n]);
+				Vector2 skillCategorySize = st.CalcSize(skillCategory);
+				GUIContent skillName1 = new GUIContent(skillNames[n * 2]);
+				Vector2 skillNameSize1 = st.CalcSize(skillName1);
+				GUIContent skillName2 = new GUIContent(skillNames[n * 2 + 1]);
+				Vector2 skillNameSize2 = st.CalcSize(skillName2);
+				GUIContent skillScore1 = new GUIContent(skillScores[n * 2]);
+				Vector2 skillScoreSize1 = st.CalcSize(skillScore1);
+				GUIContent skillScore2 = new GUIContent(skillScores[n * 2 + 1]);
+				Vector2 skillScoreSize2 = st.CalcSize(skillScore2);
+				float namesHeight = skillNameSize1.y + skillNameSize2.y;
+				GUI.Label(new Rect(skillCategoryX, y + (namesHeight - skillCategorySize.y)/2.0f, skillCategorySize.x, skillCategorySize.y), skillCategory, st);
+				GUI.Label(new Rect(skillNameX + (skillNameWidth - skillNameSize1.x)/2.0f, y, skillNameSize1.x, skillNameSize1.y), skillName1, st);
+				GUI.Label(new Rect(skillScoreX + (skillScoreWidth - skillScoreSize1.x)/2.0f, y, skillScoreSize1.x, skillScoreSize1.y), skillScore1, st);
+				y += skillNameSize1.y;
+				GUI.Label(new Rect(skillNameX + (skillNameWidth - skillNameSize2.x)/2.0f, y, skillNameSize2.x, skillNameSize2.y), skillName2, st);
+				GUI.Label(new Rect(skillScoreX + (skillScoreWidth - skillScoreSize2.x)/2.0f, y, skillScoreSize2.x, skillScoreSize2.y), skillScore2, st);
+				y += skillNameSize2.y + 10.0f;
+			}
+			GUI.DrawTexture(new Rect(paperDollFullWidth - 1.0f, y, skillsWidth, 2.0f), getSkillsMidSectionTexture());
+			y += 2.0f;
+			GUIContent features = new GUIContent("Class Features");
+			Vector2 featuresSize = titleStyle.CalcSize(features);
+			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - 1.0f - skillSize.x)/2.0f, y, featuresSize.x, featuresSize.y), features, titleStyle);
+			y += featuresSize.y;
+			float featureX = paperDollFullWidth + 10.0f;
+			GUIStyle featuresStyle = st;
+			GUIContent c = new GUIContent("Feature");
+			float featuresHeight = featuresStyle.CalcSize(c).y;
+			ClassFeature[] classFeatures = characterSheet.characterSheet.characterProgress.getCharacterClass().getClassFeatures();
+			float scrollHeight = featuresHeight * classFeatures.Length;
+			float remainingHeight = skillsHeight - y;
+			classFeaturesScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth - 1.0f, y, skillsWidth, remainingHeight), classFeaturesScrollPos, new Rect(paperDollFullWidth - 1.0f, y, skillsWidth - (scrollHeight > remainingHeight ? 16.0f : 0.0f), scrollHeight));
+			foreach (ClassFeature classFeature in classFeatures) {
+				GUIContent feat = new GUIContent(classFeature.ToString());
+				Vector2 featSize = featuresStyle.CalcSize(feat);
+				GUI.Label(new Rect(featureX, y, featSize.x, featSize.y), feat, featuresStyle);
+				y += featuresHeight;
+			}
+			GUI.EndScrollView();
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			if (gui.openTab == Tab.M) gui.openTab = Tab.None;
@@ -970,8 +1175,34 @@ public class Unit : MonoBehaviour {
 			if (gui.openTab == Tab.T) gui.openTab = Tab.None;
 			else gui.openTab = Tab.T;
 		}
+		string tt = GUI.tooltip;
+		if (tt != null && tt!="") {
+			int num = int.Parse(tt);
+			if (hovering != null) hovering.removeHovering();
+			hovering = mapGenerator.priorityOrder[num];
+			hovering.setHovering();
+		}
+		else if (hovering != null) {
+			hovering.removeHovering();
+		}
 	}
-	
+
+	void selectUnit(Unit player) {
+		if (player != mapGenerator.selectedUnit) {
+			mapGenerator.deselectAllUnits();
+			mapGenerator.selectUnit(player, false);
+			mapGenerator.moveCameraToSelected(false);
+		}
+	}
+
+	static Unit hovering = null;
+	bool isHovering = false;
+	void setHovering() {
+		isHovering = true;
+	}
+	void removeHovering() {
+		isHovering = false;
+	}
 	void OnGUI() {
 //		return;
 	//	if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
@@ -1239,6 +1470,14 @@ public class Unit : MonoBehaviour {
 		return targetSprite;
 	}
 
+	SpriteRenderer circleSprite;
+	public SpriteRenderer getCircleSprite() {
+		if (circleSprite == null) {
+			circleSprite = transform.FindChild("Circle").GetComponent<SpriteRenderer>();
+		}
+		return circleSprite;
+	}
+
 	bool characterSheetLoaded = false;
 	public void loadCharacterSheet() {
 		if (characterSheetLoaded) return;
@@ -1290,6 +1529,7 @@ public class Unit : MonoBehaviour {
 		setLayer();
 		setTargetObjectScale();
 		setTrailRendererPosition();
+		setCircleScale();
 	}
 
 	void setLayer() {

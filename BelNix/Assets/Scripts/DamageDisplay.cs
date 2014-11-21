@@ -17,7 +17,7 @@ public class DamageDisplay : MonoBehaviour {
 	GUIStyle borderStyle;
 	GUIStyle labelStyle;
 
-	public void begin(int damage, bool didHit, Unit dUnit) {
+	public void begin(int damage, bool didHit, bool didCrit, Unit dUnit) {
 		damagedUnit = dUnit;
 		Vector3 pos = dUnit.transform.position;
 		float amountEach = .3f;
@@ -30,7 +30,8 @@ public class DamageDisplay : MonoBehaviour {
 		damageAmount = damage;
 		hit = didHit;
 		timeInitialized = Time.time;
-		if (didHit) color = Color.red;
+		if (didHit && didCrit) color = Color.magenta;
+		else if (didHit) color = Color.red;
 		else color = Color.gray;
 		going = true;
 	}
@@ -63,7 +64,7 @@ public class DamageDisplay : MonoBehaviour {
 		screenPos.y = Screen.height - screenPos.y;
 	//	screenPos.y -= yDif;
 		GUIStyle style = getLabelStyle();
-		string str = (hit ? "" + damageAmount : "miss");
+		string str = (hit ? damageAmount + "!" : "miss");
 		GUIContent content = new GUIContent(str);
 		Vector2 size = style.CalcSize(content);
 		Rect r = new Rect(screenPos.x - size.x/2.0f, screenPos.y - size.y/2.0f, size.x, size.y);

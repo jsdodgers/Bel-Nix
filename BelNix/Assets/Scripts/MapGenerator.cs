@@ -465,7 +465,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	void moveCameraToSelected(bool instantly = false) {
+	public void moveCameraToSelected(bool instantly = false) {
 		if (selectedUnit == null) return;
 		Vector3 sel = selectedUnit.transform.position;
 		sel.z = Camera.main.transform.position.z;
@@ -753,6 +753,7 @@ public class MapGenerator : MonoBehaviour {
 			gui.openTab = (gui.openTab==Tab.M ? Tab.None : Tab.M);
 		}
 		if (Input.GetKeyDown(KeyCode.C)) {
+			Debug.Log("KeyCode.C");
 			gui.openTab = (gui.openTab==Tab.C ? Tab.None : Tab.C);
 		}
 		if (Input.GetKeyDown(KeyCode.K)) {

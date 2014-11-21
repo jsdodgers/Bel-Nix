@@ -15,6 +15,11 @@ namespace CharacterInfo
 		public CharacterClass getCharacterClass() 	{ return cClass; }
 		public int getCharacterLevel() 				{ return cLevel; }
 		public int getCharacterExperience() 		{ return cExperience; }
+		public int addExperience(int exp)			{ return cExperience += exp; }
+		public int setExperience(int exp)			{ return cExperience = exp; }
+		public int incrementLevel()					{ return ++cLevel; }
+		public int setLevel(int level)				{ return cLevel = level; }
+
 	}
 }
 

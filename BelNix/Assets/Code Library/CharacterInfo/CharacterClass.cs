@@ -2,6 +2,7 @@ using System;
 namespace CharacterInfo
 {
 	public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator, None}
+	public enum ClassFeature {Feature, None}
 
 	public abstract class CharacterClass
 	{
@@ -37,7 +38,7 @@ namespace CharacterInfo
 			}
 		}
 		public virtual ClassName getClassName() {return ClassName.None;}
-
+		public virtual ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature};}
 		// 
 	}
 
@@ -46,6 +47,7 @@ namespace CharacterInfo
 		public Class_ExSoldier()
 		{cModifiers = new ClassModifiers(2, 0, 1, 0, 1, 0, 0, 0, 0, 0);}
 		public override ClassName getClassName() {return ClassName.ExSoldier;}
+		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Feature};}
 	}
 	public class Class_Engineer : CharacterClass
 	{
