@@ -2,18 +2,50 @@
 using System.Collections;
 using CharacterInfo;
 
+public struct Hit {
+	public int hit;
+	public bool crit;
+	public Hit(int h, bool c) {hit = h; crit = c;}
+}
+
 public class Character : MonoBehaviour
 {
-	PersonalInformation personalInfo;
-	CharacterProgress characterProgress;
-	AbilityScores abilityScores;
-	CombatScores combatScores;
-	CharacterLoadout characterLoadout;
-	SkillScores skillScores;
-	CharacterSheet characterSheet;
-	public ItemWeapon mainHand;
+	public PersonalInformation personalInfo;
+	public CharacterProgress characterProgress;
+	public AbilityScores abilityScores;
+	public CombatScores combatScores;
+	public CharacterLoadout characterLoadout;
+	public SkillScores skillScores;
+	public CharacterSheet characterSheet;
+	public Unit unit;
+//	public ItemWeapon mainHand;
 
 	// Use this for initialization
+
+	bool flanking() {
+		Vector3 pos = unit.position;
+		Vector3 enemyPos = unit.attackEnemy.position;
+		int eX = (int)enemyPos.x, eY = (int)-enemyPos.y;
+		int pX = (int)pos.x, pY = (int)-pos.y;
+		int flankX = (pX == eX ? pX : eX - (pX - eX));
+		int flankY = (pY == eY ? pY : eY - (pY - eY));
+		return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
+	}
+
+	public int rollDamage() {
+		return rollDamage(false);
+	}
+
+	public int rollDamage(bool critical) {
+		return characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
+	}
+
+	public Hit rollHit() {
+		int rand = Random.Range(1,21);
+		return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - characterLoadout.rightHand.criticalChance);
+	}
+
+
 	void Start () 
 	{
 		// Personal Info first
@@ -21,7 +53,7 @@ public class Character : MonoBehaviour
 		// Then Stats
 		// then combat scores (this sets itself up using personal info, character class, and ability scores)
 		// then skill scores
-		characterLoadout = new CharacterLoadout();
+		//characterLoadout = gameObject.GetComponent<CharacterLoadout>();
 		// Let's experiement by recreating the enigmatic Dr. Alfred Clearwater
 		/*PersonalInformation personalInfo = new PersonalInformation(new CharacterName("Alfred", "Clearwater"), 
 		                                                           new Race_Berrind(), CharacterSex.MALE, 
@@ -43,7 +75,7 @@ public class Character : MonoBehaviour
 
 	}
 
-	public void loadCharacter(string firstName, string lastName, CharacterRace mCRace, CharacterSex mCSex,
+	public void loadCharacter(string firstName, string lastName, CharacterSex mCSex, CharacterRace mCRace, int age,
 	                   CharacterBackground mCBackground, int height, int weight, CharacterClass mCClass,
 	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed)
 	{
@@ -51,19 +83,66 @@ public class Character : MonoBehaviour
 		height -= heightRemainder;
 
 		personalInfo = new PersonalInformation(new CharacterName(firstName, lastName), 
-		                                       mCRace, mCSex, mCBackground, 
+		                                       mCSex, mCRace, mCBackground, new CharacterAge(age),
 		                                       new CharacterHeight(height, heightRemainder), 
 		                                       new CharacterWeight(weight));
 		characterProgress = new CharacterProgress(mCClass);
 		abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
-		combatScores = new CombatScores(ref abilityScores, ref personalInfo, ref characterProgress);
-		skillScores = new SkillScores(ref combatScores, ref characterProgress);
+		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
+		skillScores = new SkillScores(combatScores, characterProgress);
 		
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
 		                                     characterProgress, combatScores, skillScores);
 	}
 
+	public void loadCharacterFromTextFile(string fileName) {
+		TextAsset text = Resources.Load<TextAsset>("Saves/" + fileName);
+		string data = text.text;
+		string[] components = data.Split(new char[]{';'});
+		int curr = 0;
+		string firstName = components[curr++];
+		string lastName = components[curr++];
+		int sex = int.Parse(components[curr++]);
+		CharacterSex sexC = (sex==0 ? CharacterSex.Male : CharacterSex.Female);
+		int race = int.Parse(components[curr++]);
+		CharacterRace raceC = CharacterRace.getRace(race == 0 ? RaceName.Berrind : (race == 1 ? RaceName.Ashpian : RaceName.Rorrul));
+		int background = int.Parse (components[curr++]);
+		CharacterBackground backgroundC = (background == 0 ? (race==0 ? CharacterBackground.FallenNoble : (race == 1 ? CharacterBackground.Commoner : CharacterBackground.Servant)) : (race==0 ? CharacterBackground.WhiteGem : (race == 1 ? CharacterBackground.Immigrant : CharacterBackground.Unknown)));
+		int age = int.Parse(components[curr++]);
+		int height = int.Parse(components[curr++]);
+		int weight = int.Parse(components[curr++]);
+		int class1 = int.Parse(components[curr++]);
+		ClassName className = (class1==0 ? ClassName.ExSoldier : (class1==1 ? ClassName.Engineer : (class1==2 ? ClassName.Investigator : (class1==3 ? ClassName.Researcher : ClassName.Orator))));
+		int sturdy = int.Parse(components[curr++]);
+		int perception = int.Parse(components[curr++]);
+		int technique = int.Parse(components[curr++]);
+		int wellVersed = int.Parse(components[curr++]);
+		int athletics = int.Parse(components[curr++]);
+		int melee = int.Parse(components[curr++]);
+		int ranged = int.Parse(components[curr++]);
+		int stealth = int.Parse(components[curr++]);
+		int mechanical = int.Parse(components[curr++]);
+		int medicinal = int.Parse(components[curr++]);
+		int historical = int.Parse(components[curr++]);
+		int political = int.Parse(components[curr++]);
+		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
+		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
+		                                       new CharacterWeight(weight));
+		characterProgress = new CharacterProgress(CharacterClass.getClass(className));
+		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
+		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
+		skillScores = new SkillScores(combatScores, characterProgress);
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores);
+		skillScores.incrementScore(Skill.Athletics,athletics);
+		skillScores.incrementScore(Skill.Melee,melee);
+		skillScores.incrementScore(Skill.Ranged,ranged);
+		skillScores.incrementScore(Skill.Stealth,stealth);
+		skillScores.incrementScore(Skill.Mechanical,mechanical);
+		skillScores.incrementScore(Skill.Medicinal,medicinal);
+		skillScores.incrementScore(Skill.Historical,historical);
+		skillScores.incrementScore(Skill.Political,political);
 
+	}
 
 
 

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 namespace CharacterInfo
 {
-	public enum LifeStatus {Alive, Unconscious, Dead}
+	public enum LifeStatus {Alive, Unconscious, Dying, Dead}
 	public class CombatScores
 	{
 		private AbilityScores abilityScores;
@@ -14,8 +14,8 @@ namespace CharacterInfo
 
 		private LifeStatus lifeStatus = LifeStatus.Alive;
 
-		public CombatScores (ref AbilityScores abilityScore, ref PersonalInformation personalInfo, 
-		                     ref CharacterProgress characterProg)
+		public CombatScores (AbilityScores abilityScore, PersonalInformation personalInfo, 
+		                     CharacterProgress characterProg)
 		{
 			abilityScores 			= abilityScore;
 			personalInformation 	= personalInfo;
@@ -55,6 +55,15 @@ namespace CharacterInfo
 		public int loseHealth(int lostHealth)
 		{
 			currentHealth -= lostHealth;
+			if (currentHealth <= -getMaxHealth()) {
+				die();
+			}
+			else if (currentHealth < 0) {
+				dying();
+			}
+			else if (currentHealth == 0) {
+				faint();
+			}
 			return currentHealth;
 		}
 		public int loseComposure(int lostComposure)
@@ -68,6 +77,10 @@ namespace CharacterInfo
 			lifeStatus = LifeStatus.Unconscious;
 		}
 
+		public void dying() {
+			lifeStatus = LifeStatus.Dying;
+		}
+
 		public void die()
 		{
 			lifeStatus = LifeStatus.Dead;
@@ -75,12 +88,17 @@ namespace CharacterInfo
 
 		public void recover()
 		{
-			lifeStatus = LifeStatus.Alive;
+			currentHealth = 0;
+			lifeStatus = LifeStatus.Unconscious;
 		}
 
 		public LifeStatus checkLifeStatus()
 		{
 			return lifeStatus;
+		}
+
+		public bool isDead() {
+			return lifeStatus == LifeStatus.Dead;
 		}
 
 		public int getInitiative() 	{return calculateMod(abilityScores.getSturdy());}		// Initiative is based on Sturdy

@@ -13,13 +13,18 @@ public class ItemWeapon : Item1 {
 	public DamageType damageType;
 	public int criticalChance;
 	public int durabilityChance;
+	public bool isRanged = false;
 
-	public int rollDamage()
+	public int rollDamage() {
+		return rollDamage(false);
+	}
+
+	public int rollDamage(bool critical)
 	{
 		int damageDealt = 0;
 		for(int i = 0; i < numberOfDamageDice; i++)
 		{
-			damageDealt += Random.Range(1, diceType);
+			damageDealt += (critical ? diceType : Random.Range(1, diceType+1));
 		}
 
 		return damageDealt;

@@ -1,6 +1,8 @@
 using System;
 namespace CharacterInfo
 {
+	public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator}
+
 	public abstract class CharacterClass
 	{
 		// Class stat modifiers
@@ -16,6 +18,24 @@ namespace CharacterInfo
 			// Political
 		protected ClassModifiers cModifiers;
 		public ClassModifiers getClassModifiers() {return cModifiers;}
+		public static CharacterClass getClass(ClassName name) {
+			
+			switch(name)
+			{
+			case ClassName.ExSoldier:
+				return new Class_ExSoldier();
+			case ClassName.Engineer:
+				return new Class_Engineer();
+			case ClassName.Investigator:
+				return new Class_Investigator();
+			case ClassName.Researcher:
+				return new Class_Researcher();
+			case ClassName.Orator:
+				return new Class_Orator();
+			default:
+				return new Class_ExSoldier();
+			}
+		}
 
 		// 
 	}

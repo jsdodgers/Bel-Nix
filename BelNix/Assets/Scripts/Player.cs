@@ -10,8 +10,7 @@ public class Player : Unit {
 		currentMaxPath = 0;
 		resetPath();
 	}
-
-
+	
 
 	// Use this for initialization
 	void Start () {

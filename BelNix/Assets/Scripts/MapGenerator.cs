@@ -868,8 +868,8 @@ public class MapGenerator : MonoBehaviour {
 		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount != 2;
 		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount != 2;
 		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount != 2;
-		if (mouseDown || mouseUp)
-			Debug.Log("MouseDown: " + mouseDown + " MouseUp: " + mouseUp);
+	//	if (mouseDown || mouseUp)
+	//		Debug.Log("MouseDown: " + mouseDown + " MouseUp: " + mouseUp);
 		if (mouseDown) mouseDownGUI = isOnGUI;
 //		oldTouchCount = Input.touchCount;
 	}

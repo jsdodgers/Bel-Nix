@@ -2,7 +2,6 @@
 using System.Collections;
 using CharacterInfo;
 
-
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Inventory, Cancel, None}
 
@@ -196,7 +195,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public bool isAllyOf(Unit cs) {
-		return team != cs.team;
+		return team == cs.team;
 	}
 
 
@@ -396,9 +395,12 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void dealDamage() {
-		int hit = Random.Range(1,21);
-		int wapoon = characterSheet.mainHand.rollDamage();
-		bool didHit = hit >= gameObject.GetComponent<CharacterLoadout>().getAC();
+	//	int hit = characterSheet.rollHit();//Random.Range(1,21);
+		Hit hit = characterSheet.rollHit();
+		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
+		Hit critHit = characterSheet.rollHit();
+		int wapoon = characterSheet.rollDamage(hit.crit && critHit.hit  >= enemyAC);//.characterLoadout.rightHand.rollDamage();
+		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, attackEnemy);
 		if (didHit)
@@ -412,7 +414,7 @@ public class Unit : MonoBehaviour {
 			attackEnemy.shouldMove--;
 			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
 		}
-		Debug.Log((hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit);
+		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
 //		damageDisplay.begin(
 	}
 
@@ -474,10 +476,109 @@ public class Unit : MonoBehaviour {
 		}
 		return greenStyle;
 	}
+
+	private Texture[] paperDollTexturesHead;
+
+	public Texture[] getPaperDollTexturesHead() {
+		if (paperDollTexturesHead == null) {
+			paperDollTexturesHead = new Texture[]{Resources.Load<Texture>("Characters/Jackie/JackiePaperdollHead")};
+		}
+		return paperDollTexturesHead;
+	}
+	/*
+	GUIStyle paperDollHealthBannerStyle = null;
+	
+	GUIStyle getPaperDollHealthBannerStyle() {
+		if (paperDollHeadStyle == null) {
+			paperDollHeadStyle = new GUIStyle("label");
+		}
+		return paperDollHeadStyle;
+	}*/
+	static Texture2D paperDollHealthBannerTexture = null;
+	static int lastWidth = 0;
+
+	Texture2D getPaperDollHealthBannerTexture(int width, int height) {
+		if (paperDollHealthBannerTexture == null || width != lastWidth) {
+			paperDollHealthBannerTexture = makeTexBanner(width, height, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			lastWidth = width;
+		}
+		return paperDollHealthBannerTexture;
+	}
+
+	
+	
+	Texture2D makeTexBanner( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			pix[ i ] = col;
+		}
+		for (int n=0;n<width;n++) {
+			for (int m=0;m<height;m++) {
+				if (width - n > (height - m)/2) pix[n + m * width] = col;
+				else pix[n + m * width] = Color.clear;
+			}
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
+	
+	GUIStyle healthTextStyle = null;
+	public GUIStyle getHealthTextStyle() {
+		if (healthTextStyle == null) {
+			healthTextStyle = new GUIStyle("Label");
+			healthTextStyle.normal.textColor = Color.red;
+			healthTextStyle.fontSize = 25;
+		}
+		return healthTextStyle;
+	}
+	
+	
+	GUIStyle composureTextStyle = null;
+	public GUIStyle getComposureTextStyle() {
+		if (composureTextStyle == null) {
+			composureTextStyle = new GUIStyle("Label");
+			composureTextStyle.normal.textColor = Color.green;
+			composureTextStyle.fontSize = 25;
+		}
+		return composureTextStyle;
+	}
+
+	public void drawGUI() {
+		float paperDollHeadSize = 100.0f;
+		float bannerWidth = 300.0f;
+		Texture[] textures = getPaperDollTexturesHead();
+//		GUIStyle headStyle = getPaperDollHeadStyle();
+		foreach (Texture2D texture in textures) {
+//			headStyle.normal.background = texture;
+			GUI.DrawTexture(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), texture);
+//			GUI.Label(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), "", headStyle);
+		}
+		GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize));
+		string healthText = "Health: " + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth();
+		GUIStyle healthStyle = getHealthTextStyle();
+		GUIContent healthContent = new GUIContent(healthText);
+		Vector2 healthSize = healthStyle.CalcSize(healthContent);
+		string composureText = "Composure: " + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure();
+		GUIStyle compStyle = getComposureTextStyle();
+		GUIContent composureContent = new GUIContent(composureText);
+		Vector2 composureSize = compStyle.CalcSize(composureContent);
+		float totalHeight = composureSize.y + healthSize.y;
+		float healthX = 35.0f + paperDollHeadSize;
+		float between = 0.0f;
+		float healthY = (paperDollHeadSize - between )/2.0f - healthSize.y;
+		float compY = (paperDollHeadSize + between)/2.0f;
+		GUI.Label(new Rect(healthX, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
+		GUI.Label(new Rect(healthX, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+	}
 	
 	void OnGUI() {
 //		return;
 	//	if (attackEnemy && mapGenerator.getCurrentUnit() == this) {
+		return;
 		if (mapGenerator.selectedUnit == this || (mapGenerator.selectedUnit && mapGenerator.selectedUnit.attackEnemy == this)) {
 			float totalWidth = Screen.width * 0.7f;
 			float x = (Screen.width - totalWidth)/2.0f;
@@ -496,6 +597,7 @@ public class Unit : MonoBehaviour {
 				//greenStyle.normal.background = makeTex((int)healthWidth, (int)height, Color.green);
 				GUI.Box(new Rect(x, y, healthWidth, height), "", getGreenStyle((int)healthWidth));
 			}
+
 			//	GUI.EndGroup();
 		}
 	}
@@ -742,6 +844,7 @@ public class Unit : MonoBehaviour {
 
 	public virtual void initializeVariables() {
 		characterSheet = gameObject.GetComponent<Character>();
+		characterSheet.unit = this;
 		hitPoints = maxHitPoints;
 		moving = false;
 		attacking = false;
@@ -853,8 +956,9 @@ public class Unit : MonoBehaviour {
 		//	Debug.Log("Damage");
 		if (damage > 0) {
 			crushingHitSFX();
-			hitPoints -= damage;
-			if (hitPoints <= 0) died = true;
+//			hitPoints -= damage;
+//			if (hitPoints <= 0) died = true;
+			characterSheet.combatScores.loseHealth(damage);
 		}
 		//	Debug.Log("EndDamage");
 	}
@@ -865,7 +969,7 @@ public class Unit : MonoBehaviour {
 	//	if (died) dieTime += Time.deltaTime;
 		//	if (dieTime >= 1) Destroy(gameObject);
 		//	if (dieTime >= 0.5f) {
-		if (died) {
+		if (characterSheet.combatScores.isDead()) {
 			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
 				if (mapGenerator.selectedUnit) {
 				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();

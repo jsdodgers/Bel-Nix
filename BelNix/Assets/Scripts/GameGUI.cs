@@ -218,9 +218,9 @@ public class GameGUI : MonoBehaviour {
 		return nonSelectedSubMenuTurnStyle;
 	}
 
-
 	void OnGUI() {
 	//	Debug.Log("OnGUI");
+
 		if (first) {
 			first = false;
 			getSelectedButtonStyle();
@@ -229,6 +229,11 @@ public class GameGUI : MonoBehaviour {
 			getNonSelectedSubMenuTurnStyle();
 		}
 		if (mapGenerator == null) return;
+
+		if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnits.Count==0) {
+			Unit u = mapGenerator.selectedUnit;
+			u.drawGUI();
+		}
 
 		float maxPlayerListWidth = 200.0f;
 		float maxPlayerListHeight = 300.0f;
