@@ -1262,6 +1262,7 @@ public class MapGenerator : MonoBehaviour {
 				startSquare = new Vector2(v3.x,v3.y);
 				//	startSquareActual = startSquare;
 				mouseOver = (GameObject)Instantiate(gridPrefab);
+				mouseOver.layer = 0;
 				mouseOver.transform.parent = mapTransform;
 				SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
 				sr.color = new Color(1.0f,1.0f,1.0f,0.4f);
@@ -1351,8 +1352,10 @@ public class MapGenerator : MonoBehaviour {
 	//	//Debug.Log("Start Mouse Select");
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<9);
 		//		Physics2D.Ray
-		if (hit && !isOnGUI) {
-			GameObject go = hit.collider.gameObject;
+		GameObject go = null;
+		if (hit.collider != null) go = hit.collider.gameObject;
+		if (go != null && !isOnGUI) {
+			Debug.Log(go + "  " + go.transform.position);
 			if (go != lastHit) {
 				lastHit = go;
 				if (!selectedUnit) {
