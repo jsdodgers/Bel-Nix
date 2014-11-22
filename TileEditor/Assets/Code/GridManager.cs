@@ -67,7 +67,15 @@ public class GridManager : MonoBehaviour {
 	public int passableLeft;
 	public int passableDown;
 	public int passableUp;
-	
+
+	public int visibleUp;
+	public int visibleDown;
+	public int visibleLeft;
+	public int visibleRight;
+
+	public bool startingPoint;
+	public bool canTurn;
+
 	public int trigger;
 	public int action; 
 
@@ -80,11 +88,17 @@ public class GridManager : MonoBehaviour {
 	public bool doRight = true;
 	public bool doDown = true;
 	public bool doLeft = true;
+	public bool doUpV = true;
+	public bool doRightV = true;
+	public bool doDownV = true;
+	public bool doLeftV = true;
+	public bool doStartingPoint = true;
 	public bool doTrigger = true;
 	public bool doAction = true;
+	public bool doTurn = true;
 
 	public bool doingAll() {
-		return doingAllColors() && doStand && doUp && doRight && doDown && doLeft && doTrigger && doAction;
+		return doingAllColors() && doStand && doUp && doRight && doDown && doLeft && doTrigger && doAction && doUpV && doRightV && doLeftV && doDownV && doStartingPoint && doTurn;
 	}
 
 	public bool doingAllColors() {
@@ -117,6 +131,11 @@ public class GridManager : MonoBehaviour {
 		doRight = true;
 		doTrigger = true;
 		doAction = true;
+		doStartingPoint = true;
+		doUpV = true;
+		doDownV = true;
+		doLeftV = true;
+		doRightV = true;
 	//	linesArray = new ArrayList();
 	}
 	
@@ -332,8 +351,14 @@ public class GridManager : MonoBehaviour {
 					passableRight = t.passableRight;
 					passableDown = t.passableDown;
 					passableLeft = t.passableLeft;
+					visibleUp = t.visibilityUp;
+					visibleDown = t.visibilityDown;
+					visibleRight = t.visibilityRight;
+					visibleLeft = t.visibilityLeft;
+					startingPoint = t.startingPoint;
 					trigger = t.trigger;
 					action = t.action;
+					canTurn = t.canTurn;
 				}
 			}
 		}
@@ -356,6 +381,20 @@ public class GridManager : MonoBehaviour {
 			t.trigger = trigger;
 		if (doAction)
 			t.action = action;
+		if (doStartingPoint) {
+			t.startingPoint = startingPoint;
+			t.setStartText();
+		}
+		if (doUpV)
+			t.visibilityUp = visibleUp;
+		if (doRightV)
+			t.visibilityRight = visibleRight;
+		if (doDownV)
+			t.visibilityDown = visibleDown;
+		if (doLeftV)
+			t.visibilityLeft = visibleLeft;
+		if (doTurn)
+			t.canTurn = canTurn;
 	}
 
 	public void printGrid() {
