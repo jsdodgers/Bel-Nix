@@ -2,7 +2,12 @@ using System;
 namespace CharacterInfo
 {
 	public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator, None}
-	public enum ClassFeature {Feature, None}
+	public enum ClassFeature   {Throw, Decisive_Strike, 
+								Construction, Efficient_Storage,
+								Mark, Sneak_Attack, 
+								Uncanny_Knowledge, Trained_Medic,
+								Invoke, Primal_Control,
+								None}
 
 	public abstract class CharacterClass
 	{
@@ -38,7 +43,7 @@ namespace CharacterInfo
 			}
 		}
 		public virtual ClassName getClassName() {return ClassName.None;}
-		public virtual ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature,ClassFeature.Feature};}
+		public virtual ClassFeature[] getClassFeatures() {return new ClassFeature[]{};}
 		// 
 	}
 
@@ -47,31 +52,35 @@ namespace CharacterInfo
 		public Class_ExSoldier()
 		{cModifiers = new ClassModifiers(2, 0, 1, 0, 1, 0, 0, 0, 0, 0);}
 		public override ClassName getClassName() {return ClassName.ExSoldier;}
-		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Feature};}
+		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Throw, ClassFeature.Decisive_Strike};}
 	}
 	public class Class_Engineer : CharacterClass
 	{
 		public Class_Engineer()
 		{cModifiers = new ClassModifiers(0, 0, 0, 0, 0, 0, 2, 0, 0, 0);}
 		public override ClassName getClassName() {return ClassName.Engineer;}
+		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Construction, ClassFeature.Efficient_Storage};}
 	}
 	public class Class_Investigator : CharacterClass
 	{
 		public Class_Investigator()
 		{cModifiers = new ClassModifiers(1, 1, 0, 1, 0, 1, 0, 0, 0, 0);}
 		public override ClassName getClassName() {return ClassName.Investigator;}
+		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Uncanny_Knowledge, ClassFeature.Sneak_Attack};}
 	}
 	public class Class_Researcher : CharacterClass
 	{
 		public Class_Researcher()
 		{cModifiers = new ClassModifiers(0, 2, 0, 0, 0, 0, 0, 1, 1, 0);}
 		public override ClassName getClassName() {return ClassName.Researcher;}
+		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Mark, ClassFeature.Trained_Medic};}
 	}
 	public class Class_Orator : CharacterClass
 	{
 		public Class_Orator()
 		{cModifiers = new ClassModifiers(0, 0, 0, 0, 0, 0, 0, 0, 0, 2);}
 		public override ClassName getClassName() {return ClassName.Orator;}
+		public override ClassFeature[] getClassFeatures() {return new ClassFeature[]{ClassFeature.Invoke, ClassFeature.Primal_Control};}
 	}
 
 
