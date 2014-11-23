@@ -24,7 +24,8 @@ public class MapGenerator : MonoBehaviour {
 	GameObject targetObject;
 
 	bool isOnGUI;
-	Transform playerTransform;
+	public Transform playerTransform;
+	public Transform enemyTransform;
 	GameObject arrowStraightPrefab;
 	GameObject arrowCurvePrefab;
 	GameObject arrowPointPrefab;
@@ -135,6 +136,7 @@ public class MapGenerator : MonoBehaviour {
 		path = mapTransform.Find("Path").gameObject;
 		enemiesObj = mapTransform.Find("Enemies").gameObject;
 		playerTransform = mapTransform.Find("Players");
+		enemyTransform = enemiesObj.transform;
 
 
 
@@ -940,7 +942,7 @@ public class MapGenerator : MonoBehaviour {
 	void handleSpace() {
 		timeSinceSpace += Time.deltaTime * Time.timeScale;
 		if (Input.GetKeyDown(KeyCode.Space)) {
-			if (timeSinceSpace <= maxTimeSpace) {
+			if (timeSinceSpace <= maxTimeSpace && isInPriority()) {
 				deselectAllUnits();
 				selectUnit(getCurrentUnit(),false);
 				lastPlayerPath = selectedUnit.currentPath;

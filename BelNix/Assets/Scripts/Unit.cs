@@ -1040,6 +1040,10 @@ public class Unit : MonoBehaviour {
 			for (int n=0;n<numPlayers;n++) {
 				int playerNum = (n + currentPlayer) % numPlayers;
 				Unit player = mapGenerator.priorityOrder[playerNum];
+				if (player == this) {
+					st.normal.textColor = Color.black;
+					st.fontStyle = FontStyle.Bold;
+				}
 				x = paperDollFullWidth + turnOrderTableX - 5.0f;
 				Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
 			//	Rect r2 = new Rect(x + (turnOrderSectionHeight
@@ -1069,6 +1073,10 @@ public class Unit : MonoBehaviour {
 				initiativeSize = st.CalcSize(initiative);
 				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
 				y += turnOrderSectionHeight - 1.0f;
+				if (player == this) {
+					st.normal.textColor = Color.white;
+					st.fontStyle = FontStyle.Normal;
+				}
 			}
 
 			GUI.EndScrollView();
@@ -1228,7 +1236,8 @@ public class Unit : MonoBehaviour {
 		if (player != mapGenerator.selectedUnit) {
 			mapGenerator.deselectAllUnits();
 			mapGenerator.selectUnit(player, false);
-			mapGenerator.moveCameraToSelected(false);
+			if (player.transform.parent == mapGenerator.playerTransform || player.transform.parent == mapGenerator.enemyTransform)
+				mapGenerator.moveCameraToSelected(false);
 		}
 	}
 
