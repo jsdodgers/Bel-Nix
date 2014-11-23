@@ -45,7 +45,6 @@ public class CharacterTemplate : Character
 			              mCSturdy, mCPerception, mCTechnique, mCWellVersed);
 			int level = characterProgress.setLevel(mClevel);
 			int experience = characterProgress.setExperience(mCexperience);
-			Debug.Log("level: " + level + "  experience: " + experience);
 		}
 	}
 	

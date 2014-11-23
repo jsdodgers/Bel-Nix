@@ -1515,7 +1515,7 @@ public class Unit : MonoBehaviour {
 		return circleSprite;
 	}
 
-	bool characterSheetLoaded = false;
+	public bool characterSheetLoaded = false;
 	public void loadCharacterSheet() {
 		if (characterSheetLoaded) return;
 		characterSheetLoaded = true;
@@ -1570,7 +1570,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void setLayer() {
-		renderer.sortingOrder = (mapGenerator.isInCharacterPlacement() ? 90000 : (moving || attacking || attackAnimating ? 11 : 10));
+		renderer.sortingOrder = (mapGenerator.isInCharacterPlacement() ? renderer.sortingOrder : (moving || attacking || attackAnimating ? 11 : 10));
 		transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
 	}
 
