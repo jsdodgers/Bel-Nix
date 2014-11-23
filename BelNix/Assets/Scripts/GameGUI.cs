@@ -24,6 +24,8 @@ public class GameGUI : MonoBehaviour {
 	Vector2 notTurnMoveRangeSize = new Vector2(150.0f, 50.0f);
 	Vector2 subMenuTurnActionSize = new Vector2(100.0f, 35.0f);
 
+	public Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
+
 	public bool selectedMovement = false;
 	public bool selectedStandard = false;
 	public bool selectedMinor = false;
@@ -144,6 +146,9 @@ public class GameGUI : MonoBehaviour {
 					return rangeRect().Contains(mousePos) || others;
 				}
 			}
+			if (mapGenerator.getCurrentUnit()==null) {
+				return mousePos.x >= Screen.width - 100.0f;
+			}
 		}
 		return false;
 	}
@@ -185,9 +190,9 @@ public class GameGUI : MonoBehaviour {
 			selectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
 			selectedButtonStyle.hover.background = tex;//selectedButtonStyle.normal.background;
 			selectedButtonStyle.active.background = tex;
-			selectedButtonStyle.hover.textColor = Color.black;
-			selectedButtonStyle.normal.textColor = Color.black;
-			selectedButtonStyle.active.textColor = Color.black;
+			selectedButtonStyle.hover.textColor = Color.white;
+			selectedButtonStyle.normal.textColor = Color.white;
+			selectedButtonStyle.active.textColor = Color.white;
 		}
 		return selectedButtonStyle;
 	}
@@ -199,7 +204,7 @@ public class GameGUI : MonoBehaviour {
 			nonSelectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
 			nonSelectedButtonStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
 			nonSelectedButtonStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
-			nonSelectedButtonStyle.active.textColor = nonSelectedButtonStyle.normal.textColor = nonSelectedButtonStyle.hover.textColor = Color.black;
+			nonSelectedButtonStyle.active.textColor = nonSelectedButtonStyle.normal.textColor = nonSelectedButtonStyle.hover.textColor = Color.white;
 		}
 		return nonSelectedButtonStyle;
 	}
@@ -211,9 +216,9 @@ public class GameGUI : MonoBehaviour {
 			selectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
 			selectedSubMenuTurnStyle.hover.background = tex;//selectedButtonStyle.normal.background;
 			selectedSubMenuTurnStyle.active.background = tex;
-			selectedSubMenuTurnStyle.hover.textColor = Color.black;
-			selectedSubMenuTurnStyle.normal.textColor = Color.black;
-			selectedSubMenuTurnStyle.active.textColor = Color.black;
+			selectedSubMenuTurnStyle.hover.textColor = Color.white;
+			selectedSubMenuTurnStyle.normal.textColor = Color.white;
+			selectedSubMenuTurnStyle.active.textColor = Color.white;
 		}
 		return selectedSubMenuTurnStyle;
 	}
@@ -225,7 +230,7 @@ public class GameGUI : MonoBehaviour {
 			nonSelectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
 			nonSelectedSubMenuTurnStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
 			nonSelectedSubMenuTurnStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
-			nonSelectedSubMenuTurnStyle.active.textColor = nonSelectedSubMenuTurnStyle.normal.textColor = nonSelectedSubMenuTurnStyle.hover.textColor = Color.black;
+			nonSelectedSubMenuTurnStyle.active.textColor = nonSelectedSubMenuTurnStyle.normal.textColor = nonSelectedSubMenuTurnStyle.hover.textColor = Color.white;
 		}
 		return nonSelectedSubMenuTurnStyle;
 	}
@@ -242,21 +247,27 @@ public class GameGUI : MonoBehaviour {
 		}
 		if (mapGenerator == null) return;
 
-		
-		if (GUI.Button(waitButtonAlwaysRect(), "Wait", getNonSelectedButtonStyle())) {
-			if (selectedMovement) {
-				//		selectedMovementType = MovementType.None;
-				selectedMovement = false;
-				mapGenerator.resetRanges();
-				mapGenerator.removePlayerPath();
+		if (mapGenerator.isInCharacterPlacement()) {
+			selectionUnitScrollPosition = GUI.BeginScrollView(new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth, Screen.height), selectionUnitScrollPosition, new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth - 16.0f, 20.0f + (20.0f + 64.0f) * (mapGenerator.selectionUnits == null ? 0 : mapGenerator.selectionUnits.Count)));
+			GUI.EndScrollView();
+		}
+
+		if (mapGenerator.currentUnit >= 0) {
+			if (GUI.Button(waitButtonAlwaysRect(), "Wait", getNonSelectedButtonStyle())) {
+				if (selectedMovement) {
+					//		selectedMovementType = MovementType.None;
+					selectedMovement = false;
+					mapGenerator.resetRanges();
+					mapGenerator.removePlayerPath();
+				}
+				if (selectedStandard) {
+					//		selectedStandardType = StandardType.None;
+					deselectStandard();
+				}
+				selectedMinor = false;
+				if (!mapGenerator.getCurrentUnit().moving && !mapGenerator.getCurrentUnit().attacking)
+					mapGenerator.nextPlayer();
 			}
-			if (selectedStandard) {
-				//		selectedStandardType = StandardType.None;
-				deselectStandard();
-			}
-			selectedMinor = false;
-			if (!mapGenerator.getCurrentUnit().moving && !mapGenerator.getCurrentUnit().attacking)
-				mapGenerator.nextPlayer();
 		}
 
 		if (mapGenerator.selectedUnit != null && mapGenerator.selectedUnits.Count==0) {

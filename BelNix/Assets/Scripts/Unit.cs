@@ -276,29 +276,31 @@ public class Unit : MonoBehaviour {
 		return currentPath;
 	}
 
-	bool canPass(Direction dir, Vector2 pos) {
-		return mapGenerator.canPass(dir, (int)pos.x, (int)pos.y, this);
+	bool canPass(Direction dir, Vector2 pos, Direction dirFrom) {
+		if (!mapGenerator.tiles[(int)pos.x,(int)pos.y].canTurn)
+			Debug.Log(pos + ": " + dir + "   --  " + dirFrom);
+		return mapGenerator.canPass(dir, (int)pos.x, (int)pos.y, this, dirFrom);//dirFrom);
 	}
 	
-	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0) {
+	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None) {
 		//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
-		
 		if (!first) {
 			//	if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
 			curr.Add(posFrom);
 		}
+		if (vectorsEqual(posFrom, posTo)) return curr;
 		//	if (maxDist == 0) Debug.Log("Last: " + curr.Count);
 		if (maxDist <= 0) return curr;
 		ArrayList a = new ArrayList();
-		if (canPass(Direction.Left, posFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
-		if (canPass(Direction.Right, posFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
-		if (canPass(Direction.Up, posFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
-		if (canPass(Direction.Down, posFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1));
+		if (canPass(Direction.Left, posFrom, dirFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left));
+		if (canPass(Direction.Right, posFrom, dirFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right));
+		if (canPass(Direction.Up, posFrom, dirFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up));
+		if (canPass(Direction.Down, posFrom, dirFrom))
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down));
 		int dist = maxDist + 10000;
 		int minLength = maxDist + 10000;
 		ArrayList minArray = curr;//new ArrayList();
@@ -341,7 +343,16 @@ public class Unit : MonoBehaviour {
 			else {
 				last1 = new Vector2(position.x, position.y);
 			}
-			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true);
+			Direction dir = Direction.None;
+			if (currList.Count > 1) {
+				Vector2 curr = (Vector2)currList[currList.Count-1];
+				Vector2 last = (Vector2)currList[currList.Count-2];
+				if (curr.x < last.x) dir = Direction.Left;
+				else if (curr.x > last.x) dir = Direction.Right;
+				else if (curr.y < last.y) dir = Direction.Up;
+				else if (curr.y > last.y) dir = Direction.Down;
+			}
+			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir);
 			ArrayList withAdded = new ArrayList();
 			foreach (Vector2 v in currList) {
 				withAdded.Add(v);
@@ -649,7 +660,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	
-	Texture2D makeTexBorder( int width, int height, Color col )
+	Texture2D makeTexBorder(int width, int height, Color col )
 	{
 		Color[] pix = new Color[width * height];
 		for( int i = 0; i < pix.Length; ++i )
@@ -1008,7 +1019,7 @@ public class Unit : MonoBehaviour {
 			float y = turnOrderSize.y;
 			int numPlayers = mapGenerator.priorityOrder.Count;
 			int currentPlayer = mapGenerator.currentUnit;
-
+			if (currentPlayer < 0) currentPlayer = 0;
 			turnOrderScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth, y, turnOrderWidth - 4.0f, paperDollFullHeight - y - 1.0f), turnOrderScrollPos, new Rect(paperDollFullWidth, y, turnOrderWidth - 16.0f - 4.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f));
 
 			GUIStyle st = getPlayerInfoStyle();
@@ -1559,7 +1570,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void setLayer() {
-		renderer.sortingOrder = (moving || attacking || attackAnimating ? 11 : 10);
+		renderer.sortingOrder = (mapGenerator.isInCharacterPlacement() ? 90000 : (moving || attacking || attackAnimating ? 11 : 10));
 		transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
 	}
 
