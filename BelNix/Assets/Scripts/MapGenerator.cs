@@ -468,8 +468,9 @@ public class MapGenerator : MonoBehaviour {
 			moveCameraToSelected(true);
 		}*/
 	}
-	
+
 	void parseTiles(string[] tilesArr) {
+		List<Vector2> positions = new List<Vector2>();
 		for (int n=3;n<tilesArr.Length;n++) {
 			int x = Tile.xForTile(tilesArr[n]);
 			int y = Tile.yForTile(tilesArr[n]);
@@ -481,8 +482,22 @@ public class MapGenerator : MonoBehaviour {
 				Color c = Color.green;
 				c.a = .4f;
 				sr.color = c;
+				positions.Add(new Vector2(go.transform.position.x, go.transform.position.y));
 			}
 		}
+		if (positions.Count > 0) {
+			Vector2 avg = getAverage(positions);
+			moveCameraToPosition(new Vector3(avg.x+.5f, avg.y-.5f, 0.0f), true);
+		}
+	}
+
+	Vector2 getAverage(List<Vector2> positions) {
+		Vector2 avg = new Vector2(0.0f, 0.0f);
+		foreach (Vector2 pos in positions) {
+			avg += pos;
+		}
+		avg /= positions.Count;
+		return avg;
 	}
 
 	void createGrid() {
@@ -613,13 +628,17 @@ public class MapGenerator : MonoBehaviour {
 	public void moveCameraToSelected(bool instantly = false) {
 		if (selectedUnit == null) return;
 		Vector3 sel = selectedUnit.transform.position;
-		sel.z = Camera.main.transform.position.z;
+		moveCameraToPosition(sel, instantly);
+	}
+
+	public void moveCameraToPosition(Vector3 position, bool instantly = false) {
+		position.z = Camera.main.transform.position.z;
 		if (instantly) {
-			Camera.main.transform.position = sel;
+			Camera.main.transform.position = position;
 		}
 		else {
 			movingCamera = true;
-			cameraMoveToPos = sel;
+			cameraMoveToPos = position;
 		}
 	}
 
