@@ -728,18 +728,30 @@ public class GraphicalUserInterface : MonoBehaviour
 
 
 		int currAdd = 0;
-		string fileDirectory = Application.dataPath + "/Saves/";
-		string fileName = fileDirectory + characterName + characterLastName + (currAdd>0?"" +currAdd:"") + ".txt";
+		string fileDirectory = Application.dataPath + "/Resources/Saves/";
+		string fileN = System.Guid.NewGuid().ToString();
+		string fileN2 = fileN + (currAdd>0?"" +currAdd:"");
+		string fileName = fileDirectory + fileN2 + ".txt";
 		while(File.Exists(fileName))
 		{
 			currAdd++;
-			fileName = fileDirectory + characterName + characterLastName + (currAdd>0?"" +currAdd:"") + ".txt";
+			fileN2 = fileN + (currAdd>0?"" +currAdd:"");
+			fileName = fileDirectory + fileN2 + ".txt";
 		}
 
 		StreamWriter sr = File.CreateText(fileName);
 
 		sr.WriteLine(characterStr);
 		sr.Close();
+
+//		TextAsset ta = Resources.Load<TextAsset>("Saves/Characters");
+//		string characterList = "";
+//		if (ta) characterList = ta.text;
+//		if (characterList != "") characterList += ";";
+//		characterList += fileN2;
+		StreamWriter sw = File.AppendText(Application.dataPath + "/Resources/Saves/Characters.txt");
+		sw.Write(fileN2 + ";");
+		sw.Close();
 
 	//	Debug.Log(characterStr);
 	}

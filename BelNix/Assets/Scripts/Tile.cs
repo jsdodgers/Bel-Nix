@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum Direction {Up, Down, Right, Left};
+public enum Direction {Up, Down, Right, Left, None};
 
 public class Tile {
 
@@ -13,6 +13,10 @@ public class Tile {
 	int passableRight;
 	int passableUp;
 	int passableDown;
+	int visibleLeft;
+	int visibleRight;
+	int visibleUp;
+	int visibleDown;
 	public Tile leftTile;
 	public Tile rightTile;
 	public Tile upTile;
@@ -23,6 +27,8 @@ public class Tile {
 	public int minAttackCurr;
 	public bool canAttackCurr;
 	public bool canStandCurr;
+	public bool canTurn;
+	public bool startingPoint;
 
 	public Tile() {
 	//	player = null;
@@ -90,16 +96,17 @@ public class Tile {
 		return standable && !character;
 	}
 
-	public bool canPass(Direction direction, Unit cs) {
+	public bool canPass(Direction direction, Unit cs, Direction previousDirection) {
+	//	Debug.Log("Can Turn: " + canTurn);
 		switch (direction) {
 		case Direction.Left:
-			return this.leftTile!=null && !this.leftTile.hasEnemy(cs) && this.passableLeft>0;
+			return this.leftTile!=null && !this.leftTile.hasEnemy(cs) && this.passableLeft>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Right:
-			return this.rightTile!=null && !this.rightTile.hasEnemy(cs) && this.passableRight>0;
+			return this.rightTile!=null && !this.rightTile.hasEnemy(cs) && this.passableRight>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Down:
-			return this.downTile!=null && !this.downTile.hasEnemy(cs) && this.passableDown>0;
+			return this.downTile!=null && !this.downTile.hasEnemy(cs) && this.passableDown>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Up:
-			return this.upTile!=null && !this.upTile.hasEnemy(cs) && this.passableUp>0;
+			return this.upTile!=null && !this.upTile.hasEnemy(cs) && this.passableUp>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		default:
 			return false;
 		}
@@ -170,12 +177,18 @@ public class Tile {
 	public void parseTile(string tile) {
 		string[] strs = tile.Split(new char[]{','});
 		int curr = 6;
-		passableUp = 0;
-		passableDown = 0;
-		passableLeft = 0;
-		passableRight = 0;
+		passableUp = 1;
+		passableDown = 1;
+		passableLeft = 1;
+		passableRight = 1;
 		trigger = 0;
 		activation = 0;
+		visibleUp = 1;
+		visibleRight = 1;
+		visibleDown = 1;
+		visibleLeft = 1;
+		startingPoint = false;
+		canTurn = true;
 //		alpha = 0.4f;
 	//	x = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
 	//	y = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
@@ -192,6 +205,13 @@ public class Tile {
 		passableLeft = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
 		trigger = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
 		activation = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		startingPoint = int.Parse(strs[curr])==1;curr++;if (strs.Length<=curr) return;
+		visibleUp = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		visibleRight = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		visibleDown = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		visibleLeft = int.Parse(strs[curr]);curr++;if (strs.Length<=curr) return;
+		canTurn = int.Parse(strs[curr])==1;curr++;if (strs.Length<=curr) return;
+
 		//		passable = int.Parse(strs[curr])==1;curr++;
 	}
 

@@ -6,6 +6,7 @@ using System.IO;
 public class MapGenerator : MonoBehaviour {
 
 
+
 	public string tileMapName;
 	public int gridSize = 70;
 	
@@ -23,6 +24,8 @@ public class MapGenerator : MonoBehaviour {
 	GameObject targetObject;
 
 	bool isOnGUI;
+	public Transform playerTransform;
+	public Transform enemyTransform;
 	GameObject arrowStraightPrefab;
 	GameObject arrowCurvePrefab;
 	GameObject arrowPointPrefab;
@@ -98,6 +101,8 @@ public class MapGenerator : MonoBehaviour {
 	public int actualWidth = 0;
 	public int actualHeight = 0;
 	float timeSinceSpace = 500.0f;
+	int screenWidth = 0;
+	int screenHeight = 0;
 
 	public List<Unit> priorityOrder;
 
@@ -130,6 +135,8 @@ public class MapGenerator : MonoBehaviour {
 		grids = mapTransform.FindChild("Grid").gameObject;
 		path = mapTransform.Find("Path").gameObject;
 		enemiesObj = mapTransform.Find("Enemies").gameObject;
+		playerTransform = mapTransform.Find("Players");
+		enemyTransform = enemiesObj.transform;
 
 
 
@@ -222,25 +229,155 @@ public class MapGenerator : MonoBehaviour {
 			if (n!=0) b4 += "\n";
 			b4 += priorityOrder[n].characterName + "  " + priorityOrder[n].getInitiative();
 		}
-		List<Unit> po1 = new List<Unit>();
-		foreach (Unit cs in priorityOrder) {
-			po1.Add(cs);
-		}
-		priorityOrder.Sort((first, second) => (first.getInitiative() > second.getInitiative() ? -1 : (first.getInitiative() == second.getInitiative() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
-		
+		sortPriority();
+
 		string after = "";
 		for (int n=0;n<priorityOrder.Count;n++) {
 			if (n!=0) after += "\n";
 			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getInitiative();
 		}
 		importGrid();
+		createSelectionArea();
+		createSelectionUnits();
 //		StartCoroutine(importGrid());
 		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
 	}
 
+	public void enterPriority() {
+		if (isInCharacterPlacement()) removeCharacterPlacementObjects();
+		foreach (Unit u in priorityOrder) {
+			u.rollInitiative();
+		}
+		sortPriority();
+		nextPlayer();
+	}
 
+	public void sortPriority() {
+		List<Unit> po1 = new List<Unit>();
+		foreach (Unit cs in priorityOrder) {
+			po1.Add(cs);
+		}
+		priorityOrder.Sort((first, second) => (first.getInitiative() > second.getInitiative() ? -1 : (first.getInitiative() == second.getInitiative() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
+	}
+
+	public bool isInCharacterPlacement() {
+		return currentUnit == -1;
+	}
+
+	public bool isInPriority() {
+		return currentUnit != -1;
+	}
+
+	public int selectionWidth = 100;
+	public float spriteSize = 64.0f;
+	public float spriteSeparator = 30.0f;
+	float scaleFactor = 100.0f/64.0f;
+
+	public void removeCharacterPlacementObjects() {
+		GameObject gold = GameObject.Find("Selection");
+		if (gold != null)
+			Destroy(gold);
+		foreach (Unit u in selectionUnits) {
+			players.Remove(u);
+			priorityOrder.Remove(u);
+			Destroy(u.gameObject);
+		}
+	}
+
+	public void createSelectionArea() {
+		if (!isInCharacterPlacement()) return;
+		selectionUnitsX = Screen.width/2.0f - (selectionWidth)/2.0f;
+		if (Screen.height < selectionUnits.Count * (spriteSize + spriteSeparator) + spriteSeparator)
+			selectionUnitsX -= (selectionWidth - spriteSize)/4.0f;
+		repositionSelectionUnits();
+		if (Screen.width == screenWidth && Screen.height == screenHeight) return;
+
+//		selectionUnitsX *= scaleFactor;
+		screenHeight = Screen.height;
+		screenWidth = Screen.width;
+		GameObject gold = GameObject.Find("Selection");
+		if (gold != null)
+			Destroy(gold);
+		float texWidth = selectionWidth * scaleFactor;
+		float texHeight = Screen.height * scaleFactor;
+		float texX = ((Screen.width) * scaleFactor/2.0f - texWidth)/100.0f;
+		float texY = -texHeight/2.0f/100.0f;
+		Texture2D tex = makeTexBorder((int)texWidth, (int)texHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		GameObject go = new GameObject();
+		go.name = "Selection";
+		SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+		sr.sortingOrder = 900;
+//		sr.sprite.texture = tex;
+		//		Sprite spr = Sprite.Create(tex, new Rect(Screen.width - 100, 0.0f, 100.0f, Screen.height), new Vector2(Screen.width - 100, 0.0f));
+		Sprite spr = Sprite.Create(tex, new Rect(0.0f, 0.0f, texWidth, texHeight), new Vector2(0.0f, 0.0f));
+	//	tex.pix
+		sr.sprite = spr;
+		sr.transform.parent = Camera.main.transform;
+		go.transform.localPosition = new Vector3(texX, texY, 1.0f);
+//		sr.transform.localPosition = new Vec
+//		go.transform.parent = 
+	}
+
+	public List<Unit> selectionUnits;
+	float selectionUnitsX;
+	public void createSelectionUnits() {
+		selectionUnits = new List<Unit>();
+		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
+		string[] chars = t.text.Split(new char[]{';'});
+		for (int n=0;n<chars.Length-1;n++) {
+			GameObject p = (GameObject)GameObject.Instantiate(playerPrefab);
+			SpriteRenderer sr = p.GetComponent<SpriteRenderer>();
+			sr.sortingOrder = 90000;
+			p.transform.parent = Camera.main.transform;
+			Unit pl = p.GetComponent<Unit>();
+			pl.mapGenerator = this;
+			pl.gui = gui;
+			players.Add(pl);
+			priorityOrder.Add(pl);
+			pl.characterSheet.loadCharacterFromTextFile(chars[n]);
+			pl.characterSheetLoaded = true;
+			pl.rollInitiative();
+			selectionUnits.Add(pl);
+			Debug.Log(pl.characterSheet.personalInfo.getCharacterName().fullName());
+		}
+		sortPriority();
+		repositionSelectionUnits();
+	}
+
+	public void repositionSelectionUnits() {
+		if (selectionUnits == null) return;
+		float y = Screen.height / 2.0f - spriteSeparator - spriteSize/2.0f + gui.selectionUnitScrollPosition.y;
+		foreach (Unit p in selectionUnits) {
+			if (p.gameObject != selectedSelectionObject) {
+				p.transform.localPosition = new Vector3(selectionUnitsX/spriteSize, y/spriteSize, 1.0f);
+			}
+			else {
+		//		Debug.Log("Selected: " + p.characterSheet.personalInfo.getCharacterName().fullName());
+			}
+			y -= spriteSeparator + spriteSize;
+		}
+	}
+
+	Texture2D makeTexBorder(int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			//	Debug.Log("it is: " + (i/width));
+			if (i/width == 0 || i/width == height-1) pix[i] = Color.black;
+			else if (i%width == 0 || i % width == width-1) pix[i] = Color.black;
+			else pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
+	
+
+	
 
 	public Unit nextPlayer() {
 		if (currentUnit >=0 && currentUnit < priorityOrder.Count)
@@ -294,20 +431,22 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public Unit getCurrentUnit() {
+		if (currentUnit == -1) return null;
 		return priorityOrder[currentUnit];
 	}
 
 	public void importGrid() {
 		string text = Resources.Load<TextAsset>("Maps/Tile Maps/" + tileMapName).text;// + ((tileMapName.Length >= 4 && tileMapName.EndsWith(".txt")) ? "" : ".txt")).text;
+		Debug.Log(text);
 		string[] tiles = text.Split(new char[]{';'});
 		if (int.Parse(tiles[1])==actualWidth && int.Parse(tiles[2])==actualHeight) {
 			////Debug.Log("Works!");
 			parseTiles(tiles);
 		}
 		currentUnit = -1;
-		nextPlayer();
+//		nextPlayer();
 	//	Debug.Log (getCurrentUnit().characterName);
-		moveCameraToSelected(true);
+//		moveCameraToSelected(true);
 		/*
 		string pathName = Application.dataPath + "/Resources/Maps/Tile Maps/" + tileMapName;
 		if (!(tileMapName.Length >= 4 && tileMapName.EndsWith(".txt"))) {
@@ -331,14 +470,36 @@ public class MapGenerator : MonoBehaviour {
 			moveCameraToSelected(true);
 		}*/
 	}
-	
+
 	void parseTiles(string[] tilesArr) {
+		List<Vector2> positions = new List<Vector2>();
 		for (int n=3;n<tilesArr.Length;n++) {
 			int x = Tile.xForTile(tilesArr[n]);
 			int y = Tile.yForTile(tilesArr[n]);
 			Tile t = tiles[x,y];
 			t.parseTile(tilesArr[n]);
+			if (t.startingPoint) {
+				GameObject go = gridArray[x,y];
+				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+				Color c = Color.green;
+				c.a = .4f;
+				sr.color = c;
+				positions.Add(new Vector2(go.transform.position.x, go.transform.position.y));
+			}
 		}
+		if (positions.Count > 0) {
+			Vector2 avg = getAverage(positions);
+			moveCameraToPosition(new Vector3(avg.x+.5f, avg.y-.5f, 0.0f), true);
+		}
+	}
+
+	Vector2 getAverage(List<Vector2> positions) {
+		Vector2 avg = new Vector2(0.0f, 0.0f);
+		foreach (Vector2 pos in positions) {
+			avg += pos;
+		}
+		avg /= positions.Count;
+		return avg;
 	}
 
 	void createGrid() {
@@ -424,8 +585,8 @@ public class MapGenerator : MonoBehaviour {
 		return tiles[x,y].hasAlly(cs);
 	}
 
-	public bool canPass(Direction dir, int x, int y, Unit cs) {
-		return tiles[x,y].canPass(dir, cs);
+	public bool canPass(Direction dir, int x, int y, Unit cs, Direction dirFrom) {
+		return tiles[x,y].canPass(dir, cs, dirFrom);
 	}
 
 	public bool canAttack(Direction dir, int x, int y, Unit cs) {
@@ -437,12 +598,13 @@ public class MapGenerator : MonoBehaviour {
 	void Update () {
 		handleInput();
 		moveCamera();
+		createSelectionArea();
 	//	setTargetObjectScale();
 	}
 
 	void moveCamera() {
 		if (!movingCamera) return;
-		float speed = 12.0f;
+		float speed = 32.0f;
 		float dist = speed * Time.deltaTime;
 //		float distLeft = Mathf.
 		Vector3 pos = Camera.main.transform.position;
@@ -468,13 +630,17 @@ public class MapGenerator : MonoBehaviour {
 	public void moveCameraToSelected(bool instantly = false) {
 		if (selectedUnit == null) return;
 		Vector3 sel = selectedUnit.transform.position;
-		sel.z = Camera.main.transform.position.z;
+		moveCameraToPosition(sel, instantly);
+	}
+
+	public void moveCameraToPosition(Vector3 position, bool instantly = false) {
+		position.z = Camera.main.transform.position.z;
 		if (instantly) {
-			Camera.main.transform.position = sel;
+			Camera.main.transform.position = position;
 		}
 		else {
 			movingCamera = true;
-			cameraMoveToPos = sel;
+			cameraMoveToPos = position;
 		}
 	}
 
@@ -599,6 +765,7 @@ public class MapGenerator : MonoBehaviour {
 		Color c = Color.clear;
 		if (t.canStandCurr) c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
 		else if (t.canAttackCurr) c = new Color(1.0f, 0.0f, 0.0f, 0.4f);
+		else if (isInCharacterPlacement() && t.startingPoint) c = new Color(0.0f, 1.0f, 0.0f, 0.4f);
 		if (sr != currentSprite) {
 			sr.color = c;
 		}
@@ -625,7 +792,7 @@ public class MapGenerator : MonoBehaviour {
 		}*/
 	}
 
-	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs) {
+	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs, Direction dirFrom = Direction.None) {
 		if (currRadius == 0) //Debug.Log(attackRange);
 		if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
@@ -635,14 +802,14 @@ public class MapGenerator : MonoBehaviour {
 		if ((selectedUnits.Count != 0 || selectedUnit != getCurrentUnit()) && gui.showAttack)
 			setCharacterCanAttack(x, y, attackRange, 0, cs);
 		if (radiusLeft == 0) return;
-		if (canPass(Direction.Left, x, y, cs))
-			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs);
-		if (canPass(Direction.Right, x, y, cs))
-			setCharacterCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange, cs);
-		if (canPass(Direction.Up, x, y, cs))
-			setCharacterCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange, cs);
-		if (canPass(Direction.Down, x, y, cs))
-			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs);
+		if (canPass(Direction.Left, x, y, cs, dirFrom))
+			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Left);
+		if (canPass(Direction.Right, x, y, cs, dirFrom))
+			setCharacterCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Right);
+		if (canPass(Direction.Up, x, y, cs, dirFrom))
+			setCharacterCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Up);
+		if (canPass(Direction.Down, x, y, cs, dirFrom))
+			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Down);
 	}
 
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs) {
@@ -710,8 +877,8 @@ public class MapGenerator : MonoBehaviour {
 		handleKeys();
 		handleMouseButtons();
 		handleKeyPan();
-		handleMouseSelect();
 		handleMouseClicks();
+		handleMouseSelect();
 		handleMouseMovement();
 	}
 	
@@ -775,7 +942,7 @@ public class MapGenerator : MonoBehaviour {
 	void handleSpace() {
 		timeSinceSpace += Time.deltaTime * Time.timeScale;
 		if (Input.GetKeyDown(KeyCode.Space)) {
-			if (timeSinceSpace <= maxTimeSpace) {
+			if (timeSinceSpace <= maxTimeSpace && isInPriority()) {
 				deselectAllUnits();
 				selectUnit(getCurrentUnit(),false);
 				lastPlayerPath = selectedUnit.currentPath;
@@ -902,6 +1069,8 @@ public class MapGenerator : MonoBehaviour {
 		handleMouseUp();
 	}
 
+	GameObject selectedSelectionObject = null;
+	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
 		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
 			if (!shiftDown) {
@@ -918,6 +1087,33 @@ public class MapGenerator : MonoBehaviour {
 			else {
 				Unit u = hoveredCharacter;
 				selectUnit(u, true);
+			}
+		}
+		if ((isInCharacterPlacement() && (mouseDown && !leftClickIsMakingSelection()) && !rightDraggin && !middleDraggin)) {
+			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<10);
+			if (hit) {
+				GameObject go = hit.collider.gameObject;
+				selectedSelectionObject = go;
+//				selectedUnit = go.GetComponent<Unit>();
+//				selectedUnit.setSelected();
+				deselectAllUnits();
+				selectUnit(go.GetComponent<Unit>(),false);
+				go.transform.parent = playerTransform;
+				go.GetComponent<SpriteRenderer>().sortingOrder = 90000;
+				Vector3 pos = Input.mousePosition;
+				pos.z = 10.0f;
+				pos = Camera.main.ScreenToWorldPoint(pos);
+				selectedSelectionDiff = new Vector2(pos.x - go.transform.localPosition.x, pos.y - go.transform.localPosition.y);
+				if (lastHit) {
+					int posX = (int)lastHit.transform.localPosition.x;
+					int posY = -(int)lastHit.transform.localPosition.y;
+					Tile t = tiles[posX,posY];
+					if (t.getCharacter()==go.GetComponent<Unit>()) {
+						selectionStartingTile = t;
+					}
+					else selectionStartingTile = null;
+				}
+				selectionStartingPos = go.transform.position;
 			}
 		}
 	
@@ -972,7 +1168,59 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
+	Tile selectionStartingTile = null;
+	Vector3 selectionStartingPos;
 	void handleMouseUp() {
+		if (mouseUp && isInCharacterPlacement() && !rightDraggin && !middleDraggin) {
+			if (selectedSelectionObject) {
+				rightDragginCancelled = true;
+				int posX = (int)lastHit.transform.localPosition.x;
+				int posY = -(int)lastHit.transform.localPosition.y;
+				Vector3 mousePos = Input.mousePosition;
+				bool overThing = mousePos.x >= Screen.width - selectionWidth;
+				Debug.Log(mousePos.x + " " + Screen.width + "    " + overThing);
+				Tile t = tiles[posX, posY];
+				Unit u2 = selectedSelectionObject.GetComponent<Unit>();
+				if (t.startingPoint) {
+					if (t.hasCharacter()) {
+						Unit u = t.getCharacter();
+						if (selectionStartingTile!=null) {
+							selectionStartingTile.setCharacter(u);
+							u.setPosition(new Vector3(selectionStartingPos.x - 0.5f, selectionStartingPos.y + 0.5f, 1.0f));
+						}
+						else {
+							u.transform.parent = cameraTransform;
+							u.GetComponent<SpriteRenderer>().sortingOrder = 90000;
+							t.removeCharacter();
+//							selectionUnits.Add(u);
+							selectionUnits.Insert(selectionUnits.IndexOf(selectedSelectionObject.GetComponent<Unit>()),u);
+						}
+					}
+					u2.setPosition(new Vector3(posX, -posY, 1.0f));
+					t.setCharacter(u2);
+					selectionUnits.Remove(u2);
+					u2.GetComponent<SpriteRenderer>().sortingOrder = 10;
+				}
+				else {
+					if (selectionStartingTile!=null && !overThing) {
+						u2.GetComponent<SpriteRenderer>().sortingOrder = 10;
+					}
+					else {
+						u2.GetComponent<SpriteRenderer>().sortingOrder = 90000;
+						if (selectionStartingTile != null) {
+							selectionStartingTile.removeCharacter();
+						}
+						u2.transform.parent = cameraTransform;
+						if (!selectionUnits.Contains(u2)) {
+							selectionUnits.Add(u2);
+						}
+					}
+					u2.transform.position = selectionStartingPos;
+				}
+				selectedSelectionObject = null;
+				selectionStartingTile = null;
+			}
+		}
 		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && leftClickIsMakingSelection()) {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {
 			if (lastHit) {
 //				selectedUnit.attackEnemy = null;
@@ -1178,9 +1426,27 @@ public class MapGenerator : MonoBehaviour {
 //		}
 		
 	}
+
+
+	void handleCharacterPlacementMovement() {
+		Vector2 mouseMovement = new Vector2(Input.GetAxis("Mouse X"),Input.GetAxis("Mouse Y"));
+		if (selectedSelectionObject) {
+		//	Vector3 pos = Camera.main.WorldToScreenPoint(selectedSelectionObject.transform.position);
+		//	pos.x += mouseMovement.x;
+		//	pos.y += mouseMovement.y;
+		//	pos.z = 10.0f;
+		//	pos = Camera.main.ScreenToWorldPoint(pos);
+			Vector3 pos = Input.mousePosition;
+			pos.z = 10.0f;
+			pos = Camera.main.ScreenToWorldPoint(pos);
+			pos.x -= selectedSelectionDiff.x;
+			pos.y -= selectedSelectionDiff.y;
+			selectedSelectionObject.transform.localPosition = pos;
+		}
+	}
 	
 	void handleMouseMovement() {
-		
+		if (isInCharacterPlacement()) handleCharacterPlacementMovement();
 		
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
@@ -1245,7 +1511,7 @@ public class MapGenerator : MonoBehaviour {
 	
 	void handleMouseSelect() {
 	//	if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI)) {
-		if (!leftClickIsMakingSelection() && (shiftDraggin || normalDraggin) && ((wasRightDraggin || wasShiftRightDraggin) || !isOnGUI)) {
+		if ((!isInCharacterPlacement() || selectedSelectionObject==null) && !leftClickIsMakingSelection() && (shiftDraggin || normalDraggin) && ((wasRightDraggin || wasShiftRightDraggin) || !isOnGUI)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -1297,17 +1563,21 @@ public class MapGenerator : MonoBehaviour {
 		//	mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
 		//	mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
 		}
-		else if (!leftClickIsMakingSelection() && (rightDragginCancelled || shiftRightDragginCancelled)) {
-			Destroy(mouseOver);
-			mouseOver = null;
-			if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
-			//	setAroundCharacter(hoveredCharacter);
+		else if ((!isInCharacterPlacement() || selectedSelectionObject==null) && !leftClickIsMakingSelection() && (rightDragginCancelled || shiftRightDragginCancelled)) {
+			if (mouseOver) {
+				Destroy(mouseOver);
+				mouseOver = null;
+				if (!selectedUnit && hoveredCharacter && !rightDraggin && !shiftRightDraggin) {
+				//	setAroundCharacter(hoveredCharacter);
+				}
+				setCurrentSpriteColor();
 			}
-			setCurrentSpriteColor();
+			rightDragginCancelled = false;
+			shiftRightDragginCancelled = false;
 	//		Destroy(mouseOver2);
 	//		mouseOver2 = null;
 		}
-		else if (!leftClickIsMakingSelection() && (wasRightDraggin || wasShiftRightDraggin)) {
+		else if ((!isInCharacterPlacement() || selectedSelectionObject==null) && !leftClickIsMakingSelection() && (wasRightDraggin || wasShiftRightDraggin)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -1355,7 +1625,7 @@ public class MapGenerator : MonoBehaviour {
 		GameObject go = null;
 		if (hit.collider != null) go = hit.collider.gameObject;
 		if (go != null && !isOnGUI) {
-			Debug.Log(go + "  " + go.transform.position);
+		//	Debug.Log(go + "  " + go.transform.position);
 			if (go != lastHit) {
 				lastHit = go;
 				if (!selectedUnit) {
@@ -1383,7 +1653,7 @@ public class MapGenerator : MonoBehaviour {
 						currentSprite = spr;
 						currentSpriteColor = spr.color;
 					//	if (!(rightDraggin || shiftRightDraggin)) {
-						if (!((normalDraggin || shiftDraggin) && !leftClickIsMakingSelection())) {
+						if (!((normalDraggin || shiftDraggin) && !leftClickIsMakingSelection() && !(isInCharacterPlacement() && selectedSelectionObject!=null))) {
 							setCurrentSpriteColor();
 						}
 					}
@@ -1421,6 +1691,10 @@ public class MapGenerator : MonoBehaviour {
 			else if (t.canAttackCurr) {
 				did = true;
 				currentSprite.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
+			}
+			else if (t.startingPoint) {
+				did = true;
+				currentSprite.color = new Color(0.0f, 0.5f, 0.0f, 0.4f);
 			}
 	//	}
 		if (!did) {
