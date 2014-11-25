@@ -1532,6 +1532,13 @@ public class Unit : MonoBehaviour {
 		characterSheet.unit = this;
 	}
 
+	public void loadCharacterSheetFromTextFile(string textFile) {
+		if (characterSheetLoaded) return;
+		characterSheet.loadCharacterFromTextFile(textFile);
+		characterSheetLoaded = true;
+		characterSheet.unit = this;
+	}
+
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
 		loadCharacterSheet();

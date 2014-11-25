@@ -286,6 +286,9 @@ public class GameGUI : MonoBehaviour {
 			float y = mapGenerator.spriteSeparator + mapGenerator.spriteSize - 10.0f;
 			GUIStyle st = getNamesStyle();
 			for (int n=0;n<mapGenerator.selectionUnits.Count;n++) {
+				if (n==mapGenerator.selectionCurrentIndex) {
+					y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
+				}
 				Unit u = mapGenerator.selectionUnits[n];
 				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
 				Vector2 size = st.CalcSize(content);
