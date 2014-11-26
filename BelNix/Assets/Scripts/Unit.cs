@@ -56,7 +56,13 @@ public class Unit : MonoBehaviour {
 	public bool doAttOpp = true;
 	public GameGUI gui;
 
+	public Affliction affliction = Affliction.None;
+
 	public GameObject damagePrefab;
+
+	public bool isProne() {
+		return affliction == Affliction.Prone;
+	}
 
 
 	public void selectMovementType(MovementType t) {
@@ -89,6 +95,16 @@ public class Unit : MonoBehaviour {
 
 
 	public MovementType[] getMovementTypes() {
+		List<MovementType> movementTypes = new List<MovementType>();
+		if (isProne()) {
+			movementTypes.Add(MovementType.Recover);
+		}
+		else {
+			movementTypes.Add(MovementType.Move);
+			movementTypes.Add(MovementType.BackStep);
+		}
+		movementTypes.Add(MovementType.Cancel);
+		return movementTypes.ToArray();
 		return new MovementType[] {MovementType.Move, MovementType.BackStep, MovementType.Cancel};
 	}
 
@@ -1378,6 +1394,11 @@ public class Unit : MonoBehaviour {
 		return move;
 	}
 
+	public void recover() {
+		affliction = Affliction.None;
+		usedMovement = true;
+	}
+
 	public void startAttacking() {
 		if (attackEnemy!=null && !moving) {
 			attacking = true;
@@ -1524,6 +1545,7 @@ public class Unit : MonoBehaviour {
 
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
+		affliction = Affliction.None;
 		loadCharacterSheet();
 		hitPoints = maxHitPoints;
 		moving = false;
@@ -1672,6 +1694,15 @@ public class Unit : MonoBehaviour {
 				Debug.Log("x: " + x + " y: " + y);
 			}
 			else break;
+		}
+		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || t.getTile(dir).hasCharacter())) {
+			affliction = Affliction.Prone;
+			if (t.getTile(dir) != null) {
+				Unit u = t.getTile(dir).getCharacter();
+				if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
+					u.affliction = Affliction.Prone;
+				}
+			}
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);

@@ -382,7 +382,7 @@ public class GameGUI : MonoBehaviour {
 
 				}
 				//		}
-				GUI.enabled = !p.usedStandard;
+				GUI.enabled = !p.usedStandard && !p.isProne();
 				if (selectedStandard && p.usedStandard) {
 					selectedStandard = false;
 					selectedStandardType = StandardType.None;
@@ -554,6 +554,13 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.getCurrentUnit().selectMovementType(t);
 			if (t == MovementType.BackStep)
 				Debug.Log("BackStep: " + mapGenerator.lastPlayerPath.Count + "\n\n" + mapGenerator.selectedUnit.currentPath.Count);
+			break;
+		case MovementType.Recover:
+			mapGenerator.getCurrentUnit().recover();
+//			mapGenerator.getCurrentUnit().affliction = Affliction.None;
+//			mapGenerator.getCurrentUnit().usedMovement = true;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
 			break;
 		default:
 			mapGenerator.resetRanges();
