@@ -348,6 +348,7 @@ public class MapGenerator : MonoBehaviour {
 	public void repositionSelectionUnits() {
 		if (selectionUnits == null) return;
 		float y = Screen.height / 2.0f - spriteSeparator - spriteSize/2.0f + gui.selectionUnitScrollPosition.y;
+		float initialY = y;
 		int n=0;
 		foreach (Unit p in selectionUnits) {
 			if (n==selectionCurrentIndex) {
@@ -362,9 +363,22 @@ public class MapGenerator : MonoBehaviour {
 			y -= spriteSeparator + spriteSize;
 			n++;
 		}
-	//	if (selectedSelectionObject!=null) {
-	//		selectedSelectionObject.transform.localPosition = 
-	//	}
+		if (selectedSelectionObject!=null) {
+			if (Input.mousePosition.x >= Screen.width - selectionWidth) {
+				float y2 = spriteSeparator + spriteSize/2.0f - gui.selectionUnitScrollPosition.y;
+				int mouseY = (int)(Screen.height - Input.mousePosition.y);
+				int p = (int)((mouseY - y2) / (spriteSeparator + spriteSize) + 1) - 1;
+				if (p<selectionCurrentIndex || selectionCurrentIndex == -1) p++;
+				selectionCurrentIndex = p;
+			//	Debug.Log(Input.mousePosition.y + "   " +  p);
+				int pos = (int)((initialY - selectedSelectionObject.transform.localPosition.y) / (spriteSeparator + spriteSize));
+			//	selectionCurrentIndex = pos;
+	//			Debug.Log(pos);
+			}
+			else {
+				selectionCurrentIndex = -1;
+			}
+		}
 	}
 
 	Texture2D makeTexBorder(int width, int height, Color col )
@@ -1076,7 +1090,7 @@ public class MapGenerator : MonoBehaviour {
 		handleMouseUp();
 	}
 
-	GameObject selectedSelectionObject = null;
+	public GameObject selectedSelectionObject = null;
 	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
 		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
@@ -1182,7 +1196,7 @@ public class MapGenerator : MonoBehaviour {
 
 	Tile selectionStartingTile = null;
 	int selectionStartingIndex = -1;
-	int selectionCurrentIndex = -1;
+	public int selectionCurrentIndex = -1;
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
 		if (mouseUp && isInCharacterPlacement() && !rightDraggin && !middleDraggin) {

@@ -285,11 +285,17 @@ public class GameGUI : MonoBehaviour {
 			selectionUnitScrollPosition = GUI.BeginScrollView(new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth, Screen.height), selectionUnitScrollPosition, new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth - 16.0f, mapGenerator.spriteSeparator + (mapGenerator.spriteSeparator + mapGenerator.spriteSize) * (mapGenerator.selectionUnits == null ? 0 : mapGenerator.selectionUnits.Count)));
 			float y = mapGenerator.spriteSeparator + mapGenerator.spriteSize - 10.0f;
 			GUIStyle st = getNamesStyle();
-			for (int n=0;n<mapGenerator.selectionUnits.Count;n++) {
+			for (int n=0;n<mapGenerator.selectionUnits.Count + (mapGenerator.selectionCurrentIndex==-1?0:1);n++) {
+				Unit u;
 				if (n==mapGenerator.selectionCurrentIndex) {
-					y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
+					u = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
+
+			//		y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
 				}
-				Unit u = mapGenerator.selectionUnits[n];
+				else {
+					u = mapGenerator.selectionUnits[n - (mapGenerator.selectionCurrentIndex!=-1 && mapGenerator.selectionCurrentIndex < n ? 1 : 0)];
+				}
+			//	Unit u = mapGenerator.selectionUnits[n];
 				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
 				Vector2 size = st.CalcSize(content);
 				float height = st.CalcHeight(content, width);
@@ -297,7 +303,7 @@ public class GameGUI : MonoBehaviour {
 				y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
 			}
 			GUI.EndScrollView();
-			if (GUI.Button(beginButtonRect(), "Begin", getBeginButtonStyle())) {
+			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
 			}
 		}
