@@ -1575,7 +1575,7 @@ public class Unit : MonoBehaviour {
 		attackRange = 1;
 		viewDist = 11;
 		maxMoveDist = 5;
-		moveDistLeft = 5;
+		moveDistLeft = maxMoveDist;
 		anim = gameObject.GetComponent<Animator>();
 		currentMaxPath = 0;
 	//	Debug.Log("Children: " + transform.childCount + "  Team: " + team);
