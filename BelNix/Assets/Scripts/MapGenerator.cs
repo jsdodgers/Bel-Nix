@@ -1149,7 +1149,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw) {
+			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw)) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -1272,7 +1272,7 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if (gui.selectedMovement || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack) {
+				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						if (gui.selectedMovement) {
 							if (tiles[posX, posY].getCharacter() != selectedUnit) {
@@ -1313,7 +1313,7 @@ public class MapGenerator : MonoBehaviour {
 					lastClickTile = tiles[(int)v2.x,(int)v2.y];
 					lastClickTime = Time.time;
 				}
-				else if (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack) {
+				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack)) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 				}
@@ -1456,11 +1456,11 @@ public class MapGenerator : MonoBehaviour {
 
 	public void addCharacterRange(Unit u, bool draw) {
 		bool isOther = selectedUnit != getCurrentUnit() || selectedUnits.Count > 0;
-		if ((gui.showMovement && isOther) || (gui.selectedMovement && gui.selectedMovementType != MovementType.None && !isOther))
+		if ((gui.showMovement && isOther) || ((gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) && !isOther))
 			setAroundCharacter(u);
 		else if ((gui.showAttack && isOther) || (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
-		else if ((gui.selectedStandardType == StandardType.Throw && !isOther))
+		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Throw && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		if (draw) drawAllRanges();
 	}

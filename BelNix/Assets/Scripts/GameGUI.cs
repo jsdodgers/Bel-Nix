@@ -373,8 +373,13 @@ public class GameGUI : MonoBehaviour {
 						deselectStandard();
 					}
 					if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
-						selectedMovementType = MovementType.Move;
-						selectMovementType(selectedMovementType);
+						if (p.getMovementTypes()[0] == MovementType.Move) {
+							selectedMovementType = MovementType.Move;
+							selectMovementType(selectedMovementType);
+						}
+						else {
+							selectedMovementType = MovementType.None;
+						}
 					}
 					selectedMovement = !selectedMovement;//true;
 					selectedMinor = false;
@@ -538,6 +543,11 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		}
+	}
+
+	void OnStart() {
+		selectedStandardType = StandardType.None;
+		selectedMovementType = MovementType.None;
 	}
 	
 	public void selectMovementType(MovementType t) {

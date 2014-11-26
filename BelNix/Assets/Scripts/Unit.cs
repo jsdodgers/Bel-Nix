@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
-public enum StandardType {Attack, Reload, Inventory, Throw, Cancel, None}
-public enum Affliction {Prone, Immobilized, Addled, Confused, Poisoned, None}
+public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, None}
+public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 
 public class Unit : MonoBehaviour {
 	public Character characterSheet;
@@ -56,12 +56,19 @@ public class Unit : MonoBehaviour {
 	public bool doAttOpp = true;
 	public GameGUI gui;
 
-	public Affliction affliction = Affliction.None;
+	public List<Affliction> afflictions;
 
 	public GameObject damagePrefab;
 
 	public bool isProne() {
-		return affliction == Affliction.Prone;
+		return isAfflictedWith(Affliction.Prone);
+//		return affliction == Affliction.Prone;
+	}
+
+	public bool isAfflictedWith(Affliction a) {
+		return afflictions.Contains(a);
+//		Debug.Log(a + "  " + affliction + "  " + (a & affliction));
+//		return (a & affliction) != Affliction.None;
 	}
 
 
@@ -1395,7 +1402,10 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void recover() {
-		affliction = Affliction.None;
+		if (isProne())
+			afflictions.Remove(Affliction.Prone);
+	//	affliction ^= Affliction.Prone;
+	//	affliction = Affliction.None;
 		usedMovement = true;
 	}
 
@@ -1545,7 +1555,7 @@ public class Unit : MonoBehaviour {
 
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
-		affliction = Affliction.None;
+		afflictions = new List<Affliction>();
 		loadCharacterSheet();
 		hitPoints = maxHitPoints;
 		moving = false;
@@ -1696,11 +1706,15 @@ public class Unit : MonoBehaviour {
 			else break;
 		}
 		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || t.getTile(dir).hasCharacter())) {
-			affliction = Affliction.Prone;
+		//	affliction = Affliction.Prone;
+			becomeProne();
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
-				if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
-					u.affliction = Affliction.Prone;
+				if (u) {
+					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
+//					u.affliction = Affliction.Prone;
+						u.becomeProne();
+					}
 				}
 			}
 		}
@@ -1708,6 +1722,12 @@ public class Unit : MonoBehaviour {
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
 		currentPath.Add(new Vector2(x, y));
 	//	setPosition(new Vector3(x, -y, position.z));
+	}
+
+	void becomeProne() {
+		if (!isProne()) {
+			afflictions.Add(Affliction.Prone);
+		}
 	}
 
 	void doGetThrown() {
