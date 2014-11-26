@@ -282,7 +282,8 @@ public class GameGUI : MonoBehaviour {
 			float width = mapGenerator.selectionWidth;
 			if (Screen.height < mapGenerator.selectionUnits.Count * (mapGenerator.spriteSize + mapGenerator.spriteSeparator) + mapGenerator.spriteSeparator)
 				width -= 16.0f;
-			selectionUnitScrollPosition = GUI.BeginScrollView(new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth, Screen.height), selectionUnitScrollPosition, new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth - 16.0f, mapGenerator.spriteSeparator + (mapGenerator.spriteSeparator + mapGenerator.spriteSize) * (mapGenerator.selectionUnits == null ? 0 : mapGenerator.selectionUnits.Count)));
+			float scrollHeight = mapGenerator.spriteSeparator + (mapGenerator.spriteSeparator + mapGenerator.spriteSize) * (mapGenerator.selectionUnits == null ? 0 : mapGenerator.selectionUnits.Count + (mapGenerator.selectionCurrentIndex>=0?1:0));
+			selectionUnitScrollPosition = GUI.BeginScrollView(new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth, Screen.height), selectionUnitScrollPosition, new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth - 16.0f, scrollHeight));
 			float y = mapGenerator.spriteSeparator + mapGenerator.spriteSize - 10.0f;
 			GUIStyle st = getNamesStyle();
 			for (int n=0;n<mapGenerator.selectionUnits.Count;n++) {
@@ -306,6 +307,19 @@ public class GameGUI : MonoBehaviour {
 				float height = st.CalcHeight(content, width);
 				GUI.Label(new Rect(pos.x - width/2.0f, Screen.height - (pos.y - mapGenerator.spriteSize/2.0f + 10.0f), width, height), content, st);
 				
+			}
+			if (scrollHeight > Screen.height) {
+				float mY = Screen.height - Input.mousePosition.y;
+				float dist = 20.0f;
+				float amount = 3.0f;
+				if (mY <= dist) {
+					amount = (dist - mY)/3.0f;
+					selectionUnitScrollPosition.y = Mathf.Max(0.0f, selectionUnitScrollPosition.y - amount);
+				}
+				if (mY >= Screen.height - dist) {
+					amount = (mY - (Screen.height - dist))/3.0f;
+					selectionUnitScrollPosition.y = Mathf.Min(scrollHeight - Screen.height, selectionUnitScrollPosition.y + amount);
+				}
 			}
 			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
