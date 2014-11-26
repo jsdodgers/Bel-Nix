@@ -285,24 +285,28 @@ public class GameGUI : MonoBehaviour {
 			selectionUnitScrollPosition = GUI.BeginScrollView(new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth, Screen.height), selectionUnitScrollPosition, new Rect(Screen.width - mapGenerator.selectionWidth, 0.0f, mapGenerator.selectionWidth - 16.0f, mapGenerator.spriteSeparator + (mapGenerator.spriteSeparator + mapGenerator.spriteSize) * (mapGenerator.selectionUnits == null ? 0 : mapGenerator.selectionUnits.Count)));
 			float y = mapGenerator.spriteSeparator + mapGenerator.spriteSize - 10.0f;
 			GUIStyle st = getNamesStyle();
-			for (int n=0;n<mapGenerator.selectionUnits.Count + (mapGenerator.selectionCurrentIndex==-1?0:1);n++) {
-				Unit u;
+			for (int n=0;n<mapGenerator.selectionUnits.Count;n++) {
 				if (n==mapGenerator.selectionCurrentIndex) {
-					u = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
-
-			//		y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
+//					Unit u2 = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
+					y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
 				}
-				else {
-					u = mapGenerator.selectionUnits[n - (mapGenerator.selectionCurrentIndex!=-1 && mapGenerator.selectionCurrentIndex < n ? 1 : 0)];
-				}
-			//	Unit u = mapGenerator.selectionUnits[n];
+				Unit u = mapGenerator.selectionUnits[n];
 				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
 				Vector2 size = st.CalcSize(content);
 				float height = st.CalcHeight(content, width);
 				GUI.Label(new Rect(Screen.width - mapGenerator.selectionWidth, y, width, height + 0 * size.y), content, st);
 				y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
 			}
+
 			GUI.EndScrollView();
+			if (mapGenerator.selectedSelectionObject) {
+				Vector3 pos = Camera.main.WorldToScreenPoint(mapGenerator.selectedSelectionObject.transform.position);
+				Unit u = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
+				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
+				float height = st.CalcHeight(content, width);
+				GUI.Label(new Rect(pos.x - width/2.0f, Screen.height - (pos.y - mapGenerator.spriteSize/2.0f + 10.0f), width, height), content, st);
+				
+			}
 			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
 			}
