@@ -19,7 +19,7 @@ namespace CharacterInfo
 		public int setExperience(int exp)			{ return cExperience = exp; }
 		public int incrementLevel()					{ return ++cLevel; }
 		public int setLevel(int level)				{ return cLevel = level; }
-
+		public ClassFeature[] getClassFeatures() 	{ return getCharacterClass().getClassFeatures(cLevel);}
 	}
 }
 

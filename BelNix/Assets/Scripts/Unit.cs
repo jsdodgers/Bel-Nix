@@ -1177,12 +1177,13 @@ public class Unit : MonoBehaviour {
 			GUIStyle featuresStyle = st;
 			GUIContent c = new GUIContent("Feature");
 			float featuresHeight = featuresStyle.CalcSize(c).y;
-			ClassFeature[] classFeatures = characterSheet.characterSheet.characterProgress.getCharacterClass().getClassFeatures();
+			ClassFeature[] classFeatures = characterSheet.characterSheet.characterProgress.getClassFeatures();
 			float scrollHeight = featuresHeight * classFeatures.Length;
 			float remainingHeight = skillsHeight - y;
 			classFeaturesScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth - 1.0f, y, skillsWidth, remainingHeight), classFeaturesScrollPos, new Rect(paperDollFullWidth - 1.0f, y, skillsWidth - (scrollHeight > remainingHeight ? 16.0f : 0.0f), scrollHeight));
 			foreach (ClassFeature classFeature in classFeatures) {
-				GUIContent feat = new GUIContent(classFeature.ToString());
+			//	GUIContent feat = new GUIContent(classFeature.ToString());
+				GUIContent feat = new GUIContent(ClassFeatures.getName(classFeature));
 				Vector2 featSize = featuresStyle.CalcSize(feat);
 				GUI.Label(new Rect(featureX, y, featSize.x, featSize.y), feat, featuresStyle);
 				y += featuresHeight;
