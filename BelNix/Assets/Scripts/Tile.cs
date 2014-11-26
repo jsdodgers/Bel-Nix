@@ -96,6 +96,23 @@ public class Tile {
 		return standable && !character;
 	}
 
+	public Tile getTile(Direction dir) {
+		switch (dir) {
+		case Direction.Down:
+			return downTile;
+		case Direction.Left:
+			return leftTile;
+		case Direction.Right:
+			return rightTile;
+		case Direction.Up:
+			return upTile;
+		case Direction.None:
+			return this;
+		default:
+			return null;
+		}
+	}
+
 	public bool canPass(Direction direction, Unit cs, Direction previousDirection) {
 	//	Debug.Log("Can Turn: " + canTurn);
 		switch (direction) {

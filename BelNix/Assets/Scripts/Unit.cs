@@ -1,9 +1,10 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
-public enum StandardType {Attack, Reload, Inventory, Cancel, None}
+public enum StandardType {Attack, Reload, Inventory, Throw, Cancel, None}
 
 public class Unit : MonoBehaviour {
 	public Character characterSheet;
@@ -76,11 +77,32 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public StandardType getStandardType(ClassFeature feature) {
+		switch (feature) {
+		case ClassFeature.Throw:
+			return StandardType.Throw;
+		default:
+			return StandardType.None;
+		}
+	}
+
+
 	public MovementType[] getMovementTypes() {
 		return new MovementType[] {MovementType.Move, MovementType.BackStep, MovementType.Cancel};
 	}
 
 	public StandardType[] getStandardTypes() {
+		List<StandardType> standardTypes = new List<StandardType>();
+		standardTypes.Add(StandardType.Attack);
+		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
+		foreach (ClassFeature feature in features) {
+			StandardType st = getStandardType(feature);
+			if (st != StandardType.None)
+				standardTypes.Add(st);
+		}
+		standardTypes.Add(StandardType.Inventory);
+		standardTypes.Add (StandardType.Cancel);
+		return standardTypes.ToArray();
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
 
@@ -405,55 +427,6 @@ public class Unit : MonoBehaviour {
 			currentPath.RemoveAt(n);
 		}
 		return currentPath;
-	}
-
-	public void crushingSwingSFX() {
-		if (mapGenerator && mapGenerator.audioBank) {
-			mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingSwing, transform.position);
-		}
-	}
-
-	
-	void attackAnimation() {
-	//	crushingSwingSFX();
-		Debug.Log("Attack!");
-		anim.SetTrigger("Attack");
-		//	attackEnemy = null;
-	}
-	
-	void dealDamage() {
-	//	int hit = characterSheet.rollHit();//Random.Range(1,21);
-		Hit hit = characterSheet.rollHit();
-		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
-		Hit critHit = characterSheet.rollHit();
-		bool crit = hit.crit && critHit.hit  >= enemyAC;
-		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
-		bool didHit = hit.hit >= enemyAC || hit.crit;
-		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
-		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
-		if (didHit)
-			attackEnemy.damage(wapoon, this);
-		if (!attackEnemy.moving) {
-			attackEnemy.attackedByCharacter = this;
-			attackEnemy.setRotationToAttackedByCharacter();
-			attackEnemy.beingAttacked = true;
-		}
-		else {
-			attackEnemy.shouldMove--;
-			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
-		}
-		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
-//		damageDisplay.begin(
-	}
-
-	public int damageNumber = 0;
-
-	public void addDamageDisplay() {
-		damageNumber++;
-	}
-
-	public void removeDamageDisplay() {
-		damageNumber--;
 	}
 
 
@@ -1409,6 +1382,13 @@ public class Unit : MonoBehaviour {
 			attacking = true;
 		}
 	}
+
+	public bool throwing = false;
+	public void startThrowing() {
+		if (attackEnemy != null && !throwing) {
+			throwing = true;
+		}
+	}
 	
 	public void startMoving(bool backStepping) {
 		if (currentPath.Count <= 1) return;
@@ -1427,8 +1407,7 @@ public class Unit : MonoBehaviour {
 		removeTrail();
 	}
 
-
-	void moveBy(float moveDist) {
+	void moveBy(float moveDist, bool attopp) {
 		Vector2 one = (Vector2)currentPath[1];
 		Vector2 zero = (Vector2)currentPath[0];
 		zero = new Vector2(transform.localPosition.x - 0.5f, -transform.localPosition.y - 0.5f);
@@ -1436,7 +1415,7 @@ public class Unit : MonoBehaviour {
 		float directionY = -sign(one.y - zero.y);
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
-		if (dist <= 0.5f && doAttOpp && currentPath.Count >= 3) {
+		if (dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
 			attackOfOpp(one);
 			doAttOpp = false;
 		}
@@ -1580,6 +1559,8 @@ public class Unit : MonoBehaviour {
 		doMovement();
 		doRotation();
 		doAttack();
+		doThrow();
+		doGetThrown();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
@@ -1601,7 +1582,7 @@ public class Unit : MonoBehaviour {
 				float speed = 2.0f;
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
-				moveBy(moveDist);
+				moveBy(moveDist, true);
 			}
 			else {
 				moving = false;
@@ -1623,6 +1604,93 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public bool throwAnimating = false;
+	void doThrow() {
+		if (throwing && !moving && !attacking) {
+			throwAnimation();
+			throwAnimating = true;
+			throwing = false;
+			usedStandard = true;
+			if (moveDistLeft < maxMoveDist) {
+				usedMovement = true;
+				currentMoveDist = 0;
+				moveDistLeft = 0;
+			}
+		}
+	}
+
+	Direction directionOf(Unit u) {
+		Direction dir = Direction.Down;
+		if (u.position.x > position.x) dir = Direction.Right;
+		else if (u.position.x < position.x) dir = Direction.Left;
+		else if (u.position.y > position.y) dir = Direction.Up;
+		return dir;
+	}
+
+	void throwAnimation() {
+		attackEnemy.setRotationToCharacter(this);
+		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative());
+		mapGenerator.resetAttack(this);
+		if (this == mapGenerator.getCurrentUnit())
+			mapGenerator.resetRanges();
+	}
+
+	void setXYFromDirection(Direction dir, ref int x, ref int y) {
+		switch (dir) {
+		case Direction.Left:
+			x--;
+			break;
+		case Direction.Right:
+			x++;
+			break;
+		case Direction.Down:
+			y++;
+			break;
+		case Direction.Up:
+			y--;
+			break;
+		default:
+			break;
+		}
+	}
+
+	bool gettingThrown = false;
+	Vector3 gettingThrownPosition;
+	void getThrown(Direction dir, int distance) {
+		Debug.Log("getThrown(" + dir + ", " + distance + ")");
+		int x = (int)position.x;
+		int y = (int)-position.y;
+		Tile t = mapGenerator.tiles[x, y];
+		for (;distance>0;distance--) {
+			Debug.Log(distance);
+			Tile nextT = t.getTile(dir);
+			if (!nextT.hasCharacter() && t.passabilityInDirection(dir)==1) {//t.canPass(dir, this, dir)) {
+				t = nextT;
+				setXYFromDirection(dir, ref x, ref y);
+				Debug.Log("x: " + x + " y: " + y);
+			}
+			else break;
+		}
+		gettingThrown = true;
+//		gettingThrownPosition = new Vector3(x, -y, position.z);
+		currentPath.Add(new Vector2(x, y));
+	//	setPosition(new Vector3(x, -y, position.z));
+	}
+
+	void doGetThrown() {
+		if (gettingThrown) {
+			if (currentPath.Count>=2) {
+				float speed = 5.0f;
+				float time = Time.deltaTime;
+				float moveDist = time * speed;
+				moveBy(moveDist, false);
+			}
+			else {
+				gettingThrown = false;
+			}
+		}
+	}
+
 	void doAttack() {
 		if (attacking && !moving && !rotating) {
 			attackAnimation();
@@ -1632,8 +1700,58 @@ public class Unit : MonoBehaviour {
 			if (moveDistLeft < maxMoveDist) {
 				usedMovement = true;
 				currentMoveDist = 0;
+				moveDistLeft = 0;
 			}
 		}
+	}
+
+	
+	
+	public void crushingSwingSFX() {
+		if (mapGenerator && mapGenerator.audioBank) {
+			mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingSwing, transform.position);
+		}
+	}
+	
+	
+	void attackAnimation() {
+		anim.SetTrigger("Attack");
+		//	attackEnemy = null;
+	}
+	
+	void dealDamage() {
+		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
+		Hit hit = characterSheet.rollHit();
+		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
+		Hit critHit = characterSheet.rollHit();
+		bool crit = hit.crit && critHit.hit  >= enemyAC;
+		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
+		bool didHit = hit.hit >= enemyAC || hit.crit;
+		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
+		if (didHit)
+			attackEnemy.damage(wapoon, this);
+		if (!attackEnemy.moving) {
+			attackEnemy.attackedByCharacter = this;
+			attackEnemy.setRotationToAttackedByCharacter();
+			attackEnemy.beingAttacked = true;
+		}
+		else {
+			attackEnemy.shouldMove--;
+			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
+		}
+		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
+		//		damageDisplay.begin(
+	}
+	
+	public int damageNumber = 0;
+	
+	public void addDamageDisplay() {
+		damageNumber++;
+	}
+	
+	public void removeDamageDisplay() {
+		damageNumber--;
 	}
 
 	public void killedEnemy() {

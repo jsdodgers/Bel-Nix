@@ -135,7 +135,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
-			((selectedStandard && (selectedStandardType == StandardType.Attack)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -468,10 +468,16 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 
-					if (selectedStandardType == StandardType.Attack && mapGenerator.getCurrentUnit().attackEnemy != null) {
+					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw) && mapGenerator.getCurrentUnit().attackEnemy != null) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
- 						
-							p.startAttacking();
+							Debug.Log("Confirm: " + StandardType.Throw);
+							if (selectedStandardType == StandardType.Attack) {
+								p.startAttacking();
+							}
+							else if (selectedStandardType == StandardType.Throw) {
+								Debug.Log("Start Throwing");
+								p.startThrowing();
+							}
 						}
 					}
 				}
@@ -502,8 +508,10 @@ public class GameGUI : MonoBehaviour {
 	void deselectStandard() {
 		
 		selectedStandard = false;
+		selectedStandardType = StandardType.None;
 		if (mapGenerator.selectedUnit.attackEnemy) {
 			mapGenerator.selectedUnit.attackEnemy.deselect();
+			mapGenerator.resetAttack();
 		}
 		mapGenerator.resetRanges();
 	}
@@ -512,6 +520,8 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case StandardType.Cancel:
+			if (mapGenerator.selectedUnit.attackEnemy)
+				mapGenerator.selectedUnit.attackEnemy.deselect();
 			selectedStandardType = StandardType.None;
 			selectedStandard = false;
 			mapGenerator.resetRanges();
@@ -519,7 +529,12 @@ public class GameGUI : MonoBehaviour {
 		case StandardType.Attack:
 			mapGenerator.resetRanges();
 			break;
+		case StandardType.Throw:
+			mapGenerator.resetRanges();
+			break;
 		default:
+			if (mapGenerator.selectedUnit.attackEnemy)
+				mapGenerator.selectedUnit.attackEnemy.deselect();
 			mapGenerator.resetRanges();
 			break;
 		}
