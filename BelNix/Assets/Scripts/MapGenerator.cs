@@ -619,7 +619,9 @@ public class MapGenerator : MonoBehaviour {
 	void Update () {
 		handleInput();
 		moveCamera();
-		createSelectionArea();
+		if (isInCharacterPlacement()) {
+			createSelectionArea();
+		}
 	//	setTargetObjectScale();
 	}
 
