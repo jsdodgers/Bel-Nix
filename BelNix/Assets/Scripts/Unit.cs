@@ -95,6 +95,8 @@ public class Unit : MonoBehaviour {
 		switch (feature) {
 		case ClassFeature.Throw:
 			return StandardType.Throw;
+		case ClassFeature.Intimidate:
+			return StandardType.Intimidate;
 		default:
 			return StandardType.None;
 		}
@@ -1421,6 +1423,13 @@ public class Unit : MonoBehaviour {
 			throwing = true;
 		}
 	}
+
+	public bool intimidating = false;
+	public void startIntimidating() {
+		if (attackEnemy != null && !intimidating) {
+			intimidating = true;
+		}
+	}
 	
 	public void startMoving(bool backStepping) {
 		if (currentPath.Count <= 1) return;
@@ -1595,6 +1604,7 @@ public class Unit : MonoBehaviour {
 		doAttack();
 		doThrow();
 		doGetThrown();
+		doIntimidate();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
@@ -1744,17 +1754,67 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void useMovementIfStarted() {
+		if (moveDistLeft < maxMoveDist) {
+			usedMovement = true;
+			currentMoveDist = 0;
+			moveDistLeft = 0;
+		}
+	}
+
+	public bool intimidateAnimating = false;
+	void doIntimidate() {
+		if (intimidating && !moving && !rotating) {
+			intimidateAnimation();
+			intimidateAnimating = true;
+			intimidating = false;
+			usedStandard = true;
+			useMovementIfStarted();
+		}
+	}
+
+	void intimidateAnimation() {
+		dealIntimidationDamage();
+		mapGenerator.resetAttack(this);
+		if (this == mapGenerator.getCurrentUnit())
+			mapGenerator.resetRanges();
+	}
+
+	void dealIntimidationDamage() {
+		if (attackEnemy != null) {
+			int sturdy = characterSheet.rollForSkill(Skill.Melee, 20);
+			int wellV = attackEnemy.characterSheet.rollForSkill(Skill.Political, 10);
+			bool didHit = sturdy >= wellV;
+			int wapoon = Mathf.Max(1, characterSheet.combatScores.getInitiative());
+			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			if (didHit) {
+				attackEnemy.damageComposure(wapoon, this);
+				attackEnemy.setRotationToCharacter(this);
+			}
+		}
+	}
+
+	
+	public void damageComposure(int damage, Unit u) {
+		//	Debug.Log("Damage");
+		if (damage > 0) {
+			crushingHitSFX();
+			//			hitPoints -= damage;
+			//			if (hitPoints <= 0) died = true;
+		//	bool d = deadOrDyingOrUnconscious();
+			characterSheet.combatScores.loseComposure(damage);
+		}
+		//	Debug.Log("EndDamage");
+	}
+
 	void doAttack() {
 		if (attacking && !moving && !rotating) {
 			attackAnimation();
 			attackAnimating = true;
 			attacking = false;
 			usedStandard = true;
-			if (moveDistLeft < maxMoveDist) {
-				usedMovement = true;
-				currentMoveDist = 0;
-				moveDistLeft = 0;
-			}
+			useMovementIfStarted();
 		}
 	}
 

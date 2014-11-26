@@ -1041,9 +1041,8 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
-		return (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack) ||
-			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) ||
-				gui.selectedStandardType == StandardType.Throw;
+		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate)) ||
+			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep));
 	}
 
 
@@ -1149,7 +1148,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw)) {
+			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate)) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -1159,7 +1158,7 @@ public class MapGenerator : MonoBehaviour {
 						selectedUnit.attackEnemy = null;
 					}
 					if (tiles[posX,posY].canAttackCurr) {
-						if (gui.selectedStandardType == StandardType.Attack)
+						if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
 							selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 						else if (gui.selectedStandardType == StandardType.Throw)
 							selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
@@ -1272,7 +1271,7 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack))) {
+				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						if (gui.selectedMovement) {
 							if (tiles[posX, posY].getCharacter() != selectedUnit) {
@@ -1287,6 +1286,11 @@ public class MapGenerator : MonoBehaviour {
 						else if (gui.selectedStandardType == StandardType.Throw) {
 							if (selectedUnit.attackEnemy) {
 								selectedUnit.startThrowing();
+							}
+						}
+						else if (gui.selectedStandardType == StandardType.Intimidate) {
+							if (selectedUnit.attackEnemy) {
+								selectedUnit.startIntimidating();
 							}
 						}
 					}
@@ -1313,7 +1317,7 @@ public class MapGenerator : MonoBehaviour {
 					lastClickTile = tiles[(int)v2.x,(int)v2.y];
 					lastClickTime = Time.time;
 				}
-				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack)) {
+				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 				}
@@ -1460,7 +1464,7 @@ public class MapGenerator : MonoBehaviour {
 			setAroundCharacter(u);
 		else if ((gui.showAttack && isOther) || (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
-		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Throw && !isOther))
+		else if ((gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		if (draw) drawAllRanges();
 	}

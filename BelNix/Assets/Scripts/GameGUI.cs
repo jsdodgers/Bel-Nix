@@ -135,7 +135,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
-			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -473,15 +473,17 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 
-					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw) && mapGenerator.getCurrentUnit().attackEnemy != null) {
+					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
 							Debug.Log("Confirm: " + StandardType.Throw);
 							if (selectedStandardType == StandardType.Attack) {
 								p.startAttacking();
 							}
 							else if (selectedStandardType == StandardType.Throw) {
-								Debug.Log("Start Throwing");
 								p.startThrowing();
+							}
+							else if (selectedStandardType == StandardType.Intimidate) {
+								p.startIntimidating();
 							}
 						}
 					}
@@ -535,6 +537,9 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Throw:
+			mapGenerator.resetRanges();
+			break;
+		case StandardType.Intimidate:
 			mapGenerator.resetRanges();
 			break;
 		default:
