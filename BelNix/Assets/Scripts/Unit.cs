@@ -1466,6 +1466,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void redrawGrid() {
+		if (mapGenerator.getCurrentUnit() != this) return;
 		if (currentMoveDist == 0) {
 			mapGenerator.resetMoveDistances();
 		}
