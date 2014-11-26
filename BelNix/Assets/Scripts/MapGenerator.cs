@@ -1732,7 +1732,7 @@ public class MapGenerator : MonoBehaviour {
 				did = true;
 				currentSprite.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
 			}
-			else if (t.startingPoint) {
+			else if (t.startingPoint && isInCharacterPlacement()) {
 				did = true;
 				currentSprite.color = new Color(0.0f, 0.5f, 0.0f, 0.4f);
 			}

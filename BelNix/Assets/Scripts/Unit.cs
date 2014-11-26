@@ -195,6 +195,7 @@ public class Unit : MonoBehaviour {
 		usedMinor2 = false;
 		currentMoveDist = 0;
 		moveDistLeft = maxMoveDist;
+		usedDecisiveStrike = false;
 	}
 
 	public void rollInitiative() {
@@ -431,7 +432,7 @@ public class Unit : MonoBehaviour {
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
 		if (didHit)
-			attackEnemy.damage(wapoon);
+			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
 			attackEnemy.attackedByCharacter = this;
 			attackEnemy.setRotationToAttackedByCharacter();
@@ -1635,6 +1636,11 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void killedEnemy() {
+		Debug.Log("Killed Enemy!!");
+		handleClassFeature(ClassFeature.Decisive_Strike);
+	}
+
 	void attackFinished() {
 		attackAnimating = false;
 		if (attackEnemy) {
@@ -1650,25 +1656,39 @@ public class Unit : MonoBehaviour {
 	public void crushingHitSFX() {
 		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
 	}
-	
-	public void damage(int damage) {
+
+	public bool deadOrDyingOrUnconscious() {
+		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
+	}
+
+	public void damage(int damage, Unit u) {
 		//	Debug.Log("Damage");
 		if (damage > 0) {
 			crushingHitSFX();
 //			hitPoints -= damage;
 //			if (hitPoints <= 0) died = true;
+			bool d = deadOrDyingOrUnconscious();
 			characterSheet.combatScores.loseHealth(damage);
+			Debug.Log(characterSheet.combatScores.checkLifeStatus());
+			if (!d && deadOrDyingOrUnconscious()) {
+				Debug.Log("Died Damage!! " + damage);
+				u.killedEnemy();
+			}
 		}
 		//	Debug.Log("EndDamage");
 	}
-	
+
+	public virtual bool isDead() {
+		return characterSheet.combatScores.isDead();
+	}
+
 	void doDeath() {
 		//	Debug.Log("Do Death");
 		//	mapGenerator.
 	//	if (died) dieTime += Time.deltaTime;
 		//	if (dieTime >= 1) Destroy(gameObject);
 		//	if (dieTime >= 0.5f) {
-		if (characterSheet.combatScores.isDead()) {
+		if (isDead()) {
 			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
 				if (mapGenerator.selectedUnit) {
 				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
@@ -1683,6 +1703,27 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		//	Debug.Log("End Death");
+	}
+
+	void handleClassFeature(ClassFeature feature) {
+		Debug.Log("handleClassFeature("+feature + ")");
+		if (!characterSheet.characterProgress.hasFeature(feature)) return;
+		Debug.Log("Has!!");
+		switch(feature) {
+		case ClassFeature.Decisive_Strike:
+			handleDecisiveStrike();
+			break;
+		default:
+			break;
+		}
+	}
+
+	public bool usedDecisiveStrike = false;
+	void handleDecisiveStrike() {
+		Debug.Log("Handle Decisive Strike!");
+		if (usedDecisiveStrike) return;
+		usedDecisiveStrike = true;
+		usedStandard = false;
 	}
 
 }

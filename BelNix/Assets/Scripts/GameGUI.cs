@@ -233,8 +233,8 @@ public class GameGUI : MonoBehaviour {
 		if (selectedSubMenuTurnStyle == null) {
 			selectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
-			selectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
-			selectedSubMenuTurnStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			selectedSubMenuTurnStyle.normal.background = tex;
+			selectedSubMenuTurnStyle.hover.background = tex;
 			selectedSubMenuTurnStyle.active.background = tex;
 			selectedSubMenuTurnStyle.hover.textColor = Color.white;
 			selectedSubMenuTurnStyle.normal.textColor = Color.white;
@@ -247,9 +247,9 @@ public class GameGUI : MonoBehaviour {
 		if (nonSelectedSubMenuTurnStyle == null) {
 			nonSelectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
-			nonSelectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
-			nonSelectedSubMenuTurnStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
-			nonSelectedSubMenuTurnStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
+			nonSelectedSubMenuTurnStyle.normal.background = tex;
+			nonSelectedSubMenuTurnStyle.hover.background = tex;
+			nonSelectedSubMenuTurnStyle.active.background = tex;
 			nonSelectedSubMenuTurnStyle.active.textColor = nonSelectedSubMenuTurnStyle.normal.textColor = nonSelectedSubMenuTurnStyle.hover.textColor = Color.white;
 		}
 		return nonSelectedSubMenuTurnStyle;
@@ -348,49 +348,6 @@ public class GameGUI : MonoBehaviour {
 			Unit u = mapGenerator.selectedUnit;
 			u.drawGUI();
 		}
-		/*
-		float maxPlayerListWidth = 200.0f;
-		float maxPlayerListHeight = 300.0f;
-		float actualPlayerListWidth = 0.0f;
-		float actualPlayerListHeight = 0.0f;
-		float between = 5.0f;
-		GUIContent[] contents = new GUIContent[mapGenerator.priorityOrder.Count];
-		Vector2[] sizes = new Vector2[mapGenerator.priorityOrder.Count];
-		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
-			//Debug.Log(n + " -- " + mapGenerator.priorityOrder[n].characterName);
-			contents[n] = new GUIContent(mapGenerator.priorityOrder[n].characterName);
-		}
-		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
-			GUIStyle st = getNormalStyle();
-			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
-			Vector2 size = st.CalcSize(contents[n]);
-			sizes[n] = size;
-			actualPlayerListWidth = Mathf.Max(actualPlayerListWidth, size.x + between*2);
-			actualPlayerListHeight += size.y + between;
-		}
-		float boxWidth = Mathf.Min(maxPlayerListWidth, actualPlayerListWidth);
-		float boxHeight = Mathf.Min(maxPlayerListHeight, actualPlayerListHeight);
-		if (actualPlayerListWidth > maxPlayerListWidth) {
-			boxHeight = Mathf.Min(maxPlayerListHeight, boxHeight + 16.0f);
-		}
-		if (actualPlayerListHeight > maxPlayerListHeight) {
-			boxWidth = Mathf.Min(maxPlayerListWidth, boxWidth + 16.0f);
-		}
-		float scrollWidth = actualPlayerListWidth;
-		float scrollHeight = actualPlayerListHeight;
-		float boxX = Screen.width - boxWidth - 5.0f;
-		GUI.Box (new Rect(boxX, 5.0f, boxWidth, boxHeight), "");
-		position = GUI.BeginScrollView(new Rect(boxX, 5.0f, boxWidth, boxHeight), position, new Rect(boxX, 5.0f, scrollWidth, scrollHeight));
-		float y = 5.0f;
-		scrollRect = new Rect(boxX, 5.0f, boxWidth, boxHeight);
-		scrollShowing = actualPlayerListHeight > maxPlayerListHeight;
-		for (int n=0; n<mapGenerator.priorityOrder.Count;n++) {
-			GUIStyle st = getNormalStyle();
-			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
-			GUI.Label(new Rect(boxX + between, y, sizes[n].x, sizes[n].y), contents[n], st);
-			y += sizes[n].y + between;
-		}
-		GUI.EndScrollView();*/
 		bool path = false;
 		if (mapGenerator.selectedUnit == null) {
 			showAttack = false;
