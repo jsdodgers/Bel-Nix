@@ -336,8 +336,7 @@ public class MapGenerator : MonoBehaviour {
 			pl.gui = gui;
 			players.Add(pl);
 			priorityOrder.Add(pl);
-			pl.characterSheet.loadCharacterFromTextFile(chars[n]);
-			pl.characterSheetLoaded = true;
+			pl.loadCharacterSheetFromTextFile(chars[n]);
 			pl.rollInitiative();
 			selectionUnits.Add(pl);
 			Debug.Log(pl.characterSheet.personalInfo.getCharacterName().fullName());
@@ -349,7 +348,12 @@ public class MapGenerator : MonoBehaviour {
 	public void repositionSelectionUnits() {
 		if (selectionUnits == null) return;
 		float y = Screen.height / 2.0f - spriteSeparator - spriteSize/2.0f + gui.selectionUnitScrollPosition.y;
+		float initialY = y;
+		int n=0;
 		foreach (Unit p in selectionUnits) {
+			if (n==selectionCurrentIndex) {
+				y -= spriteSeparator + spriteSize;
+			}
 			if (p.gameObject != selectedSelectionObject) {
 				p.transform.localPosition = new Vector3(selectionUnitsX/spriteSize, y/spriteSize, 1.0f);
 			}
@@ -357,6 +361,23 @@ public class MapGenerator : MonoBehaviour {
 		//		Debug.Log("Selected: " + p.characterSheet.personalInfo.getCharacterName().fullName());
 			}
 			y -= spriteSeparator + spriteSize;
+			n++;
+		}
+		if (selectedSelectionObject!=null) {
+			if (Input.mousePosition.x >= Screen.width - selectionWidth) {
+				float y2 = spriteSeparator + spriteSize/2.0f - gui.selectionUnitScrollPosition.y;
+				int mouseY = (int)(Screen.height - Input.mousePosition.y);
+				int p = (int)((mouseY - y2) / (spriteSeparator + spriteSize) + 1) - 1;
+				if (p<selectionCurrentIndex || selectionCurrentIndex == -1) p++;
+				selectionCurrentIndex = p;
+			//	Debug.Log(Input.mousePosition.y + "   " +  p);
+				int pos = (int)((initialY - selectedSelectionObject.transform.localPosition.y) / (spriteSeparator + spriteSize));
+			//	selectionCurrentIndex = pos;
+	//			Debug.Log(pos);
+			}
+			else {
+				selectionCurrentIndex = -1;
+			}
 		}
 	}
 
@@ -1069,7 +1090,7 @@ public class MapGenerator : MonoBehaviour {
 		handleMouseUp();
 	}
 
-	GameObject selectedSelectionObject = null;
+	public GameObject selectedSelectionObject = null;
 	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
 		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
@@ -1099,7 +1120,7 @@ public class MapGenerator : MonoBehaviour {
 				deselectAllUnits();
 				selectUnit(go.GetComponent<Unit>(),false);
 				go.transform.parent = playerTransform;
-				go.GetComponent<SpriteRenderer>().sortingOrder = 90000;
+				go.GetComponent<SpriteRenderer>().sortingOrder = 90001;
 				Vector3 pos = Input.mousePosition;
 				pos.z = 10.0f;
 				pos = Camera.main.ScreenToWorldPoint(pos);
@@ -1113,6 +1134,11 @@ public class MapGenerator : MonoBehaviour {
 					}
 					else selectionStartingTile = null;
 				}
+				selectionCurrentIndex = selectionUnits.IndexOf(go.GetComponent<Unit>());
+				if (selectionStartingTile==null) {
+					selectionStartingIndex = selectionCurrentIndex;
+				}
+				selectionUnits.Remove(go.GetComponent<Unit>());
 				selectionStartingPos = go.transform.position;
 			}
 		}
@@ -1169,6 +1195,8 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	Tile selectionStartingTile = null;
+	int selectionStartingIndex = -1;
+	public int selectionCurrentIndex = -1;
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
 		if (mouseUp && isInCharacterPlacement() && !rightDraggin && !middleDraggin) {
@@ -1212,13 +1240,23 @@ public class MapGenerator : MonoBehaviour {
 						}
 						u2.transform.parent = cameraTransform;
 						if (!selectionUnits.Contains(u2)) {
-							selectionUnits.Add(u2);
+							if (selectionStartingIndex<0 && selectionCurrentIndex<0) {
+								selectionUnits.Add(u2);
+							}
+							else if (selectionCurrentIndex>=0) {
+								selectionUnits.Insert(selectionCurrentIndex,u2);
+							}
+							else {
+								selectionUnits.Insert(selectionStartingIndex,u2);
+							}
 						}
 					}
 					u2.transform.position = selectionStartingPos;
 				}
 				selectedSelectionObject = null;
 				selectionStartingTile = null;
+				selectionStartingIndex = -1;
+				selectionCurrentIndex = -1;
 			}
 		}
 		if (mouseUp && !shiftDown && !mouseDownGUI && !rightDraggin && leftClickIsMakingSelection()) {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0) {

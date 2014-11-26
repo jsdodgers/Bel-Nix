@@ -286,6 +286,10 @@ public class GameGUI : MonoBehaviour {
 			float y = mapGenerator.spriteSeparator + mapGenerator.spriteSize - 10.0f;
 			GUIStyle st = getNamesStyle();
 			for (int n=0;n<mapGenerator.selectionUnits.Count;n++) {
+				if (n==mapGenerator.selectionCurrentIndex) {
+//					Unit u2 = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
+					y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
+				}
 				Unit u = mapGenerator.selectionUnits[n];
 				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
 				Vector2 size = st.CalcSize(content);
@@ -293,8 +297,17 @@ public class GameGUI : MonoBehaviour {
 				GUI.Label(new Rect(Screen.width - mapGenerator.selectionWidth, y, width, height + 0 * size.y), content, st);
 				y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
 			}
+
 			GUI.EndScrollView();
-			if (GUI.Button(beginButtonRect(), "Begin", getBeginButtonStyle())) {
+			if (mapGenerator.selectedSelectionObject) {
+				Vector3 pos = Camera.main.WorldToScreenPoint(mapGenerator.selectedSelectionObject.transform.position);
+				Unit u = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
+				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
+				float height = st.CalcHeight(content, width);
+				GUI.Label(new Rect(pos.x - width/2.0f, Screen.height - (pos.y - mapGenerator.spriteSize/2.0f + 10.0f), width, height), content, st);
+				
+			}
+			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
 			}
 		}
