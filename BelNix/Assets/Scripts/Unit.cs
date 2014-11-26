@@ -5,6 +5,7 @@ using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Inventory, Throw, Cancel, None}
+public enum Affliction {Prone, Immobilized, Addled, Confused, Poisoned, None}
 
 public class Unit : MonoBehaviour {
 	public Character characterSheet;

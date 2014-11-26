@@ -439,6 +439,7 @@ public class MapGenerator : MonoBehaviour {
 		selectedUnit = getCurrentUnit();
 	//	selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
 		if (selectedUnit) {
+			selectedUnit.resetVars();
 //			setAroundCharacter(selectedUnit);
 			addCharacterRange(selectedUnit);
 			selectedUnit.setSelected();
@@ -1158,7 +1159,10 @@ public class MapGenerator : MonoBehaviour {
 						selectedUnit.attackEnemy = null;
 					}
 					if (tiles[posX,posY].canAttackCurr) {
-						selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
+						if (gui.selectedStandardType == StandardType.Attack)
+							selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
+						else if (gui.selectedStandardType == StandardType.Throw)
+							selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
 						selectedUnit.setRotationToAttackEnemy();
 					}
 					if (selectedUnit.attackEnemy)
