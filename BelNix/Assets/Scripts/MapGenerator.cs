@@ -1044,7 +1044,8 @@ public class MapGenerator : MonoBehaviour {
 
 	bool guiSelectionType() {
 		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate)) ||
-			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep));
+			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep))
+				|| performingAction();
 	}
 
 
