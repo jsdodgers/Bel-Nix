@@ -1587,7 +1587,7 @@ public class MapGenerator : MonoBehaviour {
 			v3.x = Mathf.Floor(v3.x);
 			v3.y = Mathf.Floor(-v3.y);
 			//Debug.Log(v3);
-			if (!(wasRightDraggin || wasShiftRightDraggin)) {
+			if (!(wasRightDraggin || wasShiftRightDraggin) || mouseOver == null) {
 				startSquareActual = posActual;
 				startSquare = new Vector2(v3.x,v3.y);
 				//	startSquareActual = startSquare;
