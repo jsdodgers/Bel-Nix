@@ -1414,6 +1414,8 @@ public class Unit : MonoBehaviour {
 	public void startAttacking() {
 		if (attackEnemy!=null && !moving) {
 			attacking = true;
+			if (mapGenerator.getCurrentUnit()==this)
+				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
 		}
 	}
 
@@ -1421,6 +1423,8 @@ public class Unit : MonoBehaviour {
 	public void startThrowing() {
 		if (attackEnemy != null && !throwing) {
 			throwing = true;
+			if (mapGenerator.getCurrentUnit()==this)
+				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
 		}
 	}
 
@@ -1428,13 +1432,16 @@ public class Unit : MonoBehaviour {
 	public void startIntimidating() {
 		if (attackEnemy != null && !intimidating) {
 			intimidating = true;
+			if (mapGenerator.getCurrentUnit()==this)
+				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
 		}
 	}
 	
 	public void startMoving(bool backStepping) {
 		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
-		mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+		if (mapGenerator.getCurrentUnit()==this)
+			mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
@@ -1654,6 +1661,7 @@ public class Unit : MonoBehaviour {
 
 	public bool throwAnimating = false;
 	void doThrow() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (throwing && !moving && !attacking) {
 			throwAnimation();
 			throwAnimating = true;
@@ -1768,6 +1776,7 @@ public class Unit : MonoBehaviour {
 
 	public bool intimidateAnimating = false;
 	void doIntimidate() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (intimidating && !moving && !rotating) {
 			intimidateAnimation();
 			intimidateAnimating = true;
@@ -1813,6 +1822,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void doAttack() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (attacking && !moving && !rotating) {
 			attackAnimation();
 			attackAnimating = true;
