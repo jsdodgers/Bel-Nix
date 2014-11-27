@@ -323,6 +323,9 @@ public class GameGUI : MonoBehaviour {
 			}
 			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
+				foreach (Unit u in mapGenerator.priorityOrder) {
+					u.setRotationToMostInterestingTile();
+				}
 			}
 		}
 

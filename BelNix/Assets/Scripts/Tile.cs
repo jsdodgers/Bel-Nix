@@ -29,6 +29,23 @@ public class Tile {
 	public bool canStandCurr;
 	public bool canTurn;
 	public bool startingPoint;
+	public int x;
+	public int y;
+
+
+	public int getInterestingNess(Unit u) {
+		if (hasEnemy(u)) return 16;
+		return 0;
+	}
+
+	public int getInterestingNess(Unit u, int distance) {
+		int interestingNess = getInterestingNess(u);
+		while (distance > 1) {
+			distance--;
+			interestingNess/=2;
+		}
+		return interestingNess;
+	}
 
 	public Tile() {
 	//	player = null;
@@ -193,6 +210,8 @@ public class Tile {
 	
 	public void parseTile(string tile) {
 		string[] strs = tile.Split(new char[]{','});
+		x = int.Parse(strs[0]);
+		y = int.Parse(strs[1]);
 		int curr = 6;
 		passableUp = 1;
 		passableDown = 1;

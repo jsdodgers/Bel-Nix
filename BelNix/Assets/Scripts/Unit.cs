@@ -1320,6 +1320,16 @@ public class Unit : MonoBehaviour {
 	public void setRotationToTile(Vector2 tile) {
 		setRotationFrom(new Vector2(position.x + .001f, position.y), tile);
 	}
+
+	public void setRotationToTile(Tile t) {
+		setRotationToTile(new Vector2(t.x, -t.y));
+	}
+
+	public void setRotationToMostInterestingTile() {	
+		Tile t = mapGenerator.getMostInterestingTile(this);
+		if (t != null)
+			setRotationToTile(t);
+	}
 	
 	void rotateBy(float rotateDist) {
 		float midSlope = (rotateTo.y - rotateFrom.y)/(rotateTo.x - rotateFrom.x);
@@ -1544,9 +1554,17 @@ public class Unit : MonoBehaviour {
 		initializeVariables();
 	}
 
+	Transform target = null;
+	public Transform getTarget() {
+		if (target==null) {
+			target = transform.FindChild("Target");
+		}
+		return target;
+	}
+
 	public SpriteRenderer getTargetSprite() {
 		if (targetSprite == null) {
-			targetSprite = transform.FindChild("Target").GetComponent<SpriteRenderer>();
+			targetSprite = getTarget().GetComponent<SpriteRenderer>();
 		}
 		return targetSprite;
 	}
@@ -1649,6 +1667,7 @@ public class Unit : MonoBehaviour {
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
+				setRotationToMostInterestingTile();
 			}
 		}
 	}
@@ -1660,6 +1679,10 @@ public class Unit : MonoBehaviour {
 			float rotateDist = time * speed;
 			//			float rotateGoal = (rotateTo.
 			rotateBy(rotateDist);
+			Transform targ = getTarget();
+			if (targ!=null) {
+				targ.eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+			}
 		}
 	}
 

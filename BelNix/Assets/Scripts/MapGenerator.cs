@@ -1571,6 +1571,29 @@ public class MapGenerator : MonoBehaviour {
 			selectedUnit.transform.eulerAngles = rot1;
 		}
 	}
+
+	int getDistance(Unit u, int x, int y) {
+		return Mathf.Abs((int)u.position.x - x) + Mathf.Abs((int)u.position.y + y);
+	}
+
+	public Tile getMostInterestingTile(Unit u) {
+		Tile interesting = null;
+		int interestingNess = 0;
+		int tileDist = 0;
+		for (int x = Mathf.Max(0, (int)u.position.x - u.maxMoveDist); x < Mathf.Min(actualWidth, (int)u.position.x + u.maxMoveDist + 1); x++) {
+			for (int y = Mathf.Max(0, (int)-u.position.y - u.maxMoveDist); y < Mathf.Min(actualHeight, (int)-u.position.y + u.maxMoveDist + 1); y++) {
+				Tile t = tiles[x,y];
+				int d = getDistance(u, x, y);
+				int i = t.getInterestingNess(u, d);
+				if (i > interestingNess || (i == interestingNess && d < tileDist)) {
+					interestingNess = i;
+					tileDist = d;
+					interesting = t;
+				}
+			}
+		}
+		return interesting;
+	}
 	
 	
 	void handleMouseSelect() {
