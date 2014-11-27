@@ -34,7 +34,7 @@ public class Tile {
 
 
 	public int getInterestingNess(Unit u) {
-		if (hasEnemy(u)) return 16;
+		if (hasEnemy(u) && !getEnemy(u).deadOrDyingOrUnconscious()) return 16;
 		return 0;
 	}
 

@@ -1911,10 +1911,11 @@ public class Unit : MonoBehaviour {
 	public void killedEnemy() {
 		Debug.Log("Killed Enemy!!");
 		handleClassFeature(ClassFeature.Decisive_Strike);
+		setRotationToMostInterestingTile();
 	}
 
 	void attackFinished() {
-		attackAnimating = false;
+		Debug.Log("Attack Finished");
 		if (attackEnemy) {
 			attackEnemy.wasBeingAttacked = attackEnemy.beingAttacked;
 			attackEnemy.beingAttacked = false;
@@ -1923,6 +1924,7 @@ public class Unit : MonoBehaviour {
 		mapGenerator.resetAttack(this);
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
+		attackAnimating = false;
 	}
 
 	public void crushingHitSFX() {
