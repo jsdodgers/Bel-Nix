@@ -1090,7 +1090,13 @@ public class MapGenerator : MonoBehaviour {
 //		oldTouchCount = Input.touchCount;
 	}
 
+	public bool performingAction() {
+		if (getCurrentUnit()==null) return false;
+		return getCurrentUnit().isPerformingAnAction();
+	}
+
 	void handleMouseClicks() {
+		if (performingAction()) return;
 		handleMouseDown();
 		handleMouseUp();
 	}

@@ -1411,6 +1411,10 @@ public class Unit : MonoBehaviour {
 		usedMovement = true;
 	}
 
+	public bool isPerformingAnAction() {
+		return attackAnimating || attacking || throwing || moving || intimidating;
+	}
+
 	public void startAttacking() {
 		if (attackEnemy!=null && !moving) {
 			attacking = true;
