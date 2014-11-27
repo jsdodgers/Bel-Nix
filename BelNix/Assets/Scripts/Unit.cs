@@ -1434,6 +1434,7 @@ public class Unit : MonoBehaviour {
 	public void startMoving(bool backStepping) {
 		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
+		mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
@@ -1618,6 +1619,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void doMovement() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (moving && shouldMove == 0) {// && !beingAttacked) {
 		//	if (wasBeingAttacked) {
 		//		setRotatingPath();
@@ -1627,6 +1629,8 @@ public class Unit : MonoBehaviour {
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist, true);
+				if (this == mapGenerator.getCurrentUnit())
+					mapGenerator.moveCameraToSelected(true);
 			}
 			else {
 				moving = false;

@@ -96,7 +96,7 @@ public class MapGenerator : MonoBehaviour {
 
 	Vector3 lastPos = new Vector3(0.0f, 0.0f, 0.0f);
 	Vector3 cameraMoveToPos;
-	bool movingCamera;
+	public bool movingCamera;
 	
 	public int actualWidth = 0;
 	public int actualHeight = 0;
@@ -626,10 +626,11 @@ public class MapGenerator : MonoBehaviour {
 	//	setTargetObjectScale();
 	}
 
+	float cameraSpeed = 32.0f;
 	void moveCamera() {
 		if (!movingCamera) return;
-		float speed = 32.0f;
-		float dist = speed * Time.deltaTime;
+	//	float speed = 32.0f;
+		float dist = cameraSpeed * Time.deltaTime;
 //		float distLeft = Mathf.
 		Vector3 pos = Camera.main.transform.position;
 		Vector3 left = new Vector3(cameraMoveToPos.x - pos.x, cameraMoveToPos.y - pos.y, cameraMoveToPos.z - pos.z);
@@ -651,13 +652,14 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	public void moveCameraToSelected(bool instantly = false) {
+	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
 		if (selectedUnit == null) return;
 		Vector3 sel = selectedUnit.transform.position;
-		moveCameraToPosition(sel, instantly);
+		moveCameraToPosition(sel, instantly, speed);
 	}
 
-	public void moveCameraToPosition(Vector3 position, bool instantly = false) {
+	public void moveCameraToPosition(Vector3 position, bool instantly = false, float speed = 32.0f) {
+		cameraSpeed = speed;
 		position.z = Camera.main.transform.position.z;
 		if (instantly) {
 			Camera.main.transform.position = position;
