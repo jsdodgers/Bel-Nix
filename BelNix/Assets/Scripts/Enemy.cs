@@ -22,7 +22,9 @@ public class Enemy : Unit {
 	}
 
 
-
+	public override bool isDead() {
+		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
+	}
 
 	// Use this for initialization
 	void Start () {

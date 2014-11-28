@@ -32,6 +32,11 @@ public class Character : MonoBehaviour
 		return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
 	}
 
+	public int rollForSkill(Skill skill, int dieType = 10) {
+		int roll = Random.Range(1, dieType + 1);
+		return characterSheet.skillScores.getScore(skill) + roll;
+	}
+
 	public int rollDamage() {
 		return rollDamage(false);
 	}

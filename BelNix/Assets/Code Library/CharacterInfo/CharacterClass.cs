@@ -94,6 +94,7 @@ namespace CharacterInfo
 			}
 			return features.ToArray();
 		}
+		 
 
 		public override ClassFeature[] getPossibleFeatures(int level) {
 			switch (level) {

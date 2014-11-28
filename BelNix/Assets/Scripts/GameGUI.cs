@@ -135,7 +135,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
-			((selectedStandard && (selectedStandardType == StandardType.Attack)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -233,8 +233,8 @@ public class GameGUI : MonoBehaviour {
 		if (selectedSubMenuTurnStyle == null) {
 			selectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
-			selectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
-			selectedSubMenuTurnStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			selectedSubMenuTurnStyle.normal.background = tex;
+			selectedSubMenuTurnStyle.hover.background = tex;
 			selectedSubMenuTurnStyle.active.background = tex;
 			selectedSubMenuTurnStyle.hover.textColor = Color.white;
 			selectedSubMenuTurnStyle.normal.textColor = Color.white;
@@ -247,9 +247,9 @@ public class GameGUI : MonoBehaviour {
 		if (nonSelectedSubMenuTurnStyle == null) {
 			nonSelectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
-			nonSelectedSubMenuTurnStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
-			nonSelectedSubMenuTurnStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
-			nonSelectedSubMenuTurnStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
+			nonSelectedSubMenuTurnStyle.normal.background = tex;
+			nonSelectedSubMenuTurnStyle.hover.background = tex;
+			nonSelectedSubMenuTurnStyle.active.background = tex;
 			nonSelectedSubMenuTurnStyle.active.textColor = nonSelectedSubMenuTurnStyle.normal.textColor = nonSelectedSubMenuTurnStyle.hover.textColor = Color.white;
 		}
 		return nonSelectedSubMenuTurnStyle;
@@ -323,6 +323,9 @@ public class GameGUI : MonoBehaviour {
 			}
 			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
+				foreach (Unit u in mapGenerator.priorityOrder) {
+					u.setRotationToMostInterestingTile();
+				}
 			}
 		}
 
@@ -348,49 +351,6 @@ public class GameGUI : MonoBehaviour {
 			Unit u = mapGenerator.selectedUnit;
 			u.drawGUI();
 		}
-		/*
-		float maxPlayerListWidth = 200.0f;
-		float maxPlayerListHeight = 300.0f;
-		float actualPlayerListWidth = 0.0f;
-		float actualPlayerListHeight = 0.0f;
-		float between = 5.0f;
-		GUIContent[] contents = new GUIContent[mapGenerator.priorityOrder.Count];
-		Vector2[] sizes = new Vector2[mapGenerator.priorityOrder.Count];
-		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
-			//Debug.Log(n + " -- " + mapGenerator.priorityOrder[n].characterName);
-			contents[n] = new GUIContent(mapGenerator.priorityOrder[n].characterName);
-		}
-		for (int n=0;n<mapGenerator.priorityOrder.Count;n++) {
-			GUIStyle st = getNormalStyle();
-			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
-			Vector2 size = st.CalcSize(contents[n]);
-			sizes[n] = size;
-			actualPlayerListWidth = Mathf.Max(actualPlayerListWidth, size.x + between*2);
-			actualPlayerListHeight += size.y + between;
-		}
-		float boxWidth = Mathf.Min(maxPlayerListWidth, actualPlayerListWidth);
-		float boxHeight = Mathf.Min(maxPlayerListHeight, actualPlayerListHeight);
-		if (actualPlayerListWidth > maxPlayerListWidth) {
-			boxHeight = Mathf.Min(maxPlayerListHeight, boxHeight + 16.0f);
-		}
-		if (actualPlayerListHeight > maxPlayerListHeight) {
-			boxWidth = Mathf.Min(maxPlayerListWidth, boxWidth + 16.0f);
-		}
-		float scrollWidth = actualPlayerListWidth;
-		float scrollHeight = actualPlayerListHeight;
-		float boxX = Screen.width - boxWidth - 5.0f;
-		GUI.Box (new Rect(boxX, 5.0f, boxWidth, boxHeight), "");
-		position = GUI.BeginScrollView(new Rect(boxX, 5.0f, boxWidth, boxHeight), position, new Rect(boxX, 5.0f, scrollWidth, scrollHeight));
-		float y = 5.0f;
-		scrollRect = new Rect(boxX, 5.0f, boxWidth, boxHeight);
-		scrollShowing = actualPlayerListHeight > maxPlayerListHeight;
-		for (int n=0; n<mapGenerator.priorityOrder.Count;n++) {
-			GUIStyle st = getNormalStyle();
-			if (mapGenerator.priorityOrder[n] == mapGenerator.getCurrentUnit()) st = getBoldStyle();
-			GUI.Label(new Rect(boxX + between, y, sizes[n].x, sizes[n].y), contents[n], st);
-			y += sizes[n].y + between;
-		}
-		GUI.EndScrollView();*/
 		bool path = false;
 		if (mapGenerator.selectedUnit == null) {
 			showAttack = false;
@@ -409,15 +369,20 @@ public class GameGUI : MonoBehaviour {
 					selectedMovementType = MovementType.None;
 					mapGenerator.resetRanges();
 				}
-				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction()) {
 					//	Debug.Log("Move Player!");
 					if (selectedStandard) {
 						//		selectedStandardType = StandardType.None;
 						deselectStandard();
 					}
 					if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
-						selectedMovementType = MovementType.Move;
-						selectMovementType(selectedMovementType);
+						if (p.getMovementTypes()[0] == MovementType.Move) {
+							selectedMovementType = MovementType.Move;
+							selectMovementType(selectedMovementType);
+						}
+						else {
+							selectedMovementType = MovementType.None;
+						}
 					}
 					selectedMovement = !selectedMovement;//true;
 					selectedMinor = false;
@@ -425,13 +390,13 @@ public class GameGUI : MonoBehaviour {
 
 				}
 				//		}
-				GUI.enabled = !p.usedStandard;
+				GUI.enabled = !p.usedStandard && !p.isProne();
 				if (selectedStandard && p.usedStandard) {
 					selectedStandard = false;
 					selectedStandardType = StandardType.None;
 				}
 				//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction()) {
 					if (selectedMovement) {
 						selectedMovement = false;
 					//	selectedMovementType = MovementType.None;
@@ -448,7 +413,7 @@ public class GameGUI : MonoBehaviour {
 				}
 				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
 				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
-				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction()) {
 					if (selectedMovement) {
 				//		selectedMovementType = MovementType.None;
 						selectedMovement = false;
@@ -462,7 +427,7 @@ public class GameGUI : MonoBehaviour {
 					selectedMinor = !selectedMinor;//true;
 				}
 				GUI.enabled = true;
-				if (GUI.Button(waitButtonRect(), "Wait", getNonSelectedButtonStyle())) {
+				if (GUI.Button(waitButtonRect(), "Wait", getNonSelectedButtonStyle()) && !mapGenerator.performingAction()) {
 					if (selectedMovement) {
 				//		selectedMovementType = MovementType.None;
 						selectedMovement = false;
@@ -482,7 +447,7 @@ public class GameGUI : MonoBehaviour {
 					MovementType[] types = mapGenerator.getCurrentUnit().getMovementTypes();
 					for (int n=0;n<types.Length;n++) {
 						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction()) {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							if (types[n] == selectedMovementType) selectedMovementType = MovementType.None;
 							else selectedMovementType = types[n];
@@ -491,7 +456,7 @@ public class GameGUI : MonoBehaviour {
 					}
 
 					if ((selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move) && mapGenerator.getCurrentUnit().currentPath.Count > 1) {
-						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction()) {
 							if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
 								p.startMoving(selectedMovementType == MovementType.BackStep);
 								//		p.attacking = true;
@@ -503,7 +468,7 @@ public class GameGUI : MonoBehaviour {
 					StandardType[] types = mapGenerator.getCurrentUnit().getStandardTypes();
 					for (int n=0;n<types.Length;n++) {
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedStandardType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedStandardType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							if (types[n] == selectedStandardType) selectedStandardType = StandardType.None;
 							else selectedStandardType = types[n];
@@ -511,10 +476,18 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 
-					if (selectedStandardType == StandardType.Attack && mapGenerator.getCurrentUnit().attackEnemy != null) {
-						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle())) {
- 						
-							p.startAttacking();
+					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction()) {
+							Debug.Log("Confirm: " + StandardType.Throw);
+							if (selectedStandardType == StandardType.Attack) {
+								p.startAttacking();
+							}
+							else if (selectedStandardType == StandardType.Throw) {
+								p.startThrowing();
+							}
+							else if (selectedStandardType == StandardType.Intimidate) {
+								p.startIntimidating();
+							}
 						}
 					}
 				}
@@ -545,8 +518,10 @@ public class GameGUI : MonoBehaviour {
 	void deselectStandard() {
 		
 		selectedStandard = false;
+		selectedStandardType = StandardType.None;
 		if (mapGenerator.selectedUnit.attackEnemy) {
 			mapGenerator.selectedUnit.attackEnemy.deselect();
+			mapGenerator.resetAttack();
 		}
 		mapGenerator.resetRanges();
 	}
@@ -555,6 +530,8 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case StandardType.Cancel:
+			if (mapGenerator.selectedUnit.attackEnemy)
+				mapGenerator.selectedUnit.attackEnemy.deselect();
 			selectedStandardType = StandardType.None;
 			selectedStandard = false;
 			mapGenerator.resetRanges();
@@ -562,10 +539,23 @@ public class GameGUI : MonoBehaviour {
 		case StandardType.Attack:
 			mapGenerator.resetRanges();
 			break;
+		case StandardType.Throw:
+			mapGenerator.resetRanges();
+			break;
+		case StandardType.Intimidate:
+			mapGenerator.resetRanges();
+			break;
 		default:
+			if (mapGenerator.selectedUnit.attackEnemy)
+				mapGenerator.selectedUnit.attackEnemy.deselect();
 			mapGenerator.resetRanges();
 			break;
 		}
+	}
+
+	void OnStart() {
+		selectedStandardType = StandardType.None;
+		selectedMovementType = MovementType.None;
 	}
 	
 	public void selectMovementType(MovementType t) {
@@ -582,6 +572,13 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.getCurrentUnit().selectMovementType(t);
 			if (t == MovementType.BackStep)
 				Debug.Log("BackStep: " + mapGenerator.lastPlayerPath.Count + "\n\n" + mapGenerator.selectedUnit.currentPath.Count);
+			break;
+		case MovementType.Recover:
+			mapGenerator.getCurrentUnit().recover();
+//			mapGenerator.getCurrentUnit().affliction = Affliction.None;
+//			mapGenerator.getCurrentUnit().usedMovement = true;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
 			break;
 		default:
 			mapGenerator.resetRanges();
