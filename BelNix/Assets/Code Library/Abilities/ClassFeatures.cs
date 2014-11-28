@@ -7,9 +7,10 @@ namespace CharacterInfo
 	{
 		public static string getName(ClassFeature feature) {
 			switch (feature) {
+
+//**********EX-SOLDIER**********\\
 			case ClassFeature.Decisive_Strike:
 				return "Decisive Strike";
-				goto case ClassFeature.Decisive_Strike;
 			case ClassFeature.Throw:
 				return "Throw";
 			case ClassFeature.Intimidate:
@@ -34,6 +35,36 @@ namespace CharacterInfo
 				return "Bunker Down";
 			case ClassFeature.Diehard:
 				return "Diehard";
+
+//**********ENGINEER**********\\
+
+//**********INVESTIGATOR**********\\
+			case ClassFeature.Mark:
+				return "Mark";
+			case ClassFeature.Sneak_Attack:
+				return "Sneak Attack";
+			case ClassFeature.Escape:
+				return "Escape";
+			case ClassFeature.Quick_Draw:
+				return "Quick Draw";
+			case ClassFeature.Loaded_Deck:
+				return "Loaded Deck";
+			case ClassFeature.Dual_Wield:
+				return "Dual Wield";
+			case ClassFeature.Reversal:
+				return "Reversal";
+			case ClassFeature.Strike_Hand:
+				return "Strike| Hand";
+			case ClassFeature.Acrobat:
+				return "Acrobat";
+			case ClassFeature.Feint:
+				return "Feint";
+			case ClassFeature.Dirty_Fighting:
+				return "Dirty Fighting";
+			case ClassFeature.Sunder:
+				return "Sunder";
+			case ClassFeature.Execute:
+				return "Execute";
 			default:
 				return feature.ToString();
 			}

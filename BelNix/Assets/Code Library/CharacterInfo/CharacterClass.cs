@@ -4,8 +4,8 @@ namespace CharacterInfo
 {
 	public enum ClassName {ExSoldier, Engineer, Investigator, Researcher, Orator, None}
 	public enum ClassFeature   {Throw, Decisive_Strike, Intimidate, Weapon_Focus, Combat_Reload, Into_The_Fray, Grapple, Strike_Leg, Quick_Swap, Trained_Eye, Halting_Force, Bunker_Down, Diehard,
-								Construction, Efficient_Storage,
-								Mark, Sneak_Attack, 
+								Construction, Efficient_Storage, 
+								Mark, Sneak_Attack, Escape, Quick_Draw, Loaded_Deck, Dual_Wield, Reversal, Strike_Hand, Acrobat, Feint, Dirty_Fighting, Sunder, Execute,
 								Uncanny_Knowledge, Trained_Medic,
 								Invoke, Primal_Control,
 								None}
@@ -119,7 +119,56 @@ namespace CharacterInfo
 		public Class_Investigator()
 		{cModifiers = new ClassModifiers(1, 1, 0, 1, 0, 1, 0, 0, 0, 0);}
 		public override ClassName getClassName() {return ClassName.Investigator;}
-		public override ClassFeature[] getClassFeatures(int level) {return new ClassFeature[]{ClassFeature.Mark, ClassFeature.Sneak_Attack};}
+		public override ClassFeature[] getClassFeatures(int level) {
+			List<ClassFeature> features = new List<ClassFeature>();
+			switch (level) {
+			case 10:
+				features.Insert(0, ClassFeature.Execute);
+				goto case 9;
+			case 9:
+				features.Insert(0, ClassFeature.Sunder);
+				goto case 8;
+			case 8:
+				features.Insert(0, chosenFeatures[1]);
+				goto case 7;
+			case 7:
+				features.Insert(0, ClassFeature.Acrobat);
+				goto case 6;
+			case 6:
+				features.Insert(0, ClassFeature.Strike_Hand);
+				goto case 5;
+			case 5:
+				features.Insert(0, ClassFeature.Reversal);
+				goto case 4;
+			case 4:
+				features.Insert(0, chosenFeatures[0]);
+				goto case 3;
+			case 3:
+				features.Insert(0, ClassFeature.Quick_Draw);
+				goto case 2;
+			case 2:
+				features.Insert(0, ClassFeature.Escape);
+				goto case 1;
+			case 1:
+				features.Insert(0, ClassFeature.Mark);
+				features.Insert(0, ClassFeature.Sneak_Attack);
+				break;
+			default:
+				break;
+			}
+			return features.ToArray();
+		}
+		
+		public override ClassFeature[] getPossibleFeatures(int level) {
+			switch (level) {
+			case 8:
+				return new ClassFeature[]{ClassFeature.Feint, ClassFeature.Dirty_Fighting};
+			case 4:
+				return new ClassFeature[]{ClassFeature.Loaded_Deck, ClassFeature.Dual_Wield};
+			default:
+				return new ClassFeature[]{};
+			}
+		}
 	}
 	public class Class_Researcher : CharacterClass
 	{
