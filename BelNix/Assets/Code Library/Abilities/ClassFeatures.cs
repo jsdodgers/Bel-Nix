@@ -36,7 +36,7 @@ namespace CharacterInfo
 			case ClassFeature.Diehard:
 				return "Diehard";
 
-//**********ENGINEER**********\\
+//************ENGINEER************\\
 
 //**********INVESTIGATOR**********\\
 			case ClassFeature.Mark:

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum DamageType {CRUSHING, PIERCING, SLASHING}
+public enum DamageType {Crushing, Piercing, Slashing}
 
 [RequireComponent (typeof (Character))]
 public class ItemWeapon : Item1 {
