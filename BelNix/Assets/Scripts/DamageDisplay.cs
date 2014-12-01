@@ -17,7 +17,12 @@ public class DamageDisplay : MonoBehaviour {
 	GUIStyle borderStyle;
 	GUIStyle labelStyle;
 
+
 	public void begin(int damage, bool didHit, bool didCrit, Unit dUnit) {
+		begin(damage, didHit, didCrit, dUnit, Color.red);
+	}
+
+	public void begin(int damage, bool didHit, bool didCrit, Unit dUnit, Color c) {
 		damagedUnit = dUnit;
 		Vector3 pos = dUnit.transform.position;
 		float amountEach = .3f;
@@ -31,7 +36,7 @@ public class DamageDisplay : MonoBehaviour {
 		hit = didHit;
 		timeInitialized = Time.time;
 		if (didHit && didCrit) color = Color.magenta;
-		else if (didHit) color = Color.red;
+		else if (didHit) color = c;
 		else color = Color.gray;
 		going = true;
 	}

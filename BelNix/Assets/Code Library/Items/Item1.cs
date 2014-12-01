@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum ItemType {WEAPON, ARMOR, USEABLE, AMMUNITION, MISC}
+public enum ItemType {Weapon, Armor, Useable, Ammunition, Mechanical, Misc}
 
 public class Item1 : MonoBehaviour {
 

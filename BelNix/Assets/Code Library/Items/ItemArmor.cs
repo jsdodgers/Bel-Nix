@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum ArmorType {HEAD, SHOULDER, CHEST, GLOVES, PANTS, BOOTS}
+public enum ArmorType {Head, Shoulder, Chest, Gloves, Pants, Boots}
 
 public class ItemArmor : Item1 {
 

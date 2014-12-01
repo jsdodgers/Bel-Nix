@@ -101,6 +101,14 @@ namespace CharacterInfo
 			return lifeStatus == LifeStatus.Dead;
 		}
 
+		public bool isUnconscious() {
+			return lifeStatus == LifeStatus.Unconscious;
+		}
+
+		public bool isDying() {
+			return lifeStatus == LifeStatus.Dying;
+		}
+
 		public int getInitiative() 	{return calculateMod(abilityScores.getSturdy());}		// Initiative is based on Sturdy
 		public int getCritical()	{return calculateMod(abilityScores.getPerception());} // Critical is based on Perception
 		public int getHandling()	{return calculateMod(abilityScores.getTechnique());}	// Handling is based on Technique
