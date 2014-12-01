@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 
+public enum GameState {Playing, Won, Lost, None}
+
 public class MapGenerator : MonoBehaviour {
 
 
-
+	public GameState gameState = GameState.Playing;
 	public string tileMapName;
 	public int gridSize = 70;
 	
@@ -108,6 +110,21 @@ public class MapGenerator : MonoBehaviour {
 
 	public int currentUnit;
 
+	public void setGameState() {
+		bool enemy = false;
+		bool player = false;
+		foreach (Unit u in priorityOrder) {
+			if (u.team == 0) player = true;
+			else enemy = true;
+			if (player && enemy) {
+				gameState = GameState.Playing;
+				return;
+			}
+		}
+		if (!player) gameState = GameState.Lost;
+		else if (!enemy) gameState = GameState.Won;
+		else gameState = GameState.Playing;
+	}
 	// Use this for initialization
 	void Start () {
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
@@ -192,7 +209,8 @@ public class MapGenerator : MonoBehaviour {
 			int x = (int)(pos.x - 0.5f);
 			int y = (int)(pos.y + 0.5f);
 			p.setPosition(new Vector3(x, y, pos.z));
-			p.mapGenerator = this;
+			p.setMapGenerator(this);
+//			p.mapGenerator = this;
 			p.gui = gui;
 			players.Add(player);
 			//		enemy.renderer.sortingOrder = 3;
@@ -212,7 +230,8 @@ public class MapGenerator : MonoBehaviour {
 			int x = (int)(pos.x - 0.5f);
 			int y = (int)(pos.y + 0.5f);
 			e.setPosition(new Vector3(x, y, pos.z));
-			e.mapGenerator = this;
+			e.setMapGenerator(this);
+//			e.mapGenerator = this;
 			e.gui = gui;
 			enemies.Add(enemy);
 	//		enemy.renderer.sortingOrder = 3;
@@ -332,7 +351,8 @@ public class MapGenerator : MonoBehaviour {
 			sr.sortingOrder = 90000;
 			p.transform.parent = Camera.main.transform;
 			Unit pl = p.GetComponent<Unit>();
-			pl.mapGenerator = this;
+//			pl.mapGenerator = this;
+			pl.setMapGenerator(this);
 			pl.gui = gui;
 			players.Add(pl);
 			priorityOrder.Add(pl);
@@ -402,6 +422,7 @@ public class MapGenerator : MonoBehaviour {
 	
 
 	public Unit nextPlayer() {
+		if (gameState != GameState.Playing) return null;
 		if (currentUnit >=0 && currentUnit < priorityOrder.Count)
 			getCurrentUnit().removeCurrent();
 		currentUnit++;
@@ -897,8 +918,19 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 	
-	
+	public bool currentUnitIsAI() {
+		return getCurrentUnit() != null && unitIsAI(getCurrentUnit()) && !isInCharacterPlacement();
+	}
+
+	public bool unitIsAI(Unit u) {
+		return !u.playerControlled;
+	}
+
 	void handleInput() {
+		if (currentUnitIsAI()) {
+			getCurrentUnit().performAI();
+			return;
+		}
 		handleGUIPos();
 		handleMouseScrollWheel();
 		handleKeys();

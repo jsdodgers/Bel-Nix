@@ -8,6 +8,8 @@ public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, 
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 
 public class Unit : MonoBehaviour {
+	public bool playerControlled = true;
+	public AStarEnemyMap aiMap = null;
 	public Character characterSheet;
 	int initiative;
 	public string characterName;
@@ -326,8 +328,8 @@ public class Unit : MonoBehaviour {
 	}
 
 	bool canPass(Direction dir, Vector2 pos, Direction dirFrom) {
-		if (!mapGenerator.tiles[(int)pos.x,(int)pos.y].canTurn)
-			Debug.Log(pos + ": " + dir + "   --  " + dirFrom);
+//		if (!mapGenerator.tiles[(int)pos.x,(int)pos.y].canTurn)
+//			Debug.Log(pos + ": " + dir + "   --  " + dirFrom);
 		return mapGenerator.canPass(dir, (int)pos.x, (int)pos.y, this, dirFrom);//dirFrom);
 	}
 	
@@ -455,6 +457,103 @@ public class Unit : MonoBehaviour {
 		return currentPath;
 	}
 
+	public Unit closestEnemy() {
+		Unit closest = null;
+		float dist = float.MaxValue;
+		foreach (Unit u in mapGenerator.priorityOrder) {
+			if (u.team != team) {
+				float d = distanceFromUnit(u);
+				if (d < dist) {
+					dist = d;
+					closest = u;
+				}
+			}
+		}
+		return closest;
+	}
+
+	public float closestEnemyDist() {
+		float dist = 0;
+		foreach (Unit u in mapGenerator.priorityOrder) {
+			if (u.team != team) {
+				float d = distanceFromUnit(u);
+				if (d < dist || dist == 0) {
+					dist = d;
+				}
+			}
+		}
+		return dist;
+	}
+
+	public float distanceFromUnit(Unit u) {
+		return Mathf.Abs(u.position.x - position.x) + Mathf.Abs(u.position.y - position.y);
+	}
+
+	public void performAI() {
+		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+		float closestDist = closestEnemyDist();
+		Unit enemy = closestEnemy();
+		if (!usedMovement) {
+			if (closestDist > 1) {
+				
+				List<Unit> units = new List<Unit>();
+				foreach (Unit u in mapGenerator.priorityOrder) {
+					if (team != u.team) {
+						units.Add (u);
+					}
+				}
+				aiMap.setGoalsAndHeuristics(units);
+				AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
+				AStarNode node = ret.finalNode;
+				node = AStarAlgorithm.reversePath(node);
+//				currentPath = new ArrayList();
+				resetPath();
+				int d = 0;
+				while (node != null) {
+					if (d != 0) {
+						AStarEnemyParameters param = (AStarEnemyParameters)node.parameters;
+						Vector2 v = new Vector2(param.x, param.y);
+						currentPath.Add(v);
+					}
+					node = node.prev;
+					d++;
+					if (d>=5) break;
+				}
+				for (int n=currentPath.Count-1;n>=1;n--) {
+					Vector2 v = (Vector2)currentPath[n];
+					if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
+						currentPath.RemoveAt(n);
+						setPathCount();
+					}
+					else {
+						break;
+					}
+				}
+				mapGenerator.resetPlayerPath();
+				mapGenerator.setPlayerPath(currentPath);
+				startMoving(false);
+				usedMovement = true;
+				return;
+			}
+		}
+		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+		if (!usedStandard) {
+			Debug.Log("Did Not Use Standard");
+			if (closestDist <= 1.0f) {
+				Debug.Log("Set Standard To True");
+				usedStandard = true;
+				attackEnemy = enemy;
+				setRotationToAttackEnemy();
+				if (enemy != null) enemy.setTarget();
+				startAttacking();
+				return;
+			}
+		}
+		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+		if ((usedStandard || closestDist > 1.0f) && (usedMovement || closestDist <= 1.0f)) {
+			mapGenerator.nextPlayer();
+		}
+	}
 
 	static float redStyleWidth = 0.0f;
 	static float greenStyleWidth = 0.0f;
@@ -875,7 +974,24 @@ public class Unit : MonoBehaviour {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, inventoryWidth, inventoryHeight);
 	}
 
+	static float t = 0;
+	static int dir = 1;
 	public void drawGUI() {
+		float speed = 1.0f/3.0f;
+		t += Time.deltaTime * speed * dir;
+		Color start = Color.cyan;
+		Color end = Color.black;
+		float max = 0.9f;
+		float min = 0.35f;
+		if (t > max) {
+			dir = -1;
+			t = max;
+		}
+		if (t < min) {
+			dir = 1;
+			t = min;
+		}
+	//	while (t > 1) t--;
 	/*	float healthX = -1.0f;
 		float healthY = 0.0f;
 		float healthCenter = -1.0f;
@@ -1041,7 +1157,7 @@ public class Unit : MonoBehaviour {
 				int playerNum = (n + currentPlayer) % numPlayers;
 				Unit player = mapGenerator.priorityOrder[playerNum];
 				if (player == this) {
-					st.normal.textColor = Color.black;
+					st.normal.textColor = Color.Lerp (start, end, t);
 					st.fontStyle = FontStyle.Bold;
 				}
 				x = paperDollFullWidth + turnOrderTableX - 5.0f;
@@ -1193,10 +1309,10 @@ public class Unit : MonoBehaviour {
 		else if (gui.openTab == Tab.I) {
 			GUI.DrawTexture(fullIRect(), getInventoryBackgroundTexture());
 			GUIStyle titleStyle = getTitleTextStyle();
-			GUIContent armour = new GUIContent("Armour");
+			GUIContent armour = new GUIContent("Armor");
 			Vector2 armourSize = titleStyle.CalcSize(armour);
 			GUI.Label(new Rect(paperDollFullWidth - 1.0f + inventoryWidth/3.0f - armourSize.x/2.0f, 0.0f, armourSize.x, armourSize.y), armour, titleStyle);
-			GUIContent inventory = new GUIContent("Inventroy");
+			GUIContent inventory = new GUIContent("Inventory");
 			Vector2 inventorySize = titleStyle.CalcSize(inventory);
 			GUI.Label(new Rect(paperDollFullWidth - 1.0f + inventoryWidth*2.0f/3.0f - inventorySize.x/2.0f, 0.0f, inventorySize.x, inventorySize.y), inventory, titleStyle);
 
@@ -1592,6 +1708,13 @@ public class Unit : MonoBehaviour {
 		characterSheet.unit = this;
 	}
 
+	public void setMapGenerator(MapGenerator mg) {
+		mapGenerator = mg;
+		if (!playerControlled) {
+			aiMap = new AStarEnemyMap(this, mapGenerator);
+		}
+	}
+
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
 		afflictions = new List<Affliction>();
@@ -1608,8 +1731,6 @@ public class Unit : MonoBehaviour {
 		moveDistLeft = maxMoveDist;
 		anim = gameObject.GetComponent<Animator>();
 		currentMaxPath = 0;
-	//	Debug.Log("Children: " + transform.childCount + "  Team: " + team);
-	//	trail = transform.FindChild("Trail");
 		if (trail) {
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
 			tr.sortingOrder = 7;
@@ -1617,14 +1738,6 @@ public class Unit : MonoBehaviour {
 		if (isCurrent) {
 			addTrail();
 		}
-//		if (isSelected) {
-//			setSelected();
-//		}
-//		else if (isTarget) {
-//			setTarget();
-//		}
-//		deselect();
-//		resetPath();
 	}
 	
 	// Update is called once per frame
@@ -1837,15 +1950,10 @@ public class Unit : MonoBehaviour {
 
 	
 	public void damageComposure(int damage, Unit u) {
-		//	Debug.Log("Damage");
 		if (damage > 0) {
 			crushingHitSFX();
-			//			hitPoints -= damage;
-			//			if (hitPoints <= 0) died = true;
-		//	bool d = deadOrDyingOrUnconscious();
 			characterSheet.combatScores.loseComposure(damage);
 		}
-		//	Debug.Log("EndDamage");
 	}
 
 	void doAttack() {
@@ -1974,6 +2082,7 @@ public class Unit : MonoBehaviour {
 				mapGenerator.tiles[(int)position.x, (int)-position.y].removeCharacter();
 				Destroy(gameObject);
 				mapGenerator.resetCharacterRange();
+				mapGenerator.setGameState();
 			}
 		}
 		//	Debug.Log("End Death");
