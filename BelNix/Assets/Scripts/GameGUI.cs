@@ -321,7 +321,7 @@ public class GameGUI : MonoBehaviour {
 					selectionUnitScrollPosition.y = Mathf.Min(scrollHeight - Screen.height, selectionUnitScrollPosition.y + amount);
 				}
 			}
-			if (GUI.Button(beginButtonRect(), "Eungaugeugueu", getBeginButtonStyle())) {
+			if (GUI.Button(beginButtonRect(), "Engage", getBeginButtonStyle())) {
 				mapGenerator.enterPriority();
 				foreach (Unit u in mapGenerator.priorityOrder) {
 					u.setRotationToMostInterestingTile();

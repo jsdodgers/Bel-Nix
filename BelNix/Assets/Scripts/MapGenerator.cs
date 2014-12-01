@@ -369,6 +369,7 @@ public class MapGenerator : MonoBehaviour {
 				int mouseY = (int)(Screen.height - Input.mousePosition.y);
 				int p = (int)((mouseY - y2) / (spriteSeparator + spriteSize) + 1) - 1;
 				if (p<selectionCurrentIndex || selectionCurrentIndex == -1) p++;
+				if (p > selectionUnits.Count) p = selectionUnits.Count;
 				selectionCurrentIndex = p;
 			//	Debug.Log(Input.mousePosition.y + "   " +  p);
 				int pos = (int)((initialY - selectedSelectionObject.transform.localPosition.y) / (spriteSeparator + spriteSize));
