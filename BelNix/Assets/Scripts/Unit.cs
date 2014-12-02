@@ -1589,6 +1589,9 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void startMoving(bool backStepping) {
+		if (!backStepping) {
+			moveAnimation(true);
+		}
 		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
 		if (mapGenerator.getCurrentUnit()==this)
@@ -1789,6 +1792,7 @@ public class Unit : MonoBehaviour {
 		//	}
 			if (currentPath.Count >= 2) {
 				float speed = 2.0f;
+				speed = 4.0f;
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist, true);
@@ -1796,6 +1800,7 @@ public class Unit : MonoBehaviour {
 					mapGenerator.moveCameraToSelected(true);
 			}
 			else {
+				moveAnimation(false);
 				moving = false;
 				addTrail();
 				currentPath = new ArrayList();
@@ -1995,7 +2000,10 @@ public class Unit : MonoBehaviour {
 			mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingSwing, transform.position);
 		}
 	}
-	
+
+	void moveAnimation(bool moving) {
+		anim.SetBool("Move",moving);
+	}
 	
 	void attackAnimation() {
 		anim.SetTrigger("Attack");

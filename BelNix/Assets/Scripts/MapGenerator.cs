@@ -163,7 +163,8 @@ public class MapGenerator : MonoBehaviour {
 
 		priorityOrder = new List<Unit>();
 		players = new ArrayList();
-		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieAnimPrefab");
+		//		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieAnimPrefab");
+		playerPrefab = (GameObject)Resources.Load("Characters/Male_Base/Male_Base_Unit");
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
