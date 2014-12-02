@@ -1618,16 +1618,7 @@ public class Unit : MonoBehaviour {
 //			foreach (CharacterInfo.InventoryItemSlot slot in characterSheet.characterSheet.inventory.inventory) {
 
 //			}
-			foreach (InventorySlot slot in inventorySlots) {
-				Vector2 vec = getIndexOfSlot(slot);
-				int ind = getLinearIndexFromIndex(vec);
-				InventoryItemSlot isl = characterSheet.characterSheet.inventory.inventory[ind];
-				Item i = isl.item;
-				if (i == null) continue;
-				Vector2 origin = getInventorySlotPos(slot);
-				Vector2 size = i.getSize();
-				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
-			}
+			
 			foreach (InventorySlot slot in inventorySlots) {
 				Rect r = getInventorySlotRect(slot);
 				if (r.Contains(mousePos)) {
@@ -1656,7 +1647,7 @@ public class Unit : MonoBehaviour {
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y+ inventoryCellSize,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
-
+				
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
@@ -1666,10 +1657,21 @@ public class Unit : MonoBehaviour {
 				Rect r = getInventorySlotRect(slot);
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
-
+				
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 			}
+			foreach (InventorySlot slot in inventorySlots) {
+				Vector2 vec = getIndexOfSlot(slot);
+				int ind = getLinearIndexFromIndex(vec);
+				InventoryItemSlot isl = characterSheet.characterSheet.inventory.inventory[ind];
+				Item i = isl.item;
+				if (i == null) continue;
+				Vector2 origin = getInventorySlotPos(slot);
+				Vector2 size = i.getSize();
+				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+			}
+
 			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
 		//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
 			float div = 20.0f;
@@ -1697,6 +1699,7 @@ public class Unit : MonoBehaviour {
 				pos.x += (mousePos.x - selectedMousePos.x);
 				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture); 
 			}
+
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			if (gui.openTab == Tab.M) gui.openTab = Tab.None;
