@@ -1258,6 +1258,11 @@ public class MapGenerator : MonoBehaviour {
 	public int selectionCurrentIndex = -1;
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
+		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin) {
+			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+				selectedUnit.deselectItem();
+			}
+		}
 		if (mouseUp && isInCharacterPlacement() && !rightDraggin && !middleDraggin) {
 			if (selectedSelectionObject) {
 				rightDragginCancelled = true;
@@ -1554,6 +1559,9 @@ public class MapGenerator : MonoBehaviour {
 	}
 	
 	void handleMouseMovement() {
+	//	if (normalDraggin && selectedUnit == getCurrentUnit() && selectedUnit.selectedItem!=null) {
+	//		selectedUnit.moveItem();
+	//	}
 		if (isInCharacterPlacement()) handleCharacterPlacementMovement();
 		
 		var mPos = Input.mousePosition;

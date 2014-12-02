@@ -71,10 +71,10 @@ public class Tile {
 
 	public Tile() {
 		items = new List<Item>();
-		for (int n=0;n<4;n++) {
+		for (int n=0;n<8;n++) {
 			if (Random.Range(0, 3)==1) {
 				Item i;
-				switch (n) {
+				switch (n%4) {
 				case 0:
 					i = new TestGear();
 					break;
