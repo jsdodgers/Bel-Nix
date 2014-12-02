@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 public enum Direction {Up, Down, Right, Left, None};
 
@@ -31,6 +33,26 @@ public class Tile {
 	public bool startingPoint;
 	public int x;
 	public int y;
+	List<Item> items;
+
+	public List<Item> getItems() {
+	//	Debug.Log("getItems: " + items.Count);
+		return items;
+	}
+
+	public List<Item> getReachableItems() {
+		List<Item> i = new List<Item>();
+		i = i.Concat(getItems()).ToList();
+//		i.AddRange(items);
+		foreach (Direction dir in directions) {
+			Tile t = getTile(dir);
+			if (t==null) continue;
+//			i.AddRange(t.getItems());
+			i = i.Concat(t.getItems()).ToList();
+		}
+	//	Debug.Log("Total Items: " + i.Count);
+		return i;
+	}
 
 
 	public int getInterestingNess(Unit u) {
@@ -48,6 +70,27 @@ public class Tile {
 	}
 
 	public Tile() {
+		items = new List<Item>();
+		for (int n=0;n<4;n++) {
+			if (Random.Range(0, 3)==1) {
+				Item i;
+				switch (n) {
+				case 0:
+					i = new TestGear();
+					break;
+				case 1:
+					i = new TestApplicator();
+					break;
+				case 2:
+					i = new TestFrame();
+					break;
+				default:
+					i = new TestEnergySource();
+					break;
+				}
+				items.Add(i);
+			}
+		}
 	//	player = null;
 	//	enemy = null;
 		character = null;

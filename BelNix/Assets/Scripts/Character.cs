@@ -42,12 +42,14 @@ public class Character : MonoBehaviour
 	}
 
 	public int rollDamage(bool critical) {
-		return characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
+		return characterLoadout.rightHand.getWeapon().rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
 	}
 
 	public Hit rollHit() {
 		int rand = Random.Range(1,21);
-		return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - characterLoadout.rightHand.criticalChance);
+		Debug.Log(skillScores);
+		int critChance = characterLoadout.rightHand.getWeapon().criticalChance;
+		return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
 	}
 
 
