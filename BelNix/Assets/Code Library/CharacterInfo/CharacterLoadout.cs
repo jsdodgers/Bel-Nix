@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ItemInfo;
 using UnityEngine;
 using System.Collections;
 
@@ -16,7 +15,7 @@ namespace CharacterInfo
         //          I need to know whether to make these slots for Item or for Equipment
         
 		public ItemArmor headSlot;
-		public Item1 shoulderSlot;
+		public Item shoulderSlot;
 		public ItemArmor chestSlot;
 		public ItemArmor gloveSlot;
 		public ItemArmor pantsSlot;
@@ -30,11 +29,11 @@ namespace CharacterInfo
 
             // For now, just return 10, fill this in later when items and armor are more fleshed out.
 			int shoulderSlotAC = 0;
-			if(shoulderSlot != null && shoulderSlot is ItemArmor)
-				shoulderSlotAC = ((ItemArmor) shoulderSlot).AC;
+			if(shoulderSlot != null && shoulderSlot is Armor)
+				shoulderSlotAC = ((Armor) shoulderSlot).AC;
 
-				return CharacterConstants.BASE_AC + (headSlot != null ? headSlot.AC : 0) + shoulderSlotAC + (chestSlot != null ? chestSlot.AC : 0)
-				+ (gloveSlot != null ? gloveSlot.AC : 0) + (pantsSlot != null ? pantsSlot.AC : 0) + (bootsSlot != null ? bootsSlot.AC : 0);
+			return CharacterConstants.BASE_AC + (headSlot != null ? headSlot.getArmor().AC : 0) + shoulderSlotAC + (chestSlot != null ? chestSlot.getArmor().AC : 0)
+				+ (gloveSlot != null ? gloveSlot.getArmor().AC : 0) + (pantsSlot != null ? pantsSlot.getArmor().AC : 0) + (bootsSlot != null ? bootsSlot.getArmor().AC : 0);
         }
     }
 }

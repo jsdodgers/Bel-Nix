@@ -19,6 +19,7 @@ namespace CharacterInfo
 			characterProgress		= characterProg;
 			combatScores			= cScores;
 			skillScores				= sScores;
+			inventory = new Inventory();
             // Character Armor
             // Character Inventory
 		}
