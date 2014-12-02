@@ -227,15 +227,19 @@ public class GraphicalUserInterface : MonoBehaviour
 				//Load into Character Creation
 				Application.LoadLevel(1);
 			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 40, 160, 20), "Load Into Test Map"))
+			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 40, 160, 20), "Load Into Test Map 1"))
+			{
+				Application.LoadLevel(3);
+			}
+			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 60, 160, 20), "Load Into Test Map 2"))
 			{
 				Application.LoadLevel(2);
 			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 60, 160, 20), "Options"))
+			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 80, 160, 20), "Options"))
 			{
 				//Bring up Options UI.  Do NOT load into a new scene.
 			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 80, 160, 20), "Quit"))
+			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 100, 160, 20), "Quit"))
 			{
 				//Quit the Application
 				Application.Quit();
