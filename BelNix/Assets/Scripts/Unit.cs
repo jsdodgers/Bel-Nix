@@ -1602,16 +1602,18 @@ public class Unit : MonoBehaviour {
 			float div = 20.0f;
 			float height = div;
 			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null || i==selectedItem) continue;
+				if (i.inventoryTexture==null) continue;
 				height += i.getSize().y*inventoryCellSize + div;
 			}
 			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
 			float y = div + groundY;
 			float mid = groundX + groundWidth/2.0f;
 			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null || i==selectedItem) continue;
+				if (i.inventoryTexture==null) continue;
 				Vector2 size = i.getSize();
-				GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+				if (i!=selectedItem) {
+					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+				}
 				y += size.y*inventoryCellSize + div;
 			}
 			GUI.EndScrollView();
