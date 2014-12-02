@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
+
 namespace CharacterInfo
 {
     public struct Purse
@@ -83,12 +85,83 @@ namespace CharacterInfo
             }
         }
     }
-	public class Inventory
-	{
-		private Purse cPurse;
 
-		public Inventory ()
-		{
+	public struct ItemReturn {
+		public Item item;
+		public Vector2 slot;
+		public ItemReturn(Item i, Vector2 s) {
+			item = i;
+			slot = s;
+		}
+	}
+
+	public class InventoryItemSlot {
+		public Item item;
+		public int index;
+		public InventoryItemSlot itemSlot;
+		public List<InventoryItemSlot> otherSlots;
+		public InventoryItemSlot(int index) 				{ this.index = index; otherSlots = new List<InventoryItemSlot>(); }
+		public bool hasItem() 							{ return item!=null || itemSlot != null; }
+		public Item getItem() 							{ return itemSlot.item; }
+		public void removeItem()						{ item = null; itemSlot = null; otherSlots = new List<InventoryItemSlot>(); }
+		public void addOtherSlot(InventoryItemSlot slot) 	{ otherSlots.Add(slot); }
+	}
+
+	public class Inventory {
+		private Purse cPurse;
+		public InventoryItemSlot[] inventory;
+
+		public Inventory () {
+			inventory = new InventoryItemSlot[16];
+			for (int n=0;n<16;n++) {
+				inventory[n] = new InventoryItemSlot(n);
+			}
+		}
+		public int getIndexForSlot(Vector2 v) {
+			if (v.x < 0 || v.y < 0 || v.x > 3 || v.y > 3) return -1;
+			return ((int)v.x) + ((int)v.y)*4;
+		}
+		public Vector2 getSlotForIndex(int slot) {
+			return new Vector2(slot%4,slot/4);
+		}
+		public bool canInsertItemInSlot(Item i, Vector2 slot) {
+			if (i==null) return false;
+			foreach (Vector2 itemSlot in i.getShape()) {
+				Vector2 actualSlot = slot + itemSlot;
+				int index = getIndexForSlot(actualSlot);
+				if (index==-1 || inventory[index].hasItem()) return false;
+			}
+			return true;
+		}
+		public void insertItemInSlot(Item i, Vector2 slot) {
+			if (!canInsertItemInSlot(i,slot)) return;
+			int ind = getIndexForSlot(slot);
+			InventoryItemSlot sl = inventory[ind];
+			sl.item = i;
+			sl.itemSlot = sl;
+			foreach (Vector2 itemSlot in i.getShape()) {
+				Vector2 actualSlot = slot + itemSlot;
+				int index = getIndexForSlot(actualSlot);
+				InventoryItemSlot invenSlot = inventory[index];
+				if (itemSlot.x==0 && itemSlot.y==0) {
+					continue;
+				}
+				else {
+					sl.addOtherSlot(invenSlot);
+					invenSlot.itemSlot = sl;
+				}
+			}
+		}
+		public ItemReturn removeItemFromSlot(Vector2 slot) {
+			InventoryItemSlot sl = inventory[getIndexForSlot(slot)];
+			InventoryItemSlot actualSlot = sl.itemSlot;
+			Vector2 actualSlotVec = getSlotForIndex(actualSlot.index);
+			Item i = actualSlot.getItem();
+			foreach (InventoryItemSlot slots in actualSlot.otherSlots) {
+				slots.removeItem();
+			}
+			actualSlot.removeItem();
+			return new ItemReturn(i, slot - actualSlotVec);
 		}
 	}
 }

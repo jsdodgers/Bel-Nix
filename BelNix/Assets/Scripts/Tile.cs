@@ -54,6 +54,23 @@ public class Tile {
 		return i;
 	}
 
+	public bool removeItem(Item i, int dist) {
+		if (getItems().Contains(i)) {
+			items.Remove(i);
+			return true;
+		}
+		if (dist <= 0) return false;
+		foreach (Direction dir in directions) {
+			Tile t = getTile(dir);
+			if (t==null) continue;
+			if (t.removeItem(i,dist-1)) return true;
+		}
+		return false;
+	}
+
+	public void addItem(Item i) {
+		items.Add(i);
+	}
 
 	public int getInterestingNess(Unit u) {
 		if (hasEnemy(u) && !getEnemy(u).deadOrDyingOrUnconscious()) return 16;
@@ -88,7 +105,7 @@ public class Tile {
 					i = new TestEnergySource();
 					break;
 				}
-				items.Add(i);
+				addItem(i);
 			}
 		}
 	//	player = null;
