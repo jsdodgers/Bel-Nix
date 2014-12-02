@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum ItemType {Weapon, Armor, Useable, Ammunition, Mechanical, Misc}
 
@@ -11,6 +12,7 @@ public class Item {
 	public int gold, silver, copper;
 	public bool isKeyItem;
 	public Texture inventoryTexture;
+	public List<Item> stack;
 	public virtual Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0)};
 	}
@@ -23,6 +25,31 @@ public class Item {
 			maxHeight = Mathf.Max(maxHeight, (int)shape[n].y+1);
 		}
 		return new Vector2(maxWidth, maxHeight);
+	}
+	public Vector2 getBottomRightCell() {
+		int maxWidth = 0;
+		int yMax = (int)getSize().y - 1;
+		Vector2[] shape = getShape();
+		for (int n=1;n<shape.Length;n++) {
+			if ((int)shape[n].y!=yMax) continue;
+			maxWidth = Mathf.Max(maxWidth, (int)shape[n].x);
+		}
+		return new Vector2(maxWidth, yMax);
+	}
+	public Item() {
+		stack = new List<Item>();
+	}
+	public Item popStack() {
+		Item i = stack[stack.Count-1];
+		stack.Remove(i);
+		return i;
+	}
+	public Item addToStack(Item i) {
+		stack.Add(i);
+		return i;
+	}
+	public int stackSize() {
+		return stack.Count+1;
 	}
 	
 }
