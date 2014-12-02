@@ -96,9 +96,7 @@ public class TestEnergySource : EnergySource {
 		return 5;
 	}
 	public TestEnergySource() {
-		Debug.Log("Load Energy Source!!");
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/EnergySource");
-		Debug.Log(inventoryTexture);
 	}
 }
 

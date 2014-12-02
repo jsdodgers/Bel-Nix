@@ -759,11 +759,12 @@ public class Unit : MonoBehaviour {
 		}
 		return inventoryBackgroundTexture;
 	}
+	Color inventoryLineColor = Color.white;
 	
 	static Texture2D inventoryLineTall = null;
 	Texture2D getInventoryLineTall() {
 		if (inventoryLineTall == null) {
-			inventoryLineTall = makeTex((int)inventoryLineThickness, (int)inventoryCellSize, new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
+			inventoryLineTall = makeTex((int)inventoryLineThickness, (int)inventoryCellSize, inventoryLineColor);//new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
 		}
 		return inventoryLineTall;
 	}
@@ -771,9 +772,17 @@ public class Unit : MonoBehaviour {
 	static Texture2D inventoryLineWide = null;
 	Texture2D getInventoryLineWide() {
 		if (inventoryLineWide == null) {
-			inventoryLineWide = makeTex((int)inventoryCellSize, (int)inventoryLineThickness, new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
+			inventoryLineWide = makeTex((int)inventoryCellSize, (int)inventoryLineThickness, inventoryLineColor);//new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
 		}
 		return inventoryLineWide;
+	}
+
+	static Texture2D inventoryHoverBackground = null;
+	Texture2D getInventoryHoverBackground() {
+		if (inventoryHoverBackground == null) {
+			inventoryHoverBackground = makeTex((int)inventoryCellSize,(int)inventoryCellSize, new Color(80.0f/255.0f, 44.0f/255.0f, 120.0f/255.0f, 0.4f));
+		}
+		return inventoryHoverBackground;
 	}
 
 	Texture2D makeTexBanner( int width, int height, Color col )
@@ -1013,9 +1022,62 @@ public class Unit : MonoBehaviour {
 	public Rect fullIRect() {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, inventoryWidth, inventoryHeight);
 	}
-	public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen}
+	public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, None}
 	static InventorySlot[] armorSlots = new InventorySlot[]{InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
 	static InventorySlot[] inventorySlots = new InventorySlot[]{InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
+	public InventorySlot  getInventorySlotFromIndex(Vector2 index) {
+//		if (index.x <0 || index.y < 0 || index.x >3 || index.y >3) return InventorySlot.None;
+//		int ind = (int)index.x + ((int)index.y)*4;
+		int ind = getLinearIndexFromIndex(index);
+		if (ind==-1) return InventorySlot.None;
+		return inventorySlots[ind];
+	}
+	public int getLinearIndexFromIndex(Vector2 index) {
+		if (index.x <0 || index.y < 0 || index.x >3 || index.y >3) return -1;
+		return (int)index.x + ((int)index.y)*4;
+	}
+	public Vector2 getIndexFromLinearIndex(int index) {
+		if (index <0 || index > 15) return new Vector2(-1, -1);
+		return new Vector2(index%4,index/4);
+	}
+	public Vector2 getIndexOfSlot(InventorySlot slot) {
+		switch (slot) {
+		case InventorySlot.Zero:
+			return new Vector2(0,0);
+		case InventorySlot.One:
+			return new Vector2(1,0);
+		case InventorySlot.Two:
+			return new Vector2(2,0);
+		case InventorySlot.Three:
+			return new Vector2(3,0);
+		case InventorySlot.Four:
+			return new Vector2(0,1);
+		case InventorySlot.Five:
+			return new Vector2(1,1);
+		case InventorySlot.Six:
+			return new Vector2(2,1);
+		case InventorySlot.Seven:
+			return new Vector2(3,1);
+		case InventorySlot.Eight:
+			return new Vector2(0,2);
+		case InventorySlot.Nine:
+			return new Vector2(1,2);
+		case InventorySlot.Ten:
+			return new Vector2(2,2);
+		case InventorySlot.Eleven:
+			return new Vector2(3,2);
+		case InventorySlot.Twelve:
+			return new Vector2(0,3);
+		case InventorySlot.Thirteen:
+			return new Vector2(1,3);
+		case InventorySlot.Fourteen:
+			return new Vector2(2,3);
+		case InventorySlot.Fifteen:
+			return new Vector2(3,3);
+		default:
+			return new Vector2(-1,-1);
+		}
+	}
 	public Rect getInventorySlotRect(InventorySlot slot) {
 		Vector2 v = getInventorySlotPos(slot);
 		switch (slot) {
@@ -1116,9 +1178,98 @@ public class Unit : MonoBehaviour {
 			return new Vector2();
 		}
 	}
+	public Item selectedItem;
+	public InventorySlot selectedItemWasInSlot;
+	Vector3 selectedMousePos = new Vector3();
+	Vector2 selectedItemPos = new Vector2();
+	Vector2 selectedCell = new Vector2();
 	public void selectItem() {
 		Vector3 mousePos = Input.mousePosition;
-		Debug.Log(mousePos.x + "  " + mousePos.y);
+		mousePos.y = Screen.height - mousePos.y;
+		foreach (InventorySlot slot in inventorySlots) {
+			Rect r = getInventorySlotRect(slot);
+			if (r.Contains(mousePos)) {
+				Vector2 v = getIndexOfSlot(slot);
+//				Debug.Log(v);
+				int ind = getLinearIndexFromIndex(v);
+				InventoryItemSlot sl = characterSheet.characterSheet.inventory.inventory[ind];
+				InventoryItemSlot slR = sl.itemSlot;
+				if (slR==null) break;
+			//	Item i = slR.item;
+				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
+				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
+				selectedItem = ir.item;
+				selectedCell = ir.slot;
+				selectedMousePos = mousePos;
+//				selectedItemPos = getInventorySlotPos();
+				selectedItemPos = getInventorySlotPos(inventorySlots[slR.index]);
+				selectedItemWasInSlot = inventorySlots[slR.index];
+				break;
+			}
+		}
+		if (mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
+		Vector2 scrollOff = groundScrollPosition;
+		float div = 20.0f;
+		float y = div + groundY - scrollOff.y;
+		float mid = groundX + groundWidth/2.0f + scrollOff.x;
+	//	mousePos.y += groundScrollPosition.y;
+		selectedItem = null;
+		List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
+		foreach (Item i in groundItems) {
+			if (i.inventoryTexture==null) continue;
+		//	Debug.Log(mousePos.x + "  " + mousePos.y + "       " + mid + "  " + y);
+			Vector2 size = i.getSize();
+			float x = mid - size.x*inventoryCellSize/2.0f;
+			Rect r = new Rect(x, y, size.x*inventoryCellSize, size.y*inventoryCellSize);
+			if (r.Contains(mousePos)) {
+			//	Debug.Log(i);
+				selectedCell = new Vector2((int)((mousePos.x - x)/inventoryCellSize), (int)((mousePos.y - y)/inventoryCellSize));
+				foreach (Vector2 cell in i.getShape()) {
+					if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+						selectedItemPos = new Vector2(x, y);
+						selectedMousePos = mousePos;
+						selectedItem = i;
+						selectedItemWasInSlot = InventorySlot.None;
+					}
+				}
+				Debug.Log(selectedCell);
+				if (selectedItem!=null) {
+					break;
+				}
+			}
+			y += size.y*inventoryCellSize + div;
+		}
+	}
+	public void deselectItem() {
+		Vector3 mousePos = Input.mousePosition;
+		mousePos.y = Screen.height - mousePos.y;
+		Tile t = mapGenerator.tiles[(int)position.x,(int)-position.y];
+		foreach (InventorySlot slot in inventorySlots) {
+			Rect r = getInventorySlotRect(slot);
+			if (r.Contains(mousePos)) {
+				Vector2 v = getIndexOfSlot(slot) - selectedCell;
+				Debug.Log(v);
+				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
+					if (selectedItemWasInSlot == InventorySlot.None) {
+						t.removeItem(selectedItem,1);
+					}
+					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
+					selectedItem = null;
+					return;
+				}
+				break;
+			}
+		}
+		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
+			if (selectedItemWasInSlot!=InventorySlot.None) {
+				t.addItem(selectedItem);
+		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
+			}
+		}
+		else if (selectedItemWasInSlot!=InventorySlot.None) {
+			characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+		}
+		selectedItem = null;
 	}
 
 	static float t = 0;
@@ -1454,6 +1605,8 @@ public class Unit : MonoBehaviour {
 			GUI.EndScrollView();
 		}
 		else if (gui.openTab == Tab.I) {
+			Vector3 mousePos = Input.mousePosition;
+			mousePos.y = Screen.height - mousePos.y;
 			GUI.DrawTexture(fullIRect(), getInventoryBackgroundTexture());
 			GUIStyle titleStyle = getTitleTextStyle();
 			GUIContent armour = new GUIContent("Armor");
@@ -1462,13 +1615,40 @@ public class Unit : MonoBehaviour {
 			GUIContent inventory = new GUIContent("Inventory");
 			Vector2 inventorySize = titleStyle.CalcSize(inventory);
 			GUI.Label(new Rect(paperDollFullWidth - 1.0f + inventoryWidth*2.0f/3.0f - inventorySize.x/2.0f, 0.0f, inventorySize.x, inventorySize.y), inventory, titleStyle);
+		
+//			foreach (CharacterInfo.InventoryItemSlot slot in characterSheet.characterSheet.inventory.inventory) {
+
+//			}
+			
+			foreach (InventorySlot slot in inventorySlots) {
+				Rect r = getInventorySlotRect(slot);
+				if (r.Contains(mousePos)) {
+					GUI.DrawTexture(r, getInventoryHoverBackground());
+					if (selectedItem!=null) {
+						Vector2 startPos = getIndexOfSlot(slot);
+						foreach(Vector2 cell in selectedItem.getShape()) {
+							Vector2 pos = startPos;
+							pos.x += cell.x - selectedCell.x;
+							pos.y += cell.y - selectedCell.y;
+							if (pos.x == startPos.x && pos.y == startPos.y) continue;
+							Debug.Log(startPos + "   " + pos);
+							InventorySlot newSlot = getInventorySlotFromIndex(pos);
+							if (newSlot != InventorySlot.None) {
+								Rect r2 = getInventorySlotRect(newSlot);
+								GUI.DrawTexture(r2, getInventoryHoverBackground());
+							}
+						}
+					}
+					break;
+				}
+			}
 			foreach (InventorySlot slot in armorSlots) {
 				Rect r = getInventorySlotRect(slot);
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y+ inventoryCellSize,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
-
+				
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
@@ -1478,10 +1658,21 @@ public class Unit : MonoBehaviour {
 				Rect r = getInventorySlotRect(slot);
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
-
+				
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 			}
+			foreach (InventorySlot slot in inventorySlots) {
+				Vector2 vec = getIndexOfSlot(slot);
+				int ind = getLinearIndexFromIndex(vec);
+				InventoryItemSlot isl = characterSheet.characterSheet.inventory.inventory[ind];
+				Item i = isl.item;
+				if (i == null) continue;
+				Vector2 origin = getInventorySlotPos(slot);
+				Vector2 size = i.getSize();
+				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+			}
+
 			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
 		//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
 			float div = 20.0f;
@@ -1496,10 +1687,20 @@ public class Unit : MonoBehaviour {
 			foreach (Item i in groundItems) {
 				if (i.inventoryTexture==null) continue;
 				Vector2 size = i.getSize();
-				GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+				if (i!=selectedItem) {
+					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+				}
 				y += size.y*inventoryCellSize + div;
 			}
 			GUI.EndScrollView();
+			if (selectedItem != null) {
+				Vector2 size = selectedItem.getSize();
+				Vector2 pos = selectedItemPos;
+				pos.y += (mousePos.y - selectedMousePos.y);
+				pos.x += (mousePos.x - selectedMousePos.x);
+				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture); 
+			}
+
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			if (gui.openTab == Tab.M) gui.openTab = Tab.None;

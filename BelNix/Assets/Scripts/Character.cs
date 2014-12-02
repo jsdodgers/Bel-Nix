@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using CharacterInfo;
+using System.Linq;
 
 public struct Hit {
 	public int hit;
@@ -50,6 +51,14 @@ public class Character : MonoBehaviour
 		Debug.Log(skillScores);
 		int critChance = characterLoadout.rightHand.getWeapon().criticalChance;
 		return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
+	}
+
+	public int stackabilityOfItem(Item i) {
+		if (i is ItemMechanical) {
+			if (characterSheet.characterProgress.getClassFeatures().Contains(ClassFeature.Efficient_Storage))
+				return 3;
+		}
+		return 1;
 	}
 
 
@@ -107,7 +116,7 @@ public class Character : MonoBehaviour
 		skillScores = new SkillScores(combatScores, characterProgress);
 		
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
-		                                     characterProgress, combatScores, skillScores);
+		                                     characterProgress, combatScores, skillScores, this);
 	}
 
 	public void loadCharacterFromTextFile(string fileName) {
@@ -147,7 +156,7 @@ public class Character : MonoBehaviour
 		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
 		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
 		skillScores = new SkillScores(combatScores, characterProgress);
-		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores);
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, this);
 		skillScores.incrementScore(Skill.Athletics,athletics);
 		skillScores.incrementScore(Skill.Melee,melee);
 		skillScores.incrementScore(Skill.Ranged,ranged);
