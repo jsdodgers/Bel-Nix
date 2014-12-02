@@ -12,7 +12,7 @@ namespace CharacterInfo
         public Inventory inventory;
 
 		public CharacterSheet (AbilityScores abilityScore, PersonalInformation personalInfo, 
-		                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores)
+		                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores, Character character)
 		{
 			abilityScores			= abilityScore;
 			personalInformation		= personalInfo;
@@ -20,6 +20,7 @@ namespace CharacterInfo
 			combatScores			= cScores;
 			skillScores				= sScores;
 			inventory = new Inventory();
+			inventory.character = character;
             // Character Armor
             // Character Inventory
 		}

@@ -759,11 +759,12 @@ public class Unit : MonoBehaviour {
 		}
 		return inventoryBackgroundTexture;
 	}
+	Color inventoryLineColor = Color.white;
 	
 	static Texture2D inventoryLineTall = null;
 	Texture2D getInventoryLineTall() {
 		if (inventoryLineTall == null) {
-			inventoryLineTall = makeTex((int)inventoryLineThickness, (int)inventoryCellSize, new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
+			inventoryLineTall = makeTex((int)inventoryLineThickness, (int)inventoryCellSize, inventoryLineColor);//new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
 		}
 		return inventoryLineTall;
 	}
@@ -771,7 +772,7 @@ public class Unit : MonoBehaviour {
 	static Texture2D inventoryLineWide = null;
 	Texture2D getInventoryLineWide() {
 		if (inventoryLineWide == null) {
-			inventoryLineWide = makeTex((int)inventoryCellSize, (int)inventoryLineThickness, new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
+			inventoryLineWide = makeTex((int)inventoryCellSize, (int)inventoryLineThickness, inventoryLineColor);//new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
 		}
 		return inventoryLineWide;
 	}

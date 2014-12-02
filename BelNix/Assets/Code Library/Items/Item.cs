@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum ItemType {Weapon, Armor, Useable, Ammunition, Mechanical, Misc}
 
@@ -11,6 +12,7 @@ public class Item {
 	public int gold, silver, copper;
 	public bool isKeyItem;
 	public Texture inventoryTexture;
+	public List<Item> stack;
 	public virtual Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0)};
 	}

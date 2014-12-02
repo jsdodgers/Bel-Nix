@@ -108,6 +108,7 @@ namespace CharacterInfo
 	}
 
 	public class Inventory {
+		public Character character;
 		private Purse cPurse;
 		public InventoryItemSlot[] inventory;
 
