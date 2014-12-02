@@ -853,6 +853,17 @@ public class Unit : MonoBehaviour {
 		return titleTextStyle;
 	}
 
+	static GUIStyle stackStyle = null;
+	public GUIStyle getStackStyle() {
+		if (stackStyle == null) {
+			stackStyle = new GUIStyle("Label");
+			stackStyle.normal.textColor = Color.red;
+			stackStyle.fontSize = 11;
+			stackStyle.alignment = TextAnchor.LowerRight;
+		}
+		return stackStyle;
+	}
+
 	static GUIStyle selectedButtonStyle;
 	static float styleWidth = 0.0f;
 	GUIStyle getSelectedButtonStyle(float width) {
@@ -1247,7 +1258,8 @@ public class Unit : MonoBehaviour {
 		foreach (InventorySlot slot in inventorySlots) {
 			Rect r = getInventorySlotRect(slot);
 			if (r.Contains(mousePos)) {
-				Vector2 v = getIndexOfSlot(slot) - selectedCell;
+				Vector2 v2 = getIndexOfSlot(slot);
+				Vector2 v = v2 - selectedCell;
 				Debug.Log(v);
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
@@ -1257,11 +1269,24 @@ public class Unit : MonoBehaviour {
 					selectedItem = null;
 					return;
 				}
+				else {
+					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[characterSheet.characterSheet.inventory.getIndexForSlot(v2)];
+					Item invSlotItem = invSlot.getItem();
+					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
+						if (selectedItemWasInSlot == InventorySlot.None) {
+							t.removeItem(selectedItem,1);
+						}
+						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
+						selectedItem = null;
+						return;
+					}
+				}
 				break;
 			}
 		}
 		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
 			if (selectedItemWasInSlot!=InventorySlot.None) {
+				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
 		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
 			}
@@ -1631,7 +1656,7 @@ public class Unit : MonoBehaviour {
 							pos.x += cell.x - selectedCell.x;
 							pos.y += cell.y - selectedCell.y;
 							if (pos.x == startPos.x && pos.y == startPos.y) continue;
-							Debug.Log(startPos + "   " + pos);
+						//	Debug.Log(startPos + "   " + pos);
 							InventorySlot newSlot = getInventorySlotFromIndex(pos);
 							if (newSlot != InventorySlot.None) {
 								Rect r2 = getInventorySlotRect(newSlot);
@@ -1662,6 +1687,7 @@ public class Unit : MonoBehaviour {
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 			}
+			GUIStyle stackSt = getStackStyle();
 			foreach (InventorySlot slot in inventorySlots) {
 				Vector2 vec = getIndexOfSlot(slot);
 				int ind = getLinearIndexFromIndex(vec);
@@ -1671,6 +1697,14 @@ public class Unit : MonoBehaviour {
 				Vector2 origin = getInventorySlotPos(slot);
 				Vector2 size = i.getSize();
 				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+				if (i.stackSize()>1) {
+					Vector2 bottomRight = i.getBottomRightCell();
+					bottomRight.x *= inventoryCellSize - inventoryLineThickness;
+					bottomRight.y *= inventoryCellSize - inventoryLineThickness;
+					Vector2 stackPos = origin + bottomRight;
+					GUIContent content = new GUIContent("" + i.stackSize());
+					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
+				}
 			}
 
 			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
@@ -1698,7 +1732,15 @@ public class Unit : MonoBehaviour {
 				Vector2 pos = selectedItemPos;
 				pos.y += (mousePos.y - selectedMousePos.y);
 				pos.x += (mousePos.x - selectedMousePos.x);
-				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture); 
+				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
+				if (selectedItem.stackSize()>1) {
+					Vector2 bottomRight = selectedItem.getBottomRightCell();
+					bottomRight.x *= inventoryCellSize - inventoryLineThickness;
+					bottomRight.y *= inventoryCellSize - inventoryLineThickness;
+					Vector2 stackPos = pos + bottomRight;
+					GUIContent content = new GUIContent("" + selectedItem.stackSize());
+					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
+				}
 			}
 
 		}

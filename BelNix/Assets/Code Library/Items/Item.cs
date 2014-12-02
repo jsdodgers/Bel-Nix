@@ -26,6 +26,31 @@ public class Item {
 		}
 		return new Vector2(maxWidth, maxHeight);
 	}
+	public Vector2 getBottomRightCell() {
+		int maxWidth = 0;
+		int yMax = (int)getSize().y - 1;
+		Vector2[] shape = getShape();
+		for (int n=1;n<shape.Length;n++) {
+			if ((int)shape[n].y!=yMax) continue;
+			maxWidth = Mathf.Max(maxWidth, (int)shape[n].x);
+		}
+		return new Vector2(maxWidth, yMax);
+	}
+	public Item() {
+		stack = new List<Item>();
+	}
+	public Item popStack() {
+		Item i = stack[stack.Count-1];
+		stack.Remove(i);
+		return i;
+	}
+	public Item addToStack(Item i) {
+		stack.Add(i);
+		return i;
+	}
+	public int stackSize() {
+		return stack.Count+1;
+	}
 	
 }
 
