@@ -7,22 +7,25 @@ namespace CharacterInfo
 		private CombatScores cScores;
 		private CharacterProgress cProgress;
 
-		private int physiqueMod, prowessMod, masteryMod, knowledgeMod;
 		private int[] scores = new int[8];
 
-		public SkillScores (ref CombatScores combatScores, ref CharacterProgress characterProgress)
+		public SkillScores (CombatScores combatScores, CharacterProgress characterProgress)
 		{
 			cScores = combatScores;
 			cProgress = characterProgress;
-			physiqueMod 	= cScores.getInitiative();
-			prowessMod		= cScores.getCritical();
-			masteryMod		= cScores.getHandling();
-			knowledgeMod	= cScores.getDominion();
 			scores = cProgress.getCharacterClass().getClassModifiers().getSkillModifiers();
 		}
 		public void incrementScore(Skill skill)
 		{
-			scores[(int)skill]++;
+			incrementScore(skill, 1);
+		}
+
+		public void incrementScore(Skill skill, int amount) {
+			scores[(int)skill]+=amount;
+		}
+
+		public void setScore(Skill skill, int amount) {
+			scores[(int)skill] = amount;
 		}
 
 		// The 8 skills are divided into four groups (first 2 in group 1, second in group 2, etc)
@@ -31,14 +34,24 @@ namespace CharacterInfo
 		{
 			int modifier;
 
-			if(skill.Equals(Skill.Athletics) || skill.Equals(Skill.Melee))
-				modifier = physiqueMod;
-			else if(skill.Equals(Skill.Ranged) || skill.Equals(Skill.Stealth))
-				modifier = prowessMod;
-			else if(skill.Equals(Skill.Mechanical) || skill.Equals(Skill.Medicinal))
-				modifier = masteryMod;
-			else
-				modifier = knowledgeMod;
+
+			switch (skill) {
+			case Skill.Athletics:
+			case Skill.Melee:
+				modifier = cScores.getInitiative();
+				break;
+			case Skill.Ranged:
+			case Skill.Stealth:
+				modifier = cScores.getCritical();
+				break;
+			case Skill.Mechanical:
+			case Skill.Medicinal:
+				modifier = cScores.getHandling();
+				break;
+			default:
+				modifier = cScores.getDominion();
+				break;
+			}
 
 			return scores[(int)skill] + modifier;
 		}

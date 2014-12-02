@@ -6,6 +6,7 @@ namespace CharacterInfo
 		public string firstName;
 		public string lastName;
 		public CharacterName(string fN, string lN) {firstName = fN; lastName = lN;}
+		public string fullName() { return firstName + " " + lastName;}
 	}
 	public enum 	CharacterSex {Male, Female, Other}
 
@@ -29,6 +30,11 @@ namespace CharacterInfo
 		public CharacterWeight(int lbs) { weight = lbs; }
 	}
 
+	public struct CharacterAge {
+		public int age;
+		public CharacterAge(int a) { age = a; }
+	}
+
 	public class PersonalInformation
 	{
 		private CharacterName		cName;
@@ -37,10 +43,11 @@ namespace CharacterInfo
 		private CharacterBackground cBackground;
 		private CharacterHeight		cHeight;
 		private CharacterWeight		cWeight;
+		private CharacterAge		cAge;
 
-		public PersonalInformation (CharacterName characterName, CharacterRace characterRace, 
-		                            CharacterSex characterSex, CharacterBackground characterBackground, 
-		                            CharacterHeight characterHeight,CharacterWeight characterWeight)
+		public PersonalInformation(CharacterName characterName, CharacterSex characterSex,
+		                           CharacterRace characterRace, CharacterBackground characterBackground, CharacterAge characterAge,
+		                           CharacterHeight characterHeight,CharacterWeight characterWeight)
 		{
 			cName 		= characterName;
 			cRace 		= characterRace;
@@ -48,6 +55,7 @@ namespace CharacterInfo
 			cBackground = characterBackground;
 			cHeight		= characterHeight;
 			cWeight		= characterWeight;
+			cAge 		= characterAge;
 		}
 
 		public CharacterName getCharacterName() 			{ return cName; }
@@ -56,6 +64,7 @@ namespace CharacterInfo
 		public CharacterBackground getCharacterBackground() { return cBackground; }
 		public CharacterHeight getCharacterHeight() 		{ return cHeight; }
 		public CharacterWeight getCharacterWeight()			{ return cWeight; }
+		public CharacterAge getCharacterAge()				{ return cAge; }
 	}
 }
 

@@ -67,7 +67,15 @@ public class GridManager : MonoBehaviour {
 	public int passableLeft;
 	public int passableDown;
 	public int passableUp;
-	
+
+	public int visibleUp;
+	public int visibleDown;
+	public int visibleLeft;
+	public int visibleRight;
+
+	public bool startingPoint;
+	public bool canTurn;
+
 	public int trigger;
 	public int action; 
 
@@ -80,11 +88,17 @@ public class GridManager : MonoBehaviour {
 	public bool doRight = true;
 	public bool doDown = true;
 	public bool doLeft = true;
+	public bool doUpV = true;
+	public bool doRightV = true;
+	public bool doDownV = true;
+	public bool doLeftV = true;
+	public bool doStartingPoint = true;
 	public bool doTrigger = true;
 	public bool doAction = true;
+	public bool doTurn = true;
 
 	public bool doingAll() {
-		return doingAllColors() && doStand && doUp && doRight && doDown && doLeft && doTrigger && doAction;
+		return doingAllColors() && doStand && doUp && doRight && doDown && doLeft && doTrigger && doAction && doUpV && doRightV && doLeftV && doDownV && doStartingPoint && doTurn;
 	}
 
 	public bool doingAllColors() {
@@ -105,7 +119,7 @@ public class GridManager : MonoBehaviour {
 		spr = sprend.sprite;
 		grids = GameObject.Find("Grids");
 		gridsArray = new Tile[gridX,gridY];
-		gridPrefab = (GameObject)Resources.Load("Sprite/Square_70");
+		gridPrefab = (GameObject)Resources.Load("Sprite/Square_64");
 		lines = GameObject.Find("Lines");
 		doRed = true;
 		doGreen = true;
@@ -117,6 +131,11 @@ public class GridManager : MonoBehaviour {
 		doRight = true;
 		doTrigger = true;
 		doAction = true;
+		doStartingPoint = true;
+		doUpV = true;
+		doDownV = true;
+		doLeftV = true;
+		doRightV = true;
 	//	linesArray = new ArrayList();
 	}
 	
@@ -137,7 +156,7 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void handleMouseScrollWheel() {
-		if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
 			float cameraSize = mainCamera.orthographicSize;
 			float maxCameraSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize * 6.0f/5.0f;
@@ -213,7 +232,7 @@ public class GridManager : MonoBehaviour {
 		float mouseX = Input.GetAxis("Mouse X");
 		float mouseY = Input.GetAxis("Mouse Y");
 		mouseFactor = 18.0f;
-		if (middleDraggin  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (middleDraggin  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			Vector3 pos = mainCamera.WorldToScreenPoint(cameraTransform.position);
 			pos.x -= mouseX * mouseFactor;
 			pos.y -= mouseY * mouseFactor;
@@ -223,7 +242,7 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void handleMouseSelect() {
-		if (shiftDraggin && (wasShiftDraggin || Input.mousePosition.x < Screen.width*(1-boxWidthPerc))) {
+		if (shiftDraggin && (wasShiftDraggin || Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX)) {
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -310,7 +329,7 @@ public class GridManager : MonoBehaviour {
 				}
 			}
 		}
-		if ((normalDraggin || rightDraggin) && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if ((normalDraggin || rightDraggin) && Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
 			if (hit) {
 				GameObject go = hit.collider.gameObject;
@@ -332,8 +351,14 @@ public class GridManager : MonoBehaviour {
 					passableRight = t.passableRight;
 					passableDown = t.passableDown;
 					passableLeft = t.passableLeft;
+					visibleUp = t.visibilityUp;
+					visibleDown = t.visibilityDown;
+					visibleRight = t.visibilityRight;
+					visibleLeft = t.visibilityLeft;
+					startingPoint = t.startingPoint;
 					trigger = t.trigger;
 					action = t.action;
+					canTurn = t.canTurn;
 				}
 			}
 		}
@@ -356,6 +381,20 @@ public class GridManager : MonoBehaviour {
 			t.trigger = trigger;
 		if (doAction)
 			t.action = action;
+		if (doStartingPoint) {
+			t.startingPoint = startingPoint;
+			t.setStartText();
+		}
+		if (doUpV)
+			t.visibilityUp = visibleUp;
+		if (doRightV)
+			t.visibilityRight = visibleRight;
+		if (doDownV)
+			t.visibilityDown = visibleDown;
+		if (doLeftV)
+			t.visibilityLeft = visibleLeft;
+		if (doTurn)
+			t.canTurn = canTurn;
 	}
 
 	public void printGrid() {
@@ -562,10 +601,10 @@ public class GridManager : MonoBehaviour {
 		//Debug.Log(Application.dataPath);
 		WWW www;
 		if (isWindows()) {
-			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\70.png");
+			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\64.png");
 		}
 		else {
-			www = new WWW("file://" + Application.dataPath + "/Resources/Images/70.png");
+			www = new WWW("file://" + Application.dataPath + "/Resources/Images/64.png");
 		}
 		www.LoadImageIntoTexture(spr.texture);
 	}

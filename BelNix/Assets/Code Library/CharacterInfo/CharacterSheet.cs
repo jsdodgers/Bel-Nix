@@ -24,6 +24,7 @@ namespace CharacterInfo
 		}
 	}
 
+
 	public class CharacterConstants
 	{
 		public const int BASE_AC = 5;

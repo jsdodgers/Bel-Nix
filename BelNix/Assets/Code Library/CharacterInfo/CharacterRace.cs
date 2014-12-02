@@ -1,6 +1,7 @@
 using System;
 namespace CharacterInfo
 {
+	public enum RaceName {Berrind, Ashpian, Rorrul}
 	public enum PrimalState {Reckless, Passive, Threatened}
 	public enum CharacterBackground {FallenNoble, WhiteGem, Immigrant, Commoner, Servant, Unknown}
 	public abstract class CharacterRace
@@ -22,6 +23,19 @@ namespace CharacterInfo
 				return "Threatened";
 			default:
 				return "";
+			}
+		}
+		public static CharacterRace getRace(RaceName rName) {
+			switch(rName)
+			{
+			case RaceName.Berrind:
+				return new Race_Berrind();
+			case RaceName.Ashpian:
+				return new Race_Ashpian();
+			case RaceName.Rorrul:
+				return new Race_Rorrul();
+			default:
+				return new Race_Ashpian();
 			}
 		}
 	}
