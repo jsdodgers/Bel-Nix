@@ -1116,6 +1116,10 @@ public class Unit : MonoBehaviour {
 			return new Vector2();
 		}
 	}
+	public void selectItem() {
+		Vector3 mousePos = Input.mousePosition;
+		Debug.Log(mousePos.x + "  " + mousePos.y);
+	}
 
 	static float t = 0;
 	static int dir = 1;

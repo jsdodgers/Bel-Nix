@@ -1161,6 +1161,11 @@ public class MapGenerator : MonoBehaviour {
 				selectUnit(u, true);
 			}
 		}
+		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
+			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+				selectedUnit.selectItem();
+			}
+		}
 		if ((isInCharacterPlacement() && (mouseDown && !leftClickIsMakingSelection()) && !rightDraggin && !middleDraggin)) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<10);
 			if (hit) {
