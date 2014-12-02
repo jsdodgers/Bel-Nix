@@ -32,6 +32,7 @@ public class MapGenerator : MonoBehaviour {
 	GameObject arrowCurvePrefab;
 	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
+	GameObject turretPrefab;
 	GameObject enemyPrefab;
 	GameObject warningRedPrefab;
 	GameObject warningYellowPrefab;
@@ -163,8 +164,9 @@ public class MapGenerator : MonoBehaviour {
 
 		priorityOrder = new List<Unit>();
 		players = new ArrayList();
-		//		playerPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieAnimPrefab");
-		playerPrefab = (GameObject)Resources.Load("Characters/Male_Base/Male_Base_Unit");
+		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
+		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
+		turretPrefab = (GameObject)Resources.Load("Units/Turrets/Turret");
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
@@ -190,7 +192,7 @@ public class MapGenerator : MonoBehaviour {
 	//		p.deselect();
 		}*/
 		enemies = new ArrayList();
-		enemyPrefab = (GameObject)Resources.Load("Characters/Jackie/JackieEnemy");
+		enemyPrefab = (GameObject)Resources.Load("Units/Jackie/JackieEnemy");
 	/*	Vector3[] positions2 = new Vector3[] {new Vector3(15, -28, 0), new Vector3(17, -27, 0), new Vector3(4, -23, 0)};
 		for (int n=0;n<positions2.Length;n++) {
 			Vector3 pos = positions2[n];
@@ -309,7 +311,10 @@ public class MapGenerator : MonoBehaviour {
 	public void createSelectionArea() {
 		if (!isInCharacterPlacement()) return;
 		selectionUnitsX = Screen.width/2.0f - (selectionWidth)/2.0f;
-		if (Screen.height < selectionUnits.Count * (spriteSize + spriteSeparator) + spriteSeparator)
+		float scrollHeight = spriteSeparator + (spriteSeparator + spriteSize) * (selectionUnits == null ? 0 : selectionUnits.Count + (selectionCurrentIndex>=0?1:0));
+
+//		if (Screen.height < selectionUnits.Count * (spriteSize + spriteSeparator) + spriteSeparator)
+		if (Screen.height < scrollHeight)
 			selectionUnitsX -= (selectionWidth - spriteSize)/4.0f;
 		repositionSelectionUnits();
 		if (Screen.width == screenWidth && Screen.height == screenHeight) return;
@@ -1154,6 +1159,11 @@ public class MapGenerator : MonoBehaviour {
 			else {
 				Unit u = hoveredCharacter;
 				selectUnit(u, true);
+			}
+		}
+		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
+			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+				selectedUnit.selectItem();
 			}
 		}
 		if ((isInCharacterPlacement() && (mouseDown && !leftClickIsMakingSelection()) && !rightDraggin && !middleDraggin)) {
