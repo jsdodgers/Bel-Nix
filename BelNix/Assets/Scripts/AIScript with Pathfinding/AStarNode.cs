@@ -23,8 +23,8 @@ public class AStarParameters {
 
 public class AStarNode {
 	
-	private float h;
-	private float d;
+	private float h = int.MaxValue;
+	private float d = int.MaxValue;
 	public AStarParameters parameters;
 	public AStarNode prev;
 	

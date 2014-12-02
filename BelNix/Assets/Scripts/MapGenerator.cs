@@ -259,7 +259,7 @@ public class MapGenerator : MonoBehaviour {
 		createSelectionArea();
 		createSelectionUnits();
 //		StartCoroutine(importGrid());
-		Debug.Log(b4 + "\n\n" + after);
+//		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
 	}
@@ -1254,7 +1254,6 @@ public class MapGenerator : MonoBehaviour {
 				int posY = -(int)lastHit.transform.localPosition.y;
 				Vector3 mousePos = Input.mousePosition;
 				bool overThing = mousePos.x >= Screen.width - selectionWidth;
-				Debug.Log(mousePos.x + " " + Screen.width + "    " + overThing);
 				Tile t = tiles[posX, posY];
 				Unit u2 = selectedSelectionObject.GetComponent<Unit>();
 				if (t.startingPoint) {

@@ -28,12 +28,14 @@ public class AStarAlgorithm {
 					AStarNode nextNode2 = heap.remove(nextNode.parameters);
 					float newD = d + map.distanceBetweenNodes(node,nextNode);
 					if (nextNode2 != null) {
+				//		Debug.Log("NewD: " + newD + "  OldD: " + nextNode2.distance());
 						if (newD < nextNode2.distance()) {
 							nextNode2.setDistance(newD);
 							nextNode2.prev = node;
 						}
 					}
 					else {
+				//		Debug.Log("NewD: " + newD);
 						nextNode2 = nextNode;
 						nextNode2.setDistance(newD);
 						nextNode2.prev = node;

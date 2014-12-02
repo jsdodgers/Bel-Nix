@@ -142,6 +142,28 @@ public class Unit : MonoBehaviour {
 		return getStandardTypes().Length;
 	}
 
+	public int minReachableDistance() {
+		for (int n=1;n<10;n++) {
+			if (canGetWithin(n,n)) return n;
+		}
+		return 1;
+	}
+
+	public bool canGetWithin(int dist, int minDist = 1) {
+		for (int n=-dist;n<=dist;n++) {
+			for (int m=-dist;m<=dist;m++) {
+				int d = Mathf.Abs(n) + Mathf.Abs(m);
+				if (d > dist || d < minDist) continue;
+				int x = (int)position.x + n;
+				int y = (int)-position.y + m;
+				if (x >= 0 && y>=0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
+					Tile t = mapGenerator.tiles[x,y];
+					if (t.canStand()) return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	public void setSelected() {
 		isSelected = true;
@@ -537,10 +559,9 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+	//	usedStandard = true;
 		if (!usedStandard) {
-			Debug.Log("Did Not Use Standard");
 			if (closestDist <= 1.0f) {
-				Debug.Log("Set Standard To True");
 				usedStandard = true;
 				attackEnemy = enemy;
 				setRotationToAttackEnemy();
@@ -2023,7 +2044,6 @@ public class Unit : MonoBehaviour {
 	}
 
 	void attackFinished() {
-		Debug.Log("Attack Finished");
 		if (attackEnemy) {
 			attackEnemy.wasBeingAttacked = attackEnemy.beingAttacked;
 			attackEnemy.beingAttacked = false;
@@ -2051,9 +2071,7 @@ public class Unit : MonoBehaviour {
 //			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
 			characterSheet.combatScores.loseHealth(damage);
-			Debug.Log(characterSheet.combatScores.checkLifeStatus());
 			if (!d && deadOrDyingOrUnconscious()) {
-				Debug.Log("Died Damage!! " + damage);
 				u.killedEnemy();
 			}
 		}
@@ -2079,7 +2097,9 @@ public class Unit : MonoBehaviour {
 				}
 //				mapGenerator.enemies.Remove(gameObject);
 				mapGenerator.removeCharacter(this);
-				mapGenerator.tiles[(int)position.x, (int)-position.y].removeCharacter();
+				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
+				if (t.getCharacter()==this)
+					t.removeCharacter();
 				Destroy(gameObject);
 				mapGenerator.resetCharacterRange();
 				mapGenerator.setGameState();

@@ -18,6 +18,7 @@ public class AStarEnemyMap : AStarMap {
 		AStarEnemyParameters parameters = new AStarEnemyParameters((int)unit.position.x,(int)-unit.position.y);
 		float heuristic = heuristicForParameters(parameters);
 		startNode = new AStarEnemyNode(parameters,heuristic);
+		startNode.setDistance(heuristic);
 	}
 	
 	public void setGoalsAndHeuristics(List<Unit> goalUnits) {
@@ -79,11 +80,13 @@ public class AStarEnemyMap : AStarMap {
 	
 	
 	public override bool nodeIsCloseEnough(AStarNode node) {
+		AStarEnemyParameters nodeParams = (AStarEnemyParameters)node.parameters;
+		Tile t = mapGenerator.tiles[nodeParams.x,nodeParams.y];
 		foreach (AStarEnemyNode goal in goalNodes) {
 			AStarEnemyParameters goalParams = (AStarEnemyParameters)goal.parameters;
-			AStarEnemyParameters nodeParams = (AStarEnemyParameters)node.parameters;
-			if (Mathf.Abs(goalParams.x-nodeParams.x) + Mathf.Abs(goalParams.y-nodeParams.y)<=1.0f) {
-				if (mapGenerator.tiles[nodeParams.x,nodeParams.y].canStand()) {
+			Tile g = mapGenerator.tiles[goalParams.x,goalParams.y];
+			if (Mathf.Abs(goalParams.x-nodeParams.x) + Mathf.Abs(goalParams.y-nodeParams.y)<=(g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f)) {
+				if (t.canStand() || t.getCharacter()==unit) {
 					return true;
 				}
 			}
@@ -101,6 +104,11 @@ public class AStarEnemyMap : AStarMap {
 //		float diag = Mathf.Min(Mathf.Abs(enemyParam.x-enemyParam2.x),Mathf.Abs(enemyParam.y-enemyParam2.y));
 		float straight = Mathf.Abs(enemyParam.x-enemyParam2.x) + Mathf.Abs(enemyParam.y-enemyParam2.y);
 //		return diag*1.4f + (straight - 2*diag) * 1.0f;
+		Tile t = mapGenerator.tiles[enemyParam.x,enemyParam.y];
+		if (t.shouldTakeAttOppLeaving(unit)) {
+		//	Debug.Log("Take Attack Of Opportunity: " + enemyParam.x + ", " + enemyParam.y + "   " + straight);
+			straight += 3;
+		}
 		return straight;
 	}
 }

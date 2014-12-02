@@ -129,6 +129,15 @@ public class Tile {
 			return null;
 		}
 	}
+	Direction[] directions = new Direction[]{Direction.Down,Direction.Left,Direction.Right,Direction.Up};
+
+	public bool shouldTakeAttOppLeaving(Unit u) {
+		foreach (Direction dir in directions) {
+			Tile t = getTile(dir);
+			if (t != null && t.getEnemy(u)) return true;
+		}
+		return false;
+	}
 
 	public bool canPass(Direction direction, Unit cs, Direction previousDirection) {
 	//	Debug.Log("Can Turn: " + canTurn);
