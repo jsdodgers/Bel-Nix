@@ -74,7 +74,7 @@ public class MapGenerator : MonoBehaviour {
 	bool mouseDownRight;
 	bool mouseUp;
 	
-	bool shiftDown;
+	public bool shiftDown;
 	bool altDown;
 	bool controlDown;
 	bool spaceDown;

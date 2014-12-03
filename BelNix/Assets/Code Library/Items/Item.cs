@@ -40,6 +40,7 @@ public class Item {
 		stack = new List<Item>();
 	}
 	public Item popStack() {
+		if (stack.Count==0) return null;
 		Item i = stack[stack.Count-1];
 		stack.Remove(i);
 		return i;

@@ -1210,6 +1210,12 @@ public class Unit : MonoBehaviour {
 				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
 				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
+				if (mapGenerator.shiftDown) {
+					if (selectedItem.stackSize()>1) {
+						characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
+						selectedItem = selectedItem.popStack();
+					}
+				}
 				selectedCell = ir.slot;
 				selectedMousePos = mousePos;
 //				selectedItemPos = getInventorySlotPos();
@@ -1292,7 +1298,15 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		else if (selectedItemWasInSlot!=InventorySlot.None) {
-			characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot))) {
+				characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			}
+			else {
+				int slot1 = getLinearIndexFromIndex(getIndexOfSlot(selectedItemWasInSlot));
+				if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
+					characterSheet.characterSheet.inventory.stackItemWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
+				}
+			}
 		}
 		selectedItem = null;
 	}
