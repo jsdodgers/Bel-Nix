@@ -1291,7 +1291,7 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
-			if (selectedItemWasInSlot!=InventorySlot.None) {
+			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
 		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
@@ -2009,10 +2009,11 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void startMoving(bool backStepping) {
+	
+		if (currentPath.Count <= 1) return;
 		if (!backStepping) {
 			moveAnimation(true);
 		}
-		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
 		if (mapGenerator.getCurrentUnit()==this)
 			mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
@@ -2227,6 +2228,9 @@ public class Unit : MonoBehaviour {
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
 				setRotationToMostInterestingTile();
+				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
+					gui.selectAttack();
+				}
 			}
 		}
 	}

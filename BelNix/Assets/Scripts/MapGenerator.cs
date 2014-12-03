@@ -474,6 +474,13 @@ public class MapGenerator : MonoBehaviour {
 			selectedUnit.setCurrent();
 			moveCameraToSelected();
 			lastPlayerPath = selectedUnit.currentPath;
+			float closestEnemy = selectedUnit.closestEnemyDist();
+			if (closestEnemy > selectedUnit.characterSheet.characterLoadout.rightHand.getWeapon().range) {
+				gui.selectMovement();
+			}
+			else {
+				gui.selectAttack();
+			}
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -1144,7 +1151,13 @@ public class MapGenerator : MonoBehaviour {
 	public GameObject selectedSelectionObject = null;
 	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
-		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
+		Tile t2 = null;
+		if (currentSprite != null) {
+			GameObject go2 = currentSprite.gameObject;
+			Transform transform2 = go2.transform;
+			t2 = tiles[(int)transform2.localPosition.x,(int)-transform2.localPosition.y];
+		}
+		if ((mouseDown && (!leftClickIsMakingSelection() || t2==null || (!t2.canStandCurr && !t2.canAttackCurr))) && !isOnGUI && !rightDraggin) {
 			if (!shiftDown) {
 				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
@@ -1157,8 +1170,15 @@ public class MapGenerator : MonoBehaviour {
 //			setTargetObjectPosition();
 			}
 			else {
+				bool res = false;
+				if (selectedUnit == getCurrentUnit() && selectedUnits.Count==0) {
+					res = true;
+				}
 				Unit u = hoveredCharacter;
 				selectUnit(u, true);
+				if (res) {
+					resetRanges();
+				}
 			}
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
