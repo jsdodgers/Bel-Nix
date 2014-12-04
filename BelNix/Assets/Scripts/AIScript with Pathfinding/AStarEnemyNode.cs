@@ -30,7 +30,11 @@ public class AStarEnemyParameters : AStarParameters {
 		this.x = x;
 		this.y = y;
 	}
-	
+
+	public Vector2 getPos() {
+		return new Vector2(x,y);
+	}
+
 	public override bool Equals (object obj)
 	{
 		if (obj==null) return false;
