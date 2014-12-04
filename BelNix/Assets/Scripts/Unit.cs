@@ -153,6 +153,12 @@ public class Unit : MonoBehaviour {
 		return 1;
 	}
 
+	public int getAttackRange() {
+		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		if (w==null) return 0;
+		return w.range;
+	}
+
 	public bool canGetWithin(int dist, int minDist = 1) {
 		for (int n=-dist;n<=dist;n++) {
 			for (int m=-dist;m<=dist;m++) {
@@ -2076,6 +2082,7 @@ public class Unit : MonoBehaviour {
 			currentMoveDist--;
 			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
+			mapGenerator.setCurrentUnitTile();
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			if (currentPath.Count >= 2) {
