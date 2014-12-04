@@ -125,6 +125,7 @@ namespace CharacterInfo
 		}
 		public bool itemCanStackWith(Item baseItem, Item additionalItem) {
 //			if (typeof(baseItem)!=typeof(additionalItem)) return false;
+			if (baseItem==null || additionalItem==null) return false;
 			if (baseItem.GetType()!=additionalItem.GetType()) return false;
 			return baseItem.stackSize() + additionalItem.stackSize() <= getStackabilityOfItem(baseItem);
 		}

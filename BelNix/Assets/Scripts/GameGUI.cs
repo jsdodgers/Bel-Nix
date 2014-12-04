@@ -482,9 +482,9 @@ public class GameGUI : MonoBehaviour {
 					mapGenerator.resetRanges();
 
 				}
-				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
-				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
-				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+				GUI.enabled = p.minorsLeft > 0;//!p.usedMinor1 || !p.usedMinor2;
+				if (selectedMinor && p.minorsLeft==0) selectedMinor = false;
+				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && p.minorsLeft>0 ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 					if (selectedMovement) {
 				//		selectedMovementType = MovementType.None;
 						selectedMovement = false;

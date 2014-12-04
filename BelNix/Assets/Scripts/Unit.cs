@@ -49,8 +49,9 @@ public class Unit : MonoBehaviour {
 	Animator anim;
 	public bool usedMovement;
 	public bool usedStandard;
-	public bool usedMinor1;
-	public bool usedMinor2;
+	public int minorsLeft = 2;
+//	public bool usedMinor1;
+//	public bool usedMinor2;
 
 	public bool isCurrent;
 	public bool isSelected;
@@ -264,8 +265,9 @@ public class Unit : MonoBehaviour {
 	public void resetVars() {
 		usedMovement = false;
 		usedStandard = false;
-		usedMinor1 = false;
-		usedMinor2 = false;
+//		usedMinor1 = false;
+//		usedMinor2 = false;
+		minorsLeft = 2;
 		currentMoveDist = 0;
 		moveDistLeft = maxMoveDist;
 		usedDecisiveStrike = false;
@@ -355,9 +357,14 @@ public class Unit : MonoBehaviour {
 //			Debug.Log(pos + ": " + dir + "   --  " + dirFrom);
 		return mapGenerator.canPass(dir, (int)pos.x, (int)pos.y, this, dirFrom);//dirFrom);
 	}
-	
-	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None) {
+
+	int passibility(Direction dir, Vector2 pos) {
+		return mapGenerator.passibility(dir, (int)pos.x, (int)pos.y);
+	}
+
+	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None, int minorsUsed = 0) {
 		//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
+		if (minorsUsed > minorsLeft) return curr;
 		if (!first) {
 			//	if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
@@ -368,13 +375,13 @@ public class Unit : MonoBehaviour {
 		if (maxDist <= 0) return curr;
 		ArrayList a = new ArrayList();
 		if (canPass(Direction.Left, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left, minorsUsed + (passibility(Direction.Left, posFrom)>1?1:0)));
 		if (canPass(Direction.Right, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right, minorsUsed + (passibility(Direction.Right, posFrom)>1?1:0)));
 		if (canPass(Direction.Up, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up, minorsUsed + (passibility(Direction.Up, posFrom)>1?1:0)));
 		if (canPass(Direction.Down, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down, minorsUsed + (passibility(Direction.Down, posFrom)>1?1:0)));
 		int dist = maxDist + 10000;
 		int minLength = maxDist + 10000;
 		ArrayList minArray = curr;//new ArrayList();
@@ -408,6 +415,7 @@ public class Unit : MonoBehaviour {
 		closestDist = dis;
 		minLength = currList.Count;
 		//	Debug.Log("Subtractive:   " + currList.Count);
+		int nnn = 1;
 		while (currList.Count >= 1) {// && maxDist < currentMoveDist) {
 			//		Debug.Log("currList: " + currList.Count);
 			Vector2 last1;
@@ -426,7 +434,15 @@ public class Unit : MonoBehaviour {
 				else if (curr.y < last.y) dir = Direction.Up;
 				else if (curr.y > last.y) dir = Direction.Down;
 			}
-			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir);
+			int minorsUsed = 0;
+			for (int n=1;n<currList.Count;n++) {
+				Tile t1 = mapGenerator.tiles[(int)((Vector2)currList[n-1]).x,(int)((Vector2)currList[n-1]).y];
+				Direction dir1 = Tile.directionBetweenTiles((Vector2)currList[n-1],(Vector2)currList[n]);
+				if (passibility(dir1,(Vector2)currList[n-1])>1) minorsUsed++;
+			}
+			Debug.Log(nnn + ":   " + minorsUsed);
+			nnn++;
+			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir, minorsUsed);
 			ArrayList withAdded = new ArrayList();
 			foreach (Vector2 v in currList) {
 				withAdded.Add(v);
