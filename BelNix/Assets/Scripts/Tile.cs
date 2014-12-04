@@ -36,6 +36,10 @@ public class Tile {
 	public int y;
 	List<Item> items;
 
+	public Vector2 getPosition() {
+		return new Vector2(x, y);
+	}
+
 	public List<Item> getItems() {
 	//	Debug.Log("getItems: " + items.Count);
 		return items;
@@ -199,7 +203,7 @@ public class Tile {
 			return null;
 		}
 	}
-	Direction[] directions = new Direction[]{Direction.Down,Direction.Left,Direction.Right,Direction.Up};
+	public static Direction[] directions = new Direction[]{Direction.Down,Direction.Left,Direction.Right,Direction.Up};
 
 	public bool shouldTakeAttOppLeaving(Unit u) {
 		foreach (Direction dir in directions) {

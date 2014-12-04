@@ -5,6 +5,7 @@ using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, None}
+public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 
 public class Unit : MonoBehaviour {
@@ -137,6 +138,13 @@ public class Unit : MonoBehaviour {
 		return standardTypes.ToArray();
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
+	public MinorType[] getMinorTypes() {
+		return new MinorType[] {MinorType.Loot, MinorType.Cancel};
+	}
+
+	public int numberMinors() {
+		return getMinorTypes().Length;
+	}
 
 	public int numberMovements() {
 		return getMovementTypes().Length;
@@ -151,6 +159,12 @@ public class Unit : MonoBehaviour {
 			if (canGetWithin(n,n)) return n;
 		}
 		return 1;
+	}
+
+	public int getAttackRange() {
+		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		if (w==null) return 0;
+		return w.range;
 	}
 
 	public bool canGetWithin(int dist, int minDist = 1) {
@@ -558,7 +572,7 @@ public class Unit : MonoBehaviour {
 					}
 					node = node.prev;
 					d++;
-					if (d>=5) break;
+					if (d>5) break;
 				}
 				for (int n=currentPath.Count-1;n>=1;n--) {
 					Vector2 v = (Vector2)currentPath[n];
@@ -855,7 +869,7 @@ public class Unit : MonoBehaviour {
 	public GUIStyle getComposureTextStyle(int fontSize) {
 		if (composureTextStyle == null) {
 			composureTextStyle = new GUIStyle("Label");
-			composureTextStyle.normal.textColor = new Color(.316f, 0.0f, .316f);
+			composureTextStyle.normal.textColor = Color.green;//new Color(.316f, 0.0f, .316f);
 		}
 		composureTextStyle.fontSize = fontSize;
 		return composureTextStyle;
@@ -875,9 +889,10 @@ public class Unit : MonoBehaviour {
 	public GUIStyle getStackStyle() {
 		if (stackStyle == null) {
 			stackStyle = new GUIStyle("Label");
-			stackStyle.normal.textColor = Color.red;
+			stackStyle.normal.textColor = Color.white;
 			stackStyle.fontSize = 11;
 			stackStyle.alignment = TextAnchor.LowerRight;
+			stackStyle.padding = new RectOffset(0, 0, 0, 0);
 		}
 		return stackStyle;
 	}
@@ -1242,7 +1257,7 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
+		if (!gui.looting || mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
 		Vector2 scrollOff = groundScrollPosition;
 		float div = 20.0f;
 		float y = div + groundY - scrollOff.y;
@@ -1288,6 +1303,7 @@ public class Unit : MonoBehaviour {
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
 						t.removeItem(selectedItem,1);
+						minorsLeft--;
 					}
 					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
 					selectedItem = null;
@@ -1299,6 +1315,7 @@ public class Unit : MonoBehaviour {
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {
 							t.removeItem(selectedItem,1);
+							minorsLeft--;
 						}
 						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
 						selectedItem = null;
@@ -1308,10 +1325,11 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
+		if (gui.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
 			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
+				minorsLeft--;
 		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
 			}
 		}
@@ -1738,27 +1756,28 @@ public class Unit : MonoBehaviour {
 					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
 				}
 			}
-
-			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
-		//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
-			float div = 20.0f;
-			float height = div;
-			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null) continue;
-				height += i.getSize().y*inventoryCellSize + div;
-			}
-			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
-			float y = div + groundY;
-			float mid = groundX + groundWidth/2.0f;
-			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null) continue;
-				Vector2 size = i.getSize();
-				if (i!=selectedItem) {
-					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+			if (gui.looting || true) {
+				List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
+			//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
+				float div = 20.0f;
+				float height = div;
+				foreach (Item i in groundItems) {
+					if (i.inventoryTexture==null) continue;
+					height += i.getSize().y*inventoryCellSize + div;
 				}
-				y += size.y*inventoryCellSize + div;
+				groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
+				float y = div + groundY;
+				float mid = groundX + groundWidth/2.0f;
+				foreach (Item i in groundItems) {
+					if (i.inventoryTexture==null) continue;
+					Vector2 size = i.getSize();
+					if (i!=selectedItem) {
+						GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+					}
+					y += size.y*inventoryCellSize + div;
+				}
+				GUI.EndScrollView();
 			}
-			GUI.EndScrollView();
 			if (selectedItem != null) {
 				Vector2 size = selectedItem.getSize();
 				Vector2 pos = selectedItemPos;
@@ -1777,24 +1796,21 @@ public class Unit : MonoBehaviour {
 
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.M) gui.openTab = Tab.None;
-			else gui.openTab = Tab.M;
+		//	if (gui.openTab == Tab.M) gui.openTab = Tab.None;
+		//	else gui.openTab = Tab.M;
+			gui.clickTab(Tab.M);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.C) gui.openTab = Tab.None;
-			else gui.openTab = Tab.C;
+			gui.clickTab(Tab.C);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.K) gui.openTab = Tab.None;
-			else gui.openTab = Tab.K;
+			gui.clickTab(Tab.K);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*3, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.I) gui.openTab = Tab.None;
-			else gui.openTab = Tab.I;
+			gui.clickTab(Tab.I);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.T) gui.openTab = Tab.None;
-			else gui.openTab = Tab.T;
+			gui.clickTab(Tab.T);
 		}
 		string tt = GUI.tooltip;
 		if (tt != null && tt!="") {
@@ -2014,6 +2030,8 @@ public class Unit : MonoBehaviour {
 			throwing = true;
 			if (mapGenerator.getCurrentUnit()==this)
 				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+	//		if (this == mapGenerator.getCurrentUnit())
+	//			mapGenerator.resetRanges();
 		}
 	}
 
@@ -2076,6 +2094,7 @@ public class Unit : MonoBehaviour {
 			currentMoveDist--;
 			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
+			mapGenerator.setCurrentUnitTile();
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			if (currentPath.Count >= 2) {
@@ -2323,7 +2342,7 @@ public class Unit : MonoBehaviour {
 
 	void throwAnimation() {
 		attackEnemy.setRotationToCharacter(this);
-		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative());
+		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative(), this);
 		mapGenerator.resetAttack(this);
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
@@ -2350,33 +2369,43 @@ public class Unit : MonoBehaviour {
 
 	bool gettingThrown = false;
 	Vector3 gettingThrownPosition;
-	void getThrown(Direction dir, int distance) {
+	void getThrown(Direction dir, int distance, Unit thrownBy) {
 		Debug.Log("getThrown(" + dir + ", " + distance + ")");
 		int x = (int)position.x;
 		int y = (int)-position.y;
 		Tile t = mapGenerator.tiles[x, y];
+		int dis = 0;
 		for (;distance>0;distance--) {
-			Debug.Log(distance);
 			Tile nextT = t.getTile(dir);
 			if (!nextT.hasCharacter() && t.passabilityInDirection(dir)==1) {//t.canPass(dir, this, dir)) {
 				t = nextT;
 				setXYFromDirection(dir, ref x, ref y);
-				Debug.Log("x: " + x + " y: " + y);
+				dis++;
 			}
 			else break;
 		}
+		bool becameProne = false;
+		Unit alsoProne = null;
 		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || t.getTile(dir).hasCharacter())) {
 		//	affliction = Affliction.Prone;
 			becomeProne();
+			becameProne = true;
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u) {
 					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
 //					u.affliction = Affliction.Prone;
 						u.becomeProne();
+						alsoProne = u;
 					}
 				}
 			}
+		}
+		if (team == 0) {
+			gui.log.addMessage(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
+		}
+		else {
+			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.green);
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
