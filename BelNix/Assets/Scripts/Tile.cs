@@ -27,6 +27,7 @@ public class Tile {
 	int activation;
 	public int minDistCurr;
 	public int minAttackCurr;
+	public int minDistUsedMinors;
 	public bool canAttackCurr;
 	public bool canStandCurr;
 	public bool canTurn;
@@ -34,6 +35,10 @@ public class Tile {
 	public int x;
 	public int y;
 	List<Item> items;
+
+	public Vector2 getPosition() {
+		return new Vector2(x, y);
+	}
 
 	public List<Item> getItems() {
 	//	Debug.Log("getItems: " + items.Count);
@@ -121,11 +126,20 @@ public class Tile {
 		resetStandability();
 	}
 
+	public static Direction directionBetweenTiles(Vector2 fromTile, Vector2 toTile) {
+		if (fromTile.x < toTile.x) return Direction.Right;
+		if (fromTile.x > toTile.x) return Direction.Left;
+		if (fromTile.y > toTile.y) return Direction.Up;
+		if (fromTile.y < toTile.y) return Direction.Down;
+		return Direction.None;
+	}
+
 	public void resetStandability() {
 		canAttackCurr = false;
 		canStandCurr = false;
 		minDistCurr = int.MaxValue;
 		minAttackCurr = int.MaxValue;
+		minDistUsedMinors = 0;
 	}
 	
 
@@ -189,7 +203,7 @@ public class Tile {
 			return null;
 		}
 	}
-	Direction[] directions = new Direction[]{Direction.Down,Direction.Left,Direction.Right,Direction.Up};
+	public static Direction[] directions = new Direction[]{Direction.Down,Direction.Left,Direction.Right,Direction.Up};
 
 	public bool shouldTakeAttOppLeaving(Unit u) {
 		foreach (Direction dir in directions) {

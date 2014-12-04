@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
-
-public enum Tab {M, C, K, I, T, None}
+public enum Tab {M, C, K, I, T, Cancel, None}
 public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
 
 	public MapGenerator mapGenerator;
+	public Log log;
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
 	GUIStyle selectedButtonStyle = null;
@@ -31,6 +33,7 @@ public class GameGUI : MonoBehaviour {
 	public bool selectedMinor = false;
 	public MovementType selectedMovementType = MovementType.None;
 	public StandardType selectedStandardType = StandardType.None;
+	public MinorType selectedMinorType = MinorType.None;
 
 
 	public Tab openTab = Tab.None;
@@ -108,6 +111,8 @@ public class GameGUI : MonoBehaviour {
 //			values = mapGenerator.getCurrentUnit().getMovementTypes();
 		else if (selectedStandard)
 			values = mapGenerator.getCurrentUnit().numberStandards();
+		else if (selectedMinor)
+			values = mapGenerator.getCurrentUnit().numberMinors();
 //			values = mapGenerator.getCurrentUnit().getStandardTypes();
 		if (values == 0) return new Rect(1000000.0f, 1000000.0f, 0.0f, 0.0f);
 		float height = subMenuTurnActionSize.y * values - values + 1;
@@ -140,6 +145,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+		if (log.mouseIsOnGUI()) return true;
 		if (mapGenerator) {
 			if (mapGenerator.isInCharacterPlacement()) {
 				if (beginButtonRect().Contains(mousePos)) return true;
@@ -149,14 +155,14 @@ public class GameGUI : MonoBehaviour {
 				bool onWait = waitButtonAlwaysRect().Contains(mousePos);
 				bool others = onPlayer || onWait;
 				if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
-					return actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others;
+					if (actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others) return true;
 				}
 				else {
-					return rangeRect().Contains(mousePos) || others;
+					if (rangeRect().Contains(mousePos) || others) return true;
 				}
 			}
 			if (mapGenerator.getCurrentUnit()==null) {
-				return mousePos.x >= Screen.width - 100.0f;
+				if (mousePos.x >= Screen.width - 100.0f) return true;
 			}
 		}
 		return false;
@@ -298,9 +304,238 @@ public class GameGUI : MonoBehaviour {
 		return backStyle;
 	}
 
-	void OnGUI() {
-	//	Debug.Log("OnGUI");
+	public void clickWait() {
+		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
+		Unit p = mapGenerator.selectedUnit;
+		if (selectedMovement) {
+			deselectMovement();
+		}
+		if (selectedStandard) {
+			deselectStandard();
+		}
+		if (selectedMinor) {
+			deselectMinor();
+		}
+		mapGenerator.nextPlayer();
+	}
 
+	public void clickStandard() {
+		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
+		Unit p = mapGenerator.selectedUnit;
+		if (p==null || p.usedStandard || p.isProne()) return;
+		if (p.usedStandard) return;
+		if (selectedMovement) {
+			deselectMovement();
+		}
+		//	if (selectedStandard == false) {// && selectedStandardType == StandardType.None) {
+//		selectedStandardType = StandardType.Attack;	
+		selectedStandard = !selectedStandard;//true;
+		if (selectedStandard && !p.getStandardTypes().Contains(selectedStandardType)) selectedStandardType = StandardType.None;
+		selectStandardType(selectedStandardType);
+		//	}
+		if (selectedMinor) {
+			deselectMinor();
+		}
+		mapGenerator.resetRanges();
+	}
+
+	public void clickMovement() {
+		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
+		Unit p = mapGenerator.selectedUnit;
+		if (p==null || p.usedMovement) return;
+		if (selectedStandard) {
+			//		selectedStandardType = StandardType.None;
+			deselectStandard();
+		}
+		/*
+		if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
+			selectedMovement = true;
+			if (p.getMovementTypes()[0] == MovementType.Move) {
+				selectedMovementType = MovementType.Move;
+				selectMovementType(selectedMovementType);
+			}
+			else {
+				selectedMovementType = MovementType.None;
+			}
+		}
+		else {
+			selectedMovement = false;
+			selectedMovementType = MovementType.None;
+			selectMovementType(selectedMovementType);
+		}*/
+		selectedMovement = !selectedMovement;
+		if (selectedMovement && !p.getMovementTypes().Contains(selectedMovementType)) selectedMovementType = MovementType.None;
+		selectMovementType(selectedMovementType);
+		if (selectedMinor) {
+			deselectMinor();
+		}
+		mapGenerator.resetRanges();
+	}
+
+
+
+	public void clickMinor() {
+		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
+		Unit p = mapGenerator.selectedUnit;
+		if (p==null || p.minorsLeft==0) return;
+		if (selectedMovement) {
+			//		selectedMovementType = MovementType.None;
+//			selectedMovement = false;
+//			mapGenerator.resetRanges();
+//			mapGenerator.removePlayerPath();
+			deselectMovement();
+		}
+		if (selectedStandard) {
+			//		selectedStandardType = StandardType.None;
+			deselectStandard();
+		}
+		selectedMinor = !selectedMinor;//true;
+		if (selectedMinor && !p.getMinorTypes().Contains(selectedMinorType)) selectedMinorType = MinorType.None;
+		selectMinorType((selectedMinor ? selectedMinorType : MinorType.None));
+
+	}
+	
+
+	public void selectTypeAt(int index) {
+		if (selectedStandard) {
+			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
+			if (index >= standards.Length-1) return;
+			selectStandard(standards[index]);
+		}
+		else if (selectedMovement) {
+			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
+			if (index >= movements.Length-1) return;
+			selectMovement(movements[index]);
+		}
+		else if (selectedMinor) {
+			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
+			if (index >= minors.Length-1) return;
+			selectMinor(minors[index]);
+		}
+	}
+
+	public void selectNextOfType() {
+		if (selectedStandard) {
+			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
+			int index = System.Array.IndexOf(standards,selectedStandardType);
+			index++;
+			if (index >= standards.Length-1) index = 0;
+			selectStandard(standards[index]);
+		}
+		else if (selectedMovement) {
+			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
+			int index = System.Array.IndexOf(movements,selectedMovementType);
+			index++;
+			if (index >= movements.Length-1) index = 0;
+			selectMovement(movements[index]);
+		}
+		else if (selectedMinor) {
+			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
+			int index = System.Array.IndexOf(minors,selectedMinorType);
+			index++;
+			if (index >= minors.Length-1) index = 0;
+			selectMinor(minors[index]);
+		}
+	}
+
+	public void selectPreviousOfType() {
+		if (selectedStandard) {
+			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
+			int index = System.Array.IndexOf(standards,selectedStandardType);
+			index--;
+			if (index >= standards.Length-2) index = 0;
+			if (index < 0) index = standards.Length-2;
+			selectStandard(standards[index]);
+		}
+		else if (selectedMovement) {
+			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
+			int index = System.Array.IndexOf(movements,selectedMovementType);
+			index--;
+			if (index >= movements.Length-2) index = 0;
+			if (index < 0) index = movements.Length-2;
+			selectMovement(movements[index]);
+		}
+		else if (selectedMinor) {
+			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
+			int index = System.Array.IndexOf(minors,selectedMinorType);
+			index--;
+			if (index >= minors.Length-2) index = 0;
+			if (index < 0) index = minors.Length-2;
+			selectMinor(minors[index]);
+		}
+	}
+
+	public void selectMinor(MinorType minorType) {
+		if (!selectedMinor) {
+			clickMinor();
+			selectedMinorType = minorType;
+		}
+		else if (minorType == selectedMinorType) selectedMinorType = MinorType.None;
+		else selectedMinorType = minorType;
+		selectMinorType(selectedMinorType);
+	}
+
+	public void selectMovement(MovementType movementType) {
+		if (!selectedMovement) {
+			clickMovement();
+			selectedMovementType = movementType;
+		}
+		else if (movementType == selectedMovementType) selectedMovementType = MovementType.None;
+		else selectedMovementType = movementType;
+		selectMovementType(selectedMovementType);
+	}
+
+	public void selectMove() {
+		selectMovement(MovementType.Move);
+		/*
+		if (selectedStandard) {
+			deselectStandard();
+		}
+		if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
+			selectedMovement = true;
+			if (mapGenerator.getCurrentUnit().getMovementTypes()[0] == MovementType.Move) {
+				selectedMovementType = MovementType.Move;
+				selectMovementType(selectedMovementType);
+			}
+			else {
+				selectedMovementType = MovementType.None;
+			}
+		}
+		selectedMinor = false;
+		mapGenerator.resetRanges();*/
+	}
+
+	public void selectStandard(StandardType standardType) {
+		if (!selectedStandard) {
+			clickStandard();
+			selectedStandardType = standardType;
+		}
+		else if (standardType == selectedStandardType) selectedStandardType = StandardType.None;
+		else selectedStandardType = standardType;
+		selectStandardType(selectedStandardType);
+	}
+	//	
+	public void selectAttack() {
+		selectStandard(StandardType.Attack);
+		/*
+		if (selectedMovement) {
+			selectedMovement = false;
+			//	selectedMovementType = MovementType.None;
+			mapGenerator.removePlayerPath();
+		}
+		//	if (selectedStandard == false) {// && selectedStandardType == StandardType.None) {
+		selectedStandard = true;
+		selectedStandardType = StandardType.Attack;	
+		selectStandardType(selectedStandardType);
+		//	}
+		selectedMinor = false;
+		mapGenerator.resetRanges();
+		 */
+	}
+		
+	void OnGUI() {
+			//	Debug.Log("OnGUI");
+			
 		if (first) {
 			first = false;
 			getSelectedButtonStyle();
@@ -342,7 +577,7 @@ public class GameGUI : MonoBehaviour {
 				GUI.Label(new Rect(pos.x - width/2.0f, Screen.height - (pos.y - mapGenerator.spriteSize/2.0f + 10.0f), width, height), content, st);
 				
 			}
-			if (scrollHeight > Screen.height) {
+			if (scrollHeight > Screen.height && mapGenerator.selectedSelectionObject != null) {
 				float mY = Screen.height - Input.mousePosition.y;
 				float dist = 20.0f;
 				float amount = 3.0f;
@@ -364,7 +599,7 @@ public class GameGUI : MonoBehaviour {
 		}
 
 		if (mapGenerator.currentUnit >= 0) {
-			if (GUI.Button(waitButtonAlwaysRect(), "Wait", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+			if (GUI.Button(waitButtonAlwaysRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 				if (selectedMovement) {
 					//		selectedMovementType = MovementType.None;
 					selectedMovement = false;
@@ -375,7 +610,9 @@ public class GameGUI : MonoBehaviour {
 					//		selectedStandardType = StandardType.None;
 					deselectStandard();
 				}
-				selectedMinor = false;
+				if (selectedMinor) {
+					deselectMinor();
+				}
 				if (!mapGenerator.getCurrentUnit().moving && !mapGenerator.getCurrentUnit().attacking)
 					mapGenerator.nextPlayer();
 			}
@@ -387,8 +624,8 @@ public class GameGUI : MonoBehaviour {
 		}
 		bool path = false;
 		if (mapGenerator.selectedUnit == null) {
-			showAttack = false;
-			showMovement = false;
+		//	showAttack = false;
+		//	showMovement = false;
 		}
 		else {
 
@@ -399,82 +636,39 @@ public class GameGUI : MonoBehaviour {
 				//		path = true;
 				GUI.enabled = !p.usedMovement;
 				if (selectedMovement && p.usedMovement) {
-					selectedMovement = false;
-					selectedMovementType = MovementType.None;
-					mapGenerator.resetRanges();
+					deselectMovement();
+			//		selectedMovement = false;
+			//		selectedMovementType = MovementType.None;
+			//		mapGenerator.resetRanges();
 				}
-				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
 					//	Debug.Log("Move Player!");
-					if (selectedStandard) {
-						//		selectedStandardType = StandardType.None;
-						deselectStandard();
-					}
-					if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
-						if (p.getMovementTypes()[0] == MovementType.Move) {
-							selectedMovementType = MovementType.Move;
-							selectMovementType(selectedMovementType);
-						}
-						else {
-							selectedMovementType = MovementType.None;
-						}
-					}
-					selectedMovement = !selectedMovement;//true;
-					selectedMinor = false;
-					mapGenerator.resetRanges();
+					clickMovement();
 
 				}
 				//		}
 				GUI.enabled = !p.usedStandard && !p.isProne();
 				if (selectedStandard && p.usedStandard) {
-					selectedStandard = false;
-					selectedStandardType = StandardType.None;
+					deselectStandard();
+//					selectedStandard = false;
+//					selectedStandardType = StandardType.None;
 				}
 				//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
-					if (selectedMovement) {
-						selectedMovement = false;
-					//	selectedMovementType = MovementType.None;
-						mapGenerator.removePlayerPath();
-					}
-				//	if (selectedStandard == false) {// && selectedStandardType == StandardType.None) {
-						selectedStandardType = StandardType.Attack;	
-						selectStandardType(selectedStandardType);
-				//	}
-					selectedStandard = !selectedStandard;//true;
-					selectedMinor = false;
-					mapGenerator.resetRanges();
+				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+					clickStandard();
 
 				}
-				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
-				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
-				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
-					if (selectedMovement) {
-				//		selectedMovementType = MovementType.None;
-						selectedMovement = false;
-						mapGenerator.resetRanges();
-						mapGenerator.removePlayerPath();
-					}
-					if (selectedStandard) {
-				//		selectedStandardType = StandardType.None;
-						deselectStandard();
-					}
-					selectedMinor = !selectedMinor;//true;
+				GUI.enabled = p.minorsLeft > 0;//!p.usedMinor1 || !p.usedMinor2;
+				if (selectedMinor && p.minorsLeft==0) {
+					if (selectedMinorType == MinorType.Loot) previouslyOpenTab = Tab.I;
+					deselectMinor();//selectedMinor = false;
+				}
+				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && p.minorsLeft>0 ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+					clickMinor();
 				}
 				GUI.enabled = true;
-				if (GUI.Button(waitButtonRect(), "Wait", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
-					if (selectedMovement) {
-				//		selectedMovementType = MovementType.None;
-						selectedMovement = false;
-						mapGenerator.resetRanges();
-						mapGenerator.removePlayerPath();
-					}
-					if (selectedStandard) {
-				//		selectedStandardType = StandardType.None;
-						deselectStandard();
-					}
-					selectedMinor = false;
-					if (!p.moving && !p.attacking)
-						mapGenerator.nextPlayer();
+				if (GUI.Button(waitButtonRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+					clickWait();
 				}
 
 				if (selectedMovement) {
@@ -483,9 +677,7 @@ public class GameGUI : MonoBehaviour {
 						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
 						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
-							if (types[n] == selectedMovementType) selectedMovementType = MovementType.None;
-							else selectedMovementType = types[n];
-							selectMovementType(selectedMovementType);
+							selectMovement(types[n]);
 						}
 					}
 
@@ -504,9 +696,7 @@ public class GameGUI : MonoBehaviour {
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
 						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedStandardType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
-							if (types[n] == selectedStandardType) selectedStandardType = StandardType.None;
-							else selectedStandardType = types[n];
-							selectStandardType(selectedStandardType);
+							selectStandard(types[n]);
 						}
 					}
 
@@ -525,15 +715,40 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 				}
+				else if (selectedMinor) {
+					MinorType[] types = mapGenerator.getCurrentUnit().getMinorTypes();
+					for (int n=0;n<types.Length;n++) {
+						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMinorType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
+							selectMinor(types[n]);
+						}
+					}
+					/*
+					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+							Debug.Log("Confirm: " + StandardType.Throw);
+							if (selectedStandardType == StandardType.Attack) {
+								p.startAttacking();
+							}
+							else if (selectedStandardType == StandardType.Throw) {
+								p.startThrowing();
+							}
+							else if (selectedStandardType == StandardType.Intimidate) {
+								p.startIntimidating();
+							}
+						}
+					}*/
+				}
 
 			}
 			else {
-				
+				/*
 				selectedMovement = false;
 				selectedStandard = false;
 				selectedMinor = false;
 				selectedMovementType = MovementType.None;
-				selectedStandardType = StandardType.None;
+				selectedStandardType = StandardType.None;*/
 //				GUI.SelectionGrid(new Rect(0, 0, 100, 100), -1, new string[]{"Movement"}, 1);
 //				GUI.SelectionGrid(new Rect(0, 100, 100, 100), 0, new string[]{"Attack"}, 1);
 				if (GUI.Button(new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y, notTurnMoveRangeSize.x,notTurnMoveRangeSize.y), "Show Movement", (showMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
@@ -550,14 +765,6 @@ public class GameGUI : MonoBehaviour {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
 			int off = 1;
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Main Menu"))
-			{
-				Application.LoadLevel(0);
-			}
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 + Screen.height/12, Screen.width/12, Screen.height/12), "Quit"))
-			{
-				Application.Quit();
-			}
 		/*	for (int n=-1;n<=1;n++) {
 				for (int m=-1;m<=1;m++) {
 					GUI.Label(new Rect(off*n,off*m,Screen.width, Screen.height), content, (n==0 && m==0 ? st : getBackStyle()));
@@ -574,10 +781,24 @@ public class GameGUI : MonoBehaviour {
 	//	Debug.Log("OnGUIEnd");
 	}
 
+	void deselectMinor() {
+		if (looting) {
+			looting = false;
+			openTab = previouslyOpenTab;
+		}
+		selectedMinor = false;
+	}
+
+	void deselectMovement() {
+		//		selectedMovementType = MovementType.None;
+		selectedMovement = false;
+		mapGenerator.resetRanges();
+		mapGenerator.removePlayerPath();
+	}
+
 	void deselectStandard() {
-		
 		selectedStandard = false;
-		selectedStandardType = StandardType.None;
+//		selectedStandardType = StandardType.None;
 		if (mapGenerator.selectedUnit.attackEnemy) {
 			mapGenerator.selectedUnit.attackEnemy.deselect();
 			mapGenerator.resetAttack();
@@ -585,7 +806,41 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.resetRanges();
 	}
 
+	public void clickTab(Tab tab) {
+		if (looting) {
+			selectedMinorType = MinorType.None;
+			selectMinorType(MinorType.None);
+//			looting = false;
+			previouslyOpenTab = Tab.Cancel;
+
+		}
+		if (openTab==tab) openTab = Tab.None;
+		else openTab = tab;
+	}
+
+	public bool looting = false;
+	public Tab previouslyOpenTab = Tab.None;
+	public void selectMinorType(MinorType t) {
+		mapGenerator.resetCurrentKeysTile();
+		Unit p = mapGenerator.selectedUnit;
+		switch (t) {
+		case MinorType.Loot:
+			looting = true;
+			previouslyOpenTab = openTab;
+			openTab = Tab.I;
+			break;
+		case MinorType.Cancel:
+		default:
+			if (previouslyOpenTab != Tab.Cancel)
+				openTab = previouslyOpenTab;
+			previouslyOpenTab = Tab.Cancel;
+			looting = false;
+			break;
+		}
+	}
+
 	public void selectStandardType(StandardType t) {
+		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case StandardType.Cancel:
@@ -618,6 +873,7 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	public void selectMovementType(MovementType t) {
+		mapGenerator.resetCurrentKeysTile();
 		switch (t) {
 		case MovementType.Cancel:
 			selectedMovementType = MovementType.None;

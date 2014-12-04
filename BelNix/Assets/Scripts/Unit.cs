@@ -5,6 +5,7 @@ using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, None}
+public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 
 public class Unit : MonoBehaviour {
@@ -39,6 +40,8 @@ public class Unit : MonoBehaviour {
 	public bool beingAttacked = false;
 	public bool wasBeingAttacked = false;
 	public int shouldMove = 0;
+	public bool shouldDoAthleticsCheck = false;
+	public bool shouldCancelMovement = false;
 	public bool moving = false;
 	public bool rotating = false;
 	public bool attacking = false;
@@ -49,8 +52,9 @@ public class Unit : MonoBehaviour {
 	Animator anim;
 	public bool usedMovement;
 	public bool usedStandard;
-	public bool usedMinor1;
-	public bool usedMinor2;
+	public int minorsLeft = 2;
+//	public bool usedMinor1;
+//	public bool usedMinor2;
 
 	public bool isCurrent;
 	public bool isSelected;
@@ -134,6 +138,13 @@ public class Unit : MonoBehaviour {
 		return standardTypes.ToArray();
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
+	public MinorType[] getMinorTypes() {
+		return new MinorType[] {MinorType.Loot, MinorType.Cancel};
+	}
+
+	public int numberMinors() {
+		return getMinorTypes().Length;
+	}
 
 	public int numberMovements() {
 		return getMovementTypes().Length;
@@ -148,6 +159,12 @@ public class Unit : MonoBehaviour {
 			if (canGetWithin(n,n)) return n;
 		}
 		return 1;
+	}
+
+	public int getAttackRange() {
+		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		if (w==null) return 0;
+		return w.range;
 	}
 
 	public bool canGetWithin(int dist, int minDist = 1) {
@@ -264,8 +281,9 @@ public class Unit : MonoBehaviour {
 	public void resetVars() {
 		usedMovement = false;
 		usedStandard = false;
-		usedMinor1 = false;
-		usedMinor2 = false;
+//		usedMinor1 = false;
+//		usedMinor2 = false;
+		minorsLeft = 2;
 		currentMoveDist = 0;
 		moveDistLeft = maxMoveDist;
 		usedDecisiveStrike = false;
@@ -355,9 +373,14 @@ public class Unit : MonoBehaviour {
 //			Debug.Log(pos + ": " + dir + "   --  " + dirFrom);
 		return mapGenerator.canPass(dir, (int)pos.x, (int)pos.y, this, dirFrom);//dirFrom);
 	}
-	
-	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None) {
+
+	int passibility(Direction dir, Vector2 pos) {
+		return mapGenerator.passibility(dir, (int)pos.x, (int)pos.y);
+	}
+
+	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None, int minorsUsed = 0) {
 		//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
+		if (minorsUsed > minorsLeft) return curr;
 		if (!first) {
 			//	if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
@@ -368,13 +391,13 @@ public class Unit : MonoBehaviour {
 		if (maxDist <= 0) return curr;
 		ArrayList a = new ArrayList();
 		if (canPass(Direction.Left, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left, minorsUsed + (passibility(Direction.Left, posFrom)>1?1:0)));
 		if (canPass(Direction.Right, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right, minorsUsed + (passibility(Direction.Right, posFrom)>1?1:0)));
 		if (canPass(Direction.Up, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up, minorsUsed + (passibility(Direction.Up, posFrom)>1?1:0)));
 		if (canPass(Direction.Down, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down, minorsUsed + (passibility(Direction.Down, posFrom)>1?1:0)));
 		int dist = maxDist + 10000;
 		int minLength = maxDist + 10000;
 		ArrayList minArray = curr;//new ArrayList();
@@ -408,6 +431,7 @@ public class Unit : MonoBehaviour {
 		closestDist = dis;
 		minLength = currList.Count;
 		//	Debug.Log("Subtractive:   " + currList.Count);
+		int nnn = 1;
 		while (currList.Count >= 1) {// && maxDist < currentMoveDist) {
 			//		Debug.Log("currList: " + currList.Count);
 			Vector2 last1;
@@ -426,7 +450,15 @@ public class Unit : MonoBehaviour {
 				else if (curr.y < last.y) dir = Direction.Up;
 				else if (curr.y > last.y) dir = Direction.Down;
 			}
-			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir);
+			int minorsUsed = 0;
+			for (int n=1;n<currList.Count;n++) {
+				Tile t1 = mapGenerator.tiles[(int)((Vector2)currList[n-1]).x,(int)((Vector2)currList[n-1]).y];
+				Direction dir1 = Tile.directionBetweenTiles((Vector2)currList[n-1],(Vector2)currList[n]);
+				if (passibility(dir1,(Vector2)currList[n-1])>1) minorsUsed++;
+			}
+			Debug.Log(nnn + ":   " + minorsUsed);
+			nnn++;
+			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir, minorsUsed);
 			ArrayList withAdded = new ArrayList();
 			foreach (Vector2 v in currList) {
 				withAdded.Add(v);
@@ -540,7 +572,7 @@ public class Unit : MonoBehaviour {
 					}
 					node = node.prev;
 					d++;
-					if (d>=5) break;
+					if (d>5) break;
 				}
 				for (int n=currentPath.Count-1;n>=1;n--) {
 					Vector2 v = (Vector2)currentPath[n];
@@ -837,7 +869,7 @@ public class Unit : MonoBehaviour {
 	public GUIStyle getComposureTextStyle(int fontSize) {
 		if (composureTextStyle == null) {
 			composureTextStyle = new GUIStyle("Label");
-			composureTextStyle.normal.textColor = new Color(.316f, 0.0f, .316f);
+			composureTextStyle.normal.textColor = Color.green;//new Color(.316f, 0.0f, .316f);
 		}
 		composureTextStyle.fontSize = fontSize;
 		return composureTextStyle;
@@ -857,9 +889,10 @@ public class Unit : MonoBehaviour {
 	public GUIStyle getStackStyle() {
 		if (stackStyle == null) {
 			stackStyle = new GUIStyle("Label");
-			stackStyle.normal.textColor = Color.red;
+			stackStyle.normal.textColor = Color.white;
 			stackStyle.fontSize = 11;
 			stackStyle.alignment = TextAnchor.LowerRight;
+			stackStyle.padding = new RectOffset(0, 0, 0, 0);
 		}
 		return stackStyle;
 	}
@@ -1210,6 +1243,12 @@ public class Unit : MonoBehaviour {
 				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
 				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
+				if (mapGenerator.shiftDown) {
+					if (selectedItem.stackSize()>1) {
+						characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
+						selectedItem = selectedItem.popStack();
+					}
+				}
 				selectedCell = ir.slot;
 				selectedMousePos = mousePos;
 //				selectedItemPos = getInventorySlotPos();
@@ -1218,7 +1257,7 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
+		if (!gui.looting || mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
 		Vector2 scrollOff = groundScrollPosition;
 		float div = 20.0f;
 		float y = div + groundY - scrollOff.y;
@@ -1264,6 +1303,7 @@ public class Unit : MonoBehaviour {
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
 						t.removeItem(selectedItem,1);
+						minorsLeft--;
 					}
 					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
 					selectedItem = null;
@@ -1275,6 +1315,7 @@ public class Unit : MonoBehaviour {
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {
 							t.removeItem(selectedItem,1);
+							minorsLeft--;
 						}
 						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
 						selectedItem = null;
@@ -1284,15 +1325,24 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
-			if (selectedItemWasInSlot!=InventorySlot.None) {
+		if (gui.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
+			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
+				minorsLeft--;
 		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
 			}
 		}
 		else if (selectedItemWasInSlot!=InventorySlot.None) {
-			characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot))) {
+				characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			}
+			else {
+				int slot1 = getLinearIndexFromIndex(getIndexOfSlot(selectedItemWasInSlot));
+				if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
+					characterSheet.characterSheet.inventory.stackItemWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
+				}
+			}
 		}
 		selectedItem = null;
 	}
@@ -1551,7 +1601,7 @@ public class Unit : MonoBehaviour {
 				y += Mathf.Max(new float[]{statSize.y, modSize.y, baseSize.y});
 			}
 			y += 10.0f;
-			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterLoadout.getAC());
+			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterSheet.characterLoadout.getAC());
 			Vector2 armorClassSize = st.CalcSize(armorClass);
 			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClass, st);
 			y += armorClassSize.y + 10.0f;
@@ -1706,27 +1756,28 @@ public class Unit : MonoBehaviour {
 					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
 				}
 			}
-
-			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
-		//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
-			float div = 20.0f;
-			float height = div;
-			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null) continue;
-				height += i.getSize().y*inventoryCellSize + div;
-			}
-			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
-			float y = div + groundY;
-			float mid = groundX + groundWidth/2.0f;
-			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null) continue;
-				Vector2 size = i.getSize();
-				if (i!=selectedItem) {
-					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+			if (gui.looting || true) {
+				List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
+			//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
+				float div = 20.0f;
+				float height = div;
+				foreach (Item i in groundItems) {
+					if (i.inventoryTexture==null) continue;
+					height += i.getSize().y*inventoryCellSize + div;
 				}
-				y += size.y*inventoryCellSize + div;
+				groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
+				float y = div + groundY;
+				float mid = groundX + groundWidth/2.0f;
+				foreach (Item i in groundItems) {
+					if (i.inventoryTexture==null) continue;
+					Vector2 size = i.getSize();
+					if (i!=selectedItem) {
+						GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+					}
+					y += size.y*inventoryCellSize + div;
+				}
+				GUI.EndScrollView();
 			}
-			GUI.EndScrollView();
 			if (selectedItem != null) {
 				Vector2 size = selectedItem.getSize();
 				Vector2 pos = selectedItemPos;
@@ -1745,24 +1796,21 @@ public class Unit : MonoBehaviour {
 
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.M) gui.openTab = Tab.None;
-			else gui.openTab = Tab.M;
+		//	if (gui.openTab == Tab.M) gui.openTab = Tab.None;
+		//	else gui.openTab = Tab.M;
+			gui.clickTab(Tab.M);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.C) gui.openTab = Tab.None;
-			else gui.openTab = Tab.C;
+			gui.clickTab(Tab.C);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.K) gui.openTab = Tab.None;
-			else gui.openTab = Tab.K;
+			gui.clickTab(Tab.K);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*3, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.I) gui.openTab = Tab.None;
-			else gui.openTab = Tab.I;
+			gui.clickTab(Tab.I);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.T) gui.openTab = Tab.None;
-			else gui.openTab = Tab.T;
+			gui.clickTab(Tab.T);
 		}
 		string tt = GUI.tooltip;
 		if (tt != null && tt!="") {
@@ -1982,6 +2030,8 @@ public class Unit : MonoBehaviour {
 			throwing = true;
 			if (mapGenerator.getCurrentUnit()==this)
 				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+	//		if (this == mapGenerator.getCurrentUnit())
+	//			mapGenerator.resetRanges();
 		}
 	}
 
@@ -1995,10 +2045,13 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void startMoving(bool backStepping) {
+	
+		if (currentPath.Count <= 1) return;
+		shouldDoAthleticsCheck = true;
+		shouldCancelMovement = false;
 		if (!backStepping) {
 			moveAnimation(true);
 		}
-		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
 		if (mapGenerator.getCurrentUnit()==this)
 			mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
@@ -2041,6 +2094,8 @@ public class Unit : MonoBehaviour {
 			currentMoveDist--;
 			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
+			mapGenerator.setCurrentUnitTile();
+			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
@@ -2196,7 +2251,33 @@ public class Unit : MonoBehaviour {
 		//	if (wasBeingAttacked) {
 		//		setRotatingPath();
 		//	}
-			if (currentPath.Count >= 2) {
+			if (shouldDoAthleticsCheck) {
+				if (currentPath.Count >= 2) {
+					Vector2 from = (Vector2)currentPath[0];
+					Vector2 to = (Vector2)currentPath[1];
+					Direction dir = Tile.directionBetweenTiles(from,to);
+					Tile t = mapGenerator.tiles[(int)from.x,(int)from.y];
+					int passability = t.passabilityInDirection(dir);
+					if (passability > 1) {
+						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
+						int check = characterSheet.rollForSkill(Skill.Athletics);
+						if (check >= passability) {
+							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
+						}
+						else {
+							gui.log.addMessage(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
+							shouldCancelMovement = true;
+							becomeProne();
+							mapGenerator.resetPlayerPath();
+							mapGenerator.resetRanges();
+							usedMovement = true;
+						}
+						minorsLeft--;
+					}
+				}
+				shouldDoAthleticsCheck = false;
+			}
+			if (currentPath.Count >= 2 && !shouldCancelMovement) {
 				float speed = 2.0f;
 				speed = 4.0f;
 				float time = Time.deltaTime;
@@ -2208,11 +2289,15 @@ public class Unit : MonoBehaviour {
 			else {
 				moveAnimation(false);
 				moving = false;
+				shouldCancelMovement = false;
 				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
 				setRotationToMostInterestingTile();
+				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
+					gui.selectAttack();
+				}
 			}
 		}
 	}
@@ -2257,7 +2342,7 @@ public class Unit : MonoBehaviour {
 
 	void throwAnimation() {
 		attackEnemy.setRotationToCharacter(this);
-		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative());
+		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative(), this);
 		mapGenerator.resetAttack(this);
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
@@ -2284,33 +2369,43 @@ public class Unit : MonoBehaviour {
 
 	bool gettingThrown = false;
 	Vector3 gettingThrownPosition;
-	void getThrown(Direction dir, int distance) {
+	void getThrown(Direction dir, int distance, Unit thrownBy) {
 		Debug.Log("getThrown(" + dir + ", " + distance + ")");
 		int x = (int)position.x;
 		int y = (int)-position.y;
 		Tile t = mapGenerator.tiles[x, y];
+		int dis = 0;
 		for (;distance>0;distance--) {
-			Debug.Log(distance);
 			Tile nextT = t.getTile(dir);
 			if (!nextT.hasCharacter() && t.passabilityInDirection(dir)==1) {//t.canPass(dir, this, dir)) {
 				t = nextT;
 				setXYFromDirection(dir, ref x, ref y);
-				Debug.Log("x: " + x + " y: " + y);
+				dis++;
 			}
 			else break;
 		}
+		bool becameProne = false;
+		Unit alsoProne = null;
 		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || t.getTile(dir).hasCharacter())) {
 		//	affliction = Affliction.Prone;
 			becomeProne();
+			becameProne = true;
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u) {
 					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
 //					u.affliction = Affliction.Prone;
 						u.becomeProne();
+						alsoProne = u;
 					}
 				}
 			}
+		}
+		if (team == 0) {
+			gui.log.addMessage(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
+		}
+		else {
+			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.green);
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
@@ -2394,8 +2489,6 @@ public class Unit : MonoBehaviour {
 			attackAnimation();
 			attackAnimating = true;
 			attacking = false;
-			usedStandard = true;
-			useMovementIfStarted();
 		}
 	}
 
@@ -2419,13 +2512,14 @@ public class Unit : MonoBehaviour {
 	void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		Hit hit = characterSheet.rollHit();
-		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
+		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
 		Hit critHit = characterSheet.rollHit();
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
 		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
+		gui.log.addMessage(characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? " with " + (characterSheet.characterSheet.characterLoadout.rightHand == null ?  (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her " : " his ") + "fist " : characterSheet.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2451,8 +2545,14 @@ public class Unit : MonoBehaviour {
 		damageNumber--;
 	}
 
-	public void killedEnemy() {
+	public string getName() {
+		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
+	}
+
+	public void killedEnemy(Unit enemy) {
 		Debug.Log("Killed Enemy!!");
+		if (this.team==0) gui.log.addMessage(getName() + " killed " + enemy.getName() + "!",Color.green);
+		else gui.log.addMessage(enemy.getName() + " was killed by " + getName() + "!",Color.red);
 		handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();
 	}
@@ -2467,8 +2567,11 @@ public class Unit : MonoBehaviour {
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
 		attackAnimating = false;
-	}
+		usedStandard = true;
+		useMovementIfStarted();
 
+	}
+	
 	public void crushingHitSFX() {
 		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
 	}
@@ -2486,7 +2589,7 @@ public class Unit : MonoBehaviour {
 			bool d = deadOrDyingOrUnconscious();
 			characterSheet.combatScores.loseHealth(damage);
 			if (!d && deadOrDyingOrUnconscious()) {
-				u.killedEnemy();
+				u.killedEnemy(this);
 			}
 		}
 		//	Debug.Log("EndDamage");

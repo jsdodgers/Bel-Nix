@@ -125,12 +125,18 @@ namespace CharacterInfo
 		}
 		public bool itemCanStackWith(Item baseItem, Item additionalItem) {
 //			if (typeof(baseItem)!=typeof(additionalItem)) return false;
+			if (baseItem==null || additionalItem==null) return false;
 			if (baseItem.GetType()!=additionalItem.GetType()) return false;
-			return baseItem.stackSize() < getStackabilityOfItem(baseItem);
+			return baseItem.stackSize() + additionalItem.stackSize() <= getStackabilityOfItem(baseItem);
 		}
 		public bool stackItemWith(Item baseItem, Item additionalItem) {
 			if (!itemCanStackWith(baseItem, additionalItem)) return false;
 			baseItem.addToStack(additionalItem);
+			Item i = additionalItem.popStack();
+			while (i != null) {
+				baseItem.addToStack(i);
+				i = additionalItem.popStack();
+			}
 			return true;
 		}
 		public int stackSizeOfItem(Item i) {

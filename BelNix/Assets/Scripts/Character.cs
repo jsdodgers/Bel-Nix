@@ -43,13 +43,13 @@ public class Character : MonoBehaviour
 	}
 
 	public int rollDamage(bool critical) {
-		return characterLoadout.rightHand.getWeapon().rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
+		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
 	}
 
 	public Hit rollHit() {
 		int rand = Random.Range(1,21);
 		Debug.Log(skillScores);
-		int critChance = characterLoadout.rightHand.getWeapon().criticalChance;
+		int critChance = characterSheet.characterLoadout.rightHand.criticalChance;
 		return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
 	}
 
@@ -116,7 +116,7 @@ public class Character : MonoBehaviour
 		skillScores = new SkillScores(combatScores, characterProgress);
 		
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
-		                                     characterProgress, combatScores, skillScores, this);
+		                                     characterProgress, combatScores, skillScores, this, characterLoadout);
 	}
 
 	public void loadCharacterFromTextFile(string fileName) {
@@ -156,7 +156,7 @@ public class Character : MonoBehaviour
 		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
 		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
 		skillScores = new SkillScores(combatScores, characterProgress);
-		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, this);
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, this, characterLoadout);
 		skillScores.incrementScore(Skill.Athletics,athletics);
 		skillScores.incrementScore(Skill.Melee,melee);
 		skillScores.incrementScore(Skill.Ranged,ranged);
