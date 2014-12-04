@@ -564,7 +564,7 @@ public class Unit : MonoBehaviour {
 					}
 					node = node.prev;
 					d++;
-					if (d>=5) break;
+					if (d>5) break;
 				}
 				for (int n=currentPath.Count-1;n>=1;n--) {
 					Vector2 v = (Vector2)currentPath[n];
