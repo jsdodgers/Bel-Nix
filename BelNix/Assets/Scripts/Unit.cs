@@ -39,6 +39,8 @@ public class Unit : MonoBehaviour {
 	public bool beingAttacked = false;
 	public bool wasBeingAttacked = false;
 	public int shouldMove = 0;
+	public bool shouldDoAthleticsCheck = false;
+	public bool shouldCancelMovement = false;
 	public bool moving = false;
 	public bool rotating = false;
 	public bool attacking = false;
@@ -49,8 +51,9 @@ public class Unit : MonoBehaviour {
 	Animator anim;
 	public bool usedMovement;
 	public bool usedStandard;
-	public bool usedMinor1;
-	public bool usedMinor2;
+	public int minorsLeft = 2;
+//	public bool usedMinor1;
+//	public bool usedMinor2;
 
 	public bool isCurrent;
 	public bool isSelected;
@@ -264,8 +267,9 @@ public class Unit : MonoBehaviour {
 	public void resetVars() {
 		usedMovement = false;
 		usedStandard = false;
-		usedMinor1 = false;
-		usedMinor2 = false;
+//		usedMinor1 = false;
+//		usedMinor2 = false;
+		minorsLeft = 2;
 		currentMoveDist = 0;
 		moveDistLeft = maxMoveDist;
 		usedDecisiveStrike = false;
@@ -355,9 +359,14 @@ public class Unit : MonoBehaviour {
 //			Debug.Log(pos + ": " + dir + "   --  " + dirFrom);
 		return mapGenerator.canPass(dir, (int)pos.x, (int)pos.y, this, dirFrom);//dirFrom);
 	}
-	
-	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None) {
+
+	int passibility(Direction dir, Vector2 pos) {
+		return mapGenerator.passibility(dir, (int)pos.x, (int)pos.y);
+	}
+
+	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None, int minorsUsed = 0) {
 		//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
+		if (minorsUsed > minorsLeft) return curr;
 		if (!first) {
 			//	if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
@@ -368,13 +377,13 @@ public class Unit : MonoBehaviour {
 		if (maxDist <= 0) return curr;
 		ArrayList a = new ArrayList();
 		if (canPass(Direction.Left, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left, minorsUsed + (passibility(Direction.Left, posFrom)>1?1:0)));
 		if (canPass(Direction.Right, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right, minorsUsed + (passibility(Direction.Right, posFrom)>1?1:0)));
 		if (canPass(Direction.Up, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up, minorsUsed + (passibility(Direction.Up, posFrom)>1?1:0)));
 		if (canPass(Direction.Down, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down, minorsUsed + (passibility(Direction.Down, posFrom)>1?1:0)));
 		int dist = maxDist + 10000;
 		int minLength = maxDist + 10000;
 		ArrayList minArray = curr;//new ArrayList();
@@ -408,6 +417,7 @@ public class Unit : MonoBehaviour {
 		closestDist = dis;
 		minLength = currList.Count;
 		//	Debug.Log("Subtractive:   " + currList.Count);
+		int nnn = 1;
 		while (currList.Count >= 1) {// && maxDist < currentMoveDist) {
 			//		Debug.Log("currList: " + currList.Count);
 			Vector2 last1;
@@ -426,7 +436,15 @@ public class Unit : MonoBehaviour {
 				else if (curr.y < last.y) dir = Direction.Up;
 				else if (curr.y > last.y) dir = Direction.Down;
 			}
-			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir);
+			int minorsUsed = 0;
+			for (int n=1;n<currList.Count;n++) {
+				Tile t1 = mapGenerator.tiles[(int)((Vector2)currList[n-1]).x,(int)((Vector2)currList[n-1]).y];
+				Direction dir1 = Tile.directionBetweenTiles((Vector2)currList[n-1],(Vector2)currList[n]);
+				if (passibility(dir1,(Vector2)currList[n-1])>1) minorsUsed++;
+			}
+			Debug.Log(nnn + ":   " + minorsUsed);
+			nnn++;
+			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir, minorsUsed);
 			ArrayList withAdded = new ArrayList();
 			foreach (Vector2 v in currList) {
 				withAdded.Add(v);
@@ -853,6 +871,17 @@ public class Unit : MonoBehaviour {
 		return titleTextStyle;
 	}
 
+	static GUIStyle stackStyle = null;
+	public GUIStyle getStackStyle() {
+		if (stackStyle == null) {
+			stackStyle = new GUIStyle("Label");
+			stackStyle.normal.textColor = Color.red;
+			stackStyle.fontSize = 11;
+			stackStyle.alignment = TextAnchor.LowerRight;
+		}
+		return stackStyle;
+	}
+
 	static GUIStyle selectedButtonStyle;
 	static float styleWidth = 0.0f;
 	GUIStyle getSelectedButtonStyle(float width) {
@@ -1199,6 +1228,12 @@ public class Unit : MonoBehaviour {
 				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
 				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
+				if (mapGenerator.shiftDown) {
+					if (selectedItem.stackSize()>1) {
+						characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
+						selectedItem = selectedItem.popStack();
+					}
+				}
 				selectedCell = ir.slot;
 				selectedMousePos = mousePos;
 //				selectedItemPos = getInventorySlotPos();
@@ -1247,7 +1282,8 @@ public class Unit : MonoBehaviour {
 		foreach (InventorySlot slot in inventorySlots) {
 			Rect r = getInventorySlotRect(slot);
 			if (r.Contains(mousePos)) {
-				Vector2 v = getIndexOfSlot(slot) - selectedCell;
+				Vector2 v2 = getIndexOfSlot(slot);
+				Vector2 v = v2 - selectedCell;
 				Debug.Log(v);
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
@@ -1257,17 +1293,38 @@ public class Unit : MonoBehaviour {
 					selectedItem = null;
 					return;
 				}
+				else {
+					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[characterSheet.characterSheet.inventory.getIndexForSlot(v2)];
+					Item invSlotItem = invSlot.getItem();
+					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
+						if (selectedItemWasInSlot == InventorySlot.None) {
+							t.removeItem(selectedItem,1);
+						}
+						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
+						selectedItem = null;
+						return;
+					}
+				}
 				break;
 			}
 		}
 		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
-			if (selectedItemWasInSlot!=InventorySlot.None) {
+			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
+				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
 		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
 			}
 		}
 		else if (selectedItemWasInSlot!=InventorySlot.None) {
-			characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot))) {
+				characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			}
+			else {
+				int slot1 = getLinearIndexFromIndex(getIndexOfSlot(selectedItemWasInSlot));
+				if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
+					characterSheet.characterSheet.inventory.stackItemWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
+				}
+			}
 		}
 		selectedItem = null;
 	}
@@ -1526,7 +1583,7 @@ public class Unit : MonoBehaviour {
 				y += Mathf.Max(new float[]{statSize.y, modSize.y, baseSize.y});
 			}
 			y += 10.0f;
-			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterLoadout.getAC());
+			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterSheet.characterLoadout.getAC());
 			Vector2 armorClassSize = st.CalcSize(armorClass);
 			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClass, st);
 			y += armorClassSize.y + 10.0f;
@@ -1631,7 +1688,7 @@ public class Unit : MonoBehaviour {
 							pos.x += cell.x - selectedCell.x;
 							pos.y += cell.y - selectedCell.y;
 							if (pos.x == startPos.x && pos.y == startPos.y) continue;
-							Debug.Log(startPos + "   " + pos);
+						//	Debug.Log(startPos + "   " + pos);
 							InventorySlot newSlot = getInventorySlotFromIndex(pos);
 							if (newSlot != InventorySlot.None) {
 								Rect r2 = getInventorySlotRect(newSlot);
@@ -1662,6 +1719,7 @@ public class Unit : MonoBehaviour {
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 			}
+			GUIStyle stackSt = getStackStyle();
 			foreach (InventorySlot slot in inventorySlots) {
 				Vector2 vec = getIndexOfSlot(slot);
 				int ind = getLinearIndexFromIndex(vec);
@@ -1671,6 +1729,14 @@ public class Unit : MonoBehaviour {
 				Vector2 origin = getInventorySlotPos(slot);
 				Vector2 size = i.getSize();
 				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+				if (i.stackSize()>1) {
+					Vector2 bottomRight = i.getBottomRightCell();
+					bottomRight.x *= inventoryCellSize - inventoryLineThickness;
+					bottomRight.y *= inventoryCellSize - inventoryLineThickness;
+					Vector2 stackPos = origin + bottomRight;
+					GUIContent content = new GUIContent("" + i.stackSize());
+					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
+				}
 			}
 
 			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
@@ -1698,7 +1764,15 @@ public class Unit : MonoBehaviour {
 				Vector2 pos = selectedItemPos;
 				pos.y += (mousePos.y - selectedMousePos.y);
 				pos.x += (mousePos.x - selectedMousePos.x);
-				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture); 
+				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
+				if (selectedItem.stackSize()>1) {
+					Vector2 bottomRight = selectedItem.getBottomRightCell();
+					bottomRight.x *= inventoryCellSize - inventoryLineThickness;
+					bottomRight.y *= inventoryCellSize - inventoryLineThickness;
+					Vector2 stackPos = pos + bottomRight;
+					GUIContent content = new GUIContent("" + selectedItem.stackSize());
+					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
+				}
 			}
 
 		}
@@ -1953,10 +2027,13 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void startMoving(bool backStepping) {
+	
+		if (currentPath.Count <= 1) return;
+		shouldDoAthleticsCheck = true;
+		shouldCancelMovement = false;
 		if (!backStepping) {
 			moveAnimation(true);
 		}
-		if (currentPath.Count <= 1) return;
 		//					p.rotating = true;
 		if (mapGenerator.getCurrentUnit()==this)
 			mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
@@ -1999,6 +2076,7 @@ public class Unit : MonoBehaviour {
 			currentMoveDist--;
 			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
+			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
@@ -2154,7 +2232,33 @@ public class Unit : MonoBehaviour {
 		//	if (wasBeingAttacked) {
 		//		setRotatingPath();
 		//	}
-			if (currentPath.Count >= 2) {
+			if (shouldDoAthleticsCheck) {
+				if (currentPath.Count >= 2) {
+					Vector2 from = (Vector2)currentPath[0];
+					Vector2 to = (Vector2)currentPath[1];
+					Direction dir = Tile.directionBetweenTiles(from,to);
+					Tile t = mapGenerator.tiles[(int)from.x,(int)from.y];
+					int passability = t.passabilityInDirection(dir);
+					if (passability > 1) {
+						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
+						int check = characterSheet.rollForSkill(Skill.Athletics);
+						if (check >= passability) {
+							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
+						}
+						else {
+							gui.log.addMessage(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
+							shouldCancelMovement = true;
+							becomeProne();
+							mapGenerator.resetPlayerPath();
+							mapGenerator.resetRanges();
+							usedMovement = true;
+						}
+						minorsLeft--;
+					}
+				}
+				shouldDoAthleticsCheck = false;
+			}
+			if (currentPath.Count >= 2 && !shouldCancelMovement) {
 				float speed = 2.0f;
 				speed = 4.0f;
 				float time = Time.deltaTime;
@@ -2166,11 +2270,15 @@ public class Unit : MonoBehaviour {
 			else {
 				moveAnimation(false);
 				moving = false;
+				shouldCancelMovement = false;
 				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
 				setRotationToMostInterestingTile();
+				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
+					gui.selectAttack();
+				}
 			}
 		}
 	}
@@ -2377,13 +2485,14 @@ public class Unit : MonoBehaviour {
 	void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		Hit hit = characterSheet.rollHit();
-		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
+		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
 		Hit critHit = characterSheet.rollHit();
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
 		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
+		gui.log.addMessage(characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? " with " + (characterSheet.characterSheet.characterLoadout.rightHand == null ?  (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her " : " his ") + "fist " : characterSheet.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2409,8 +2518,14 @@ public class Unit : MonoBehaviour {
 		damageNumber--;
 	}
 
-	public void killedEnemy() {
+	public string getName() {
+		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
+	}
+
+	public void killedEnemy(Unit enemy) {
 		Debug.Log("Killed Enemy!!");
+		if (this.team==0) gui.log.addMessage(getName() + " killed " + enemy.getName() + "!",Color.green);
+		else gui.log.addMessage(enemy.getName() + " was killed by " + getName() + "!",Color.red);
 		handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();
 	}
@@ -2444,7 +2559,7 @@ public class Unit : MonoBehaviour {
 			bool d = deadOrDyingOrUnconscious();
 			characterSheet.combatScores.loseHealth(damage);
 			if (!d && deadOrDyingOrUnconscious()) {
-				u.killedEnemy();
+				u.killedEnemy(this);
 			}
 		}
 		//	Debug.Log("EndDamage");

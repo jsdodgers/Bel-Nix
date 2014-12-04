@@ -7,6 +7,7 @@ public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
 
 	public MapGenerator mapGenerator;
+	public Log log;
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
 	GUIStyle selectedButtonStyle = null;
@@ -140,6 +141,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+		if (log.mouseIsOnGUI()) return true;
 		if (mapGenerator) {
 			if (mapGenerator.isInCharacterPlacement()) {
 				if (beginButtonRect().Contains(mousePos)) return true;
@@ -298,9 +300,42 @@ public class GameGUI : MonoBehaviour {
 		return backStyle;
 	}
 
+	public void selectMovement() {
+		if (selectedStandard) {
+			deselectStandard();
+		}
+		if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
+			if (mapGenerator.getCurrentUnit().getMovementTypes()[0] == MovementType.Move) {
+				selectedMovementType = MovementType.Move;
+				selectMovementType(selectedMovementType);
+			}
+			else {
+				selectedMovementType = MovementType.None;
+			}
+		}
+		selectedMovement = true;
+		selectedMinor = false;
+		mapGenerator.resetRanges();
+	}
+	//	
+	public void selectAttack() {
+		if (selectedMovement) {
+			selectedMovement = false;
+			//	selectedMovementType = MovementType.None;
+			mapGenerator.removePlayerPath();
+		}
+		//	if (selectedStandard == false) {// && selectedStandardType == StandardType.None) {
+		selectedStandardType = StandardType.Attack;	
+		selectStandardType(selectedStandardType);
+		//	}
+		selectedStandard = true;
+		selectedMinor = false;
+		mapGenerator.resetRanges();
+	}
+		
 	void OnGUI() {
-	//	Debug.Log("OnGUI");
-
+			//	Debug.Log("OnGUI");
+			
 		if (first) {
 			first = false;
 			getSelectedButtonStyle();
@@ -387,8 +422,8 @@ public class GameGUI : MonoBehaviour {
 		}
 		bool path = false;
 		if (mapGenerator.selectedUnit == null) {
-			showAttack = false;
-			showMovement = false;
+		//	showAttack = false;
+		//	showMovement = false;
 		}
 		else {
 
@@ -418,6 +453,10 @@ public class GameGUI : MonoBehaviour {
 							selectedMovementType = MovementType.None;
 						}
 					}
+					else {
+						selectedMovementType = MovementType.None;
+						selectMovementType(selectedMovementType);
+					}
 					selectedMovement = !selectedMovement;//true;
 					selectedMinor = false;
 					mapGenerator.resetRanges();
@@ -445,9 +484,9 @@ public class GameGUI : MonoBehaviour {
 					mapGenerator.resetRanges();
 
 				}
-				GUI.enabled = !p.usedMinor1 || !p.usedMinor2;
-				if (selectedMinor && (p.usedMinor1 && p.usedMinor2)) selectedMinor = false;
-				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && !(p.usedMinor1 && p.usedMinor2) ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+				GUI.enabled = p.minorsLeft > 0;//!p.usedMinor1 || !p.usedMinor2;
+				if (selectedMinor && p.minorsLeft==0) selectedMinor = false;
+				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && p.minorsLeft>0 ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 					if (selectedMovement) {
 				//		selectedMovementType = MovementType.None;
 						selectedMovement = false;
@@ -528,12 +567,12 @@ public class GameGUI : MonoBehaviour {
 
 			}
 			else {
-				
+				/*
 				selectedMovement = false;
 				selectedStandard = false;
 				selectedMinor = false;
 				selectedMovementType = MovementType.None;
-				selectedStandardType = StandardType.None;
+				selectedStandardType = StandardType.None;*/
 //				GUI.SelectionGrid(new Rect(0, 0, 100, 100), -1, new string[]{"Movement"}, 1);
 //				GUI.SelectionGrid(new Rect(0, 100, 100, 100), 0, new string[]{"Attack"}, 1);
 				if (GUI.Button(new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y, notTurnMoveRangeSize.x,notTurnMoveRangeSize.y), "Show Movement", (showMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
@@ -550,14 +589,6 @@ public class GameGUI : MonoBehaviour {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
 			int off = 1;
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Main Menu"))
-			{
-				Application.LoadLevel(0);
-			}
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 + Screen.height/12, Screen.width/12, Screen.height/12), "Quit"))
-			{
-				Application.Quit();
-			}
 		/*	for (int n=-1;n<=1;n++) {
 				for (int m=-1;m<=1;m++) {
 					GUI.Label(new Rect(off*n,off*m,Screen.width, Screen.height), content, (n==0 && m==0 ? st : getBackStyle()));

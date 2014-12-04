@@ -101,9 +101,9 @@ namespace CharacterInfo
 		public InventoryItemSlot itemSlot;
 		public List<InventoryItemSlot> otherSlots;
 		public InventoryItemSlot(int index) 				{ this.index = index; otherSlots = new List<InventoryItemSlot>(); }
-		public bool hasItem() 							{ return item!=null || itemSlot != null; }
-		public Item getItem() 							{ return itemSlot.item; }
-		public void removeItem()						{ item = null; itemSlot = null; otherSlots = new List<InventoryItemSlot>(); }
+		public bool hasItem() 								{ return item!=null || itemSlot != null; }
+		public Item getItem() 								{ if (itemSlot==null) return null; return itemSlot.item; }
+		public void removeItem()							{ item = null; itemSlot = null; otherSlots = new List<InventoryItemSlot>(); }
 		public void addOtherSlot(InventoryItemSlot slot) 	{ otherSlots.Add(slot); }
 	}
 
@@ -117,6 +117,33 @@ namespace CharacterInfo
 			for (int n=0;n<16;n++) {
 				inventory[n] = new InventoryItemSlot(n);
 			}
+		}
+
+		public int getStackabilityOfItem(Item i) {
+			if (character==null) return 1;
+			return character.stackabilityOfItem(i);
+		}
+		public bool itemCanStackWith(Item baseItem, Item additionalItem) {
+//			if (typeof(baseItem)!=typeof(additionalItem)) return false;
+			if (baseItem==null || additionalItem==null) return false;
+			if (baseItem.GetType()!=additionalItem.GetType()) return false;
+			return baseItem.stackSize() + additionalItem.stackSize() <= getStackabilityOfItem(baseItem);
+		}
+		public bool stackItemWith(Item baseItem, Item additionalItem) {
+			if (!itemCanStackWith(baseItem, additionalItem)) return false;
+			baseItem.addToStack(additionalItem);
+			Item i = additionalItem.popStack();
+			while (i != null) {
+				baseItem.addToStack(i);
+				i = additionalItem.popStack();
+			}
+			return true;
+		}
+		public int stackSizeOfItem(Item i) {
+			return i.stackSize();
+		}
+		public Item removeItemFromStackForItem(Item i) {
+			return i.popStack();
 		}
 		public int getIndexForSlot(Vector2 v) {
 			if (v.x < 0 || v.y < 0 || v.x > 3 || v.y > 3) return -1;

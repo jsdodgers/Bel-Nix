@@ -74,7 +74,7 @@ public class MapGenerator : MonoBehaviour {
 	bool mouseDownRight;
 	bool mouseUp;
 	
-	bool shiftDown;
+	public bool shiftDown;
 	bool altDown;
 	bool controlDown;
 	bool spaceDown;
@@ -474,6 +474,13 @@ public class MapGenerator : MonoBehaviour {
 			selectedUnit.setCurrent();
 			moveCameraToSelected();
 			lastPlayerPath = selectedUnit.currentPath;
+			float closestEnemy = selectedUnit.closestEnemyDist();
+			if (closestEnemy > selectedUnit.characterSheet.characterLoadout.rightHand.getWeapon().range) {
+				gui.selectMovement();
+			}
+			else {
+				gui.selectAttack();
+			}
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -637,6 +644,10 @@ public class MapGenerator : MonoBehaviour {
 
 	public bool canPass(Direction dir, int x, int y, Unit cs, Direction dirFrom) {
 		return tiles[x,y].canPass(dir, cs, dirFrom);
+	}
+
+	public int passibility(Direction dir, int x, int y) {
+		return tiles[x,y].passabilityInDirection(dir);
 	}
 
 	public bool canAttack(Direction dir, int x, int y, Unit cs) {
@@ -833,7 +844,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void setAroundCharacter(Unit cs, int radius, int view, int attackRange) {
-		setCharacterCanStand((int)cs.position.x, (int)-cs.position.y, radius, 0, attackRange, cs);
+		setCharacterCanStand((int)cs.position.x, (int)-cs.position.y, radius, 0, attackRange, cs, 0);
 		int type = 4;
 		/*
 		for (int x = (int)Mathf.Max(cs.position.x - view,0); x < (int)Mathf.Min(cs.position.x + 1 + view, actualWidth); x++) {
@@ -846,24 +857,28 @@ public class MapGenerator : MonoBehaviour {
 		}*/
 	}
 
-	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs, Direction dirFrom = Direction.None) {
-		if (currRadius == 0) //Debug.Log(attackRange);
+	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs, int minorsUsed = 0, Direction dirFrom = Direction.None) {
+	//	if (currRadius == 0) //Debug.Log(attackRange);
 		if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
+		if (minorsUsed > cs.minorsLeft) return;
 		Tile t = tiles[x,y];
-		if (t.canStandCurr && t.minDistCurr <= currRadius) return;
-		t.canStandCurr = true;
-		t.minDistCurr = currRadius;
+		if (t.canStandCurr && t.minDistCurr <= currRadius && t.minDistUsedMinors <= minorsUsed) return;
+		if (t.minDistCurr > currRadius) {
+			t.canStandCurr = true;
+			t.minDistCurr = currRadius;
+			t.minDistUsedMinors = minorsUsed;
+		}
 		if ((selectedUnits.Count != 0 || selectedUnit != getCurrentUnit()) && gui.showAttack)
 			setCharacterCanAttack(x, y, attackRange, 0, cs);
 		if (radiusLeft == 0) return;
 		if (canPass(Direction.Left, x, y, cs, dirFrom))
-			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Left);
+			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Left) > 1 ? 1 : 0), Direction.Left);
 		if (canPass(Direction.Right, x, y, cs, dirFrom))
-			setCharacterCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Right);
+			setCharacterCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Right) > 1 ? 1 : 0), Direction.Right);
 		if (canPass(Direction.Up, x, y, cs, dirFrom))
-			setCharacterCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Up);
+			setCharacterCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Up) > 1 ? 1 : 0), Direction.Up);
 		if (canPass(Direction.Down, x, y, cs, dirFrom))
-			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs, Direction.Down);
+			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Down) > 1 ? 1 : 0), Direction.Down);
 	}
 
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs) {
@@ -1144,7 +1159,13 @@ public class MapGenerator : MonoBehaviour {
 	public GameObject selectedSelectionObject = null;
 	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
-		if ((mouseDown && !leftClickIsMakingSelection()) && !isOnGUI && !rightDraggin) {
+		Tile t2 = null;
+		if (currentSprite != null) {
+			GameObject go2 = currentSprite.gameObject;
+			Transform transform2 = go2.transform;
+			t2 = tiles[(int)transform2.localPosition.x,(int)-transform2.localPosition.y];
+		}
+		if ((mouseDown && (!leftClickIsMakingSelection() || t2==null || (!t2.canStandCurr && !t2.canAttackCurr))) && !isOnGUI && !rightDraggin) {
 			if (!shiftDown) {
 				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
@@ -1157,8 +1178,15 @@ public class MapGenerator : MonoBehaviour {
 //			setTargetObjectPosition();
 			}
 			else {
+				bool res = false;
+				if (selectedUnit == getCurrentUnit() && selectedUnits.Count==0) {
+					res = true;
+				}
 				Unit u = hoveredCharacter;
 				selectUnit(u, true);
+				if (res) {
+					resetRanges();
+				}
 			}
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {

@@ -27,6 +27,7 @@ public class Tile {
 	int activation;
 	public int minDistCurr;
 	public int minAttackCurr;
+	public int minDistUsedMinors;
 	public bool canAttackCurr;
 	public bool canStandCurr;
 	public bool canTurn;
@@ -121,11 +122,20 @@ public class Tile {
 		resetStandability();
 	}
 
+	public static Direction directionBetweenTiles(Vector2 fromTile, Vector2 toTile) {
+		if (fromTile.x < toTile.x) return Direction.Right;
+		if (fromTile.x > toTile.x) return Direction.Left;
+		if (fromTile.y > toTile.y) return Direction.Up;
+		if (fromTile.y < toTile.y) return Direction.Down;
+		return Direction.None;
+	}
+
 	public void resetStandability() {
 		canAttackCurr = false;
 		canStandCurr = false;
 		minDistCurr = int.MaxValue;
 		minAttackCurr = int.MaxValue;
+		minDistUsedMinors = 0;
 	}
 	
 
