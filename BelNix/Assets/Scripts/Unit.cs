@@ -39,6 +39,8 @@ public class Unit : MonoBehaviour {
 	public bool beingAttacked = false;
 	public bool wasBeingAttacked = false;
 	public int shouldMove = 0;
+	public bool shouldDoAthleticsCheck = false;
+	public bool shouldCancelMovement = false;
 	public bool moving = false;
 	public bool rotating = false;
 	public bool attacking = false;
@@ -2027,6 +2029,8 @@ public class Unit : MonoBehaviour {
 	public void startMoving(bool backStepping) {
 	
 		if (currentPath.Count <= 1) return;
+		shouldDoAthleticsCheck = true;
+		shouldCancelMovement = false;
 		if (!backStepping) {
 			moveAnimation(true);
 		}
@@ -2072,6 +2076,7 @@ public class Unit : MonoBehaviour {
 			currentMoveDist--;
 			moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
+			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
@@ -2227,7 +2232,33 @@ public class Unit : MonoBehaviour {
 		//	if (wasBeingAttacked) {
 		//		setRotatingPath();
 		//	}
-			if (currentPath.Count >= 2) {
+			if (shouldDoAthleticsCheck) {
+				if (currentPath.Count >= 2) {
+					Vector2 from = (Vector2)currentPath[0];
+					Vector2 to = (Vector2)currentPath[1];
+					Direction dir = Tile.directionBetweenTiles(from,to);
+					Tile t = mapGenerator.tiles[(int)from.x,(int)from.y];
+					int passability = t.passabilityInDirection(dir);
+					if (passability > 1) {
+						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
+						int check = characterSheet.rollForSkill(Skill.Athletics);
+						if (check >= passability) {
+							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
+						}
+						else {
+							gui.log.addMessage(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
+							shouldCancelMovement = true;
+							becomeProne();
+							mapGenerator.resetPlayerPath();
+							mapGenerator.resetRanges();
+							usedMovement = true;
+						}
+						minorsLeft--;
+					}
+				}
+				shouldDoAthleticsCheck = false;
+			}
+			if (currentPath.Count >= 2 && !shouldCancelMovement) {
 				float speed = 2.0f;
 				speed = 4.0f;
 				float time = Time.deltaTime;
@@ -2239,6 +2270,7 @@ public class Unit : MonoBehaviour {
 			else {
 				moveAnimation(false);
 				moving = false;
+				shouldCancelMovement = false;
 				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
