@@ -116,6 +116,9 @@ public class AStarEnemyMap : AStarMap {
 		if (pass > 1) {
 			straight += 1 + (pass-1)/5;
 		}
+		if (t.hasAlly(unit)) {
+			straight++;
+		}
 		return straight;
 	}
 }
