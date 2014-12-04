@@ -1020,17 +1020,16 @@ public class MapGenerator : MonoBehaviour {
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
 		if (Input.GetKeyDown(KeyCode.M)) {
-			gui.openTab = (gui.openTab==Tab.M ? Tab.None : Tab.M);
+			gui.clickTab(Tab.M);
 		}
 		if (Input.GetKeyDown(KeyCode.C)) {
-			Debug.Log("KeyCode.C");
-			gui.openTab = (gui.openTab==Tab.C ? Tab.None : Tab.C);
+			gui.clickTab(Tab.C);
 		}
 		if (Input.GetKeyDown(KeyCode.K)) {
-			gui.openTab = (gui.openTab==Tab.K ? Tab.None : Tab.K);
+			gui.clickTab(Tab.K);
 		}
 		if (Input.GetKeyDown(KeyCode.I)) {
-			gui.openTab = (gui.openTab==Tab.I ? Tab.None : Tab.I);
+			gui.clickTab(Tab.I);
 		}
 		if (Input.GetKeyDown(KeyCode.R)) {
 			gui.clickStandard();
@@ -1091,11 +1090,17 @@ public class MapGenerator : MonoBehaviour {
 				else if (gui.selectedMinor) {
 					gui.clickMinor();
 				}
+				else if (selectedUnit == null) {
+					selectUnit(getCurrentUnit(),false);
+				}
 				else {
 					deselectAllUnits();
 				}
 			}
-			gui.openTab = Tab.None;
+			else if (gui.selectedMinor && gui.selectedMinorType==MinorType.Loot) {
+				gui.selectMinor(MinorType.Loot);
+			}
+			else gui.openTab = Tab.None;
 		}
 		if (leftClickIsMakingSelection() && !shiftDown) {
 			if (Input.GetKeyDown(KeyCode.W)) {

@@ -5,6 +5,7 @@ using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, None}
+public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 
 public class Unit : MonoBehaviour {
@@ -136,6 +137,13 @@ public class Unit : MonoBehaviour {
 		standardTypes.Add (StandardType.Cancel);
 		return standardTypes.ToArray();
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
+	}
+	public MinorType[] getMinorTypes() {
+		return new MinorType[] {MinorType.Loot, MinorType.Cancel};
+	}
+
+	public int numberMinors() {
+		return getMinorTypes().Length;
 	}
 
 	public int numberMovements() {
@@ -861,7 +869,7 @@ public class Unit : MonoBehaviour {
 	public GUIStyle getComposureTextStyle(int fontSize) {
 		if (composureTextStyle == null) {
 			composureTextStyle = new GUIStyle("Label");
-			composureTextStyle.normal.textColor = new Color(.316f, 0.0f, .316f);
+			composureTextStyle.normal.textColor = Color.green;//new Color(.316f, 0.0f, .316f);
 		}
 		composureTextStyle.fontSize = fontSize;
 		return composureTextStyle;
@@ -881,9 +889,10 @@ public class Unit : MonoBehaviour {
 	public GUIStyle getStackStyle() {
 		if (stackStyle == null) {
 			stackStyle = new GUIStyle("Label");
-			stackStyle.normal.textColor = Color.red;
+			stackStyle.normal.textColor = Color.white;
 			stackStyle.fontSize = 11;
 			stackStyle.alignment = TextAnchor.LowerRight;
+			stackStyle.padding = new RectOffset(0, 0, 0, 0);
 		}
 		return stackStyle;
 	}
@@ -1248,7 +1257,7 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
+		if (!gui.looting || mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
 		Vector2 scrollOff = groundScrollPosition;
 		float div = 20.0f;
 		float y = div + groundY - scrollOff.y;
@@ -1294,6 +1303,7 @@ public class Unit : MonoBehaviour {
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
 						t.removeItem(selectedItem,1);
+						minorsLeft--;
 					}
 					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
 					selectedItem = null;
@@ -1305,6 +1315,7 @@ public class Unit : MonoBehaviour {
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {
 							t.removeItem(selectedItem,1);
+							minorsLeft--;
 						}
 						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
 						selectedItem = null;
@@ -1314,10 +1325,11 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (!(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
+		if (gui.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
 			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
+				minorsLeft--;
 		//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
 			}
 		}
@@ -1744,27 +1756,28 @@ public class Unit : MonoBehaviour {
 					GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
 				}
 			}
-
-			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
-		//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
-			float div = 20.0f;
-			float height = div;
-			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null) continue;
-				height += i.getSize().y*inventoryCellSize + div;
-			}
-			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
-			float y = div + groundY;
-			float mid = groundX + groundWidth/2.0f;
-			foreach (Item i in groundItems) {
-				if (i.inventoryTexture==null) continue;
-				Vector2 size = i.getSize();
-				if (i!=selectedItem) {
-					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+			if (gui.looting || true) {
+				List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
+			//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
+				float div = 20.0f;
+				float height = div;
+				foreach (Item i in groundItems) {
+					if (i.inventoryTexture==null) continue;
+					height += i.getSize().y*inventoryCellSize + div;
 				}
-				y += size.y*inventoryCellSize + div;
+				groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
+				float y = div + groundY;
+				float mid = groundX + groundWidth/2.0f;
+				foreach (Item i in groundItems) {
+					if (i.inventoryTexture==null) continue;
+					Vector2 size = i.getSize();
+					if (i!=selectedItem) {
+						GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+					}
+					y += size.y*inventoryCellSize + div;
+				}
+				GUI.EndScrollView();
 			}
-			GUI.EndScrollView();
 			if (selectedItem != null) {
 				Vector2 size = selectedItem.getSize();
 				Vector2 pos = selectedItemPos;
@@ -1783,24 +1796,21 @@ public class Unit : MonoBehaviour {
 
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.M) gui.openTab = Tab.None;
-			else gui.openTab = Tab.M;
+		//	if (gui.openTab == Tab.M) gui.openTab = Tab.None;
+		//	else gui.openTab = Tab.M;
+			gui.clickTab(Tab.M);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.C) gui.openTab = Tab.None;
-			else gui.openTab = Tab.C;
+			gui.clickTab(Tab.C);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.K) gui.openTab = Tab.None;
-			else gui.openTab = Tab.K;
+			gui.clickTab(Tab.K);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*3, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.I) gui.openTab = Tab.None;
-			else gui.openTab = Tab.I;
+			gui.clickTab(Tab.I);
 		}
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			if (gui.openTab == Tab.T) gui.openTab = Tab.None;
-			else gui.openTab = Tab.T;
+			gui.clickTab(Tab.T);
 		}
 		string tt = GUI.tooltip;
 		if (tt != null && tt!="") {
