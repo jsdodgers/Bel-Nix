@@ -381,6 +381,19 @@ public class GameGUI : MonoBehaviour {
 		selectedMinor = !selectedMinor;//true;
 	}
 
+	public void selectTypeAt(int index) {
+		if (selectedStandard) {
+			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
+			if (index >= standards.Length-1) return;
+			selectStandard(standards[index]);
+		}
+		else if (selectedMovement) {
+			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
+			if (index >= movements.Length-1) return;
+			selectMovement(movements[index]);
+		}
+	}
+
 	public void selectNextOfType() {
 		if (selectedStandard) {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();

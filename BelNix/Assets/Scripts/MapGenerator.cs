@@ -1045,6 +1045,39 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Q)) {
 			gui.clickWait();
 		}
+		if (Input.GetKeyDown(KeyCode.B)) {
+			gui.selectMovement(MovementType.BackStep);
+		}
+		if (Input.GetKeyDown(KeyCode.V)) {
+			gui.selectMovement(MovementType.Move);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha1)) {
+			gui.selectTypeAt(0);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha2)) {
+			gui.selectTypeAt(1);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha3)) {
+			gui.selectTypeAt(2);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha4)) {
+			gui.selectTypeAt(3);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha5)) {
+			gui.selectTypeAt(4);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha6)) {
+			gui.selectTypeAt(5);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha7)) {
+			gui.selectTypeAt(6);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha8)) {
+			gui.selectTypeAt(7);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha9)) {
+			gui.selectTypeAt(8);
+		}
 		if (Input.GetKeyDown(KeyCode.Escape) && !normalDraggin && !shiftDraggin) {
 			if (gui.openTab == Tab.None) {
 				if (gui.selectedStandard) {
