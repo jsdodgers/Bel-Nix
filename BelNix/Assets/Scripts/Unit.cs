@@ -1581,7 +1581,7 @@ public class Unit : MonoBehaviour {
 				y += Mathf.Max(new float[]{statSize.y, modSize.y, baseSize.y});
 			}
 			y += 10.0f;
-			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterLoadout.getAC());
+			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterSheet.characterLoadout.getAC());
 			Vector2 armorClassSize = st.CalcSize(armorClass);
 			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClass, st);
 			y += armorClassSize.y + 10.0f;
@@ -2453,13 +2453,14 @@ public class Unit : MonoBehaviour {
 	void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		Hit hit = characterSheet.rollHit();
-		int enemyAC = attackEnemy.GetComponent<CharacterLoadout>().getAC();
+		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
 		Hit critHit = characterSheet.rollHit();
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
 		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
+		gui.log.addMessage(characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? " with " + (characterSheet.characterSheet.characterLoadout.rightHand == null ?  (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her " : " his ") + "fist " : characterSheet.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2485,8 +2486,14 @@ public class Unit : MonoBehaviour {
 		damageNumber--;
 	}
 
-	public void killedEnemy() {
+	public string getName() {
+		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
+	}
+
+	public void killedEnemy(Unit enemy) {
 		Debug.Log("Killed Enemy!!");
+		if (this.team==0) gui.log.addMessage(getName() + " killed " + enemy.getName() + "!",Color.green);
+		else gui.log.addMessage(enemy.getName() + " was killed by " + getName() + "!",Color.red);
 		handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();
 	}
@@ -2520,7 +2527,7 @@ public class Unit : MonoBehaviour {
 			bool d = deadOrDyingOrUnconscious();
 			characterSheet.combatScores.loseHealth(damage);
 			if (!d && deadOrDyingOrUnconscious()) {
-				u.killedEnemy();
+				u.killedEnemy(this);
 			}
 		}
 		//	Debug.Log("EndDamage");

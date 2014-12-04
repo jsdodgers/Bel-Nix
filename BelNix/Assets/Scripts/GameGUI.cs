@@ -7,6 +7,7 @@ public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
 
 	public MapGenerator mapGenerator;
+	public Log log;
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
 	GUIStyle selectedButtonStyle = null;
@@ -140,6 +141,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+		if (log.mouseIsOnGUI()) return true;
 		if (mapGenerator) {
 			if (mapGenerator.isInCharacterPlacement()) {
 				if (beginButtonRect().Contains(mousePos)) return true;

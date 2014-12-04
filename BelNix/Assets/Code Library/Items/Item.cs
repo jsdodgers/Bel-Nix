@@ -5,6 +5,17 @@ using System.Collections.Generic;
 public enum ItemType {Weapon, Armor, Useable, Ammunition, Mechanical, Misc}
 
 
+public class EditorItem : MonoBehaviour {
+	public string itemName;
+	public ItemType itemType;
+	public int gold, silver, copper;
+	public bool isKeyItem;
+	public Texture2D inventoryTexture;
+	public Item getItem() {
+		return new Item(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture);
+	}
+}
+
 public class Item {
 	
 	public string itemName;
@@ -15,6 +26,15 @@ public class Item {
 	public List<Item> stack;
 	public virtual Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0)};
+	}
+	public Item(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture) : this() {
+		this.itemName = itemName;
+		this.itemType = itemType;
+		this.gold = gold;
+		this.silver = silver;
+		this.copper = copper;
+		this.isKeyItem = isKeyItem;
+		this.inventoryTexture = inventoryTexture;
 	}
 	public Vector2 getSize() {
 		int maxWidth = 1;
