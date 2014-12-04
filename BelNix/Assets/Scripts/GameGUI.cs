@@ -554,7 +554,7 @@ public class GameGUI : MonoBehaviour {
 		}
 
 		if (mapGenerator.currentUnit >= 0) {
-			if (GUI.Button(waitButtonAlwaysRect(), "Wait", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+			if (GUI.Button(waitButtonAlwaysRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 				if (selectedMovement) {
 					//		selectedMovementType = MovementType.None;
 					selectedMovement = false;
@@ -617,7 +617,7 @@ public class GameGUI : MonoBehaviour {
 					clickMinor();
 				}
 				GUI.enabled = true;
-				if (GUI.Button(waitButtonRect(), "Wait", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+				if (GUI.Button(waitButtonRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 					clickWait();
 				}
 
