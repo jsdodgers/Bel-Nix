@@ -2489,8 +2489,6 @@ public class Unit : MonoBehaviour {
 			attackAnimation();
 			attackAnimating = true;
 			attacking = false;
-			usedStandard = true;
-			useMovementIfStarted();
 		}
 	}
 
@@ -2569,8 +2567,11 @@ public class Unit : MonoBehaviour {
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
 		attackAnimating = false;
-	}
+		usedStandard = true;
+		useMovementIfStarted();
 
+	}
+	
 	public void crushingHitSFX() {
 		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
 	}
