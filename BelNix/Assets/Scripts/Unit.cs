@@ -2020,6 +2020,8 @@ public class Unit : MonoBehaviour {
 			throwing = true;
 			if (mapGenerator.getCurrentUnit()==this)
 				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+	//		if (this == mapGenerator.getCurrentUnit())
+	//			mapGenerator.resetRanges();
 		}
 	}
 
@@ -2330,7 +2332,7 @@ public class Unit : MonoBehaviour {
 
 	void throwAnimation() {
 		attackEnemy.setRotationToCharacter(this);
-		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative());
+		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative(), this);
 		mapGenerator.resetAttack(this);
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
@@ -2357,33 +2359,43 @@ public class Unit : MonoBehaviour {
 
 	bool gettingThrown = false;
 	Vector3 gettingThrownPosition;
-	void getThrown(Direction dir, int distance) {
+	void getThrown(Direction dir, int distance, Unit thrownBy) {
 		Debug.Log("getThrown(" + dir + ", " + distance + ")");
 		int x = (int)position.x;
 		int y = (int)-position.y;
 		Tile t = mapGenerator.tiles[x, y];
+		int dis = 0;
 		for (;distance>0;distance--) {
-			Debug.Log(distance);
 			Tile nextT = t.getTile(dir);
 			if (!nextT.hasCharacter() && t.passabilityInDirection(dir)==1) {//t.canPass(dir, this, dir)) {
 				t = nextT;
 				setXYFromDirection(dir, ref x, ref y);
-				Debug.Log("x: " + x + " y: " + y);
+				dis++;
 			}
 			else break;
 		}
+		bool becameProne = false;
+		Unit alsoProne = null;
 		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || t.getTile(dir).hasCharacter())) {
 		//	affliction = Affliction.Prone;
 			becomeProne();
+			becameProne = true;
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u) {
 					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
 //					u.affliction = Affliction.Prone;
 						u.becomeProne();
+						alsoProne = u;
 					}
 				}
 			}
+		}
+		if (team == 0) {
+			gui.log.addMessage(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
+		}
+		else {
+			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.green);
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
