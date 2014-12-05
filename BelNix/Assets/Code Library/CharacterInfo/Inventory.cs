@@ -119,6 +119,22 @@ namespace CharacterInfo
 			}
 		}
 
+		public bool hasTurret() {
+			foreach (InventoryItemSlot slot in inventory) {
+				Item i = slot.getItem();
+				if (i!=null && i is Turret) return true;
+			}
+			return false;
+		}
+
+		public bool hasTrap() {
+			foreach (InventoryItemSlot slot in inventory) {
+				Item i = slot.getItem();
+				if (i!=null && i is Trap) return true;
+			}
+			return false;
+		}
+
 		public int getStackabilityOfItem(Item i) {
 			if (character==null) return 1;
 			return character.stackabilityOfItem(i);

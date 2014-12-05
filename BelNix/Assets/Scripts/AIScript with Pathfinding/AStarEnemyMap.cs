@@ -109,6 +109,16 @@ public class AStarEnemyMap : AStarMap {
 		//	Debug.Log("Take Attack Of Opportunity: " + enemyParam.x + ", " + enemyParam.y + "   " + straight);
 			straight += 3;
 		}
+		Vector2 from = enemyParam.getPos();
+		Vector2 to = enemyParam2.getPos();
+		Direction dir = Tile.directionBetweenTiles(from, to);
+		int pass = t.passabilityInDirection(dir);
+		if (pass > 1) {
+			straight += 1 + (pass-1)/5;
+		}
+		if (t.hasAlly(unit)) {
+			straight++;
+		}
 		return straight;
 	}
 }
