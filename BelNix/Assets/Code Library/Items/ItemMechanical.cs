@@ -11,12 +11,34 @@ public class Turret : Item, ItemMechanical {
 	public Applicator applicator;
 	public Gear gear;
 	public EnergySource energySource;
-
+	const int range = 5;
+	public int getRange() {
+		return range;
+	}
 	public Turret(Frame fr, Applicator app, Gear g, EnergySource es) {
 		frame = fr;
 		applicator = app;
 		gear = g;
 		energySource = es;
+		inventoryTexture = Resources.Load<Texture>("Units/Turrets/TurretPlaceholder");
+	}
+	public override Vector2[] getShape() {
+		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	}
+}
+
+public class Trap : Item, ItemMechanical {
+	public Frame frame;
+	public Gear gear;
+	public Applicator applicator;
+	public Trigger trigger;
+
+	public Trap(Frame fr, Applicator app, Gear g, Trigger tr) {
+		frame = fr;
+		applicator = app;
+		gear = g;
+		trigger = tr;
+		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Trap");
 	}
 	public override Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
@@ -30,6 +52,9 @@ public class Frame : Item, ItemMechanical {
 	public virtual int getHardness() {
 		return 0;
 	}
+	public virtual int getSize() {
+		return 0;
+	}
 	public override Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
 	}
@@ -41,6 +66,9 @@ public class TestFrame : Frame {
 	}
 	public override int getHardness() {
 		return 17;
+	}
+	public override int getSize () {
+		return 2;
 	}
 	public TestFrame() {
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Frame");
@@ -81,6 +109,7 @@ public class TestApplicator : Applicator {
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Applicator");
 	}
 }
+	
 
 public class EnergySource :  Item, ItemMechanical {
 	public virtual int getMaxTurns() {
@@ -115,5 +144,23 @@ public class TestGear : Gear {
 	}
 	public TestGear() {
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Gear");
+	}
+}
+
+public class Trigger : Item, ItemMechanical {
+	public virtual int triggerTimes() {
+		return 0;
+	}
+	public override Vector2[] getShape() {
+		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	}
+}
+
+public class TestTrigger : Trigger {
+	public override int triggerTimes() {
+		return 1;
+	}
+	public TestTrigger() {
+		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Trigger");
 	}
 }

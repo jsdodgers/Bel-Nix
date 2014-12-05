@@ -93,10 +93,10 @@ public class Tile {
 
 	public Tile() {
 		items = new List<Item>();
-		for (int n=0;n<8;n++) {
+		for (int n=0;n<14;n++) {
 			if (Random.Range(0, 3)==1) {
 				Item i;
-				switch (n%4) {
+				switch (n%7) {
 				case 0:
 					i = new TestGear();
 					break;
@@ -105,6 +105,15 @@ public class Tile {
 					break;
 				case 2:
 					i = new TestFrame();
+					break;
+				case 3:
+					i = new TestTrigger();
+					break;
+				case 4:
+					i = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+					break;
+				case 5:
+					i = new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
 					break;
 				default:
 					i = new TestEnergySource();
