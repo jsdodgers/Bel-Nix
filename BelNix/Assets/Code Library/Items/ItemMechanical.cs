@@ -12,6 +12,12 @@ public class Turret : Item, ItemMechanical {
 	public Gear gear;
 	public EnergySource energySource;
 	const int range = 5;
+	public bool hasUsesLeft() {
+		return energySource.hasUsesLeft();
+	}
+	public bool use() {
+		return energySource.use();
+	}
 	public int rollDamage() {
 		return applicator.rollDamage() + gear.additionalDamage();
 	}
@@ -94,6 +100,7 @@ public class TestFrame : Frame {
 		return 2;
 	}
 	public TestFrame() {
+		itemName = "Test Frame";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Frame");
 	}
 }
@@ -137,6 +144,17 @@ public class TestApplicator : Applicator {
 	
 
 public class EnergySource :  Item, ItemMechanical {
+	public int turnsLeft;
+	public EnergySource() {
+		turnsLeft = getMaxTurns();
+	}
+	public bool use() {
+		turnsLeft--;
+		return turnsLeft<=0;
+	}
+	public bool hasUsesLeft() {
+		return turnsLeft > 0;
+	}
 	public virtual int getMaxTurns() {
 		return 0;
 	}
@@ -147,9 +165,10 @@ public class EnergySource :  Item, ItemMechanical {
 
 public class TestEnergySource : EnergySource {
 	public override int getMaxTurns() {
-		return 5;
+		return 2;
 	}
 	public TestEnergySource() {
+		itemName = "Test Energy Source";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/EnergySource");
 	}
 }
@@ -168,6 +187,7 @@ public class TestGear : Gear {
 		return 2;
 	}
 	public TestGear() {
+		itemName = "Test Gear";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Gear");
 	}
 }
@@ -186,6 +206,7 @@ public class TestTrigger : Trigger {
 		return 1;
 	}
 	public TestTrigger() {
+		itemName = "Test Trigger";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Trigger");
 	}
 }

@@ -25,7 +25,7 @@ public class GameGUI : MonoBehaviour {
 
 	Vector2 notTurnMoveRangeSize = new Vector2(150.0f, 50.0f);
 	Vector2 subMenuTurnActionSize = new Vector2(100.0f, 35.0f);
-	Vector2 turretSelectSize = new Vector2(200.0f, 100.0f);
+	Vector2 turretSelectSize = new Vector2(250.0f, 100.0f);
 
 	public Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
 	public Vector2 turretsScrollPosition = new Vector2(0.0f, 0.0f);
@@ -810,6 +810,7 @@ public class GameGUI : MonoBehaviour {
 				float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
 				turretsScrollPosition = GUI.BeginScrollView(turretTypesRect(), turretsScrollPosition, new Rect(turretTypesRect().x, turretTypesRect().y, turretSelectSize.x - (turrets.Count > 3 ? 16 : 0), height));
 				for (int n=0; n<turrets.Count;n++) {
+					Turret turret = turrets[n];
 					Rect r = turretTypeRect(n);
 					if (GUI.Button(r, "", (selectedTurretIndex==n ? getSelectedButtonTurretStyle() : getNonSelectedButtonTurretStyle()))) {
 						selectedTurretIndex = n;
@@ -818,8 +819,28 @@ public class GameGUI : MonoBehaviour {
 					Vector2 size = turrets[n].getSize();
 					size.x *= Unit.inventoryCellSize;
 					size.y *= Unit.inventoryCellSize;
-					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), turrets[n].inventoryTexture);
-//					size.x *= 
+					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), turret.inventoryTexture);
+					x += size.x + 5.0f;
+					GUIContent frameContent = new GUIContent("Frame: " + turret.frame.itemName);
+					GUIContent energySourceContent = new GUIContent("Energy Source: " + turret.energySource.itemName);
+					GUIContent gearContent = new GUIContent("Gear: " + turret.gear.itemName);
+					GUIContent applicatorContent = new GUIContent("Applicator: " + turret.applicator.itemName);
+					GUIStyle st = getTurretPartStyle();
+					Vector2 frameSize = st.CalcSize(frameContent);
+					Vector2 energySourceSize = st.CalcSize(energySourceContent);
+					Vector2 gearSize = st.CalcSize(gearContent);
+					Vector2 applicatorSize = st.CalcSize(applicatorContent);
+					float y = r.y + (r.height - frameSize.y - energySourceSize.y - gearSize.y - applicatorSize.y)/2.0f;
+					Debug.Log("x: " + x + " y: " + y + " " + frameSize.x + ", " + frameSize.y);
+					GUI.Label(new Rect(x, y, frameSize.x, frameSize.y), frameContent, st);
+					y+=frameSize.y;
+					GUI.Label(new Rect(x, y, energySourceSize.x, energySourceSize.y), energySourceContent, st);
+					y+=energySourceSize.y;
+					GUI.Label(new Rect(x, y, gearSize.x, gearSize.y), gearContent, st);
+					y+=gearSize.y;
+					GUI.Label(new Rect(x, y, applicatorSize.x, applicatorSize.y), applicatorContent, st);
+					y+=applicatorSize.y;
+					//					size.x *= 
 				}
 				GUI.EndScrollView();
 			}
@@ -842,6 +863,17 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(0,0,Screen.width, Screen.height), content, st);
 		}
 	//	Debug.Log("OnGUIEnd");
+	}
+
+	GUIStyle turretPartStyle = null;
+	public GUIStyle getTurretPartStyle() {
+		if (turretPartStyle == null) {
+			turretPartStyle = new GUIStyle("Label");
+			turretPartStyle.active.textColor = turretPartStyle.hover.textColor = turretPartStyle.normal.textColor = Color.white;
+			turretPartStyle.padding = new RectOffset(0, 0, 0, 0);
+			turretPartStyle.fontSize = 13;
+		}
+		return turretPartStyle;
 	}
 
 	public Turret getCurrentTurret() {

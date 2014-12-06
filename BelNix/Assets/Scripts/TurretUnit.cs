@@ -61,6 +61,7 @@ public class TurretUnit : Unit {
 			if (this == mapGenerator.getCurrentUnit())
 				mapGenerator.resetRanges();
 			attackAnimating = false;
+			turret.use();
 		}
 	}
 	public override void doDeath() {
@@ -98,7 +99,7 @@ public class TurretUnit : Unit {
 	
 	public override bool isDead() {
 		if (turret == null) return false;
-		return turret.isDestroyed();
+		return turret.isDestroyed() || !turret.hasUsesLeft();
 	}
 	public override string deathString() {
 		return "destroyed";

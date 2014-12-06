@@ -134,7 +134,7 @@ namespace CharacterInfo
 					if (newI != null) insertItemInSlot(newI, getSlotForIndex(slot.index));
 					return true;
 				}
-				else {
+				else if (slot.item != null) {
 					if (slot.item.removeItemFromStack(i)) return true;
 				}
 			}
