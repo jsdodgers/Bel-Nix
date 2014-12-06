@@ -27,7 +27,10 @@ public class Tile {
 	int activation;
 	public int minDistCurr;
 	public int minAttackCurr;
+	public int minSpecialCurr;
 	public int minDistUsedMinors;
+	public bool attackFromTurret = false;
+	public bool canUseSpecialCurr;
 	public bool canAttackCurr;
 	public bool canStandCurr;
 	public bool canTurn;
@@ -146,6 +149,9 @@ public class Tile {
 	public void resetStandability() {
 		canAttackCurr = false;
 		canStandCurr = false;
+		canUseSpecialCurr = false;
+		attackFromTurret = false;
+		minSpecialCurr = int.MaxValue;
 		minDistCurr = int.MaxValue;
 		minAttackCurr = int.MaxValue;
 		minDistUsedMinors = 0;

@@ -116,7 +116,26 @@ namespace CharacterInfo
 			inventory = new InventoryItemSlot[16];
 			for (int n=0;n<16;n++) {
 				inventory[n] = new InventoryItemSlot(n);
+			//	inventory[n].itemSlot = inventory[n];
+			//	inventory[n].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 			}
+			inventory[0].itemSlot = inventory[0];
+			inventory[0].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+
+		}
+
+		public List<Turret> getTurrets() { 
+			List<Turret> turrets = new List<Turret>();
+			foreach (InventoryItemSlot slot in inventory) {
+				Item i = slot.item;
+				if (i!=null && i is Turret) {
+					turrets.Add(i as Turret);
+					foreach (Item t in i.stack) {
+						turrets.Add(t as Turret);
+					}
+				}
+			}
+			return turrets;
 		}
 
 		public bool hasTurret() {

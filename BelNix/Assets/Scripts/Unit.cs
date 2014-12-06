@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using CharacterInfo;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
-public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, None}
+public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
 public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, None}
@@ -79,6 +79,31 @@ public class Unit : MonoBehaviour {
 //		return (a & affliction) != Affliction.None;
 	}
 
+	public static string getNameOfStandardType(StandardType standard) {
+		switch (standard) {
+		case StandardType.Place_Turret:
+			return "Place Turret";
+		case StandardType.Lay_Trap:
+			return "Lay Trap";
+		default:
+			return standard.ToString();
+		}
+	}
+
+	public static string getNameOfMovementType(MovementType movement) {
+		switch (movement) {
+		default:
+			return movement.ToString();
+		}
+	}
+
+	public static string getNameOfMinorType(MinorType minor) {
+		switch (minor) {
+		default:
+			return minor.ToString();
+		}
+	}
+
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -134,6 +159,8 @@ public class Unit : MonoBehaviour {
 			if (st != StandardType.None)
 				standardTypes.Add(st);
 		}
+		if (characterSheet.characterSheet.inventory.hasTurret()) standardTypes.Add(StandardType.Place_Turret);
+		if (characterSheet.characterSheet.inventory.hasTrap()) standardTypes.Add(StandardType.Lay_Trap);
 		standardTypes.Add(StandardType.Inventory);
 		standardTypes.Add (StandardType.Cancel);
 		return standardTypes.ToArray();
@@ -818,6 +845,14 @@ public class Unit : MonoBehaviour {
 		return inventoryHoverBackground;
 	}
 
+	static Texture2D armorHoverBackground = null;
+	Texture2D getArmorHoverBackground() {
+		if (armorHoverBackground==null) {
+			armorHoverBackground = makeTex((int)inventoryCellSize*2,(int)inventoryCellSize*2, new Color(80.0f/255.0f, 44.0f/255.0f, 120.0f/255.0f, 0.4f));
+		}
+		return armorHoverBackground;
+	}
+
 	Texture2D makeTexBanner( int width, int height, Color col )
 	{
 		Color[] pix = new Color[width * height];
@@ -1020,7 +1055,7 @@ public class Unit : MonoBehaviour {
 	const float skillsHeight = paperDollFullHeight;
 	const float inventoryWidth = 300.0f;
 	const float inventoryHeight = paperDollFullHeight;
-	const float inventoryCellSize = 24.0f;
+	public const float inventoryCellSize = 24.0f;
 	const float inventoryLineThickness = 2.0f;
 	public bool guiContainsMouse(Vector2 mousePos) {
 		if (gui.openTab == Tab.None) {
@@ -1715,6 +1750,12 @@ public class Unit : MonoBehaviour {
 						}
 					}
 					break;
+				}
+			}
+			foreach (InventorySlot slot in armorSlots) {
+				Rect r = getInventorySlotRect(slot);
+				if (r.Contains(mousePos)) {
+					GUI.DrawTexture(r, getArmorHoverBackground());
 				}
 			}
 			foreach (InventorySlot slot in armorSlots) {
@@ -2580,7 +2621,7 @@ public class Unit : MonoBehaviour {
 		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
 	}
 
-	public bool deadOrDyingOrUnconscious() {
+	public virtual bool deadOrDyingOrUnconscious() {
 		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
 	}
 

@@ -28,6 +28,7 @@ public class MapGenerator : MonoBehaviour {
 	bool isOnGUI;
 	public Transform playerTransform;
 	public Transform enemyTransform;
+//	public GameObject turretPrefab;
 	GameObject arrowStraightPrefab;
 	GameObject arrowCurvePrefab;
 	GameObject arrowPointPrefab;
@@ -43,6 +44,7 @@ public class MapGenerator : MonoBehaviour {
 	Unit hoveredCharacter;
 	ArrayList players;
 	public ArrayList enemies;
+	GameObject turrets;
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
@@ -57,7 +59,6 @@ public class MapGenerator : MonoBehaviour {
 	int oldTouchCount;
 //	bool editingPath = false;
 	Vector2 lastArrowPos = new Vector2(-1, -1);
-
 	
 	GameObject currentGrid;
 	GameObject mouseDownGrid;
@@ -152,7 +153,8 @@ public class MapGenerator : MonoBehaviour {
 		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
 		gui = guiObj.GetComponent<GameGUI>();
 		gui.mapGenerator = this;
-		
+
+		turrets = mapTransform.FindChild("Turrets").gameObject;
 		lines = mapTransform.FindChild("Lines").gameObject;
 		grids = mapTransform.FindChild("Grid").gameObject;
 		path = mapTransform.Find("Path").gameObject;
@@ -170,7 +172,7 @@ public class MapGenerator : MonoBehaviour {
 		players = new ArrayList();
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
-		turretPrefab = (GameObject)Resources.Load("Units/Turrets/Turret");
+		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
@@ -314,6 +316,14 @@ public class MapGenerator : MonoBehaviour {
 
 	public void resetCurrentKeysTile() {
 		if (isInCharacterPlacement()) return;
+		
+		if (turretBeingPlaced != null) {
+			unsetTurretDirectionAttack((int)turretBeingPlaced.position.x, (int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+			Destroy(turretBeingPlaced.gameObject);
+			turretBeingPlacedInDirection = Direction.None;
+			turretBeingPlaced = null;
+			drawAllRanges();
+		}
 		currentKeysTile = currentUnitTile;
 		if (gui.selectedMovement && gui.selectedMovementType == MovementType.Move)
 			currentKeysSize = getCurrentUnit().maxMoveDist;
@@ -852,7 +862,8 @@ public class MapGenerator : MonoBehaviour {
 	public void setSpriteColor(Tile t, SpriteRenderer sr) {
 		Color c = Color.clear;
 		if (t.canStandCurr) c = new Color(0.0f, 0.0f, 1.0f, 0.4f);
-		else if (t.canAttackCurr) c = new Color(1.0f, 0.0f, 0.0f, 0.4f);
+		else if (t.canAttackCurr) c = new Color(1.0f, (t.canUseSpecialCurr?0.5f:0.0f), 0.0f, 0.4f);
+		else if (t.canUseSpecialCurr) c = new Color(0.0f, 1.0f, 0.0f, 0.4f);
 		else if (isInCharacterPlacement() && t.startingPoint) c = new Color(0.0f, 1.0f, 0.0f, 0.4f);
 		if (sr != currentSprite) {
 			sr.color = c;
@@ -923,6 +934,87 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack(x,y-1,radiusLeft-1,currRadius+1, cs);
 		if (canAttack(Direction.Down, x, y, cs))
 			setCharacterCanAttack(x,y+1,radiusLeft-1,currRadius+1, cs);
+	}
+
+	public void setCharacterCanPlaceTurret(int x, int y, int radiusLeft, int currRadius, Unit cs) {
+		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		if (t.canUseSpecialCurr && t.minSpecialCurr <= currRadius) return;
+		if (t.standable && !t.hasCharacter()) {
+			t.canUseSpecialCurr = true;
+			t.minSpecialCurr = currRadius;
+		}
+		if (radiusLeft == 0) return;
+		//if (canmo(Direction.Left, x, y, cs))
+		if (passibility(Direction.Left, x, y)>=1)
+			setCharacterCanPlaceTurret(x-1,y,radiusLeft-1,currRadius+1, cs);
+		if (passibility(Direction.Right, x, y)>=1)
+			setCharacterCanPlaceTurret(x+1,y,radiusLeft-1,currRadius+1, cs);
+		if (passibility(Direction.Up, x, y)>=1)
+			setCharacterCanPlaceTurret(x,y-1,radiusLeft-1,currRadius+1, cs);
+		if (passibility(Direction.Down, x, y)>=1)
+			setCharacterCanPlaceTurret(x,y+1,radiusLeft-1,currRadius+1, cs);
+	}
+
+	public void setTurretDirectionAttack(int x, int y, int radiusLeft, Direction dir, Unit cs) {
+		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		if (t.canAttackCurr) t.attackFromTurret = false;
+		else if (t.getCharacter()!=cs) {
+			t.attackFromTurret = true;
+			t.canAttackCurr = true;
+		}
+		if (radiusLeft == 0) return;
+		int oldX = x;
+		int oldY = y;
+		switch (dir) {
+		case Direction.Left:
+			x--;
+			break;
+		case Direction.Right:
+			x++;
+			break;
+		case Direction.Up:
+			y--;
+			break;
+		case Direction.Down:
+			y++;
+			break;
+		default:
+			break;
+		}
+		if (passibility(dir, oldX, oldY)>0)
+			setTurretDirectionAttack(x, y, radiusLeft-1, dir, cs);
+	}
+
+	public void unsetTurretDirectionAttack(int x, int y, int radiusLeft, Direction dir, Unit cs) {
+		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		if (t.attackFromTurret) {
+			t.attackFromTurret = false;
+			t.canAttackCurr = false;
+		}
+		if (radiusLeft==0) return;
+		int oldX = x;
+		int oldY = y;
+		switch (dir) {
+		case Direction.Left:
+			x--;
+			break;
+		case Direction.Right:
+			x++;
+			break;
+		case Direction.Up:
+			y--;
+			break;
+		case Direction.Down:
+			y++;
+			break;
+		default:
+			break;
+		}
+		if (passibility(dir, oldX, oldY)>0)
+			unsetTurretDirectionAttack(x, y, radiusLeft-1, dir, cs);
 	}
 /*
 	bool isInPlayerRadius(Player player1, int radius, int x, int y) {
@@ -1035,6 +1127,9 @@ public class MapGenerator : MonoBehaviour {
 			gui.clickStandard();
 	//		gui.openTab = (gui.openTab==Tab.T ? Tab.None : Tab.T);
 		}
+		if (Input.GetKeyDown(KeyCode.L)) {
+			gui.selectMinor(MinorType.Loot);
+		}
 		if (Input.GetKeyDown(KeyCode.E)) {
 			gui.clickMovement();
 		}
@@ -1115,6 +1210,18 @@ public class MapGenerator : MonoBehaviour {
 			if (Input.GetKeyDown(KeyCode.D)) {
 				handleKeyInput(Direction.Right);
 			}
+			if (Input.GetKeyUp(KeyCode.W)) {
+				handleKeyUpInput(Direction.Up);
+			}
+			if (Input.GetKeyUp(KeyCode.S)) {
+				handleKeyUpInput(Direction.Down);
+			}
+			if (Input.GetKeyUp(KeyCode.A)) {
+				handleKeyUpInput(Direction.Left);
+			}
+			if (Input.GetKeyUp(KeyCode.D)) {
+				handleKeyUpInput(Direction.Right);
+			}
 		}
 		if (Input.GetKeyDown(KeyCode.Return)) {
 			performAction();
@@ -1127,9 +1234,23 @@ public class MapGenerator : MonoBehaviour {
 				gui.selectNextOfType();
 			}
 		}
+		if (Input.GetKeyDown(KeyCode.Semicolon) && shiftDown) {
+			getCurrentUnit().minorsLeft += 2;
+		}
+		if (Input.GetKeyDown(KeyCode.Quote) && shiftDown) {
+			getCurrentUnit().moveDistLeft = 5;
+			getCurrentUnit().usedMovement = false;
+		}
+		if (Input.GetKeyDown(KeyCode.LeftBracket) && shiftDown) {
+			getCurrentUnit().usedStandard = false;
+		}
 		handleArrows();
 		handleSpace();
 	}
+
+	public Direction turretBeingPlacedInDirection = Direction.None;
+	public TurretUnit turretBeingPlaced = null;
+	public List<Direction> turretPlaceDirections;
 
 	public void performAction() {
 		if (performingAction() || currentUnitIsAI() || !leftClickIsMakingSelection()) return;
@@ -1162,7 +1283,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 
 		
-		if ((gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
+		if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
 			if (gui.selectedStandardType == StandardType.Attack) {
 				p.startAttacking();
 			}
@@ -1171,6 +1292,14 @@ public class MapGenerator : MonoBehaviour {
 			}
 			else if (gui.selectedStandardType == StandardType.Intimidate) {
 				p.startIntimidating();
+			}
+		}
+
+		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Place_Turret) {
+			if (turretBeingPlaced != null) {
+				turretBeingPlacedInDirection = Direction.None;
+				turretBeingPlaced = null;
+				getCurrentUnit().usedStandard = true;
 			}
 		}
 	}
@@ -1190,55 +1319,147 @@ public class MapGenerator : MonoBehaviour {
 		return Direction.None;
 	}
 
+	public void handleKeyUpInput(Direction dir) {
+		if (turretBeingPlacedInDirection==dir) {
+			turretBeingPlacedInDirection = Direction.None;
+			turretPlaceDirections = null;
+		}
+		else {
+			if (turretPlaceDirections != null && turretPlaceDirections.Contains(dir)) {
+				turretPlaceDirections.Remove(dir);
+				if (turretPlaceDirections.Count > 0) {
+					handleKeyInput(turretPlaceDirections[turretPlaceDirections.Count-1]);
+				}
+				else handleKeyInput(turretBeingPlacedInDirection);
+			}
+		//	if (turretDirectionIsOnlyKey()) handleKeyInput(turretBeingPlacedInDirection);
+		}
+	}
+
+	public bool turretDirectionIsOnlyKey() {
+		if (turretBeingPlacedInDirection==Direction.None) return false;
+		int num = 0;
+		if (Input.GetKey(KeyCode.W)) num++;
+		if (Input.GetKey(KeyCode.S)) num++;
+		if (Input.GetKey(KeyCode.D)) num++;
+		if (Input.GetKey(KeyCode.A)) num++;
+		return num == 1;
+	}
+
 	public void handleKeyInput(Direction dir) {
 		if (performingAction()) return;
+		Debug.Log("Direction: " + dir);
 		Tile t = null;
-		if (currentKeysSize==1) {
+		if (turretBeingPlacedInDirection != Direction.None) {
+			Debug.Log("Turret it is!");
+			TurretUnit tur = turretBeingPlaced;
+			if (tur != null) {
+				int x = (int)tur.position.x;
+				int y = (int)-tur.position.y;
+				unsetTurretDirectionAttack(x, y, 5, tur.direction, tur);
+				tur.setDirection(dir);
+				if (!turretPlaceDirections.Contains(dir)) turretPlaceDirections.Add(dir);
+				setTurretDirectionAttack(x, y, 5, dir, tur);
+				drawAllRanges();
+			}
+		}
+		else if (currentKeysSize==1) {
 			Direction oldDirection = getDirectionOfTile(currentUnitTile, currentKeysTile);
+			Tile oldTile = currentKeysTile;
 			t = currentUnitTile.getTile(dir);
 			if (gui.selectedMovement && !t.canStandCurr) t = null;
-			if (gui.selectedStandard && !t.canAttackCurr) t = null;
+			if (gui.selectedStandard && !t.canAttackCurr && !t.canUseSpecialCurr) t = null;
 			if (gui.selectedMovement && currentKeysTile.getTile(dir)==currentUnitTile) t = currentUnitTile;
 			if (t==null) {
-				Debug.Log("null");
+	//			Debug.Log("null");
 				if (directionsAreOpposite(dir,oldDirection)) {
 					currentKeysTile = currentUnitTile;
 				}
 			}
 			else {
-				Debug.Log(t.getPosition() + "  " + currentKeysTile.getPosition() + "   " + currentUnitTile.getPosition());
+	//			Debug.Log(t.getPosition() + "  " + currentKeysTile.getPosition() + "   " + currentUnitTile.getPosition());
 				currentKeysTile = t;
 			}
-			handleKeyAction(t);
+			if (gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret) {
+				if (oldTile != null) {
+					Unit u = oldTile.getCharacter();
+					if (u!=null && u == turretBeingPlaced) {
+			//			TurretUnit tur = u as TurretUnit;
+					//	unsetTurretDirectionAttack((int)tur.position.x, (int)-tur.position.y, 5, tur.direction, tur);
+						oldTile.removeCharacter();
+//						Destroy(u.gameObject);
+//						drawAllRanges();
+					}
+				}
+				if (turretBeingPlaced != null) {
+					unsetTurretDirectionAttack((int)turretBeingPlaced.position.x, (int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+					if (t==null) {
+						Destroy(turretBeingPlaced.gameObject);
+						turretBeingPlaced = null;
+						turretBeingPlacedInDirection = Direction.None;
+					}
+					drawAllRanges();
+				}
+			}
+			handleKeyAction(t, dir);
 		}
 		else {
 			t = currentKeysTile;
 			do {
 				t = t.getTile(dir);
 			} while (t != null && (gui.selectedMovement ? !t.standable : false));
-			if (t==null || (gui.selectedMovement ? !t.canStandCurr : !t.canAttackCurr)) return;
+			if (t==null || (gui.selectedMovement ? !t.canStandCurr : !t.canUseSpecialCurr && !t.canAttackCurr)) return;
 			currentKeysTile = t;
-			handleKeyAction(t);
+			handleKeyAction(t, dir);
 		}
 	}
 
-	public void handleKeyAction(Tile t) {
+	public void handleKeyAction(Tile t, Direction dir) {
 		Unit u = getCurrentUnit();
 		if (gui.selectedStandard) {
-			if (selectedUnit.attackEnemy) {
-				selectedUnit.attackEnemy.deselect();
-				selectedUnit.attackEnemy = null;
+			if (gui.selectedStandardType == StandardType.Place_Turret) {
+				if (t!=null && t.canUseSpecialCurr && t!=currentUnitTile) {
+					GameObject g;
+					TurretUnit tu;
+					if (turretBeingPlaced != null) {
+						tu = turretBeingPlaced;
+						g = tu.gameObject;
+					}
+					else {
+						g = Instantiate(turretPrefab) as GameObject;
+						g.transform.parent = turrets.transform;
+						tu = g.GetComponent<TurretUnit>();
+						tu.team = getCurrentUnit().team;
+						turretBeingPlaced = tu;
+					}
+					t.setCharacter(tu);
+					Vector2 v = t.getPosition();
+					v.y *= -1;
+					tu.setPosition(new Vector3(v.x, v.y, 0.0f));
+					tu.setDirection(dir);
+					setTurretDirectionAttack((int)v.x, (int)-v.y, 5, dir, tu);
+					turretBeingPlacedInDirection = dir;
+					turretPlaceDirections = new List<Direction>();
+					drawAllRanges();
+				}
+				else currentKeysTile = currentUnitTile;
 			}
-			if (t!=null && t.canAttackCurr && t!=currentUnitTile) {
-				if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
-					selectedUnit.attackEnemy = t.getEnemy(selectedUnit);
-				else if (gui.selectedStandardType == StandardType.Throw)
-					selectedUnit.attackEnemy = t.getCharacter();
-				selectedUnit.setRotationToAttackEnemy();
+			else {
+				if (selectedUnit.attackEnemy) {
+					selectedUnit.attackEnemy.deselect();
+					selectedUnit.attackEnemy = null;
+				}
+				if (t!=null && t.canAttackCurr && t!=currentUnitTile) {
+					if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
+						selectedUnit.attackEnemy = t.getEnemy(selectedUnit);
+					else if (gui.selectedStandardType == StandardType.Throw)
+						selectedUnit.attackEnemy = t.getCharacter();
+					selectedUnit.setRotationToAttackEnemy();
+				}
+				if (selectedUnit.attackEnemy)
+					selectedUnit.attackEnemy.setTarget();
+				else currentKeysTile = currentUnitTile;
 			}
-			if (selectedUnit.attackEnemy)
-				selectedUnit.attackEnemy.setTarget();
-			else currentKeysTile = currentUnitTile;
 		}
 		else if (gui.selectedMovement) {
 			resetPlayerPath();
@@ -1261,13 +1482,23 @@ public class MapGenerator : MonoBehaviour {
 	void handleSpace() {
 		timeSinceSpace += Time.deltaTime * Time.timeScale;
 		if (Input.GetKeyDown(KeyCode.Space)) {
-			if (timeSinceSpace <= maxTimeSpace && isInPriority() || selectedUnit==null) {
-				deselectAllUnits();
-				selectUnit(getCurrentUnit(),false);
-				lastPlayerPath = selectedUnit.currentPath;
+			if (!(gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret)) {
+				if (timeSinceSpace <= maxTimeSpace && isInPriority() || selectedUnit==null) {
+					deselectAllUnits();
+					selectUnit(getCurrentUnit(),false);
+					lastPlayerPath = selectedUnit.currentPath;
+				}
+				moveCameraToSelected();
+				timeSinceSpace = 0.0f;
 			}
-			moveCameraToSelected();
-			timeSinceSpace = 0.0f;
+			else {
+				if (shiftDown) gui.selectedTurretIndex--;
+				else gui.selectedTurretIndex++;
+				int numTurrets = getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets().Count;
+				gui.selectedTurretIndex += numTurrets;
+				gui.selectedTurretIndex %= numTurrets;
+				gui.showCurrentTurret();
+			}
 		}
 	}
 
@@ -1338,7 +1569,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
-		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate)) ||
+		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType==StandardType.Lay_Trap || gui.selectedStandardType==StandardType.Place_Turret)) ||
 			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep))
 				|| performingAction();
 	}
@@ -1397,6 +1628,10 @@ public class MapGenerator : MonoBehaviour {
 		handleMouseUp();
 	}
 
+	public bool isSelectionTile(Tile t2) {
+		return t2.canStandCurr || t2.canAttackCurr || t2.canUseSpecialCurr;
+	}
+
 	public GameObject selectedSelectionObject = null;
 	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
@@ -1406,7 +1641,16 @@ public class MapGenerator : MonoBehaviour {
 			Transform transform2 = go2.transform;
 			t2 = tiles[(int)transform2.localPosition.x,(int)-transform2.localPosition.y];
 		}
-		if ((mouseDown && (!leftClickIsMakingSelection() || t2==null || (!t2.canStandCurr && !t2.canAttackCurr))) && !isOnGUI && !rightDraggin) {
+		if ((mouseDown && (!leftClickIsMakingSelection() || t2==null || !isSelectionTile(t2))) && !isOnGUI && !rightDraggin) {
+			if (turretBeingPlaced != null) {
+				Tile t22 = tiles[(int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y];
+				t22.removeCharacter();
+				unsetTurretDirectionAttack((int)turretBeingPlaced.position.x, (int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+				Destroy(turretBeingPlaced.gameObject);
+				turretBeingPlacedInDirection = Direction.None;
+				turretBeingPlaced = null;
+				drawAllRanges();
+			}
 			if (!shiftDown) {
 				deselectAllUnits();
 				selectedUnit = hoveredCharacter;
@@ -1470,24 +1714,60 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate)) {
+			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret)) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
-					
-					if (selectedUnit.attackEnemy) {
-						selectedUnit.attackEnemy.deselect();
-						selectedUnit.attackEnemy = null;
+
+					if (gui.selectedStandardType == StandardType.Place_Turret) {
+						Tile t = tiles[posX,posY];
+						if (t!=null && t.canUseSpecialCurr && t!=currentUnitTile && (turretBeingPlaced==null || t.getCharacter() != turretBeingPlaced)) {
+							Direction dir = getDirectionOfTile(currentUnitTile,t);
+							Debug.Log(dir);
+							GameObject g;
+							TurretUnit tu;
+							if (turretBeingPlaced != null) {
+								tu = turretBeingPlaced;
+								Tile t22 = tiles[(int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y];
+								t22.removeCharacter();
+								g = tu.gameObject;
+								unsetTurretDirectionAttack((int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+							}
+							else {
+								g = Instantiate(turretPrefab) as GameObject;
+								g.transform.parent = turrets.transform;
+								tu = g.GetComponent<TurretUnit>();
+								tu.team = getCurrentUnit().team;
+								turretBeingPlaced = tu;
+							}
+							t.setCharacter(tu);
+							Vector2 v = t.getPosition();
+							v.y *= -1;
+							tu.setPosition(new Vector3(v.x, v.y, 0.0f));
+							tu.setDirection(dir);
+							setTurretDirectionAttack((int)v.x, (int)-v.y, 5, dir, tu);
+							turretBeingPlacedInDirection = Direction.None;
+							turretPlaceDirections = new List<Direction>();
+							drawAllRanges();
+//							currentUnitTile = t;
+						}
+						else currentKeysTile = currentUnitTile;
 					}
-					if (tiles[posX,posY].canAttackCurr) {
-						if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
-							selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
-						else if (gui.selectedStandardType == StandardType.Throw)
-							selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
-						selectedUnit.setRotationToAttackEnemy();
+					else {
+						if (selectedUnit.attackEnemy) {
+							selectedUnit.attackEnemy.deselect();
+							selectedUnit.attackEnemy = null;
+						}
+						if (tiles[posX,posY].canAttackCurr) {
+							if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
+								selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
+							else if (gui.selectedStandardType == StandardType.Throw)
+								selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
+							selectedUnit.setRotationToAttackEnemy();
+						}
+						if (selectedUnit.attackEnemy)
+							selectedUnit.attackEnemy.setTarget();
 					}
-					if (selectedUnit.attackEnemy)
-						selectedUnit.attackEnemy.setTarget();
 				}
 			}
 		}
@@ -1516,6 +1796,19 @@ public class MapGenerator : MonoBehaviour {
 					if (lastPlayerPath.Count > 1)
 						setPlayerPath(lastPlayerPath);
 					lastArrowPos = v;
+				}
+				else if (gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret && turretBeingPlaced!=null) {
+					Direction dir = Direction.None;
+					foreach (Direction direc in Tile.directions) {
+						Tile t = tiles[(int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y].getTile(direc);
+						if (t!=null && t==tiles[x,-y]) {	
+							unsetTurretDirectionAttack((int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+							turretBeingPlaced.setDirection(direc);
+							setTurretDirectionAttack((int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+							drawAllRanges();
+							break;
+						}
+					}
 				}
 				
 			}
@@ -1598,8 +1891,11 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate))) {
+				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
+						Debug.Log("performAction()");
+						performAction();
+						/*
 						if (gui.selectedMovement) {
 							if (tiles[posX, posY].getCharacter() != selectedUnit) {
 								selectedUnit.startMoving(gui.selectedMovementType==MovementType.BackStep);
@@ -1619,7 +1915,7 @@ public class MapGenerator : MonoBehaviour {
 							if (selectedUnit.attackEnemy) {
 								selectedUnit.startIntimidating();
 							}
-						}
+						}*/
 					}
 				}
 				if (gui.selectedMovement) {
@@ -1646,7 +1942,7 @@ public class MapGenerator : MonoBehaviour {
 					currentKeysTile = lastClickTile;
 					if (!currentKeysTile.canStandCurr) currentKeysTile = currentUnitTile;
 				}
-				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)) {
+				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret)) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 					currentKeysTile = lastClickTile;
@@ -1799,6 +2095,8 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
 		else if ((gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
+		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Place_Turret) && !isOther)
+			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		if (draw) drawAllRanges();
 	}
 
@@ -2098,20 +2396,24 @@ public class MapGenerator : MonoBehaviour {
 			//			did = true;
 			//		}
 			//	if (isInPlayerRadius(p, p.currentMoveDist,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-			Tile t = tiles[(int)transform.localPosition.x,(int)-transform.localPosition.y];
-			if (t.canStandCurr) {
-				currentSprite.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
-				did = true;
-			}
-			//							else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
-			else if (t.canAttackCurr) {
-				did = true;
-				currentSprite.color = new Color(0.50f, 0.0f, 0.0f, 0.4f);
-			}
-			else if (t.startingPoint && isInCharacterPlacement()) {
-				did = true;
-				currentSprite.color = new Color(0.0f, 0.5f, 0.0f, 0.4f);
-			}
+		Tile t = tiles[(int)transform.localPosition.x,(int)-transform.localPosition.y];
+		if (t.canStandCurr) {
+			currentSprite.color = new Color(0.0f, 0.0f, 0.50f, 0.4f);
+			did = true;
+		}
+		//							else if (isInPlayerRadius(p, p.currentMoveDist + p.attackRange,(int)currentGrid.transform.localPosition.x,(int)-currentGrid.transform.localPosition.y)) {
+		else if (t.canAttackCurr) {
+			did = true;
+			currentSprite.color = new Color(0.50f, (t.canUseSpecialCurr?0.25f:0.0f), 0.0f, 0.4f);
+		}
+		else if (t.canUseSpecialCurr) {
+			did = true;
+			currentSprite.color = new Color(0.0f, 0.50f, 0.0f, 0.4f);
+		}
+		else if (t.startingPoint && isInCharacterPlacement()) {
+			did = true;
+			currentSprite.color = new Color(0.0f, 0.5f, 0.0f, 0.4f);
+		}
 	//	}
 		if (!did) {
 			//	//Debug.Log("Nope...");

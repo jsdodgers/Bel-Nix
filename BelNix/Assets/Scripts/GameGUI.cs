@@ -25,12 +25,15 @@ public class GameGUI : MonoBehaviour {
 
 	Vector2 notTurnMoveRangeSize = new Vector2(150.0f, 50.0f);
 	Vector2 subMenuTurnActionSize = new Vector2(100.0f, 35.0f);
+	Vector2 turretSelectSize = new Vector2(200.0f, 100.0f);
 
 	public Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
+	public Vector2 turretsScrollPosition = new Vector2(0.0f, 0.0f);
 
 	public bool selectedMovement = false;
 	public bool selectedStandard = false;
 	public bool selectedMinor = false;
+	public bool turretDirection = false;
 	public MovementType selectedMovementType = MovementType.None;
 	public StandardType selectedStandardType = StandardType.None;
 	public MinorType selectedMinorType = MinorType.None;
@@ -81,6 +84,15 @@ public class GameGUI : MonoBehaviour {
 	public Rect actionRect() {
 		float boxHeight = actionButtonsSize().y * 4 - 3;
 		return new Rect(0.0f, Screen.height - boxHeight, actionButtonsSize().x, boxHeight);
+	}
+
+	public Rect turretTypeRect(int n) {
+		return new Rect(Screen.width - turretSelectSize.x, turretTypesRect().y + turretSelectSize.y*n - n + 1, turretSelectSize.x, turretSelectSize.y);
+	}
+
+	public Rect turretTypesRect() {
+		float height = turretSelectSize.y * 3 - 2;
+		return new Rect(Screen.width - turretSelectSize.x, (Screen.height - height)/2.0f, turretSelectSize.x, height);
 	}
 
 	public Rect moveButtonRect() {
@@ -140,7 +152,8 @@ public class GameGUI : MonoBehaviour {
 
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
-			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
+				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -156,10 +169,13 @@ public class GameGUI : MonoBehaviour {
 				bool others = onPlayer || onWait;
 				if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
 					if (actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others) return true;
+					if (selectedStandard && selectedStandardType==StandardType.Place_Turret)
+						if (turretTypesRect().Contains(mousePos)) return true;
 				}
 				else {
 					if (rangeRect().Contains(mousePos) || others) return true;
 				}
+
 			}
 			if (mapGenerator.getCurrentUnit()==null) {
 				if (mousePos.x >= Screen.width - 100.0f) return true;
@@ -198,7 +214,7 @@ public class GameGUI : MonoBehaviour {
 
 		return playerBoldStyle;
 	}
-
+	
 	GUIStyle getSelectedButtonStyle() {
 		if (selectedButtonStyle == null) {
 			selectedButtonStyle = new GUIStyle(GUI.skin.button);
@@ -212,7 +228,7 @@ public class GameGUI : MonoBehaviour {
 		}
 		return selectedButtonStyle;
 	}
-
+	
 	GUIStyle getNonSelectedButtonStyle() {
 		if (nonSelectedButtonStyle == null) {
 			nonSelectedButtonStyle = new GUIStyle(GUI.skin.button);
@@ -223,6 +239,34 @@ public class GameGUI : MonoBehaviour {
 			nonSelectedButtonStyle.active.textColor = nonSelectedButtonStyle.normal.textColor = nonSelectedButtonStyle.hover.textColor = Color.white;
 		}
 		return nonSelectedButtonStyle;
+	}
+
+	static GUIStyle selectedButtonTurretStyle;
+	GUIStyle getSelectedButtonTurretStyle() {
+		if (selectedButtonTurretStyle == null) {
+			selectedButtonTurretStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			selectedButtonTurretStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
+			selectedButtonTurretStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			selectedButtonTurretStyle.active.background = tex;
+			selectedButtonTurretStyle.hover.textColor = Color.white;
+			selectedButtonTurretStyle.normal.textColor = Color.white;
+			selectedButtonTurretStyle.active.textColor = Color.white;
+		}
+		return selectedButtonTurretStyle;
+	}
+
+	static GUIStyle nonSelectedButtonTurretStyle;
+	GUIStyle getNonSelectedButtonTurretStyle() {
+		if (nonSelectedButtonTurretStyle == null) {
+			nonSelectedButtonTurretStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			nonSelectedButtonTurretStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(15.0f, 20.0f, 105.0f));
+			nonSelectedButtonTurretStyle.hover.background = tex;//nonSelectedButtonStyle.normal.background;
+			nonSelectedButtonTurretStyle.active.background = tex;//getSelectedButtonStyle().normal.background;
+			nonSelectedButtonTurretStyle.active.textColor = nonSelectedButtonTurretStyle.normal.textColor = nonSelectedButtonTurretStyle.hover.textColor = Color.white;
+		}
+		return nonSelectedButtonTurretStyle;
 	}
 
 	GUIStyle beginButtonStyle;
@@ -675,7 +719,7 @@ public class GameGUI : MonoBehaviour {
 					MovementType[] types = mapGenerator.getCurrentUnit().getMovementTypes();
 					for (int n=0;n<types.Length;n++) {
 						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+						if (GUI.Button(subMenuButtonRect(n), Unit.getNameOfMovementType(types[n]), (selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMovement(types[n]);
 						}
@@ -694,16 +738,17 @@ public class GameGUI : MonoBehaviour {
 					StandardType[] types = mapGenerator.getCurrentUnit().getStandardTypes();
 					for (int n=0;n<types.Length;n++) {
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedStandardType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(subMenuButtonRect(n), Unit.getNameOfStandardType(types[n]), (selectedStandardType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectStandard(types[n]);
 						}
 					}
 
-					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) {
+					if (((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedStandardType==StandardType.Place_Turret && mapGenerator.turretBeingPlaced != null)) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							Debug.Log("Confirm: " + StandardType.Throw);
-							if (selectedStandardType == StandardType.Attack) {
+							mapGenerator.performAction();
+/*							if (selectedStandardType == StandardType.Attack) {
 								p.startAttacking();
 							}
 							else if (selectedStandardType == StandardType.Throw) {
@@ -711,7 +756,7 @@ public class GameGUI : MonoBehaviour {
 							}
 							else if (selectedStandardType == StandardType.Intimidate) {
 								p.startIntimidating();
-							}
+							}*/
 						}
 					}
 				}
@@ -719,7 +764,7 @@ public class GameGUI : MonoBehaviour {
 					MinorType[] types = mapGenerator.getCurrentUnit().getMinorTypes();
 					for (int n=0;n<types.Length;n++) {
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(subMenuButtonRect(n), types[n].ToString(), (selectedMinorType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(subMenuButtonRect(n), Unit.getNameOfMinorType(types[n]), (selectedMinorType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMinor(types[n]);
 						}
@@ -760,6 +805,25 @@ public class GameGUI : MonoBehaviour {
 					mapGenerator.resetRanges();
 				}
 			}
+			if (selectedStandard && selectedStandardType==StandardType.Place_Turret) {
+				List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+				float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
+				turretsScrollPosition = GUI.BeginScrollView(turretTypesRect(), turretsScrollPosition, new Rect(turretTypesRect().x, turretTypesRect().y, turretSelectSize.x - (turrets.Count > 3 ? 16 : 0), height));
+				for (int n=0; n<turrets.Count;n++) {
+					Rect r = turretTypeRect(n);
+					if (GUI.Button(r, "", (selectedTurretIndex==n ? getSelectedButtonTurretStyle() : getNonSelectedButtonTurretStyle()))) {
+						selectedTurretIndex = n;
+					}
+					float x = 5.0f + r.x;
+					Vector2 size = turrets[n].getSize();
+					size.x *= Unit.inventoryCellSize;
+					size.y *= Unit.inventoryCellSize;
+					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), turrets[n].inventoryTexture);
+//					size.x *= 
+				}
+				GUI.EndScrollView();
+			}
+
 		}
 		if (mapGenerator.gameState != GameState.Playing) {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
@@ -776,9 +840,23 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(0,off,Screen.width, Screen.height), content, getBackStyle());
 			GUI.Label(new Rect(0,-off,Screen.width, Screen.height), content, getBackStyle());
 			GUI.Label(new Rect(0,0,Screen.width, Screen.height), content, st);
-
 		}
 	//	Debug.Log("OnGUIEnd");
+	}
+
+	public void showCurrentTurret() {
+		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+		float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
+		Rect r = turretTypeRect(selectedTurretIndex);
+		Rect tR = turretTypesRect();
+		float y = tR.y;
+		Debug.Log("height: " + height + " r: " + r +" y: " + y);
+		Debug.Log("Max(" + (r.y-y) + ", Min(" + turretsScrollPosition.y +", " + (height - r.height) + "))");
+	//	turretsScrollPosition.y = Mathf.Max(r.y - y, Mathf.Min(turretsScrollPosition.y + turretTypesRect().height, height - r.height));
+//		if (turretsScrollPosition.y > r.y - y) turretsScrollPosition.y = r.y - y;
+//		if (turretsScrollPosition.y < r.y - y + r.height - tR.height) turretsScrollPosition.y = r.y - y + r.height - tR.height;
+		turretsScrollPosition.y = Mathf.Max(r.y - y + r.height - tR.height, Mathf.Min(turretsScrollPosition.y, r.y - y));
+//		if (turretsScrollPosition.y >
 	}
 
 	void deselectMinor() {
@@ -839,6 +917,7 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
+	public int selectedTurretIndex = 0;
 	public void selectStandardType(StandardType t) {
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
@@ -857,6 +936,13 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Intimidate:
+			mapGenerator.resetRanges();
+			break;
+		case StandardType.Place_Turret:
+			selectedTurretIndex = 0;
+			mapGenerator.resetRanges();
+			break;
+		case StandardType.Lay_Trap:
 			mapGenerator.resetRanges();
 			break;
 		default:
