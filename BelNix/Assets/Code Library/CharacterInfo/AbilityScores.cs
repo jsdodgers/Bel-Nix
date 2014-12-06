@@ -8,10 +8,10 @@ namespace CharacterInfo
 		public AbilityScores (int stu, int per, int tec, int wVer)
 		{
 			// Initialize default scores
-			sturdy		= (stu > 0)   ? stu   : 1;
-			perception	= (per > 0)   ? per   : 1;
-			technique	= (tec > 0)   ? tec   : 1;
-			well_versed	= (wVer > 0) ? wVer : 1;
+			sturdy		= (stu  > 0)  ? stu   : 1;
+			perception	= (per  > 0)  ? per   : 1;
+			technique	= (tec  > 0)  ? tec   : 1;
+			well_versed	= (wVer > 0)  ? wVer  : 1;
 		}
 
 		public int getSturdy()			{return sturdy;}

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using CharacterInfo;
+using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
@@ -2556,9 +2557,9 @@ public class Unit : MonoBehaviour {
 	
 	void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
-		Hit hit = characterSheet.rollHit();
+        Hit hit = Combat.rollHit(this);
 		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
-		Hit critHit = characterSheet.rollHit();
+		Hit critHit = Combat.rollHit(this);
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
 		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
