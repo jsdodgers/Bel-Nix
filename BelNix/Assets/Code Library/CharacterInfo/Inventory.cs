@@ -124,6 +124,23 @@ namespace CharacterInfo
 
 		}
 
+		public bool removeItem(Item i) {
+			foreach (InventoryItemSlot slot in inventory) {
+				if (slot.item  == i) {
+					Item newI = slot.item.popStack();
+					while (slot.item.stackSize()!=1)
+						newI.addToStack(slot.item.popStack());
+					removeItemFromSlot(getSlotForIndex(slot.index));
+					if (newI != null) insertItemInSlot(newI, getSlotForIndex(slot.index));
+					return true;
+				}
+				else {
+					if (slot.item.removeItemFromStack(i)) return true;
+				}
+			}
+			return false;
+		}
+
 		public List<Turret> getTurrets() { 
 			List<Turret> turrets = new List<Turret>();
 			foreach (InventoryItemSlot slot in inventory) {

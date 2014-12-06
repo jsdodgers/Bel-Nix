@@ -66,6 +66,7 @@ public class Unit : MonoBehaviour {
 	public GameGUI gui;
 
 	public List<Affliction> afflictions;
+	public List<TurretUnit> turrets;
 
 	public GameObject damagePrefab;
 
@@ -553,6 +554,18 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}
+		
+		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+			Transform tr = mapGenerator.turrets.transform.GetChild(n);
+			TurretUnit tur = tr.GetComponent<TurretUnit>();
+			if (tur != null && tur.team != team) {
+				float d = distanceFromUnit(tur);
+				if (d < dist) {
+					dist = d;
+					closest = tur;
+				}
+			}
+		}
 		return closest;
 	}
 
@@ -561,6 +574,16 @@ public class Unit : MonoBehaviour {
 		foreach (Unit u in mapGenerator.priorityOrder) {
 			if (u.team != team) {
 				float d = distanceFromUnit(u);
+				if (d < dist || dist == 0) {
+					dist = d;
+				}
+			}
+		}
+		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+			Transform tr = mapGenerator.turrets.transform.GetChild(n);
+			TurretUnit tur = tr.GetComponent<TurretUnit>();
+			if (tur != null && tur.team != team) {
+				float d = distanceFromUnit(tur);
 				if (d < dist || dist == 0) {
 					dist = d;
 				}
@@ -584,6 +607,13 @@ public class Unit : MonoBehaviour {
 				foreach (Unit u in mapGenerator.priorityOrder) {
 					if (team != u.team) {
 						units.Add (u);
+					}
+				}
+				for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+					Transform tr = mapGenerator.turrets.transform.GetChild(n);
+					TurretUnit tur = tr.GetComponent<TurretUnit>();
+					if (tur != null && tur.team != team) {
+						units.Add (tur);
 					}
 				}
 				aiMap.setGoalsAndHeuristics(units);
@@ -2017,6 +2047,10 @@ public class Unit : MonoBehaviour {
 		//		rotating = false;
 	}
 
+	public virtual bool canAttOpp() {
+		return true;
+	}
+
 	public int attackOfOpp(Vector2 one) {
 		int move = 0;
 		for (int n=-1;n<=1;n++) {
@@ -2026,7 +2060,7 @@ public class Unit : MonoBehaviour {
 				int y = (int)one.y + m;
 				if (x >=0 && y >= 0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
 					Tile t = mapGenerator.tiles[x,y];
-					if (t.hasEnemy(this)) {
+					if (t.hasEnemy(this) && t.getEnemy(this).canAttOpp()) {
 						move++;
 						Unit enemy = t.getEnemy(this);
 						enemy.attackEnemy = this;
@@ -2246,8 +2280,17 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void removeTurret(TurretUnit tu) {
+		if (turrets.Contains(tu)) turrets.Remove(tu);
+	}
+
+	public void addTurret(TurretUnit tu) {
+		turrets.Add(tu);
+	}
+
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
+		turrets = new List<TurretUnit>();
 		afflictions = new List<Affliction>();
 		loadCharacterSheet();
 		hitPoints = maxHitPoints;
@@ -2284,6 +2327,13 @@ public class Unit : MonoBehaviour {
 		setTargetObjectScale();
 		setTrailRendererPosition();
 		setCircleScale();
+	}
+
+	public void doTurrets() {
+		Debug.Log("DoTurrets " + turrets.Count);
+		foreach (TurretUnit t in turrets) {
+			t.fire();
+		}
 	}
 
 	void setLayer() {
@@ -2554,18 +2604,48 @@ public class Unit : MonoBehaviour {
 		anim.SetTrigger("Attack");
 		//	attackEnemy = null;
 	}
-	
-	void dealDamage() {
+
+	public virtual int getAC() {
+		return characterSheet.characterSheet.characterLoadout.getAC();
+	}
+
+	public virtual string getName() {
+		return characterSheet.personalInfo.getCharacterName().fullName();
+	}
+
+
+
+	public virtual int getCritChance() {
+		return characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
+	}
+
+	public virtual int getMeleeScore() {
+		return characterSheet.characterSheet.skillScores.getScore(Skill.Melee);
+	}
+
+	public virtual int rollDamage(bool crit) {
+		return characterSheet.rollDamage(crit);
+	}
+
+	public virtual Weapon getWeapon() {
+		return characterSheet.characterSheet.characterLoadout.rightHand;
+	}
+
+	public virtual string getGenderString() {
+		return (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her" : " his");
+	}
+
+	public void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
         Hit hit = Combat.rollHit(this);
-		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
+		int enemyAC = attackEnemy.getAC();
 		Hit critHit = Combat.rollHit(this);
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
-		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
+		int wapoon = rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
-		gui.log.addMessage(characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? " with " + (characterSheet.characterSheet.characterLoadout.rightHand == null ?  (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her " : " his ") + "fist " : characterSheet.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
+		gui.log.addMessage(getName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2591,15 +2671,16 @@ public class Unit : MonoBehaviour {
 		damageNumber--;
 	}
 
-	public string getName() {
-		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
+	public virtual string deathString() {
+		return "killed";
 	}
 
-	public void killedEnemy(Unit enemy) {
+
+	public void killedEnemy(Unit enemy, bool decisiveStrike) {
 		Debug.Log("Killed Enemy!!");
-		if (this.team==0) gui.log.addMessage(getName() + " killed " + enemy.getName() + "!",Color.green);
-		else gui.log.addMessage(enemy.getName() + " was killed by " + getName() + "!",Color.red);
-		handleClassFeature(ClassFeature.Decisive_Strike);
+		if (this.team==0) gui.log.addMessage(getName() + " " + enemy.deathString() + " " + enemy.getName() + "!",Color.green);
+		else gui.log.addMessage(enemy.getName() + " was " + enemy.deathString() +" by " + getName() + "!",Color.red);
+		if (decisiveStrike) handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();
 	}
 
@@ -2626,6 +2707,14 @@ public class Unit : MonoBehaviour {
 		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
 	}
 
+	public virtual void loseHealth(int amount) {
+		characterSheet.combatScores.loseHealth(amount);
+	}
+
+	public virtual bool givesDecisiveStrike() {
+		return true;
+	}
+
 	public void damage(int damage, Unit u) {
 		//	Debug.Log("Damage");
 		if (damage > 0) {
@@ -2633,9 +2722,9 @@ public class Unit : MonoBehaviour {
 //			hitPoints -= damage;
 //			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
-			characterSheet.combatScores.loseHealth(damage);
+			loseHealth(damage);
 			if (!d && deadOrDyingOrUnconscious()) {
-				u.killedEnemy(this);
+				u.killedEnemy(this, givesDecisiveStrike());
 			}
 		}
 		//	Debug.Log("EndDamage");
@@ -2645,7 +2734,7 @@ public class Unit : MonoBehaviour {
 		return characterSheet.combatScores.isDead();
 	}
 
-	void doDeath() {
+	public virtual void doDeath() {
 		//	Debug.Log("Do Death");
 		//	mapGenerator.
 	//	if (died) dieTime += Time.deltaTime;
@@ -2672,7 +2761,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void handleClassFeature(ClassFeature feature) {
-		Debug.Log("handleClassFeature("+feature + ")");
+		if (characterSheet==null) return;
 		if (!characterSheet.characterProgress.hasFeature(feature)) return;
 		Debug.Log("Has!!");
 		switch(feature) {

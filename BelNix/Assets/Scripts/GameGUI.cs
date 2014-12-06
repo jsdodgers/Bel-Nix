@@ -844,6 +844,16 @@ public class GameGUI : MonoBehaviour {
 	//	Debug.Log("OnGUIEnd");
 	}
 
+	public Turret getCurrentTurret() {
+		return getTurret(selectedTurretIndex);
+	}
+
+	public Turret getTurret(int n) {
+		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+		if (n >= turrets.Count || n<0) return null;
+		return turrets[n];
+	}
+
 	public void showCurrentTurret() {
 		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
 		float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;

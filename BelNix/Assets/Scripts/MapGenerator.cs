@@ -44,7 +44,7 @@ public class MapGenerator : MonoBehaviour {
 	Unit hoveredCharacter;
 	ArrayList players;
 	public ArrayList enemies;
-	GameObject turrets;
+	public GameObject turrets;
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
@@ -458,8 +458,10 @@ public class MapGenerator : MonoBehaviour {
 
 	public Unit nextPlayer() {
 		if (gameState != GameState.Playing) return null;
-		if (currentUnit >=0 && currentUnit < priorityOrder.Count)
+		if (currentUnit >=0 && currentUnit < priorityOrder.Count) {
 			getCurrentUnit().removeCurrent();
+			getCurrentUnit().doTurrets();
+		}
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
@@ -1297,6 +1299,11 @@ public class MapGenerator : MonoBehaviour {
 
 		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Place_Turret) {
 			if (turretBeingPlaced != null) {
+				Turret turret = gui.getCurrentTurret();
+				turretBeingPlaced.turret = turret;
+				turretBeingPlaced.owner = getCurrentUnit();
+				getCurrentUnit().addTurret(turretBeingPlaced);
+				if (turret != null) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(turret);
 				turretBeingPlacedInDirection = Direction.None;
 				turretBeingPlaced = null;
 				getCurrentUnit().usedStandard = true;
@@ -1429,6 +1436,8 @@ public class MapGenerator : MonoBehaviour {
 						g = Instantiate(turretPrefab) as GameObject;
 						g.transform.parent = turrets.transform;
 						tu = g.GetComponent<TurretUnit>();
+						tu.mapGenerator = this;
+						tu.gui = gui;
 						tu.team = getCurrentUnit().team;
 						turretBeingPlaced = tu;
 					}
@@ -1737,6 +1746,8 @@ public class MapGenerator : MonoBehaviour {
 								g = Instantiate(turretPrefab) as GameObject;
 								g.transform.parent = turrets.transform;
 								tu = g.GetComponent<TurretUnit>();
+								tu.mapGenerator = this;
+								tu.gui = gui;
 								tu.team = getCurrentUnit().team;
 								turretBeingPlaced = tu;
 							}

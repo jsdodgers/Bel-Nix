@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public enum ItemType {Weapon, Armor, Useable, Ammunition, Mechanical, Misc}
+public enum ItemStackType {Applicator, Gear, Frame, EnergySource, Trigger, Turret, None}
 
 
 public class EditorItem : MonoBehaviour {
@@ -17,7 +18,7 @@ public class EditorItem : MonoBehaviour {
 }
 
 public class Item {
-	
+	public ItemStackType itemStackType = ItemStackType.None;
 	public string itemName;
 	public ItemType itemType;
 	public int gold, silver, copper;
@@ -59,6 +60,17 @@ public class Item {
 	public Item() {
 		stack = new List<Item>();
 	}
+
+	public bool removeItemFromStack(Item i) {
+		if (i==this) return false;
+		if (i.itemStackType!=itemStackType) return false;
+		if (stack.Contains(i)) {
+			stack.Remove(i);
+			return true;
+		}
+		return false;
+	}
+
 	public Item popStack() {
 		if (stack.Count==0) return null;
 		Item i = stack[stack.Count-1];

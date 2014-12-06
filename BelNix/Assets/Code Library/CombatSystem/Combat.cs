@@ -23,17 +23,26 @@ namespace CombatSystem
         {
             //attack(attacker.ch
             //int attackPower = attacker.GetComponent<CharacterLoadOut>().rightHand.rollDamage();
-        }
+		}
+		/*
+		public static Hit rollHit(Unit attacker)
+		{
+			int diceRoll = rollD20();
+			int criticalHitChance = attacker.characterSheet.characterLoadout.rightHand.criticalChance;
+			return new Hit(attacker.characterSheet.skillScores.getScore(Skill.Melee) + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+		}
 
-        public static Hit rollHit(Unit attacker)
-        {
-            int diceRoll = rollD20();
-            int criticalHitChance = attacker.characterSheet.characterLoadout.rightHand.criticalChance;
-            return new Hit(attacker.characterSheet.skillScores.getScore(Skill.Melee) + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
-        }
+		*/
+		
+		public static Hit rollHit(Unit attacker)
+		{
+			int diceRoll = rollD20();
+			int criticalHitChance = attacker.getCritChance();
+			return new Hit(attacker.getMeleeScore() + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+		}
 
         public static bool flanking(Unit attacker)
-        {
+		{	if (attacker.attackEnemy == null) return false;
             // Get the positions on the grid for the attacker and defender
             Vector3 attackerPosition = attacker.position;
             Vector3 defenderPosition = attacker.attackEnemy.position;
