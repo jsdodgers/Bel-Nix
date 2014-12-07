@@ -12,7 +12,7 @@ public class ItemArmor : EditorItem {
 	//Armor armor;
 	public Armor getArmor() {
 	//	if (armor == null)
-			return new Armor(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, armorType, AC);
+			return new Armor(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, armorType, AC);
 	//	return armor;
 	}
 }

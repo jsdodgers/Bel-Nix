@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using CharacterInfo;
 using System.Linq;
 using CombatSystem;
@@ -33,6 +34,10 @@ public class Character : MonoBehaviour
 		//int flankY = (pY == eY ? pY : eY - (pY - eY));
 		//return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
 	//}
+
+	public List<SpriteOrder> getSprites() {
+		return characterSheet.characterLoadout.sprites;
+	}
 
 	public int rollForSkill(Skill skill, int dieType = 10) {
 		int roll = Random.Range(1, dieType + 1);

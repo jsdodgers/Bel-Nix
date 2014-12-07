@@ -7,6 +7,23 @@ public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
 
+	public const int gridOrder = 2;
+	public const int circleNormalOrder = 30;
+	public const int circleMovingOrder = 31;
+	public const int trailOrder = 40;
+	public const int arrowOrder = 60;
+	public const int warningOrder = 70;
+	public const int playerNormalOrder = 300;
+	public const int playerArmorOrder = 310;
+	public const int playerMovingOrder = 400;
+	public const int playerMovingArmorOrder = 410;
+	public const int playerSelectOrder = 1000;
+	public const int playerSelectPlayerOrder = 1200;
+	public const int playerSelectPlayerArmorOrder = 1210;
+	public const int playerSelectSelectedPlayerOrder = 1300;
+	public const int playerSelectSelectedPlayerArmorOrder = 1310;
+	public const int mouseOverOrder = 10000;
+
 
 	public GameState gameState = GameState.Playing;
 	public string tileMapName;
@@ -228,6 +245,8 @@ public class MapGenerator : MonoBehaviour {
 			p.rollInitiative();
 			p.characterName = "Player" + bbb;
 			priorityOrder.Add(p);
+			p.renderer.sortingOrder = playerNormalOrder;
+			p.setAllSpritesToRenderingOrder(playerArmorOrder);
 			//		e.deselect();
 			bbb++;
 		}
@@ -249,6 +268,8 @@ public class MapGenerator : MonoBehaviour {
 			e.rollInitiative();
 			e.characterName = "Enemy" + aaa;
 			priorityOrder.Add(e);
+			e.renderer.sortingOrder = playerNormalOrder;
+			e.setAllSpritesToRenderingOrder(playerArmorOrder);
 	//		e.deselect();
 			aaa++;
 		}
@@ -362,7 +383,7 @@ public class MapGenerator : MonoBehaviour {
 		GameObject go = new GameObject();
 		go.name = "Selection";
 		SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-		sr.sortingOrder = 900;
+		sr.sortingOrder = playerSelectOrder;
 //		sr.sprite.texture = tex;
 		//		Sprite spr = Sprite.Create(tex, new Rect(Screen.width - 100, 0.0f, 100.0f, Screen.height), new Vector2(Screen.width - 100, 0.0f));
 		Sprite spr = Sprite.Create(tex, new Rect(0.0f, 0.0f, texWidth, texHeight), new Vector2(0.0f, 0.0f));
@@ -383,7 +404,7 @@ public class MapGenerator : MonoBehaviour {
 		for (int n=0;n<chars.Length-1;n++) {
 			GameObject p = (GameObject)GameObject.Instantiate(playerPrefab);
 			SpriteRenderer sr = p.GetComponent<SpriteRenderer>();
-			sr.sortingOrder = 90000;
+			sr.sortingOrder = playerSelectPlayerOrder;
 			p.transform.parent = Camera.main.transform;
 			Unit pl = p.GetComponent<Unit>();
 //			pl.mapGenerator = this;
@@ -392,6 +413,7 @@ public class MapGenerator : MonoBehaviour {
 			players.Add(pl);
 			priorityOrder.Add(pl);
 			pl.loadCharacterSheetFromTextFile(chars[n]);
+			pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
 			pl.rollInitiative();
 			selectionUnits.Add(pl);
 			Debug.Log(pl.characterSheet.personalInfo.getCharacterName().fullName());
@@ -765,6 +787,7 @@ public class MapGenerator : MonoBehaviour {
 			GameObject go;
 			if (n == path1.Count-1) {
 				go = GameObject.Instantiate(arrowPointPrefab) as GameObject;
+				go.renderer.sortingOrder = arrowOrder;
 				int xDif = (int)(v.x - v0.x);
 				int yDif = (int)(v.y - v0.y);
 				go.transform.eulerAngles = new Vector3(0.0f, 0.0f, (xDif==-1 ?90.0f : (xDif==1 ? 270.0f : (yDif == -1 ? 0.0f : 180.0f))));
@@ -773,6 +796,7 @@ public class MapGenerator : MonoBehaviour {
 				Vector2 v2 = (Vector2)path1[n+1];
 				if (v2.x == v0.x || v2.y == v0.y) {
 					go = GameObject.Instantiate(arrowStraightPrefab) as GameObject;
+					go.renderer.sortingOrder = arrowOrder;
 					if (v2.y == v0.y) {
 						go.transform.eulerAngles = new Vector3(0.0f, 0.0f, 90.0f);
 					}
@@ -784,6 +808,7 @@ public class MapGenerator : MonoBehaviour {
 					int yDif2 = (int)(v.y - v0.y);
 			//		//Debug.Log("xDif1: " + xDif1 + " yDif1: " + yDif1 + " xDif2: " + xDif2 + " yDif2: " + yDif2);
 					go = GameObject.Instantiate(arrowCurvePrefab) as GameObject;
+					go.renderer.sortingOrder = arrowOrder;
 					float rot = 0.0f;
 					if (xDif1 == -1 && yDif2 == -1) rot = 270.0f;
 					else if (xDif2 == 1 && yDif1 == -1) rot = 180.0f;
@@ -814,6 +839,7 @@ public class MapGenerator : MonoBehaviour {
 				if (isDifficult && provokes) warning = GameObject.Instantiate(warningBothPrefab) as GameObject;
 				else if (isDifficult) warning = GameObject.Instantiate(warningYellowPrefab) as GameObject;
 				else warning = GameObject.Instantiate(warningRedPrefab) as GameObject;
+				warning.renderer.sortingOrder = warningOrder;
 				warning.transform.parent = path.transform;
 				warning.transform.localPosition = new Vector3(v0.x + (direction==Direction.Right ? 1.0f : (direction==Direction.Left ? 0.0f : 0.5f)), -v0.y - (direction==Direction.Down ? 1.0f : (direction==Direction.Up ? 0.0f : 0.5f)), 0.0f);
 			}
@@ -1696,9 +1722,11 @@ public class MapGenerator : MonoBehaviour {
 //				selectedUnit = go.GetComponent<Unit>();
 //				selectedUnit.setSelected();
 				deselectAllUnits();
-				selectUnit(go.GetComponent<Unit>(),false);
+				Unit uu = go.GetComponent<Unit>();
+				selectUnit(uu,false);
 				go.transform.parent = playerTransform;
-				go.GetComponent<SpriteRenderer>().sortingOrder = 90001;
+				go.GetComponent<SpriteRenderer>().sortingOrder = playerSelectSelectedPlayerOrder;
+				uu.setAllSpritesToRenderingOrder(playerSelectSelectedPlayerArmorOrder);
 				Vector3 pos = Input.mousePosition;
 				pos.z = 10.0f;
 				pos = Camera.main.ScreenToWorldPoint(pos);
@@ -1854,7 +1882,8 @@ public class MapGenerator : MonoBehaviour {
 						}
 						else {
 							u.transform.parent = cameraTransform;
-							u.GetComponent<SpriteRenderer>().sortingOrder = 90000;
+							u.GetComponent<SpriteRenderer>().sortingOrder = playerSelectPlayerOrder;
+							u.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
 							t.removeCharacter();
 //							selectionUnits.Add(u);
 //							selectionUnits.Insert(selectionUnits.IndexOf(selectedSelectionObject.GetComponent<Unit>()),u);
@@ -1864,14 +1893,17 @@ public class MapGenerator : MonoBehaviour {
 					u2.setPosition(new Vector3(posX, -posY, 1.0f));
 					t.setCharacter(u2);
 					selectionUnits.Remove(u2);
-					u2.GetComponent<SpriteRenderer>().sortingOrder = 10;
+					u2.GetComponent<SpriteRenderer>().sortingOrder = playerNormalOrder;
+					u2.setAllSpritesToRenderingOrder(playerArmorOrder);
 				}
 				else {
 					if (selectionStartingTile!=null && !overThing) {
-						u2.GetComponent<SpriteRenderer>().sortingOrder = 10;
+						u2.GetComponent<SpriteRenderer>().sortingOrder = playerNormalOrder;
+						u2.setAllSpritesToRenderingOrder(playerArmorOrder);
 					}
 					else {
-						u2.GetComponent<SpriteRenderer>().sortingOrder = 90000;
+						u2.GetComponent<SpriteRenderer>().sortingOrder = playerSelectPlayerOrder;
+						u2.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
 						if (selectionStartingTile != null) {
 							selectionStartingTile.removeCharacter();
 						}
@@ -2257,7 +2289,7 @@ public class MapGenerator : MonoBehaviour {
 				mouseOver.transform.parent = mapTransform;
 				SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
 				sr.color = new Color(1.0f,1.0f,1.0f,0.4f);
-				sr.sortingOrder = 200;
+				sr.sortingOrder = mouseOverOrder;
 			}
 			else if (spaceDown) {
 				Vector3 v4 = startSquareActual;
