@@ -834,7 +834,6 @@ public class GameGUI : MonoBehaviour {
 					Vector2 gearSize = st.CalcSize(gearContent);
 					Vector2 applicatorSize = st.CalcSize(applicatorContent);
 					float y = r.y + (r.height - frameSize.y - energySourceSize.y - gearSize.y - applicatorSize.y)/2.0f;
-					Debug.Log("x: " + x + " y: " + y + " " + frameSize.x + ", " + frameSize.y);
 					GUI.Label(new Rect(x, y, frameSize.x, frameSize.y), frameContent, st);
 					y+=frameSize.y;
 					GUI.Label(new Rect(x, y, energySourceSize.x, energySourceSize.y), energySourceContent, st);

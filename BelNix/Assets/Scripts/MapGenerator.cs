@@ -357,6 +357,7 @@ public class MapGenerator : MonoBehaviour {
 		
 		if (turretBeingPlaced != null) {
 			unsetTurretDirectionAttack((int)turretBeingPlaced.position.x, (int)-turretBeingPlaced.position.y, 5, turretBeingPlaced.direction, turretBeingPlaced);
+			tiles[(int)turretBeingPlaced.position.x, (int)-turretBeingPlaced.position.y].removeCharacter();
 			Destroy(turretBeingPlaced.gameObject);
 			turretBeingPlacedInDirection = Direction.None;
 			turretBeingPlaced = null;
@@ -1346,7 +1347,6 @@ public class MapGenerator : MonoBehaviour {
 		if (currentlySelectedTrap!=null) {
 			Tile t = currentKeysTile;
 			bool first = currentTrap[0]==currentlySelectedTrap;
-			Debug.Log(first + "  " + currentTrap.Count);
 			if (t!=null) t.removeTrap();
 			currentTrap.Remove(currentlySelectedTrap);
 			Destroy(currentlySelectedTrap.gameObject);
@@ -1398,7 +1398,6 @@ public class MapGenerator : MonoBehaviour {
 					}
 				}
 				}
-				Debug.Log(currentTrap.Count);
 			}
 			resetRanges(false);
 		}
@@ -1933,7 +1932,6 @@ public class MapGenerator : MonoBehaviour {
 						Tile t = tiles[posX,posY];
 						if (t!=null && t.canUseSpecialCurr && t!=currentUnitTile && (turretBeingPlaced==null || t.getCharacter() != turretBeingPlaced)) {
 							Direction dir = getDirectionOfTile(currentUnitTile,t);
-							Debug.Log(dir);
 							GameObject g;
 							TurretUnit tu;
 							if (turretBeingPlaced != null) {
