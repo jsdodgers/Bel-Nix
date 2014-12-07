@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 using System.IO;
-
+using System.Linq;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
@@ -1158,6 +1158,10 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.L)) {
 			gui.selectMinor(MinorType.Loot);
 		}
+		if (Input.GetKeyDown(KeyCode.P)) {
+			if (getCurrentUnit().getStandardTypes().Contains(StandardType.Place_Turret))
+				gui.selectStandard(StandardType.Place_Turret);
+		}
 		if (Input.GetKeyDown(KeyCode.E)) {
 			gui.clickMovement();
 		}
@@ -1333,6 +1337,7 @@ public class MapGenerator : MonoBehaviour {
 				turretBeingPlacedInDirection = Direction.None;
 				turretBeingPlaced = null;
 				getCurrentUnit().usedStandard = true;
+				getCurrentUnit().useMovementIfStarted();
 			}
 		}
 	}

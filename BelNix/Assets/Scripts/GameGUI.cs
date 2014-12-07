@@ -635,9 +635,11 @@ public class GameGUI : MonoBehaviour {
 				}
 			}
 			if (GUI.Button(beginButtonRect(), "Engage", getBeginButtonStyle())) {
-				mapGenerator.enterPriority();
-				foreach (Unit u in mapGenerator.priorityOrder) {
-					u.setRotationToMostInterestingTile();
+				if (mapGenerator.playerTransform.childCount!=0) {
+					mapGenerator.enterPriority();
+					foreach (Unit u in mapGenerator.priorityOrder) {
+						u.setRotationToMostInterestingTile();
+					}
 				}
 			}
 		}
