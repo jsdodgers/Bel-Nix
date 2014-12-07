@@ -51,6 +51,7 @@ public class MapGenerator : MonoBehaviour {
 	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
 	GameObject turretPrefab;
+	GameObject trapPrefab;
 	GameObject enemyPrefab;
 	GameObject warningRedPrefab;
 	GameObject warningYellowPrefab;
@@ -58,10 +59,13 @@ public class MapGenerator : MonoBehaviour {
 //	public GameObject selectedPlayer;
 	public Unit selectedUnit;
 	public List<Unit> selectedUnits;
+	public List<TrapUnit> currentTrap;
+	public TrapUnit currentlySelectedTrap;
 	Unit hoveredCharacter;
 	ArrayList players;
 	public ArrayList enemies;
 	public GameObject turrets;
+	public GameObject traps;
 	GameObject grids;
 	GameObject lines;
 	GameObject path;
@@ -153,6 +157,7 @@ public class MapGenerator : MonoBehaviour {
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
 		cameraTransform = mainCameraObj.transform;
 		mainCamera = mainCameraObj.GetComponent<Camera>();
+		currentTrap = new List<TrapUnit>();
 		//	cameraOriginalSize = mainCamera.orthographicSize;
 		//		sprend = (SpriteRenderer)transform.GetComponent("SpriteRenderer");
 		//		spr = sprend.sprite;
@@ -172,6 +177,7 @@ public class MapGenerator : MonoBehaviour {
 		gui.mapGenerator = this;
 
 		turrets = mapTransform.FindChild("Turrets").gameObject;
+		traps = mapTransform.FindChild("Traps").gameObject;
 		lines = mapTransform.FindChild("Lines").gameObject;
 		grids = mapTransform.FindChild("Grid").gameObject;
 		path = mapTransform.Find("Path").gameObject;
@@ -190,6 +196,7 @@ public class MapGenerator : MonoBehaviour {
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
 		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
+		trapPrefab = (GameObject)Resources.Load("Units/Turrets/TrapPrefab");
 		arrowStraightPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowStraight");
 		arrowCurvePrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowCurve");
 		arrowPointPrefab = (GameObject)Resources.Load("Materials/Arrow/ArrowPoint");
@@ -345,8 +352,17 @@ public class MapGenerator : MonoBehaviour {
 			turretBeingPlaced = null;
 			drawAllRanges();
 		}
+		if (currentTrap.Count > 0) {
+			for (int n = currentTrap.Count-1;n>=0;n--) {
+				Destroy(currentTrap[n].gameObject);
+				currentTrap.RemoveAt(n);
+			}
+			currentlySelectedTrap = null;
+		}
 		currentKeysTile = currentUnitTile;
-		if (gui.selectedMovement && gui.selectedMovementType == MovementType.Move)
+		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap)
+			currentKeysSize = 5;
+		else if (gui.selectedMovement && gui.selectedMovementType == MovementType.Move)
 			currentKeysSize = getCurrentUnit().maxMoveDist;
 		else if (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack) currentKeysSize = getCurrentUnit().getAttackRange();
 		else currentKeysSize = 1;
@@ -984,6 +1000,26 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanPlaceTurret(x,y+1,radiusLeft-1,currRadius+1, cs);
 	}
 
+	public void setCharacterCanLayTrap(int x, int y, int radiusLeft, int currRadius, Unit cs) {
+		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		if (t.canUseSpecialCurr && t.minSpecialCurr <= currRadius) return;
+		if (t.standable && !t.hasCharacter() && !t.hasTrap()) {
+			t.canUseSpecialCurr = true;
+			t.minSpecialCurr = currRadius;
+		}
+		if (radiusLeft == 0) return;
+		//if (canmo(Direction.Left, x, y, cs))
+		if (passibility(Direction.Left, x, y)>=1)
+			setCharacterCanLayTrap(x-1,y,radiusLeft-1,currRadius+1, cs);
+		if (passibility(Direction.Right, x, y)>=1)
+			setCharacterCanLayTrap(x+1,y,radiusLeft-1,currRadius+1, cs);
+		if (passibility(Direction.Up, x, y)>=1)
+			setCharacterCanLayTrap(x,y-1,radiusLeft-1,currRadius+1, cs);
+		if (passibility(Direction.Down, x, y)>=1)
+			setCharacterCanLayTrap(x,y+1,radiusLeft-1,currRadius+1, cs);
+	}
+
 	public void setTurretDirectionAttack(int x, int y, int radiusLeft, Direction dir, Unit cs) {
 		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
@@ -1043,6 +1079,23 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (passibility(dir, oldX, oldY)>0)
 			unsetTurretDirectionAttack(x, y, radiusLeft-1, dir, cs);
+	}
+
+	public void setTrapPlacementRange(int x, int y, int radiusLeft) {
+		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
+		Tile t = tiles[x,y];
+		Debug.Log(t.hasCharacter() + " " + t.hasTrap() + "  " + (!t.hasTrap() || t.getTrap().fullTrap != currentTrap));
+		if (t.canUseSpecialCurr || t.hasCharacter() || (t.hasTrap() && t.getTrap().fullTrap != currentTrap)) return;
+		t.canUseSpecialCurr = true;
+		if (radiusLeft==0 && !t.getTrap()) return;
+		if (passibility(Direction.Left, x, y)>=1)
+			setTrapPlacementRange(x-1,y,(t.getTile(Direction.Left).getTrap()?1:radiusLeft-1));
+		if (passibility(Direction.Right, x, y)>=1)
+			setTrapPlacementRange(x+1,y,(t.getTile(Direction.Right).getTrap()?1:radiusLeft-1));
+		if (passibility(Direction.Up, x, y)>=1)
+			setTrapPlacementRange(x,y-1,(t.getTile(Direction.Up).getTrap()?1:radiusLeft-1));
+		if (passibility(Direction.Down, x, y)>=1)
+			setTrapPlacementRange(x,y+1,(t.getTile(Direction.Down).getTrap()?1:radiusLeft-1));
 	}
 /*
 	bool isInPlayerRadius(Player player1, int radius, int x, int y) {
@@ -1340,6 +1393,15 @@ public class MapGenerator : MonoBehaviour {
 				getCurrentUnit().useMovementIfStarted();
 			}
 		}
+		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap) {
+			while (currentTrap.Count > 0) currentTrap.RemoveAt(0);
+			if (currentlySelectedTrap != null) {
+				currentlySelectedTrap.unsetSelectedForPlacement();
+				currentlySelectedTrap = null;
+			}
+			getCurrentUnit().usedStandard = true;
+			getCurrentUnit().useMovementIfStarted();
+		}
 	}
 
 	public bool directionsAreOpposite(Direction dir, Direction dir2) {
@@ -1483,6 +1545,33 @@ public class MapGenerator : MonoBehaviour {
 					drawAllRanges();
 				}
 				else currentKeysTile = currentUnitTile;
+			}
+			else if (gui.selectedStandardType == StandardType.Lay_Trap) {
+				if (t!=null && t.canUseSpecialCurr && !t.hasCharacter() && !t.hasTrap()) {
+					GameObject g = Instantiate(trapPrefab) as GameObject;
+					g.transform.parent = traps.transform;
+					TrapUnit tu = g.GetComponent<TrapUnit>();
+					if (currentlySelectedTrap != null)
+						currentlySelectedTrap.unsetSelectedForPlacement();
+					currentlySelectedTrap = tu;
+					tu.setSelectedForPlacement();
+					tu.mapGenerator = this;
+					tu.gui = gui;
+					tu.team = getCurrentUnit().team;
+					tu.fullTrap = currentTrap;
+					currentTrap.Add(tu);
+					t.setTrap(tu);
+					Vector2 v = t.getPosition();
+					v.y *= -1;
+					tu.setPosition(new Vector3(v.x, v.y, 0.0f));
+					resetRanges(false);
+				}
+				else if (t!=null && t.canUseSpecialCurr && t.hasTrap()) {
+					if (currentlySelectedTrap != null)
+						currentlySelectedTrap.unsetSelectedForPlacement();
+					currentlySelectedTrap = t.getTrap();
+					currentlySelectedTrap.setSelectedForPlacement();
+				}
 			}
 			else {
 				if (selectedUnit.attackEnemy) {
@@ -2109,9 +2198,17 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void resetRanges() {
-		resetCurrentKeysTile();
+		resetRanges(true);
+	}
+
+	public void resetRanges(bool keys) {
+		if (keys) resetCurrentKeysTile();
 		removeAllRanges(false);
-		if (selectedUnit) {
+		if (!isInCharacterPlacement() && gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0) {
+			Debug.Log("Reset Ranges Trap!!!");
+			setTrapPlacementRange((int)currentTrap[0].position.x, (int)-currentTrap[0].position.y, 1);
+		}
+		else if (selectedUnit) {
 			addCharacterRange(selectedUnit, false);
 			foreach (Unit u in selectedUnits) {
 				addCharacterRange(u, false);
@@ -2145,6 +2242,8 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Place_Turret) && !isOther)
 			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
+		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap) && !isOther)
+			setCharacterCanLayTrap((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		if (draw) drawAllRanges();
 	}
 

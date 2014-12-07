@@ -121,7 +121,14 @@ namespace CharacterInfo
 			}
 			inventory[0].itemSlot = inventory[0];
 			inventory[0].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
-
+			inventory[1].itemSlot = inventory[0];
+			inventory[4].itemSlot = inventory[0];
+			inventory[5].itemSlot = inventory[0];
+			inventory[2].itemSlot = inventory[2];
+			inventory[3].itemSlot = inventory[2];
+			inventory[6].itemSlot = inventory[2];
+			inventory[7].itemSlot = inventory[2];
+			inventory[2].item = new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
 		}
 
 		public bool removeItem(Item i) {

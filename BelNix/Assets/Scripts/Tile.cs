@@ -10,6 +10,7 @@ public class Tile {
 //	GameObject player;
 //	GameObject enemy;
 	Unit character;
+	TrapUnit trap;
 	public bool standable;
 	int passableLeft;
 	int passableRight;
@@ -156,7 +157,18 @@ public class Tile {
 		minAttackCurr = int.MaxValue;
 		minDistUsedMinors = 0;
 	}
-	
+
+	public void setTrap(TrapUnit tr) {
+		trap = tr;
+	}
+
+	public TrapUnit getTrap() {
+		return trap;
+	}
+
+	public bool hasTrap() {
+		return trap != null;
+	}
 
 	public void setCharacter(Unit cs) {
 		character = cs;
