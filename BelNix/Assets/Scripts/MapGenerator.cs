@@ -1346,6 +1346,7 @@ public class MapGenerator : MonoBehaviour {
 		if (currentlySelectedTrap!=null) {
 			Tile t = currentKeysTile;
 			bool first = currentTrap[0]==currentlySelectedTrap;
+			Debug.Log(first + "  " + currentTrap.Count);
 			if (t!=null) t.removeTrap();
 			currentTrap.Remove(currentlySelectedTrap);
 			Destroy(currentlySelectedTrap.gameObject);
@@ -1355,8 +1356,10 @@ public class MapGenerator : MonoBehaviour {
 			}
 			else {
 				List<TrapUnit> trs = new List<TrapUnit>();
-				trs.Add(currentTrap[0]);
-				currentTrap.RemoveAt(0);
+				if (!first) {
+					trs.Add(currentTrap[0]);
+					currentTrap.RemoveAt(0);
+				}
 				for (int n=0;n<trs.Count && currentTrap.Count > 0 && !first;n++) {
 					TrapUnit currTr = trs[n];
 					Tile til = tiles[(int)currTr.position.x,(int)-currTr.position.y];
@@ -1641,8 +1644,7 @@ public class MapGenerator : MonoBehaviour {
 						currentlySelectedTrap.unsetSelectedForPlacement();
 					currentlySelectedTrap = t.getTrap();
 					currentlySelectedTrap.setSelectedForPlacement();
-				}
-			}
+				}}
 			else {
 				if (selectedUnit.attackEnemy) {
 					selectedUnit.attackEnemy.deselect();
@@ -1831,10 +1833,13 @@ public class MapGenerator : MonoBehaviour {
 		return t2.canStandCurr || t2.canAttackCurr || t2.canUseSpecialCurr;
 	}
 
+	public enum TrapLayType {Add, Delete, None};
+	public TrapLayType trapLayType = TrapLayType.None;
 	public GameObject selectedSelectionObject = null;
 	Vector2 selectedSelectionDiff = new Vector2(0,0);
 	void handleMouseDown() {
 		Tile t2 = null;
+		bool didTrap = false;
 		if (currentSprite != null) {
 			GameObject go2 = currentSprite.gameObject;
 			Transform transform2 = go2.transform;
@@ -1919,7 +1924,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret)) {
+			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap)) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -1959,6 +1964,42 @@ public class MapGenerator : MonoBehaviour {
 //							currentUnitTile = t;
 						}
 						else currentKeysTile = currentUnitTile;
+					}
+					else if (gui.selectedStandardType==StandardType.Lay_Trap) {
+						Tile t = tiles[posX,posY];
+						if (t != null && t.canUseSpecialCurr) {
+							currentKeysTile = t;
+							if (t.hasTrap()) {
+								if (currentlySelectedTrap != null)
+									currentlySelectedTrap.unsetSelectedForPlacement();
+								currentlySelectedTrap = t.getTrap();
+								deleteCurrentTrap();
+								didTrap = true;
+								trapLayType = TrapLayType.Delete;
+							}
+							else {
+								GameObject g = Instantiate(trapPrefab) as GameObject;
+								g.renderer.sortingOrder = trapOrder;
+								g.transform.parent = traps.transform;
+								TrapUnit tu = g.GetComponent<TrapUnit>();
+								if (currentlySelectedTrap != null)
+									currentlySelectedTrap.unsetSelectedForPlacement();
+								currentlySelectedTrap = tu;
+								tu.setSelectedForPlacement();
+								tu.mapGenerator = this;
+								tu.gui = gui;
+								tu.team = getCurrentUnit().team;
+								tu.fullTrap = currentTrap;
+								currentTrap.Add(tu);
+								t.setTrap(tu);
+								Vector2 v = t.getPosition();
+								v.y *= -1;
+								tu.setPosition(new Vector3(v.x, v.y, 0.0f));
+								resetRanges(false);
+								didTrap = true;
+								trapLayType = TrapLayType.Add;
+							}
+						}
 					}
 					else {
 						if (selectedUnit.attackEnemy) {
@@ -2002,7 +2043,6 @@ public class MapGenerator : MonoBehaviour {
 					}
 					if (lastPlayerPath.Count > 1)
 						setPlayerPath(lastPlayerPath);
-					lastArrowPos = v;
 				}
 				else if (gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret && turretBeingPlaced!=null) {
 					Direction dir = Direction.None;
@@ -2017,7 +2057,45 @@ public class MapGenerator : MonoBehaviour {
 						}
 					}
 				}
-				
+				else if (gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count > 0 && !didTrap) {
+					Tile t = tiles[x,-y];
+					if (t != null && t.canUseSpecialCurr) {
+					currentKeysTile = t;
+						if (!t.hasTrap()) {
+							if (trapLayType == TrapLayType.Add) {
+							GameObject g = Instantiate(trapPrefab) as GameObject;
+							g.renderer.sortingOrder = trapOrder;
+							g.transform.parent = traps.transform;
+							TrapUnit tu = g.GetComponent<TrapUnit>();
+							if (currentlySelectedTrap != null)
+								currentlySelectedTrap.unsetSelectedForPlacement();
+							currentlySelectedTrap = tu;
+							tu.setSelectedForPlacement();
+							tu.mapGenerator = this;
+							tu.gui = gui;
+							tu.team = getCurrentUnit().team;
+							tu.fullTrap = currentTrap;
+							currentTrap.Add(tu);
+							t.setTrap(tu);
+							Vector2 v22 = t.getPosition();
+							v22.y *= -1;
+							tu.setPosition(new Vector3(v22.x, v22.y, 0.0f));
+							resetRanges(false);
+							}
+						}
+						else {
+							if (currentlySelectedTrap != null)
+								currentlySelectedTrap.unsetSelectedForPlacement();
+							currentlySelectedTrap = t.getTrap();
+							currentlySelectedTrap.setSelectedForPlacement();
+							if (trapLayType == TrapLayType.Delete) {
+								deleteCurrentTrap();
+							}
+
+						}
+					}
+				}
+				lastArrowPos = v;
 			}
 		}
 	}
@@ -2279,7 +2357,6 @@ public class MapGenerator : MonoBehaviour {
 		if (keys) resetCurrentKeysTile();
 		removeAllRanges(false);
 		if (!isInCharacterPlacement() && gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0) {
-			Debug.Log("Reset Ranges Trap!!!");
 			setTrapPlacementRange((int)currentTrap[0].position.x, (int)-currentTrap[0].position.y, 1);
 		}
 		else if (selectedUnit) {
