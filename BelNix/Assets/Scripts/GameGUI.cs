@@ -153,7 +153,8 @@ public class GameGUI : MonoBehaviour {
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
-				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null);
+				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
+				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -746,7 +747,7 @@ public class GameGUI : MonoBehaviour {
 						}
 					}
 
-					if (((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedStandardType==StandardType.Place_Turret && mapGenerator.turretBeingPlaced != null)) {
+					if (((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedStandardType==StandardType.Place_Turret && mapGenerator.turretBeingPlaced != null) || (selectedStandardType==StandardType.Lay_Trap && mapGenerator.currentTrap.Count>0)) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							Debug.Log("Confirm: " + StandardType.Throw);
 							mapGenerator.performAction();

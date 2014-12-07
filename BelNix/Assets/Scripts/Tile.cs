@@ -170,6 +170,10 @@ public class Tile {
 		return trap != null;
 	}
 
+	public void removeTrap() {
+		trap = null;
+	}
+
 	public void setCharacter(Unit cs) {
 		character = cs;
 	}

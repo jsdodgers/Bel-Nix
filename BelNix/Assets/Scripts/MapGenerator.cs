@@ -8,6 +8,7 @@ public enum GameState {Playing, Won, Lost, None}
 public class MapGenerator : MonoBehaviour {
 
 	public const int gridOrder = 2;
+	public const int trapOrder = 20;
 	public const int circleNormalOrder = 30;
 	public const int circleMovingOrder = 31;
 	public const int trailOrder = 40;
@@ -342,6 +343,15 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
+	public void removeCurrentTrap() {
+		if (currentlySelectedTrap==null) return;
+		for (int n = currentTrap.Count-1;n>=0;n--) {
+			Destroy(currentTrap[n].gameObject);
+			currentTrap.RemoveAt(n);
+		}
+		currentlySelectedTrap = null;
+	}
+
 	public void resetCurrentKeysTile() {
 		if (isInCharacterPlacement()) return;
 		
@@ -353,11 +363,7 @@ public class MapGenerator : MonoBehaviour {
 			drawAllRanges();
 		}
 		if (currentTrap.Count > 0) {
-			for (int n = currentTrap.Count-1;n>=0;n--) {
-				Destroy(currentTrap[n].gameObject);
-				currentTrap.RemoveAt(n);
-			}
-			currentlySelectedTrap = null;
+			removeCurrentTrap();
 		}
 		currentKeysTile = currentUnitTile;
 		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap)
@@ -1084,7 +1090,7 @@ public class MapGenerator : MonoBehaviour {
 	public void setTrapPlacementRange(int x, int y, int radiusLeft) {
 		if (x <0 || y <0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
-		Debug.Log(t.hasCharacter() + " " + t.hasTrap() + "  " + (!t.hasTrap() || t.getTrap().fullTrap != currentTrap));
+//		Debug.Log(t.hasCharacter() + " " + t.hasTrap() + "  " + (!t.hasTrap() || t.getTrap().fullTrap != currentTrap));
 		if (t.canUseSpecialCurr || t.hasCharacter() || (t.hasTrap() && t.getTrap().fullTrap != currentTrap)) return;
 		t.canUseSpecialCurr = true;
 		if (radiusLeft==0 && !t.getTrap()) return;
@@ -1257,6 +1263,9 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Alpha9)) {
 			gui.selectTypeAt(8);
 		}
+		if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) {
+			deleteCurrentTrap();
+		}
 		if (Input.GetKeyDown(KeyCode.Escape) && !normalDraggin && !shiftDraggin) {
 			if (gui.openTab == Tab.None) {
 				if (gui.selectedStandard) {
@@ -1333,6 +1342,65 @@ public class MapGenerator : MonoBehaviour {
 		handleSpace();
 	}
 
+	public void deleteCurrentTrap() {
+		if (currentlySelectedTrap!=null) {
+			Tile t = currentKeysTile;
+			bool first = currentTrap[0]==currentlySelectedTrap;
+			if (t!=null) t.removeTrap();
+			currentTrap.Remove(currentlySelectedTrap);
+			Destroy(currentlySelectedTrap.gameObject);
+			currentlySelectedTrap = null;
+			if (currentTrap.Count==0) {
+				resetCurrentKeysTile();
+			}
+			else {
+				List<TrapUnit> trs = new List<TrapUnit>();
+				trs.Add(currentTrap[0]);
+				currentTrap.RemoveAt(0);
+				for (int n=0;n<trs.Count && currentTrap.Count > 0 && !first;n++) {
+					TrapUnit currTr = trs[n];
+					Tile til = tiles[(int)currTr.position.x,(int)-currTr.position.y];
+					foreach (Direction d in Tile.directions) {
+						Tile tDir = til.getTile(d);
+						TrapUnit unitTr = tDir.getTrap();
+						if (unitTr != null) {
+							if (unitTr.fullTrap==currentTrap && currentTrap.Contains(unitTr)) {
+								currentTrap.Remove(unitTr);
+								trs.Add(unitTr);
+							}
+						}
+					}
+				}
+				while (currentTrap.Count>0) {
+					Tile tt = tiles[(int)currentTrap[0].position.x,(int)-currentTrap[0].position.y];
+					tt.removeTrap();
+					Destroy(currentTrap[0].gameObject);
+					currentTrap.RemoveAt(0);
+				}
+				while (trs.Count > 0) {
+					currentTrap.Add(trs[0]);
+					trs.RemoveAt(0);
+				}
+				if (first) {
+					resetCurrentKeysTile();
+				}
+				else {
+				foreach (Direction d in Tile.directions) {
+					Tile tDir = t.getTile(d);
+					if (tDir.hasTrap() && tDir.getTrap().fullTrap==currentTrap) {
+						currentlySelectedTrap = tDir.getTrap();
+						currentlySelectedTrap.setSelectedForPlacement();
+						currentKeysTile = tDir;
+						break;
+					}
+				}
+				}
+				Debug.Log(currentTrap.Count);
+			}
+			resetRanges(false);
+		}
+	}
+
 	public Direction turretBeingPlacedInDirection = Direction.None;
 	public TurretUnit turretBeingPlaced = null;
 	public List<Direction> turretPlaceDirections;
@@ -1401,6 +1469,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 			getCurrentUnit().usedStandard = true;
 			getCurrentUnit().useMovementIfStarted();
+			currentTrap = new List<TrapUnit>();
 		}
 	}
 
@@ -1549,6 +1618,7 @@ public class MapGenerator : MonoBehaviour {
 			else if (gui.selectedStandardType == StandardType.Lay_Trap) {
 				if (t!=null && t.canUseSpecialCurr && !t.hasCharacter() && !t.hasTrap()) {
 					GameObject g = Instantiate(trapPrefab) as GameObject;
+					g.renderer.sortingOrder = trapOrder;
 					g.transform.parent = traps.transform;
 					TrapUnit tu = g.GetComponent<TrapUnit>();
 					if (currentlySelectedTrap != null)
@@ -1779,6 +1849,10 @@ public class MapGenerator : MonoBehaviour {
 				turretBeingPlacedInDirection = Direction.None;
 				turretBeingPlaced = null;
 				drawAllRanges();
+			}
+			if (currentTrap.Count > 0) {
+			//	removeCurrentTrap();
+				resetCurrentKeysTile();
 			}
 			if (!shiftDown) {
 				deselectAllUnits();
@@ -2028,7 +2102,7 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret))) {
+				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						Debug.Log("performAction()");
 						performAction();
