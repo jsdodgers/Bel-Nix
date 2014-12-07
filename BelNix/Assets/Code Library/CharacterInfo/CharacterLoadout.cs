@@ -23,7 +23,7 @@ public class CharacterLoadout : MonoBehaviour
 	public ItemWeapon leftHand;
 }
 
-public struct SpriteOrder {
+public class SpriteOrder {
 	public GameObject sprite;
 	public int order;
 	public SpriteOrder(GameObject sprite, int order) {
@@ -77,6 +77,7 @@ public class CharacterLoadoutActual {
 			item.sprite = sprite;
 			sprite.transform.parent = character.unit.transform;
 			sprite.transform.localPosition = new Vector3(0,0,0);
+			sprite.transform.localEulerAngles = new Vector3(0, 0, 0);
 			sprites.Add(new SpriteOrder(item.sprite, getOrder(itemSlot)));
 		}
 		switch (itemSlot) {
