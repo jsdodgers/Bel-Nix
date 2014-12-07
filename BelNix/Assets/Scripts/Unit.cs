@@ -70,6 +70,17 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+	public List<SpriteOrder> getSprites() {
+		return characterSheet.getSprites();
+	}
+
+	public void setAllSpritesToRenderingOrder(int renderingOrder) {
+		List<SpriteOrder> sprites = getSprites();
+		foreach (SpriteOrder sprite in sprites) {
+			sprite.sprite.renderer.sortingOrder = renderingOrder + sprite.order;
+		}
+	}
+
 	public bool isProne() {
 		return isAfflictedWith(Affliction.Prone);
 //		return affliction == Affliction.Prone;
@@ -1133,8 +1144,8 @@ public class Unit : MonoBehaviour {
 	public Rect fullIRect() {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, inventoryWidth, inventoryHeight);
 	}
-	static InventorySlot[] armorSlots = new InventorySlot[]{InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
-	static InventorySlot[] inventorySlots = new InventorySlot[]{InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
+	public static InventorySlot[] armorSlots = new InventorySlot[]{InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
+	public static InventorySlot[] inventorySlots = new InventorySlot[]{InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
 	public InventorySlot  getInventorySlotFromIndex(Vector2 index) {
 //		if (index.x <0 || index.y < 0 || index.x >3 || index.y >3) return InventorySlot.None;
 //		int ind = (int)index.x + ((int)index.y)*4;
@@ -2262,15 +2273,15 @@ public class Unit : MonoBehaviour {
 	public void loadCharacterSheet() {
 		if (characterSheetLoaded) return;
 		characterSheetLoaded = true;
-		characterSheet.loadData();
 		characterSheet.unit = this;
+		characterSheet.loadData();
 	}
 
 	public void loadCharacterSheetFromTextFile(string textFile) {
 		if (characterSheetLoaded) return;
+		characterSheet.unit = this;
 		characterSheet.loadCharacterFromTextFile(textFile);
 		characterSheetLoaded = true;
-		characterSheet.unit = this;
 	}
 
 	public void setMapGenerator(MapGenerator mg) {
@@ -2307,7 +2318,7 @@ public class Unit : MonoBehaviour {
 		currentMaxPath = 0;
 		if (trail) {
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
-			tr.sortingOrder = 7;
+			tr.sortingOrder = MapGenerator.trailOrder;
 		}
 		if (isCurrent) {
 			addTrail();
@@ -2337,8 +2348,12 @@ public class Unit : MonoBehaviour {
 	}
 
 	void setLayer() {
-		renderer.sortingOrder = (mapGenerator.isInCharacterPlacement() ? renderer.sortingOrder : (moving || attacking || attackAnimating ? 11 : 10));
-		transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
+		if (!mapGenerator.isInCharacterPlacement()) {
+			renderer.sortingOrder = ((moving || attacking || attackAnimating ? MapGenerator.playerMovingOrder : MapGenerator.playerNormalOrder));
+			setAllSpritesToRenderingOrder((moving || attacking || attackAnimating ? MapGenerator.playerMovingArmorOrder : MapGenerator.playerArmorOrder));
+			transform.FindChild("Circle").renderer.sortingOrder = ((moving || attacking || attackAnimating ? MapGenerator.circleMovingOrder : MapGenerator.circleNormalOrder));
+//			transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
+		}
 	}
 
 	void doMovement() {
@@ -2602,7 +2617,19 @@ public class Unit : MonoBehaviour {
 	
 	void attackAnimation() {
 		anim.SetTrigger("Attack");
+		attackAnimationAllSprites();
 		//	attackEnemy = null;
+	}
+
+	void attackAnimationAllSprites() {
+		setAllSpritesTrigger("Attack");
+	}
+
+	void setAllSpritesTrigger(string trigger) {
+		List<SpriteOrder> sprites = getSprites();
+		foreach (SpriteOrder sprite in sprites) {
+			sprite.sprite.GetComponent<Animator>().SetTrigger(trigger);
+		}
 	}
 
 	public virtual int getAC() {

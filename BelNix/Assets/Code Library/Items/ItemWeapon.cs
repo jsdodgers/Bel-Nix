@@ -19,7 +19,7 @@ public class ItemWeapon : EditorItem {
 //	Weapon weapon;
 	public Weapon getWeapon() {
 //		if (weapon == null)
-			return new Weapon(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
+			return new Weapon(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
 //		return weapon;
 	}
 /*

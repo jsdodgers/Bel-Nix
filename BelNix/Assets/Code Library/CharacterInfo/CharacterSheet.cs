@@ -21,7 +21,7 @@ namespace CharacterInfo
 			skillScores				= sScores;
 			inventory = new Inventory();
 			inventory.character = character;
-			characterLoadout = new CharacterLoadoutActual(loadout);
+			characterLoadout = new CharacterLoadoutActual(loadout, character);
             // Character Armor
             // Character Inventory
 		}
