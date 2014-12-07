@@ -2,11 +2,13 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using CharacterInfo;
+using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
-public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Cancel, None}
+public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
 public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
+public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, None}
 
 public class Unit : MonoBehaviour {
 	public bool playerControlled = true;
@@ -64,8 +66,20 @@ public class Unit : MonoBehaviour {
 	public GameGUI gui;
 
 	public List<Affliction> afflictions;
+	public List<TurretUnit> turrets;
 
 	public GameObject damagePrefab;
+
+	public List<SpriteOrder> getSprites() {
+		return characterSheet.getSprites();
+	}
+
+	public void setAllSpritesToRenderingOrder(int renderingOrder) {
+		List<SpriteOrder> sprites = getSprites();
+		foreach (SpriteOrder sprite in sprites) {
+			sprite.sprite.renderer.sortingOrder = renderingOrder + sprite.order;
+		}
+	}
 
 	public bool isProne() {
 		return isAfflictedWith(Affliction.Prone);
@@ -76,6 +90,31 @@ public class Unit : MonoBehaviour {
 		return afflictions.Contains(a);
 //		Debug.Log(a + "  " + affliction + "  " + (a & affliction));
 //		return (a & affliction) != Affliction.None;
+	}
+
+	public static string getNameOfStandardType(StandardType standard) {
+		switch (standard) {
+		case StandardType.Place_Turret:
+			return "Place Turret";
+		case StandardType.Lay_Trap:
+			return "Lay Trap";
+		default:
+			return standard.ToString();
+		}
+	}
+
+	public static string getNameOfMovementType(MovementType movement) {
+		switch (movement) {
+		default:
+			return movement.ToString();
+		}
+	}
+
+	public static string getNameOfMinorType(MinorType minor) {
+		switch (minor) {
+		default:
+			return minor.ToString();
+		}
 	}
 
 
@@ -133,6 +172,8 @@ public class Unit : MonoBehaviour {
 			if (st != StandardType.None)
 				standardTypes.Add(st);
 		}
+		if (characterSheet.characterSheet.inventory.hasTurret()) standardTypes.Add(StandardType.Place_Turret);
+		if (characterSheet.characterSheet.inventory.hasTrap()) standardTypes.Add(StandardType.Lay_Trap);
 		standardTypes.Add(StandardType.Inventory);
 		standardTypes.Add (StandardType.Cancel);
 		return standardTypes.ToArray();
@@ -524,6 +565,18 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}
+		
+		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+			Transform tr = mapGenerator.turrets.transform.GetChild(n);
+			TurretUnit tur = tr.GetComponent<TurretUnit>();
+			if (tur != null && tur.team != team) {
+				float d = distanceFromUnit(tur);
+				if (d < dist) {
+					dist = d;
+					closest = tur;
+				}
+			}
+		}
 		return closest;
 	}
 
@@ -532,6 +585,16 @@ public class Unit : MonoBehaviour {
 		foreach (Unit u in mapGenerator.priorityOrder) {
 			if (u.team != team) {
 				float d = distanceFromUnit(u);
+				if (d < dist || dist == 0) {
+					dist = d;
+				}
+			}
+		}
+		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+			Transform tr = mapGenerator.turrets.transform.GetChild(n);
+			TurretUnit tur = tr.GetComponent<TurretUnit>();
+			if (tur != null && tur.team != team) {
+				float d = distanceFromUnit(tur);
 				if (d < dist || dist == 0) {
 					dist = d;
 				}
@@ -555,6 +618,13 @@ public class Unit : MonoBehaviour {
 				foreach (Unit u in mapGenerator.priorityOrder) {
 					if (team != u.team) {
 						units.Add (u);
+					}
+				}
+				for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+					Transform tr = mapGenerator.turrets.transform.GetChild(n);
+					TurretUnit tur = tr.GetComponent<TurretUnit>();
+					if (tur != null && tur.team != team) {
+						units.Add (tur);
 					}
 				}
 				aiMap.setGoalsAndHeuristics(units);
@@ -817,6 +887,14 @@ public class Unit : MonoBehaviour {
 		return inventoryHoverBackground;
 	}
 
+	static Texture2D armorHoverBackground = null;
+	Texture2D getArmorHoverBackground() {
+		if (armorHoverBackground==null) {
+			armorHoverBackground = makeTex((int)inventoryCellSize*2,(int)inventoryCellSize*2, new Color(80.0f/255.0f, 44.0f/255.0f, 120.0f/255.0f, 0.4f));
+		}
+		return armorHoverBackground;
+	}
+
 	Texture2D makeTexBanner( int width, int height, Color col )
 	{
 		Color[] pix = new Color[width * height];
@@ -1019,7 +1097,7 @@ public class Unit : MonoBehaviour {
 	const float skillsHeight = paperDollFullHeight;
 	const float inventoryWidth = 300.0f;
 	const float inventoryHeight = paperDollFullHeight;
-	const float inventoryCellSize = 24.0f;
+	public const float inventoryCellSize = 24.0f;
 	const float inventoryLineThickness = 2.0f;
 	public bool guiContainsMouse(Vector2 mousePos) {
 		if (gui.openTab == Tab.None) {
@@ -1066,9 +1144,8 @@ public class Unit : MonoBehaviour {
 	public Rect fullIRect() {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, inventoryWidth, inventoryHeight);
 	}
-	public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, None}
-	static InventorySlot[] armorSlots = new InventorySlot[]{InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
-	static InventorySlot[] inventorySlots = new InventorySlot[]{InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
+	public static InventorySlot[] armorSlots = new InventorySlot[]{InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
+	public static InventorySlot[] inventorySlots = new InventorySlot[]{InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
 	public InventorySlot  getInventorySlotFromIndex(Vector2 index) {
 //		if (index.x <0 || index.y < 0 || index.x >3 || index.y >3) return InventorySlot.None;
 //		int ind = (int)index.x + ((int)index.y)*4;
@@ -1719,6 +1796,12 @@ public class Unit : MonoBehaviour {
 			}
 			foreach (InventorySlot slot in armorSlots) {
 				Rect r = getInventorySlotRect(slot);
+				if (r.Contains(mousePos)) {
+					GUI.DrawTexture(r, getArmorHoverBackground());
+				}
+			}
+			foreach (InventorySlot slot in armorSlots) {
+				Rect r = getInventorySlotRect(slot);
 				GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),getInventoryLineTall());
@@ -1728,6 +1811,10 @@ public class Unit : MonoBehaviour {
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
+				Item i = characterSheet.characterSheet.characterLoadout.getItemInSlot(slot);
+				if (i != null && i.inventoryTexture != null) {
+					GUI.DrawTexture(r, i.inventoryTexture);
+				}
 			}
 			foreach (InventorySlot slot in inventorySlots) {
 				Rect r = getInventorySlotRect(slot);
@@ -1971,6 +2058,10 @@ public class Unit : MonoBehaviour {
 		//		rotating = false;
 	}
 
+	public virtual bool canAttOpp() {
+		return true;
+	}
+
 	public int attackOfOpp(Vector2 one) {
 		int move = 0;
 		for (int n=-1;n<=1;n++) {
@@ -1980,7 +2071,7 @@ public class Unit : MonoBehaviour {
 				int y = (int)one.y + m;
 				if (x >=0 && y >= 0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
 					Tile t = mapGenerator.tiles[x,y];
-					if (t.hasEnemy(this)) {
+					if (t.hasEnemy(this) && t.getEnemy(this).canAttOpp()) {
 						move++;
 						Unit enemy = t.getEnemy(this);
 						enemy.attackEnemy = this;
@@ -2182,15 +2273,15 @@ public class Unit : MonoBehaviour {
 	public void loadCharacterSheet() {
 		if (characterSheetLoaded) return;
 		characterSheetLoaded = true;
-		characterSheet.loadData();
 		characterSheet.unit = this;
+		characterSheet.loadData();
 	}
 
 	public void loadCharacterSheetFromTextFile(string textFile) {
 		if (characterSheetLoaded) return;
+		characterSheet.unit = this;
 		characterSheet.loadCharacterFromTextFile(textFile);
 		characterSheetLoaded = true;
-		characterSheet.unit = this;
 	}
 
 	public void setMapGenerator(MapGenerator mg) {
@@ -2200,8 +2291,17 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void removeTurret(TurretUnit tu) {
+		if (turrets.Contains(tu)) turrets.Remove(tu);
+	}
+
+	public void addTurret(TurretUnit tu) {
+		turrets.Add(tu);
+	}
+
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
+		turrets = new List<TurretUnit>();
 		afflictions = new List<Affliction>();
 		loadCharacterSheet();
 		hitPoints = maxHitPoints;
@@ -2218,7 +2318,7 @@ public class Unit : MonoBehaviour {
 		currentMaxPath = 0;
 		if (trail) {
 			TrailRenderer tr = trail.GetComponent<TrailRenderer>();
-			tr.sortingOrder = 7;
+			tr.sortingOrder = MapGenerator.trailOrder;
 		}
 		if (isCurrent) {
 			addTrail();
@@ -2240,9 +2340,20 @@ public class Unit : MonoBehaviour {
 		setCircleScale();
 	}
 
+	public void doTurrets() {
+		Debug.Log("DoTurrets " + turrets.Count);
+		foreach (TurretUnit t in turrets) {
+			t.fire();
+		}
+	}
+
 	void setLayer() {
-		renderer.sortingOrder = (mapGenerator.isInCharacterPlacement() ? renderer.sortingOrder : (moving || attacking || attackAnimating ? 11 : 10));
-		transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
+		if (!mapGenerator.isInCharacterPlacement()) {
+			renderer.sortingOrder = ((moving || attacking || attackAnimating ? MapGenerator.playerMovingOrder : MapGenerator.playerNormalOrder));
+			setAllSpritesToRenderingOrder((moving || attacking || attackAnimating ? MapGenerator.playerMovingArmorOrder : MapGenerator.playerArmorOrder));
+			transform.FindChild("Circle").renderer.sortingOrder = ((moving || attacking || attackAnimating ? MapGenerator.circleMovingOrder : MapGenerator.circleNormalOrder));
+//			transform.FindChild("Circle").renderer.sortingOrder = (renderer.sortingOrder == 11 ? 5 : 4);
+		}
 	}
 
 	void doMovement() {
@@ -2489,8 +2600,6 @@ public class Unit : MonoBehaviour {
 			attackAnimation();
 			attackAnimating = true;
 			attacking = false;
-			usedStandard = true;
-			useMovementIfStarted();
 		}
 	}
 
@@ -2508,20 +2617,62 @@ public class Unit : MonoBehaviour {
 	
 	void attackAnimation() {
 		anim.SetTrigger("Attack");
+		attackAnimationAllSprites();
 		//	attackEnemy = null;
 	}
-	
-	void dealDamage() {
+
+	void attackAnimationAllSprites() {
+		setAllSpritesTrigger("Attack");
+	}
+
+	void setAllSpritesTrigger(string trigger) {
+		List<SpriteOrder> sprites = getSprites();
+		foreach (SpriteOrder sprite in sprites) {
+			sprite.sprite.GetComponent<Animator>().SetTrigger(trigger);
+		}
+	}
+
+	public virtual int getAC() {
+		return characterSheet.characterSheet.characterLoadout.getAC();
+	}
+
+	public virtual string getName() {
+		return characterSheet.personalInfo.getCharacterName().fullName();
+	}
+
+
+
+	public virtual int getCritChance() {
+		return characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
+	}
+
+	public virtual int getMeleeScore() {
+		return characterSheet.characterSheet.skillScores.getScore(Skill.Melee);
+	}
+
+	public virtual int rollDamage(bool crit) {
+		return characterSheet.rollDamage(crit);
+	}
+
+	public virtual Weapon getWeapon() {
+		return characterSheet.characterSheet.characterLoadout.rightHand;
+	}
+
+	public virtual string getGenderString() {
+		return (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her" : " his");
+	}
+
+	public void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
-		Hit hit = characterSheet.rollHit();
-		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
-		Hit critHit = characterSheet.rollHit();
+        Hit hit = Combat.rollHit(this);
+		int enemyAC = attackEnemy.getAC();
+		Hit critHit = Combat.rollHit(this);
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
-		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
+		int wapoon = rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
-		gui.log.addMessage(characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? " with " + (characterSheet.characterSheet.characterLoadout.rightHand == null ?  (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her " : " his ") + "fist " : characterSheet.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
+		gui.log.addMessage(getName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2547,15 +2698,16 @@ public class Unit : MonoBehaviour {
 		damageNumber--;
 	}
 
-	public string getName() {
-		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
+	public virtual string deathString() {
+		return "killed";
 	}
 
-	public void killedEnemy(Unit enemy) {
+
+	public void killedEnemy(Unit enemy, bool decisiveStrike) {
 		Debug.Log("Killed Enemy!!");
-		if (this.team==0) gui.log.addMessage(getName() + " killed " + enemy.getName() + "!",Color.green);
-		else gui.log.addMessage(enemy.getName() + " was killed by " + getName() + "!",Color.red);
-		handleClassFeature(ClassFeature.Decisive_Strike);
+		if (this.team==0) gui.log.addMessage(getName() + " " + enemy.deathString() + " " + enemy.getName() + "!",Color.green);
+		else gui.log.addMessage(enemy.getName() + " was " + enemy.deathString() +" by " + getName() + "!",Color.red);
+		if (decisiveStrike) handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();
 	}
 
@@ -2569,14 +2721,25 @@ public class Unit : MonoBehaviour {
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
 		attackAnimating = false;
-	}
+		usedStandard = true;
+		useMovementIfStarted();
 
+	}
+	
 	public void crushingHitSFX() {
 		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
 	}
 
-	public bool deadOrDyingOrUnconscious() {
+	public virtual bool deadOrDyingOrUnconscious() {
 		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
+	}
+
+	public virtual void loseHealth(int amount) {
+		characterSheet.combatScores.loseHealth(amount);
+	}
+
+	public virtual bool givesDecisiveStrike() {
+		return true;
 	}
 
 	public void damage(int damage, Unit u) {
@@ -2586,9 +2749,9 @@ public class Unit : MonoBehaviour {
 //			hitPoints -= damage;
 //			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
-			characterSheet.combatScores.loseHealth(damage);
+			loseHealth(damage);
 			if (!d && deadOrDyingOrUnconscious()) {
-				u.killedEnemy(this);
+				u.killedEnemy(this, givesDecisiveStrike());
 			}
 		}
 		//	Debug.Log("EndDamage");
@@ -2598,7 +2761,7 @@ public class Unit : MonoBehaviour {
 		return characterSheet.combatScores.isDead();
 	}
 
-	void doDeath() {
+	public virtual void doDeath() {
 		//	Debug.Log("Do Death");
 		//	mapGenerator.
 	//	if (died) dieTime += Time.deltaTime;
@@ -2625,7 +2788,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void handleClassFeature(ClassFeature feature) {
-		Debug.Log("handleClassFeature("+feature + ")");
+		if (characterSheet==null) return;
 		if (!characterSheet.characterProgress.hasFeature(feature)) return;
 		Debug.Log("Has!!");
 		switch(feature) {

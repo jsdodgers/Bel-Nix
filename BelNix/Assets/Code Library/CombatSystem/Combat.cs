@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CharacterInfo;
+using UnityEngine;
 
 namespace CombatSystem
 {
@@ -22,6 +23,47 @@ namespace CombatSystem
         {
             //attack(attacker.ch
             //int attackPower = attacker.GetComponent<CharacterLoadOut>().rightHand.rollDamage();
+		}
+		/*
+		public static Hit rollHit(Unit attacker)
+		{
+			int diceRoll = rollD20();
+			int criticalHitChance = attacker.characterSheet.characterLoadout.rightHand.criticalChance;
+			return new Hit(attacker.characterSheet.skillScores.getScore(Skill.Melee) + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+		}
+
+		*/
+		
+		public static Hit rollHit(Unit attacker)
+		{
+			int diceRoll = rollD20();
+			int criticalHitChance = attacker.getCritChance();
+			return new Hit(attacker.getMeleeScore() + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+		}
+
+        public static bool flanking(Unit attacker)
+		{	if (attacker.attackEnemy == null) return false;
+            // Get the positions on the grid for the attacker and defender
+            Vector3 attackerPosition = attacker.position;
+            Vector3 defenderPosition = attacker.attackEnemy.position;
+
+            // Store the XY coordinates only, flip the Y coordinate
+            Vector2 processedAttackerPosition = new Vector2(attackerPosition.x,-attackerPosition.y);
+            Vector2 processedDefenderPosition = new Vector2(defenderPosition.x, -defenderPosition.y);
+
+            // Use the processed coordinates to obtain the coordinate that a teammate of the attacker 
+            //      would need to occupy to flank the defender
+            Vector2 teammateCoords = new Vector2((processedAttackerPosition.x == processedDefenderPosition.x) ? processedAttackerPosition.x : processedDefenderPosition.x - (processedAttackerPosition.x - processedDefenderPosition.x),
+                                                 (processedAttackerPosition.y == processedDefenderPosition.y) ? processedAttackerPosition.y : processedDefenderPosition.y - (processedAttackerPosition.y - processedDefenderPosition.y));
+
+            // return whether or not a teammate is there, which determines whether the defender is flanked or not
+            return attacker.mapGenerator.tiles[(int)teammateCoords.x, (int)teammateCoords.y].hasAlly(attacker);
+        }
+
+        // Simulate a single 20-sided die being rolled
+        private static int rollD20()
+        {
+            return UnityEngine.Random.Range(1, 21);
         }
     }
 }

@@ -11,12 +11,50 @@ public class Turret : Item, ItemMechanical {
 	public Applicator applicator;
 	public Gear gear;
 	public EnergySource energySource;
-
+	const int range = 5;
+	public bool hasUsesLeft() {
+		return energySource.hasUsesLeft();
+	}
+	public bool use() {
+		return energySource.use();
+	}
+	public int rollDamage() {
+		return applicator.rollDamage() + gear.additionalDamage();
+	}
+	public int getRange() {
+		return range;
+	}
+	public bool takeDamage(int amount) {
+		return frame.takeDamage(amount);
+	}
+	public bool isDestroyed() {
+		return frame.isDestroyed();
+	}
 	public Turret(Frame fr, Applicator app, Gear g, EnergySource es) {
+		itemStackType = ItemStackType.Turret;
 		frame = fr;
 		applicator = app;
 		gear = g;
 		energySource = es;
+		inventoryTexture = Resources.Load<Texture>("Units/Turrets/TurretPlaceholder");
+	}
+	public override Vector2[] getShape() {
+		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	}
+}
+
+public class Trap : Item, ItemMechanical {
+	public Frame frame;
+	public Gear gear;
+	public Applicator applicator;
+	public Trigger trigger;
+
+	public Trap(Frame fr, Applicator app, Gear g, Trigger tr) {
+		frame = fr;
+		applicator = app;
+		gear = g;
+		trigger = tr;
+		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Trap");
 	}
 	public override Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
@@ -24,11 +62,27 @@ public class Turret : Item, ItemMechanical {
 }
 
 public class Frame : Item, ItemMechanical {
+	int healthLeft;
+	public Frame() {
+		itemStackType = ItemStackType.Frame;
+		healthLeft = getDurability();
+	}
 	public virtual int getDurability() {
 		return 0;
 	}
 	public virtual int getHardness() {
 		return 0;
+	}
+	public virtual int getSize() {
+		return 0;
+	}
+	public bool isDestroyed() {
+		return healthLeft <= 0;
+	}
+	public bool takeDamage(int amount) {
+		healthLeft-=amount;
+		Debug.Log("Took Damage: " + amount + "  left: " + healthLeft);
+		return isDestroyed();
 	}
 	public override Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
@@ -37,12 +91,16 @@ public class Frame : Item, ItemMechanical {
 
 public class TestFrame : Frame {
 	public override int getDurability() {
-		return 5;
+		return 5 + 60;
 	}
 	public override int getHardness() {
-		return 17;
+		return 10;
+	}
+	public override int getSize () {
+		return 2;
 	}
 	public TestFrame() {
+		itemName = "Test Frame";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Frame");
 	}
 }
@@ -53,6 +111,7 @@ public class Applicator :  Weapon, ItemMechanical {
 	}
 	public Applicator() {
 		itemType = ItemType.Weapon;
+		itemStackType = ItemStackType.Applicator;
 		gold = 0;
 		silver = 0;
 		copper = 0;
@@ -71,6 +130,7 @@ public class Applicator :  Weapon, ItemMechanical {
 
 public class TestApplicator : Applicator {
 	public TestApplicator() {
+		itemName = "Test Applicator";
 		copper = 30;
 		range = 1;
 		numberOfDamageDice = 1;
@@ -81,8 +141,20 @@ public class TestApplicator : Applicator {
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Applicator");
 	}
 }
+	
 
 public class EnergySource :  Item, ItemMechanical {
+	public int turnsLeft;
+	public EnergySource() {
+		turnsLeft = getMaxTurns();
+	}
+	public bool use() {
+		turnsLeft--;
+		return turnsLeft<=0;
+	}
+	public bool hasUsesLeft() {
+		return turnsLeft > 0;
+	}
 	public virtual int getMaxTurns() {
 		return 0;
 	}
@@ -93,9 +165,10 @@ public class EnergySource :  Item, ItemMechanical {
 
 public class TestEnergySource : EnergySource {
 	public override int getMaxTurns() {
-		return 5;
+		return 2;
 	}
 	public TestEnergySource() {
+		itemName = "Test Energy Source";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/EnergySource");
 	}
 }
@@ -114,6 +187,26 @@ public class TestGear : Gear {
 		return 2;
 	}
 	public TestGear() {
+		itemName = "Test Gear";
 		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Gear");
+	}
+}
+
+public class Trigger : Item, ItemMechanical {
+	public virtual int triggerTimes() {
+		return 0;
+	}
+	public override Vector2[] getShape() {
+		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	}
+}
+
+public class TestTrigger : Trigger {
+	public override int triggerTimes() {
+		return 1;
+	}
+	public TestTrigger() {
+		itemName = "Test Trigger";
+		inventoryTexture = Resources.Load<Texture>("Units/Turrets/Trigger");
 	}
 }

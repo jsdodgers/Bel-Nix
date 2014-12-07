@@ -10,6 +10,7 @@ public class Tile {
 //	GameObject player;
 //	GameObject enemy;
 	Unit character;
+	TrapUnit trap;
 	public bool standable;
 	int passableLeft;
 	int passableRight;
@@ -27,7 +28,10 @@ public class Tile {
 	int activation;
 	public int minDistCurr;
 	public int minAttackCurr;
+	public int minSpecialCurr;
 	public int minDistUsedMinors;
+	public bool attackFromTurret = false;
+	public bool canUseSpecialCurr;
 	public bool canAttackCurr;
 	public bool canStandCurr;
 	public bool canTurn;
@@ -93,10 +97,10 @@ public class Tile {
 
 	public Tile() {
 		items = new List<Item>();
-		for (int n=0;n<8;n++) {
+		for (int n=0;n<14;n++) {
 			if (Random.Range(0, 3)==1) {
 				Item i;
-				switch (n%4) {
+				switch (n%7) {
 				case 0:
 					i = new TestGear();
 					break;
@@ -105,6 +109,15 @@ public class Tile {
 					break;
 				case 2:
 					i = new TestFrame();
+					break;
+				case 3:
+					i = new TestTrigger();
+					break;
+				case 4:
+					i = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+					break;
+				case 5:
+					i = new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
 					break;
 				default:
 					i = new TestEnergySource();
@@ -137,11 +150,29 @@ public class Tile {
 	public void resetStandability() {
 		canAttackCurr = false;
 		canStandCurr = false;
+		canUseSpecialCurr = false;
+		attackFromTurret = false;
+		minSpecialCurr = int.MaxValue;
 		minDistCurr = int.MaxValue;
 		minAttackCurr = int.MaxValue;
 		minDistUsedMinors = 0;
 	}
-	
+
+	public void setTrap(TrapUnit tr) {
+		trap = tr;
+	}
+
+	public TrapUnit getTrap() {
+		return trap;
+	}
+
+	public bool hasTrap() {
+		return trap != null;
+	}
+
+	public void removeTrap() {
+		trap = null;
+	}
 
 	public void setCharacter(Unit cs) {
 		character = cs;

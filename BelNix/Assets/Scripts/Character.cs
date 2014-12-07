@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using CharacterInfo;
 using System.Linq;
+using CombatSystem;
 
 public struct Hit {
 	public int hit;
@@ -21,16 +23,20 @@ public class Character : MonoBehaviour
 	public Unit unit;
 //	public ItemWeapon mainHand;
 
-	// Use this for initialization
 
-	bool flanking() {
-		Vector3 pos = unit.position;
-		Vector3 enemyPos = unit.attackEnemy.position;
-		int eX = (int)enemyPos.x, eY = (int)-enemyPos.y;
-		int pX = (int)pos.x, pY = (int)-pos.y;
-		int flankX = (pX == eX ? pX : eX - (pX - eX));
-		int flankY = (pY == eY ? pY : eY - (pY - eY));
-		return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
+	//bool flanking() {
+    //    return Combat.flanking(this.unit);
+		//Vector3 pos = unit.position;
+		//Vector3 enemyPos = unit.attackEnemy.position;
+		//int eX = (int)enemyPos.x, eY = (int)-enemyPos.y;
+		//int pX = (int)pos.x, pY = (int)-pos.y;
+		//int flankX = (pX == eX ? pX : eX - (pX - eX));
+		//int flankY = (pY == eY ? pY : eY - (pY - eY));
+		//return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
+	//}
+
+	public List<SpriteOrder> getSprites() {
+		return characterSheet.characterLoadout.sprites;
 	}
 
 	public int rollForSkill(Skill skill, int dieType = 10) {
@@ -46,12 +52,13 @@ public class Character : MonoBehaviour
 		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
 	}
 
-	public Hit rollHit() {
-		int rand = Random.Range(1,21);
-		Debug.Log(skillScores);
-		int critChance = characterSheet.characterLoadout.rightHand.criticalChance;
-		return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
-	}
+	//public Hit rollHit() {
+    //    return Combat.rollHit(this.unit);
+		//int rand = Random.Range(1,21);
+		//Debug.Log(skillScores);
+		//int critChance = characterSheet.characterLoadout.rightHand.criticalChance;
+		//return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
+	//}
 
 	public int stackabilityOfItem(Item i) {
 		if (i is ItemMechanical) {
