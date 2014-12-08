@@ -52,7 +52,16 @@ public class Trap : Item, ItemMechanical {
 	public int getMaxSize() {
 		return frame.getSize();
 	}
-
+	
+	public bool hasUsesLeft() {
+		return trigger.hasUsesLeft();
+	}
+	public bool use() {
+		return trigger.use();
+	}
+	public int rollDamage() {
+		return applicator.rollDamage() + gear.additionalDamage();
+	}
 	public Trap(Frame fr, Applicator app, Gear g, Trigger tr) {
 		frame = fr;
 		applicator = app;
@@ -197,6 +206,17 @@ public class TestGear : Gear {
 }
 
 public class Trigger : Item, ItemMechanical {
+	public int usesLeft;
+	public Trigger() {
+		usesLeft = triggerTimes();
+	}
+	public bool use() {
+		usesLeft--;
+		return usesLeft<=0;
+	}
+	public bool hasUsesLeft() {
+		return usesLeft > 0;
+	}
 	public virtual int triggerTimes() {
 		return 0;
 	}
@@ -207,7 +227,7 @@ public class Trigger : Item, ItemMechanical {
 
 public class TestTrigger : Trigger {
 	public override int triggerTimes() {
-		return 1;
+		return 3;
 	}
 	public TestTrigger() {
 		itemName = "Test Trigger";

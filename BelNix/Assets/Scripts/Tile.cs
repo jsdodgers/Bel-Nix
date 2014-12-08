@@ -158,6 +158,19 @@ public class Tile {
 		minDistUsedMinors = 0;
 	}
 
+	public void doTrapDamage(Unit u) {
+		TrapUnit tr = getTrap();
+		Debug.Log(tr);
+		if (tr==null) return;
+	//	Trap t = tr.trap;
+
+	//	int damage = 
+		tr.attackEnemy = u;
+	//	u.setTarget();
+//		tr.startAttacking();
+		tr.attacking = true;
+	}
+
 	public void setTrap(TrapUnit tr) {
 		trap = tr;
 	}

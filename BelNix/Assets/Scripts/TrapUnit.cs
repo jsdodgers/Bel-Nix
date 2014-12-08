@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class TrapUnit : Unit {
-
+	
+	public Unit owner;
 	public Trap trap;
 	public List<TrapUnit> fullTrap;
 	public bool selectedForPlacement;
@@ -43,5 +44,89 @@ public class TrapUnit : Unit {
 	// Update is called once per frame
 	void Update () {
 		doPlacementExpand();
+		doDeath();
+		doAttack();
 	}
+
+
+	
+	
+	public override bool givesDecisiveStrike() {
+		return false;
+	}
+	
+	public override int getMeleeScore() {
+		return 0;
+	}
+	
+	public override int getCritChance() {
+		return 0;
+	}
+	
+	public override Weapon getWeapon() {
+		if (trap==null) return null;
+		return trap.applicator;
+	}
+	
+	public override string getGenderString() {
+		return "its";
+	}
+	
+	public override int rollDamage(bool crit) {
+		return trap.rollDamage();
+	}
+
+
+	
+	void doAttack() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
+		if (attacking) {
+			attacking = false;
+			dealDamage();
+			if (attackEnemy) {
+				attackEnemy.wasBeingAttacked = attackEnemy.beingAttacked;
+				attackEnemy.beingAttacked = false;
+				attackEnemy.attackedByCharacter = null;
+			}
+			mapGenerator.resetAttack(this);
+			if (this == mapGenerator.getCurrentUnit())
+				mapGenerator.resetRanges();
+			attackAnimating = false;
+			trap.use();
+		}
+	}
+	public override void doDeath() {
+		if (isDead()) {
+			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
+				if (mapGenerator.selectedUnit) {
+					//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
+					Unit p = mapGenerator.selectedUnit;
+					if (p.attackEnemy==this) p.attackEnemy = null;
+				}
+				//				mapGenerator.enemies.Remove(gameObject);
+				//	mapGenerator.removeCharacter(this);
+				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
+				if (t.getTrap()==this)
+					t.removeTrap();
+				Destroy(gameObject);
+				mapGenerator.resetCharacterRange();
+			}
+		}
+		//	Debug.Log("End Death");
+	}
+
+	
+	public override string getName() {
+		return owner.getName() + "'s Trap";
+	}
+	
+	public override bool isDead() {
+		if (trap == null) return false;
+		return !trap.hasUsesLeft();
+	}
+	public override string deathString() {
+		return "destroyed";
+	}
+
+
 }

@@ -1474,6 +1474,7 @@ public class MapGenerator : MonoBehaviour {
 				resetRanges();
 			}
 			else {
+				if (currentTrap.Count > 0) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(currentTrap[0].trap);
 				while (currentTrap.Count > 0) currentTrap.RemoveAt(0);
 				if (currentlySelectedTrap != null) {
 					currentlySelectedTrap.unsetSelectedForPlacement();
@@ -1634,6 +1635,8 @@ public class MapGenerator : MonoBehaviour {
 					g.renderer.sortingOrder = trapOrder;
 					g.transform.parent = traps.transform;
 					TrapUnit tu = g.GetComponent<TrapUnit>();
+					tu.owner = getCurrentUnit();
+					tu.trap = gui.selectedTrap;
 					if (currentlySelectedTrap != null)
 						currentlySelectedTrap.unsetSelectedForPlacement();
 					currentlySelectedTrap = tu;
@@ -2000,6 +2003,7 @@ public class MapGenerator : MonoBehaviour {
 								g.renderer.sortingOrder = trapOrder;
 								g.transform.parent = traps.transform;
 								TrapUnit tu = g.GetComponent<TrapUnit>();
+								tu.owner = getCurrentUnit();
 								tu.trap = gui.selectedTrap;
 								if (currentlySelectedTrap != null)
 									currentlySelectedTrap.unsetSelectedForPlacement();
@@ -2090,6 +2094,7 @@ public class MapGenerator : MonoBehaviour {
 									currentlySelectedTrap.unsetSelectedForPlacement();
 								currentlySelectedTrap = tu;
 								tu.trap = gui.selectedTrap;
+								tu.owner = getCurrentUnit();
 								tu.setSelectedForPlacement();
 								tu.mapGenerator = this;
 								tu.gui = gui;
