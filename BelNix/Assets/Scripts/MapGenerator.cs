@@ -1093,6 +1093,7 @@ public class MapGenerator : MonoBehaviour {
 		Tile t = tiles[x,y];
 //		Debug.Log(t.hasCharacter() + " " + t.hasTrap() + "  " + (!t.hasTrap() || t.getTrap().fullTrap != currentTrap));
 		if (t.canUseSpecialCurr || t.hasCharacter() || (t.hasTrap() && t.getTrap().fullTrap != currentTrap)) return;
+		if (currentTrap.Count>=gui.selectedTrap.getMaxSize() && !t.hasTrap()) return;
 		t.canUseSpecialCurr = true;
 		if (radiusLeft==0 && !t.getTrap()) return;
 		if (passibility(Direction.Left, x, y)>=1)
@@ -1271,6 +1272,10 @@ public class MapGenerator : MonoBehaviour {
 			if (gui.openTab == Tab.None) {
 				if (gui.selectedStandard) {
 					if (gui.selectedStandardType==StandardType.None) gui.clickStandard();
+					else if (gui.selectedStandardType==StandardType.Lay_Trap && gui.selectedTrap != null) {
+						gui.selectedTrap = null;
+						resetRanges();
+					}
 					else gui.selectStandard(gui.selectedStandardType);
 				}
 				else if (gui.selectedMovement) {
@@ -1464,14 +1469,20 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap) {
-			while (currentTrap.Count > 0) currentTrap.RemoveAt(0);
-			if (currentlySelectedTrap != null) {
-				currentlySelectedTrap.unsetSelectedForPlacement();
-				currentlySelectedTrap = null;
+			if (gui.selectedTrap==null) {
+				gui.selectCurrentTrap();
+				resetRanges();
 			}
-			getCurrentUnit().usedStandard = true;
-			getCurrentUnit().useMovementIfStarted();
-			currentTrap = new List<TrapUnit>();
+			else {
+				while (currentTrap.Count > 0) currentTrap.RemoveAt(0);
+				if (currentlySelectedTrap != null) {
+					currentlySelectedTrap.unsetSelectedForPlacement();
+					currentlySelectedTrap = null;
+				}
+				getCurrentUnit().usedStandard = true;
+				getCurrentUnit().useMovementIfStarted();
+				currentTrap = new List<TrapUnit>();
+			}
 		}
 	}
 
@@ -1682,7 +1693,24 @@ public class MapGenerator : MonoBehaviour {
 	void handleSpace() {
 		timeSinceSpace += Time.deltaTime * Time.timeScale;
 		if (Input.GetKeyDown(KeyCode.Space)) {
-			if (!(gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret)) {
+			if (gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret) {
+				
+				if (shiftDown) gui.selectedTurretIndex--;
+				else gui.selectedTurretIndex++;
+				int numTurrets = getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets().Count;
+				gui.selectedTurretIndex += numTurrets;
+				gui.selectedTurretIndex %= numTurrets;
+				gui.showCurrentTurret();
+			}
+			else if (gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && gui.selectedTrap==null) {
+				if (shiftDown) gui.selectedTrapIndex--;
+				else gui.selectedTrapIndex++;
+				int numTraps = getCurrentUnit().characterSheet.characterSheet.inventory.getTraps().Count;
+				gui.selectedTrapIndex += numTraps;
+				gui.selectedTrapIndex %= numTraps;
+				gui.showCurrentTrap();
+			}
+			else {
 				if (timeSinceSpace <= maxTimeSpace && isInPriority() || selectedUnit==null) {
 					deselectAllUnits();
 					selectUnit(getCurrentUnit(),false);
@@ -1690,14 +1718,6 @@ public class MapGenerator : MonoBehaviour {
 				}
 				moveCameraToSelected();
 				timeSinceSpace = 0.0f;
-			}
-			else {
-				if (shiftDown) gui.selectedTurretIndex--;
-				else gui.selectedTurretIndex++;
-				int numTurrets = getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets().Count;
-				gui.selectedTurretIndex += numTurrets;
-				gui.selectedTurretIndex %= numTurrets;
-				gui.showCurrentTurret();
 			}
 		}
 	}
@@ -1769,7 +1789,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
-		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType==StandardType.Lay_Trap || gui.selectedStandardType==StandardType.Place_Turret)) ||
+		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || (gui.selectedStandardType==StandardType.Lay_Trap && (gui.selectedTrap!=null || true)) || gui.selectedStandardType==StandardType.Place_Turret)) ||
 			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep))
 				|| performingAction();
 	}
@@ -1980,6 +2000,7 @@ public class MapGenerator : MonoBehaviour {
 								g.renderer.sortingOrder = trapOrder;
 								g.transform.parent = traps.transform;
 								TrapUnit tu = g.GetComponent<TrapUnit>();
+								tu.trap = gui.selectedTrap;
 								if (currentlySelectedTrap != null)
 									currentlySelectedTrap.unsetSelectedForPlacement();
 								currentlySelectedTrap = tu;
@@ -2058,27 +2079,28 @@ public class MapGenerator : MonoBehaviour {
 				else if (gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count > 0 && !didTrap) {
 					Tile t = tiles[x,-y];
 					if (t != null && t.canUseSpecialCurr) {
-					currentKeysTile = t;
+						currentKeysTile = t;
 						if (!t.hasTrap()) {
 							if (trapLayType == TrapLayType.Add) {
-							GameObject g = Instantiate(trapPrefab) as GameObject;
-							g.renderer.sortingOrder = trapOrder;
-							g.transform.parent = traps.transform;
-							TrapUnit tu = g.GetComponent<TrapUnit>();
-							if (currentlySelectedTrap != null)
-								currentlySelectedTrap.unsetSelectedForPlacement();
-							currentlySelectedTrap = tu;
-							tu.setSelectedForPlacement();
-							tu.mapGenerator = this;
-							tu.gui = gui;
-							tu.team = getCurrentUnit().team;
-							tu.fullTrap = currentTrap;
-							currentTrap.Add(tu);
-							t.setTrap(tu);
-							Vector2 v22 = t.getPosition();
-							v22.y *= -1;
-							tu.setPosition(new Vector3(v22.x, v22.y, 0.0f));
-							resetRanges(false);
+								GameObject g = Instantiate(trapPrefab) as GameObject;
+								g.renderer.sortingOrder = trapOrder;
+								g.transform.parent = traps.transform;
+								TrapUnit tu = g.GetComponent<TrapUnit>();
+								if (currentlySelectedTrap != null)
+									currentlySelectedTrap.unsetSelectedForPlacement();
+								currentlySelectedTrap = tu;
+								tu.trap = gui.selectedTrap;
+								tu.setSelectedForPlacement();
+								tu.mapGenerator = this;
+								tu.gui = gui;
+								tu.team = getCurrentUnit().team;
+								tu.fullTrap = currentTrap;
+								currentTrap.Add(tu);
+								t.setTrap(tu);
+								Vector2 v22 = t.getPosition();
+								v22.y *= -1;
+								tu.setPosition(new Vector3(v22.x, v22.y, 0.0f));
+								resetRanges(false);
 							}
 						}
 						else {
@@ -2354,7 +2376,7 @@ public class MapGenerator : MonoBehaviour {
 	public void resetRanges(bool keys) {
 		if (keys) resetCurrentKeysTile();
 		removeAllRanges(false);
-		if (!isInCharacterPlacement() && gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0) {
+		if (!isInCharacterPlacement() && gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0 && gui.selectedTrap!=null) {
 			setTrapPlacementRange((int)currentTrap[0].position.x, (int)-currentTrap[0].position.y, 1);
 		}
 		else if (selectedUnit) {
@@ -2391,7 +2413,7 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Place_Turret) && !isOther)
 			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
-		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap) && !isOther)
+		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap && gui.selectedTrap!=null) && !isOther)
 			setCharacterCanLayTrap((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		if (draw) drawAllRanges();
 	}

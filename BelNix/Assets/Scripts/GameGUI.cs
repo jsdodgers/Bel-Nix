@@ -29,6 +29,7 @@ public class GameGUI : MonoBehaviour {
 
 	public Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
 	public Vector2 turretsScrollPosition = new Vector2(0.0f, 0.0f);
+	public Vector2 trapsScrollPosition = new Vector2(0.0f, 0.0f);
 
 	public bool selectedMovement = false;
 	public bool selectedStandard = false;
@@ -87,12 +88,52 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public Rect turretTypeRect(int n) {
-		return new Rect(Screen.width - turretSelectSize.x, turretTypesRect().y + turretSelectSize.y*n - n + 1, turretSelectSize.x, turretSelectSize.y);
+		return new Rect(Screen.width - turretSelectSize.x, turretTypesRect().y + turretSelectSize.y*n - n, turretSelectSize.x, turretSelectSize.y);
+	}
+
+	public Rect trapTypeRect(int n) {
+		return new Rect(trapTypesRect().x, trapTypesRect().y + turretSelectSize.y*n - n, turretSelectSize.x, turretSelectSize.y);
 	}
 
 	public Rect turretTypesRect() {
 		float height = turretSelectSize.y * 3 - 2;
 		return new Rect(Screen.width - turretSelectSize.x, (Screen.height - height)/2.0f, turretSelectSize.x, height);
+	}
+
+	public Vector2 trapOkButtons() {
+		float x = turretSelectSize.x/2.0f-30.0f/2.0f;
+		return new Vector2(x, x/2.0f);
+	}
+
+	public Vector2 trapOkButtonsSize() {
+		float height = trapOkButtons().y + 20.0f;
+		float width = turretSelectSize.x;
+		return new Vector2(width, height);
+	}
+
+	public Rect trapOkButton(int n) {
+		float x = trapTypesRect().x + 10.0f;
+		float y = trapTypesRect().y + trapTypesScrollRect().height + 10.0f;
+		return new Rect(x + n * (trapOkButtons().x + 10.0f), y, trapOkButtons().x, trapOkButtons().y);
+	}
+
+	public Rect trapTypesScrollRect() {
+		float height = turretSelectSize.y * 3 - 2;
+		float width = turretSelectSize.x;
+		float x = (Screen.width - width)/2.0f;
+		float y = (Screen.height - height)/2.0f;
+		return new Rect(x, y, width, height);
+	}
+
+	public Rect trapTypesRect() {
+		Rect r = trapTypesScrollRect();
+		r.height += trapOkButtonsSize().y;
+		return r;
+		float height = turretSelectSize.y * 3 - 2 + trapOkButtonsSize().y;
+		float width = turretSelectSize.x;
+		float x = (Screen.width - width)/2.0f;
+		float y = (Screen.height - height)/2.0f;
+		return new Rect(x, y, width, height);
 	}
 
 	public Rect moveButtonRect() {
@@ -172,6 +213,8 @@ public class GameGUI : MonoBehaviour {
 					if (actionRect().Contains(mousePos) || subMenuButtonsRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others) return true;
 					if (selectedStandard && selectedStandardType==StandardType.Place_Turret)
 						if (turretTypesRect().Contains(mousePos)) return true;
+					if (selectedStandard && selectedStandardType==StandardType.Lay_Trap && selectedTrap == null)
+						if (trapTypesRect().Contains(mousePos)) return true;
 				}
 				else {
 					if (rangeRect().Contains(mousePos) || others) return true;
@@ -268,6 +311,39 @@ public class GameGUI : MonoBehaviour {
 			nonSelectedButtonTurretStyle.active.textColor = nonSelectedButtonTurretStyle.normal.textColor = nonSelectedButtonTurretStyle.hover.textColor = Color.white;
 		}
 		return nonSelectedButtonTurretStyle;
+	}
+
+	static Texture2D turretBackgroundTexture;
+	Texture2D getTurretBackgroundTexture() {
+		if (turretBackgroundTexture == null) {
+			Rect r = turretTypesRect();
+			turretBackgroundTexture = makeTex((int)r.width,(int)r.height,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return turretBackgroundTexture;
+	}
+
+	static Texture2D trapBackgroundTexture;
+	Texture2D getTrapBackgroundTexture() {
+		if (trapBackgroundTexture==null) {
+			Rect r = trapTypesRect();
+			trapBackgroundTexture = makeTex((int)r.width,(int)r.height,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		}
+		return trapBackgroundTexture;
+	}
+
+	static GUIStyle trapSelectButtonsStyle;
+	GUIStyle getTrapSelectButtonsStyle() {
+		if (trapSelectButtonsStyle == null) {
+			trapSelectButtonsStyle = new GUIStyle(GUI.skin.button);
+			Texture2D tex = makeTex((int)trapOkButtons().x,(int)trapOkButtons().y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			trapSelectButtonsStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
+			trapSelectButtonsStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+			trapSelectButtonsStyle.active.background = tex;
+			trapSelectButtonsStyle.hover.textColor = Color.white;
+			trapSelectButtonsStyle.normal.textColor = Color.white;
+			trapSelectButtonsStyle.active.textColor = Color.white;
+		}
+		return trapSelectButtonsStyle;
 	}
 
 	GUIStyle beginButtonStyle;
@@ -811,6 +887,11 @@ public class GameGUI : MonoBehaviour {
 			if (selectedStandard && selectedStandardType==StandardType.Place_Turret) {
 				List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
 				float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
+				//	height *= 4;
+				GUI.DrawTexture(turretTypesRect(), getTurretBackgroundTexture());
+				Rect rr = turretTypesRect();
+				rr.y += 1;
+				rr.height -= 2;
 				turretsScrollPosition = GUI.BeginScrollView(turretTypesRect(), turretsScrollPosition, new Rect(turretTypesRect().x, turretTypesRect().y, turretSelectSize.x - (turrets.Count > 3 ? 16 : 0), height));
 				for (int n=0; n<turrets.Count;n++) {
 					Turret turret = turrets[n];
@@ -846,6 +927,105 @@ public class GameGUI : MonoBehaviour {
 				}
 				GUI.EndScrollView();
 			}
+			
+			if (selectedStandard && selectedStandardType==StandardType.Place_Turret) {
+				List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+				float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
+			//	height *= 4;
+				GUI.DrawTexture(turretTypesRect(), getTurretBackgroundTexture());
+				Rect rr = turretTypesRect();
+				rr.y += 1;
+				rr.height -= 2;
+				turretsScrollPosition = GUI.BeginScrollView(turretTypesRect(), turretsScrollPosition, new Rect(turretTypesRect().x, turretTypesRect().y, turretSelectSize.x - (turrets.Count > 3 ? 16 : 0), height));
+				for (int n=0; n<turrets.Count;n++) {
+					Turret turret = turrets[n];
+					Rect r = turretTypeRect(n);
+					if (GUI.Button(r, "", (selectedTurretIndex==n ? getSelectedButtonTurretStyle() : getNonSelectedButtonTurretStyle()))) {
+						selectedTurretIndex = n;
+					}
+					float x = 5.0f + r.x;
+					Vector2 size = turrets[n].getSize();
+					size.x *= Unit.inventoryCellSize;
+					size.y *= Unit.inventoryCellSize;
+					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), turret.inventoryTexture);
+					x += size.x + 5.0f;
+					GUIContent frameContent = new GUIContent("Frame: " + turret.frame.itemName);
+					GUIContent energySourceContent = new GUIContent("Energy Source: " + turret.energySource.itemName);
+					GUIContent gearContent = new GUIContent("Gear: " + turret.gear.itemName);
+					GUIContent applicatorContent = new GUIContent("Applicator: " + turret.applicator.itemName);
+					GUIStyle st = getTurretPartStyle();
+					Vector2 frameSize = st.CalcSize(frameContent);
+					Vector2 energySourceSize = st.CalcSize(energySourceContent);
+					Vector2 gearSize = st.CalcSize(gearContent);
+					Vector2 applicatorSize = st.CalcSize(applicatorContent);
+					float y = r.y + (r.height - frameSize.y - energySourceSize.y - gearSize.y - applicatorSize.y)/2.0f;
+					GUI.Label(new Rect(x, y, frameSize.x, frameSize.y), frameContent, st);
+					y+=frameSize.y;
+					GUI.Label(new Rect(x, y, energySourceSize.x, energySourceSize.y), energySourceContent, st);
+					y+=energySourceSize.y;
+					GUI.Label(new Rect(x, y, gearSize.x, gearSize.y), gearContent, st);
+					y+=gearSize.y;
+					GUI.Label(new Rect(x, y, applicatorSize.x, applicatorSize.y), applicatorContent, st);
+					y+=applicatorSize.y;
+					//					size.x *= 
+				}
+				GUI.EndScrollView();
+			}
+			
+			if (selectedStandard && selectedStandardType==StandardType.Lay_Trap && selectedTrap==null) {
+				List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
+				float height = traps.Count * turretSelectSize.y - traps.Count + 2;
+				//	height *= 4;
+				GUI.DrawTexture(trapTypesRect(), getTurretBackgroundTexture());
+				Rect rr = trapTypesScrollRect();
+				rr.y += 1;
+				rr.height -= 2;
+				trapsScrollPosition = GUI.BeginScrollView(trapTypesScrollRect(), trapsScrollPosition, new Rect(trapTypesScrollRect().x, trapTypesScrollRect().y, turretSelectSize.x - (traps.Count > 3 ? 16 : 0), height));
+				for (int n=0; n<traps.Count;n++) {
+					Trap trap = traps[n];
+					Rect r = trapTypeRect(n);
+					if (GUI.Button(r, "", (selectedTrapIndex==n ? getSelectedButtonTurretStyle() : getNonSelectedButtonTurretStyle()))) {
+						selectedTrapIndex = n;
+					}
+					float x = 5.0f + r.x;
+					Vector2 size = trap.getSize();
+					size.x *= Unit.inventoryCellSize;
+					size.y *= Unit.inventoryCellSize;
+					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), trap.inventoryTexture);
+					x += size.x + 5.0f;
+					GUIContent frameContent = new GUIContent("Frame: " + trap.frame.itemName);
+				//	GUIContent energySourceContent = new GUIContent("Energy Source: " + trap.energySource.itemName);
+					GUIContent triggerContent = new GUIContent("Trigger: " + trap.trigger.itemName);
+					GUIContent gearContent = new GUIContent("Gear: " + trap.gear.itemName);
+					GUIContent applicatorContent = new GUIContent("Applicator: " + trap.applicator.itemName);
+					GUIStyle st = getTurretPartStyle();
+					Vector2 frameSize = st.CalcSize(frameContent);
+//					Vector2 energySourceSize = st.CalcSize(energySourceContent);
+					Vector2 triggerSize = st.CalcSize(triggerContent);
+					Vector2 gearSize = st.CalcSize(gearContent);
+					Vector2 applicatorSize = st.CalcSize(applicatorContent);
+					float y = r.y + (r.height - frameSize.y - triggerSize.y - gearSize.y - applicatorSize.y)/2.0f;
+					GUI.Label(new Rect(x, y, frameSize.x, frameSize.y), frameContent, st);
+					y+=frameSize.y;
+					GUI.Label(new Rect(x, y, triggerSize.x, triggerSize.y), triggerContent, st);
+					y+=triggerSize.y;
+					GUI.Label(new Rect(x, y, gearSize.x, gearSize.y), gearContent, st);
+					y+=gearSize.y;
+					GUI.Label(new Rect(x, y, applicatorSize.x, applicatorSize.y), applicatorContent, st);
+					y+=applicatorSize.y;
+					//					size.x *= 
+				}
+				GUI.EndScrollView();
+
+				if (GUI.Button(trapOkButton(0), "Cancel", getTrapSelectButtonsStyle())) {
+					selectStandard(StandardType.Lay_Trap);
+				}
+				if (GUI.Button(trapOkButton(1), "Select", getTrapSelectButtonsStyle())) {
+					selectCurrentTrap();
+					mapGenerator.resetRanges();
+				}
+			}
+
 
 		}
 		if (mapGenerator.gameState != GameState.Playing) {
@@ -876,6 +1056,31 @@ public class GameGUI : MonoBehaviour {
 			turretPartStyle.fontSize = 13;
 		}
 		return turretPartStyle;
+	}
+
+	public Trap selectedTrap = null;
+
+	public void selectCurrentTrap() {
+		selectedTrap = getCurrentTrap();
+	}
+
+	public void showCurrentTrap() {
+		List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
+		float height = traps.Count * turretSelectSize.y - traps.Count + 1;
+		Rect r = trapTypeRect(selectedTrapIndex);
+		Rect tR = trapTypesScrollRect();
+		float y = tR.y;
+		trapsScrollPosition.y = Mathf.Max(r.y - y + r.height - tR.height, Mathf.Min(trapsScrollPosition.y, r.y - y));
+	}
+
+	public Trap getCurrentTrap() {
+		return getTrap(selectedTrapIndex);
+	}
+
+	public Trap getTrap(int n) {
+		List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
+		if (n >= traps.Count || n < 0) return null;
+		return traps[n];
 	}
 
 	public Turret getCurrentTurret() {
@@ -961,6 +1166,7 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
+	public int selectedTrapIndex = 0;
 	public int selectedTurretIndex = 0;
 	public void selectStandardType(StandardType t) {
 		mapGenerator.resetCurrentKeysTile();
@@ -987,9 +1193,13 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Lay_Trap:
+			selectedTrapIndex = 0;
+			trapsScrollPosition = new Vector2(0.0f, 0.0f);
+			selectedTrap = null;
 			mapGenerator.resetRanges();
 			break;
 		default:
+			selectedTrap = null;
 			if (mapGenerator.selectedUnit.attackEnemy)
 				mapGenerator.selectedUnit.attackEnemy.deselect();
 			mapGenerator.resetRanges();

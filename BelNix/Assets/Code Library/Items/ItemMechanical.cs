@@ -49,6 +49,10 @@ public class Trap : Item, ItemMechanical {
 	public Applicator applicator;
 	public Trigger trigger;
 
+	public int getMaxSize() {
+		return frame.getSize();
+	}
+
 	public Trap(Frame fr, Applicator app, Gear g, Trigger tr) {
 		frame = fr;
 		applicator = app;
@@ -97,7 +101,7 @@ public class TestFrame : Frame {
 		return 10;
 	}
 	public override int getSize () {
-		return 2;
+		return 6;
 	}
 	public TestFrame() {
 		itemName = "Test Frame";

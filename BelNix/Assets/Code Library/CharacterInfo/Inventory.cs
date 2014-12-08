@@ -129,6 +129,9 @@ namespace CharacterInfo
 			inventory[6].itemSlot = inventory[2];
 			inventory[7].itemSlot = inventory[2];
 			inventory[2].item = new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
+			for (int n=0;n<5;n++) {
+				inventory[2].item.addToStack(new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger()));
+			}
 		}
 
 		public bool removeItem(Item i) {
@@ -146,6 +149,20 @@ namespace CharacterInfo
 				}
 			}
 			return false;
+		}
+
+		public List<Trap> getTraps() {
+			List<Trap> traps = new List<Trap>();
+			foreach (InventoryItemSlot slot in inventory) {
+				Item i = slot.item;
+				if (i!=null && i is Trap) {
+					traps.Add(i as Trap);
+					foreach (Item t in i.stack) {
+						traps.Add(t as Trap);
+					}
+				}
+			}
+			return traps;
 		}
 
 		public List<Turret> getTurrets() { 
