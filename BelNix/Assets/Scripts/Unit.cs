@@ -351,13 +351,18 @@ public class Unit : MonoBehaviour {
 	
 	
 	public void setNewTilePosition(Vector3 pos) {
+		if (mapGenerator==null) return;
 		if (mapGenerator && position.x > 0 && -position.y > 0) {
 			if (mapGenerator.tiles[(int)position.x,(int)-position.y].getCharacter()==this) {
 				mapGenerator.tiles[(int)position.x,(int)-position.y].removeCharacter();
 			}
 		}
-		if (mapGenerator && !mapGenerator.tiles[(int)pos.x,(int)-pos.y].hasCharacter() && pos.x > 0 && -pos.y > 0) {
-			mapGenerator.tiles[(int)pos.x,(int)-pos.y].setCharacter(this);
+		if (pos.x > 0 && -pos.y > 0) {
+			Tile t = mapGenerator.tiles[(int)pos.x,(int)-pos.y];
+			if (mapGenerator && !t.hasCharacter()) {
+				mapGenerator.tiles[(int)pos.x,(int)-pos.y].setCharacter(this);
+			}
+			t.doTrapDamage(this);
 		}
 	}
 	
@@ -2658,8 +2663,17 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.characterLoadout.rightHand;
 	}
 
+	public virtual int getUncannyKnowledgeBonus() {
+		if (characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge)) return 1;
+		return 0;
+	}
+
 	public virtual string getGenderString() {
 		return (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her" : " his");
+	}
+
+	public virtual bool hasWeaponFocus() {
+		return getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
 	}
 
 	public void dealDamage() {

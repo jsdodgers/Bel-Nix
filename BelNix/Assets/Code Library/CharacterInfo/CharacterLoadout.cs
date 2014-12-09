@@ -70,9 +70,7 @@ public class CharacterLoadoutActual {
 
 	public void setItemInSlot(InventorySlot itemSlot, Item item) {
 		removeSprite(getItemInSlot(itemSlot));
-		Debug.Log(item.itemName + " |" + item.spritePrefab + "|kk");
 		if (item.spritePrefab != null) {
-			Debug.Log("Not Null!");
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
 			item.sprite = sprite;
 			sprite.transform.parent = character.unit.transform;

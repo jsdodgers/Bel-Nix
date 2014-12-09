@@ -10,6 +10,7 @@ public class Tile {
 //	GameObject player;
 //	GameObject enemy;
 	Unit character;
+	TrapUnit trap;
 	public bool standable;
 	int passableLeft;
 	int passableRight;
@@ -156,7 +157,35 @@ public class Tile {
 		minAttackCurr = int.MaxValue;
 		minDistUsedMinors = 0;
 	}
-	
+
+	public void doTrapDamage(Unit u) {
+		TrapUnit tr = getTrap();
+		Debug.Log(tr);
+		if (tr==null) return;
+	//	Trap t = tr.trap;
+
+	//	int damage = 
+		tr.attackEnemy = u;
+	//	u.setTarget();
+//		tr.startAttacking();
+		tr.attacking = true;
+	}
+
+	public void setTrap(TrapUnit tr) {
+		trap = tr;
+	}
+
+	public TrapUnit getTrap() {
+		return trap;
+	}
+
+	public bool hasTrap() {
+		return trap != null;
+	}
+
+	public void removeTrap() {
+		trap = null;
+	}
 
 	public void setCharacter(Unit cs) {
 		character = cs;

@@ -38,7 +38,7 @@ namespace CombatSystem
 		{
 			int diceRoll = rollD20();
 			int criticalHitChance = attacker.getCritChance();
-			return new Hit(attacker.getMeleeScore() + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+			return new Hit(attacker.getMeleeScore() + diceRoll + attacker.getUncannyKnowledgeBonus() + (attacker.hasWeaponFocus() ? 2 : 0) + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
 		}
 
         public static bool flanking(Unit attacker)

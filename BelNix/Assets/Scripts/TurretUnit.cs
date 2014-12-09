@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TurretUnit : Unit {
+public class TurretUnit : MechanicalUnit {
 
 	public Turret turret;
 	public Direction direction;
@@ -45,6 +45,10 @@ public class TurretUnit : Unit {
 	
 	public override int rollDamage(bool crit) {
 		return turret.rollDamage();
+	}
+
+	public override bool hasWeaponFocus() {
+		return false;
 	}
 
 	void doAttack() {
@@ -140,23 +144,24 @@ public class TurretUnit : Unit {
 	//	resetPath();
 	}
 
-	public void fireOnTile(Tile t, int distLeft) {
-		if (t==null) return;
+	public bool fireOnTile(Tile t, int distLeft) {
+		if (t==null) return false;
 		if (t.hasEnemy(this)) {
 			Debug.Log("Has Enemy");
 			attackEnemy = t.getEnemy(this);
 			if (attackEnemy)
 				attackEnemy.setTarget();
 			attacking = true;
-			return;
+			return true;
 		}
-		if (distLeft == 0) return;
-		fireOnTile(t.getTile(direction), distLeft-1);
+		if (distLeft == 0) return false;
+		return fireOnTile(t.getTile(direction), distLeft-1);
 	}
 
 	public void fire() {
 		Debug.Log("Turret Fire");
-		fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5);
+		if (!fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5))
+			turret.use();
 	}
 
 }
