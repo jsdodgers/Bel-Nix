@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TurretUnit : Unit {
+public class TurretUnit : MechanicalUnit {
 
 	public Turret turret;
 	public Direction direction;
@@ -45,6 +45,10 @@ public class TurretUnit : Unit {
 	
 	public override int rollDamage(bool crit) {
 		return turret.rollDamage();
+	}
+
+	public override bool hasWeaponFocus() {
+		return false;
 	}
 
 	void doAttack() {

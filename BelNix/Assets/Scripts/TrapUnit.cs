@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class TrapUnit : Unit {
+public class TrapUnit : MechanicalUnit {
 	
 	public Unit owner;
 	public Trap trap;
@@ -115,6 +115,9 @@ public class TrapUnit : Unit {
 		//	Debug.Log("End Death");
 	}
 
+	public override bool hasWeaponFocus () {
+		return false;
+	}
 	
 	public override string getName() {
 		return owner.getName() + "'s Trap";

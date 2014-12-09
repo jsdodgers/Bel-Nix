@@ -2663,8 +2663,17 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.characterLoadout.rightHand;
 	}
 
+	public virtual int getUncannyKnowledgeBonus() {
+		if (characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge)) return 1;
+		return 0;
+	}
+
 	public virtual string getGenderString() {
 		return (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her" : " his");
+	}
+
+	public virtual bool hasWeaponFocus() {
+		return getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
 	}
 
 	public void dealDamage() {

@@ -422,8 +422,9 @@ public class MapGenerator : MonoBehaviour {
 	float selectionUnitsX;
 	public void createSelectionUnits() {
 		selectionUnits = new List<Unit>();
-		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
-		string[] chars = t.text.Split(new char[]{';'});
+//		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
+		string text = File.ReadAllText(Application.dataPath + "/Saves/Characters.txt");
+		string[] chars = text.Split(new char[]{';'});
 		for (int n=0;n<chars.Length-1;n++) {
 			GameObject p = (GameObject)GameObject.Instantiate(playerPrefab);
 			SpriteRenderer sr = p.GetComponent<SpriteRenderer>();
