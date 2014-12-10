@@ -2620,6 +2620,11 @@ public class Unit : MonoBehaviour {
 		anim.SetBool("Move",moving);
 		movementAnimationAllSprites(moving);
 	}
+
+	void deathAnimation() {
+		anim.SetTrigger("Death");
+		deathAnimationAllSprites();
+	}
 	
 	void attackAnimation() {
 		anim.SetTrigger("Attack");
@@ -2633,6 +2638,10 @@ public class Unit : MonoBehaviour {
 
 	void movementAnimationAllSprites(bool move) {
 		setAllSpritesBool("Move",move);
+	}
+
+	void deathAnimationAllSprites() {
+		setAllSpritesTrigger("Death");
 	}
 
 	void setAllSpritesBool(string boolName, bool b) {
@@ -2784,6 +2793,7 @@ public class Unit : MonoBehaviour {
 		//	Debug.Log("EndDamage");
 	}
 
+	public bool didDeath = false;
 	public virtual bool isDead() {
 		return characterSheet.combatScores.isDead();
 	}
@@ -2794,20 +2804,19 @@ public class Unit : MonoBehaviour {
 	//	if (died) dieTime += Time.deltaTime;
 		//	if (dieTime >= 1) Destroy(gameObject);
 		//	if (dieTime >= 0.5f) {
-		if (isDead()) {
-			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
+		if (isDead() && !didDeath) {
+			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking || !mapGenerator.selectedUnit.moving) {
 				if (mapGenerator.selectedUnit) {
-				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
 					Unit p = mapGenerator.selectedUnit;
 					if (p.attackEnemy==this) p.attackEnemy = null;
 				}
-//				mapGenerator.enemies.Remove(gameObject);
 				mapGenerator.removeCharacter(this);
-				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
-				if (t.getCharacter()==this)
-					t.removeCharacter();
-				Destroy(gameObject);
-				mapGenerator.resetCharacterRange();
+//				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
+//				if (t.getCharacter()==this)
+//					t.removeCharacter();
+//				Destroy(gameObject);
+//				mapGenerator.resetCharacterRange();
+				deathAnimation();
 				mapGenerator.setGameState();
 			}
 		}
