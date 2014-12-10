@@ -10,6 +10,7 @@ public class Tile {
 //	GameObject player;
 //	GameObject enemy;
 	Unit character;
+	TrapUnit trap;
 	public bool standable;
 	int passableLeft;
 	int passableRight;
@@ -27,7 +28,10 @@ public class Tile {
 	int activation;
 	public int minDistCurr;
 	public int minAttackCurr;
+	public int minSpecialCurr;
 	public int minDistUsedMinors;
+	public bool attackFromTurret = false;
+	public bool canUseSpecialCurr;
 	public bool canAttackCurr;
 	public bool canStandCurr;
 	public bool canTurn;
@@ -146,11 +150,41 @@ public class Tile {
 	public void resetStandability() {
 		canAttackCurr = false;
 		canStandCurr = false;
+		canUseSpecialCurr = false;
+		attackFromTurret = false;
+		minSpecialCurr = int.MaxValue;
 		minDistCurr = int.MaxValue;
 		minAttackCurr = int.MaxValue;
 		minDistUsedMinors = 0;
 	}
-	
+
+	public void doTrapDamage(Unit u) {
+		TrapUnit tr = getTrap();
+		if (tr==null) return;
+	//	Trap t = tr.trap;
+
+	//	int damage = 
+		tr.attackEnemy = u;
+	//	u.setTarget();
+//		tr.startAttacking();
+		tr.attacking = true;
+	}
+
+	public void setTrap(TrapUnit tr) {
+		trap = tr;
+	}
+
+	public TrapUnit getTrap() {
+		return trap;
+	}
+
+	public bool hasTrap() {
+		return trap != null;
+	}
+
+	public void removeTrap() {
+		trap = null;
+	}
 
 	public void setCharacter(Unit cs) {
 		character = cs;

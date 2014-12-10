@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public enum ItemType {Weapon, Armor, Useable, Ammunition, Mechanical, Misc}
+public enum ItemStackType {Applicator, Gear, Frame, EnergySource, Trigger, Turret, None}
 
 
 public class EditorItem : MonoBehaviour {
@@ -11,23 +12,28 @@ public class EditorItem : MonoBehaviour {
 	public int gold, silver, copper;
 	public bool isKeyItem;
 	public Texture2D inventoryTexture;
+	public GameObject spritePrefab;
+	public int layerAdd;
 	public Item getItem() {
-		return new Item(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture);
+		return new Item(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd);
 	}
 }
 
 public class Item {
-	
+	public ItemStackType itemStackType = ItemStackType.None;
 	public string itemName;
 	public ItemType itemType;
 	public int gold, silver, copper;
 	public bool isKeyItem;
 	public Texture inventoryTexture;
 	public List<Item> stack;
+	public int layerAdd;
+	public GameObject spritePrefab;
+	public GameObject sprite;
 	public virtual Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0)};
 	}
-	public Item(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture) : this() {
+	public Item(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd) : this() {
 		this.itemName = itemName;
 		this.itemType = itemType;
 		this.gold = gold;
@@ -35,6 +41,8 @@ public class Item {
 		this.copper = copper;
 		this.isKeyItem = isKeyItem;
 		this.inventoryTexture = inventoryTexture;
+		this.spritePrefab = spritePrefab;
+		this.layerAdd = layerAdd;
 	}
 	public Vector2 getSize() {
 		int maxWidth = 1;
@@ -59,6 +67,17 @@ public class Item {
 	public Item() {
 		stack = new List<Item>();
 	}
+
+	public bool removeItemFromStack(Item i) {
+		if (i==this) return false;
+		if (i.itemStackType!=itemStackType) return false;
+		if (stack.Contains(i)) {
+			stack.Remove(i);
+			return true;
+		}
+		return false;
+	}
+
 	public Item popStack() {
 		if (stack.Count==0) return null;
 		Item i = stack[stack.Count-1];
@@ -91,7 +110,7 @@ public class Weapon : Item {
 
 	}
 
-	public Weapon(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) {
+	public Weapon(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) {
 		this.itemName = itemName;
 		this.itemType = itemType;
 		this.gold = gold;
@@ -99,6 +118,8 @@ public class Weapon : Item {
 		this.copper = copper;
 		this.isKeyItem = isKeyItem;
 		this.inventoryTexture = inventoryTexture;
+		this.spritePrefab = spritePrefab;
+		this.layerAdd = layerAdd;
 		this.hit = hit;
 		this.range = range;
 		this.numberOfDamageDice = numberOfDamageDice;
@@ -137,7 +158,7 @@ public class Armor : Item {
 	
 	public ArmorType armorType;
 	public int AC;
-	public Armor(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, ArmorType armorType, int AC) {
+	public Armor(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd, ArmorType armorType, int AC) {
 		this.itemName = itemName;
 		this.itemType = itemType;
 		this.gold = gold;
@@ -145,6 +166,8 @@ public class Armor : Item {
 		this.copper = copper;
 		this.isKeyItem = isKeyItem;
 		this.inventoryTexture = inventoryTexture;
+		this.layerAdd = layerAdd;
+		this.spritePrefab = spritePrefab;
 		this.armorType = armorType;
 		this.AC = AC;
 	}

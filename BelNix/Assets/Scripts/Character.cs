@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using CharacterInfo;
 using System.Linq;
 using CombatSystem;
+using System.IO;
 
 public struct Hit {
 	public int hit;
@@ -23,6 +25,10 @@ public class Character : MonoBehaviour
 //	public ItemWeapon mainHand;
 
 
+
+	public List<SpriteOrder> getSprites() {
+		return characterSheet.characterLoadout.sprites;
+	}
 
 	public int rollForSkill(Skill skill, int dieType = 10) {
 		int roll = Random.Range(1, dieType + 1);
@@ -105,8 +111,9 @@ public class Character : MonoBehaviour
 	}
 
 	public void loadCharacterFromTextFile(string fileName) {
-		TextAsset text = Resources.Load<TextAsset>("Saves/" + fileName);
-		string data = text.text;
+	//	TextAsset text = Resources.Load<TextAsset>("Saves/" + fileName);
+	//	string data = text.text;
+		string data = File.ReadAllText(Application.persistentDataPath + "/Saves/" + fileName + ".txt");
 		string[] components = data.Split(new char[]{';'});
 		int curr = 0;
 		string firstName = components[curr++];

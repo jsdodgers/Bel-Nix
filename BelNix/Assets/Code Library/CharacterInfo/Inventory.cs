@@ -116,7 +116,67 @@ namespace CharacterInfo
 			inventory = new InventoryItemSlot[16];
 			for (int n=0;n<16;n++) {
 				inventory[n] = new InventoryItemSlot(n);
+			//	inventory[n].itemSlot = inventory[n];
+			//	inventory[n].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 			}
+			inventory[0].itemSlot = inventory[0];
+			inventory[0].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+			inventory[1].itemSlot = inventory[0];
+			inventory[4].itemSlot = inventory[0];
+			inventory[5].itemSlot = inventory[0];
+			inventory[2].itemSlot = inventory[2];
+			inventory[3].itemSlot = inventory[2];
+			inventory[6].itemSlot = inventory[2];
+			inventory[7].itemSlot = inventory[2];
+			inventory[2].item = new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
+			for (int n=0;n<5;n++) {
+				inventory[2].item.addToStack(new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger()));
+			}
+		}
+
+		public bool removeItem(Item i) {
+			foreach (InventoryItemSlot slot in inventory) {
+				if (slot.item  == i) {
+					Item newI = slot.item.popStack();
+					while (slot.item.stackSize()!=1)
+						newI.addToStack(slot.item.popStack());
+					removeItemFromSlot(getSlotForIndex(slot.index));
+					if (newI != null) insertItemInSlot(newI, getSlotForIndex(slot.index));
+					return true;
+				}
+				else if (slot.item != null) {
+					if (slot.item.removeItemFromStack(i)) return true;
+				}
+			}
+			return false;
+		}
+
+		public List<Trap> getTraps() {
+			List<Trap> traps = new List<Trap>();
+			foreach (InventoryItemSlot slot in inventory) {
+				Item i = slot.item;
+				if (i!=null && i is Trap) {
+					traps.Add(i as Trap);
+					foreach (Item t in i.stack) {
+						traps.Add(t as Trap);
+					}
+				}
+			}
+			return traps;
+		}
+
+		public List<Turret> getTurrets() { 
+			List<Turret> turrets = new List<Turret>();
+			foreach (InventoryItemSlot slot in inventory) {
+				Item i = slot.item;
+				if (i!=null && i is Turret) {
+					turrets.Add(i as Turret);
+					foreach (Item t in i.stack) {
+						turrets.Add(t as Turret);
+					}
+				}
+			}
+			return turrets;
 		}
 
 		public bool hasTurret() {
