@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: 1249b21bdef3d8649bd55d1ec7962d8c
+guid: cb278b6a87eedda47a70e21392ff661b
 TextureImporter:
   fileIDToRecycleName:
-    21300000: male_battle_slashing_animation_pants01_sprite_sheet_0
-    21300002: male_battle_slashing_animation_pants01_sprite_sheet_1
-    21300004: male_battle_slashing_animation_pants01_sprite_sheet_2
-    21300006: male_battle_slashing_animation_pants01_sprite_sheet_3
-    21300008: male_battle_slashing_animation_pants01_sprite_sheet_4
-    21300010: male_battle_slashing_animation_pants01_sprite_sheet_5
+    21300000: male_battle_running_animation_sprite_sheet_0
+    21300002: male_battle_running_animation_sprite_sheet_1
+    21300004: male_battle_running_animation_sprite_sheet_2
+    21300006: male_battle_running_animation_sprite_sheet_3
+    21300008: male_battle_running_animation_sprite_sheet_4
+    21300010: male_battle_running_animation_sprite_sheet_5
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -49,7 +49,7 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: male_battle_slashing_animation_pants01_sprite_sheet_0
+    - name: male_battle_running_animation_sprite_sheet_0
       rect:
         serializedVersion: 2
         x: 0
@@ -57,9 +57,9 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_pants01_sprite_sheet_1
+    - name: male_battle_running_animation_sprite_sheet_1
       rect:
         serializedVersion: 2
         x: 64
@@ -67,9 +67,9 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_pants01_sprite_sheet_2
+    - name: male_battle_running_animation_sprite_sheet_2
       rect:
         serializedVersion: 2
         x: 128
@@ -77,9 +77,9 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_pants01_sprite_sheet_3
+    - name: male_battle_running_animation_sprite_sheet_3
       rect:
         serializedVersion: 2
         x: 192
@@ -87,9 +87,9 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_pants01_sprite_sheet_4
+    - name: male_battle_running_animation_sprite_sheet_4
       rect:
         serializedVersion: 2
         x: 256
@@ -97,9 +97,9 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_pants01_sprite_sheet_5
+    - name: male_battle_running_animation_sprite_sheet_5
       rect:
         serializedVersion: 2
         x: 320
@@ -107,7 +107,7 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
   spritePackingTag: 
   userData: 

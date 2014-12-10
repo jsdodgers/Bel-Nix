@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: 5a8979796622a9a47a3970262f27f3da
+guid: 9c07606ab66af4149b8d9a5b67d0d5d0
 TextureImporter:
   fileIDToRecycleName:
-    21300000: male_battle_slashing_animation_shirt01_sprite_sheet_0
-    21300002: male_battle_slashing_animation_shirt01_sprite_sheet_1
-    21300004: male_battle_slashing_animation_shirt01_sprite_sheet_2
-    21300006: male_battle_slashing_animation_shirt01_sprite_sheet_3
-    21300008: male_battle_slashing_animation_shirt01_sprite_sheet_4
-    21300010: male_battle_slashing_animation_shirt01_sprite_sheet_5
+    21300000: male_battle_slashing_animation_shoes_0
+    21300002: male_battle_slashing_animation_shoes_1
+    21300004: male_battle_slashing_animation_shoes_2
+    21300006: male_battle_slashing_animation_shoes_3
+    21300008: male_battle_slashing_animation_shoes_4
+    21300010: male_battle_slashing_animation_shoes_5
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -49,7 +49,7 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: male_battle_slashing_animation_shirt01_sprite_sheet_0
+    - name: male_battle_slashing_animation_shoes_0
       rect:
         serializedVersion: 2
         x: 0
@@ -59,7 +59,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: .5, y: .25}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_shirt01_sprite_sheet_1
+    - name: male_battle_slashing_animation_shoes_1
       rect:
         serializedVersion: 2
         x: 64
@@ -69,7 +69,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: .5, y: .25}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_shirt01_sprite_sheet_2
+    - name: male_battle_slashing_animation_shoes_2
       rect:
         serializedVersion: 2
         x: 128
@@ -79,7 +79,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: .5, y: .25}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_shirt01_sprite_sheet_3
+    - name: male_battle_slashing_animation_shoes_3
       rect:
         serializedVersion: 2
         x: 192
@@ -89,7 +89,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: .5, y: .25}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_shirt01_sprite_sheet_4
+    - name: male_battle_slashing_animation_shoes_4
       rect:
         serializedVersion: 2
         x: 256
@@ -99,7 +99,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: .5, y: .25}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: male_battle_slashing_animation_shirt01_sprite_sheet_5
+    - name: male_battle_slashing_animation_shoes_5
       rect:
         serializedVersion: 2
         x: 320
