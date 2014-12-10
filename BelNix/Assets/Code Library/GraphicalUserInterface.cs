@@ -411,7 +411,20 @@ public class GraphicalUserInterface : MonoBehaviour
 			pantsSprite.color = secondaryColor;
 			shoesSprite.color = secondaryColor;
 
-
+			switch(raceSelect)
+			{
+			case 0:
+				characterSprite.color = berrindColor;
+				break;
+			case 1:
+				characterSprite.color = ashpianColor;
+				break;
+			case 2:
+				characterSprite.color = rorrulColor;
+				break;
+			default:
+				break;
+			}
 			if(cCProgressionSelect == 0)
 			{
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Personal Information");
@@ -429,19 +442,16 @@ public class GraphicalUserInterface : MonoBehaviour
 				switch(raceSelect)
 				{
 				case 0:
-					characterSprite.color = berrindColor;
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "-1 Health/ +1 Composure");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Reckless");
 					backgroundSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(9), 250, 20),backgroundSelect, backgroundBerrind, 2);
 					break;
 				case 1:
-					characterSprite.color = ashpianColor;
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "No Changes");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Passive");
 					backgroundSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(9), 250, 20),backgroundSelect, backgroundAshpian, 2);
 					break;
 				case 2:
-					characterSprite.color = rorrulColor;
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "+1 Health/ -1 Composure");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Threatened");
 					backgroundSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(9), 250, 20),backgroundSelect, backgroundRorrul, 2);
