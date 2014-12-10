@@ -2395,7 +2395,7 @@ public class Unit : MonoBehaviour {
 			}
 			if (currentPath.Count >= 2 && !shouldCancelMovement) {
 				float speed = 2.0f;
-				speed = 4.0f / 40.0f;
+				speed = 4.0f;
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist, true);
