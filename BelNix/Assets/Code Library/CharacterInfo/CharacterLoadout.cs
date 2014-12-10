@@ -84,7 +84,7 @@ public class CharacterLoadoutActual {
 				sr.color = colors.secondaryColor;
 				break;
 			default:
-				return;
+				break;
 			}
 			item.sprite = sprite;
 			sprite.transform.parent = character.unit.transform;
