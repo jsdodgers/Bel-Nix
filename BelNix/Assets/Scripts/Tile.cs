@@ -160,7 +160,6 @@ public class Tile {
 
 	public void doTrapDamage(Unit u) {
 		TrapUnit tr = getTrap();
-		Debug.Log(tr);
 		if (tr==null) return;
 	//	Trap t = tr.trap;
 
