@@ -142,6 +142,7 @@ public class MapGenerator : MonoBehaviour {
 		bool enemy = false;
 		bool player = false;
 		foreach (Unit u in priorityOrder) {
+			if (u.deadOrDyingOrUnconscious()) continue;
 			if (u.team == 0) player = true;
 			else enemy = true;
 			if (player && enemy) {
@@ -562,6 +563,16 @@ public class MapGenerator : MonoBehaviour {
 			else {
 				gui.selectAttack();
 			}
+			if (selectedUnit.deadOrDying()) {
+				selectedUnit.damage(1,null);
+				selectedUnit.showDamage(1, true, false);
+				if (selectedUnit.isDead()) {
+					removeCharacter(selectedUnit);
+				}
+			}
+			if (selectedUnit.deadOrDyingOrUnconscious()) {
+				return nextPlayer();
+			}
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -703,6 +714,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void removeCharacter(Unit cs) {
+		cs.removeCurrent();
 		int index = priorityOrder.IndexOf(cs);
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);

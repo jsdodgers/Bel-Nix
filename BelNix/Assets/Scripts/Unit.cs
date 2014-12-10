@@ -562,7 +562,7 @@ public class Unit : MonoBehaviour {
 		Unit closest = null;
 		float dist = float.MaxValue;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team) {
+			if (u.team != team && !u.deadOrDyingOrUnconscious()) {
 				float d = distanceFromUnit(u);
 				if (d < dist) {
 					dist = d;
@@ -588,7 +588,7 @@ public class Unit : MonoBehaviour {
 	public float closestEnemyDist() {
 		float dist = 0;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team) {
+			if (u.team != team && !u.deadOrDyingOrUnconscious()) {
 				float d = distanceFromUnit(u);
 				if (d < dist || dist == 0) {
 					dist = d;
@@ -621,7 +621,7 @@ public class Unit : MonoBehaviour {
 				
 				List<Unit> units = new List<Unit>();
 				foreach (Unit u in mapGenerator.priorityOrder) {
-					if (team != u.team) {
+					if (team != u.team && !u.deadOrDyingOrUnconscious()) {
 						units.Add (u);
 					}
 				}
@@ -2064,7 +2064,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return true;
+		return !deadOrDyingOrUnconscious();
 	}
 
 	public int attackOfOpp(Vector2 one) {
@@ -2077,6 +2077,7 @@ public class Unit : MonoBehaviour {
 				if (x >=0 && y >= 0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
 					Tile t = mapGenerator.tiles[x,y];
 					if (t.hasEnemy(this) && t.getEnemy(this).canAttOpp()) {
+					
 						move++;
 						Unit enemy = t.getEnemy(this);
 						enemy.attackEnemy = this;
@@ -2620,6 +2621,11 @@ public class Unit : MonoBehaviour {
 		anim.SetBool("Move",moving);
 		movementAnimationAllSprites(moving);
 	}
+
+	void deathAnimation() {
+		anim.SetTrigger("Death");
+		deathAnimationAllSprites();
+	}
 	
 	void attackAnimation() {
 		anim.SetTrigger("Attack");
@@ -2633,6 +2639,10 @@ public class Unit : MonoBehaviour {
 
 	void movementAnimationAllSprites(bool move) {
 		setAllSpritesBool("Move",move);
+	}
+
+	void deathAnimationAllSprites() {
+		setAllSpritesTrigger("Death");
 	}
 
 	void setAllSpritesBool(string boolName, bool b) {
@@ -2689,6 +2699,12 @@ public class Unit : MonoBehaviour {
 		return getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
 	}
 
+	public void showDamage(int wapoon, bool didHit, bool crit) {
+		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+		damageDisplay.begin(wapoon, didHit, crit, this);
+
+	}
+
 	public void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
         Hit hit = Combat.rollHit(this);
@@ -2697,8 +2713,7 @@ public class Unit : MonoBehaviour {
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
 		int wapoon = rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
-		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
-		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
+		attackEnemy.showDamage(wapoon, didHit, crit);
 		gui.log.addMessage(getName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
@@ -2757,8 +2772,16 @@ public class Unit : MonoBehaviour {
 		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
 	}
 
+	public virtual bool deadOrDying() {
+		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isDying();
+	}
+
+	public virtual bool unconscious() {
+		return characterSheet.combatScores.isUnconscious();
+	}
+
 	public virtual bool deadOrDyingOrUnconscious() {
-		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
+		return deadOrDying() || unconscious();
 	}
 
 	public virtual void loseHealth(int amount) {
@@ -2777,13 +2800,15 @@ public class Unit : MonoBehaviour {
 //			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
 			loseHealth(damage);
-			if (!d && deadOrDyingOrUnconscious()) {
+			if (!d && deadOrDyingOrUnconscious() && u) {
 				u.killedEnemy(this, givesDecisiveStrike());
 			}
 		}
 		//	Debug.Log("EndDamage");
 	}
 
+	public bool didDeath = false;
+	public bool didActualDeath = false;
 	public virtual bool isDead() {
 		return characterSheet.combatScores.isDead();
 	}
@@ -2794,22 +2819,29 @@ public class Unit : MonoBehaviour {
 	//	if (died) dieTime += Time.deltaTime;
 		//	if (dieTime >= 1) Destroy(gameObject);
 		//	if (dieTime >= 0.5f) {
-		if (isDead()) {
-			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
+		if (deadOrDyingOrUnconscious() && !didDeath) {
+			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking || !mapGenerator.selectedUnit.moving) {
+				didDeath = true;
 				if (mapGenerator.selectedUnit) {
-				//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
 					Unit p = mapGenerator.selectedUnit;
 					if (p.attackEnemy==this) p.attackEnemy = null;
 				}
-//				mapGenerator.enemies.Remove(gameObject);
-				mapGenerator.removeCharacter(this);
-				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
-				if (t.getCharacter()==this)
-					t.removeCharacter();
-				Destroy(gameObject);
-				mapGenerator.resetCharacterRange();
+				deselect();
+			//	if (isDead())
+			//		mapGenerator.removeCharacter(this);
+//				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
+//				if (t.getCharacter()==this)
+//					t.removeCharacter();
+//				Destroy(gameObject);
+//				mapGenerator.resetCharacterRange();
+				deathAnimation();
 				mapGenerator.setGameState();
 			}
+		}
+		if (isDead() && !didActualDeath) {
+			if (mapGenerator.priorityOrder.Contains(this))
+				mapGenerator.removeCharacter(this);
+			didActualDeath = true;
 		}
 		//	Debug.Log("End Death");
 	}
