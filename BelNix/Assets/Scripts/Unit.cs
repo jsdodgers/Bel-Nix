@@ -13,7 +13,7 @@ public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHa
 public class Unit : MonoBehaviour {
 	public bool playerControlled = true;
 	public AStarEnemyMap aiMap = null;
-	public Character characterSheet;
+	public Character character;
 	int initiative;
 	public string characterName;
 	public int team = 0;
@@ -129,7 +129,7 @@ public class Unit : MonoBehaviour {
 	public StandardType[] getStandardTypes() {
 		List<StandardType> standardTypes = new List<StandardType>();
 		standardTypes.Add(StandardType.Attack);
-		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
+        ClassFeature[] features = character.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			StandardType st = getStandardType(feature);
 			if (st != StandardType.None)
@@ -164,7 +164,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public int getAttackRange() {
-		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		Weapon w = character.characterSheet.characterLoadout.rightHand;
 		if (w==null) return 0;
 		return w.range;
 	}
@@ -292,7 +292,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void rollInitiative() {
-		initiative = Random.Range(1,21) + characterSheet.combatScores.getInitiative();
+        initiative = Random.Range(1, 21) + character.characterSheet.combatScores.getInitiative();
 	}
 
 	public int getInitiative() {
@@ -1237,16 +1237,16 @@ public class Unit : MonoBehaviour {
 				Vector2 v = getIndexOfSlot(slot);
 //				Debug.Log(v);
 				int ind = getLinearIndexFromIndex(v);
-				InventoryItemSlot sl = characterSheet.characterSheet.inventory.inventory[ind];
+				InventoryItemSlot sl = character.characterSheet.inventory.inventory[ind];
 				InventoryItemSlot slR = sl.itemSlot;
 				if (slR==null) break;
 			//	Item i = slR.item;
-				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
-				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
+				Vector2 itemSlot = character.characterSheet.inventory.getSlotForIndex(ind);
+				ItemReturn ir = character.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
 				if (mapGenerator.shiftDown) {
 					if (selectedItem.stackSize()>1) {
-						characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
+						character.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
 						selectedItem = selectedItem.popStack();
 					}
 				}
@@ -1301,24 +1301,24 @@ public class Unit : MonoBehaviour {
 				Vector2 v2 = getIndexOfSlot(slot);
 				Vector2 v = v2 - selectedCell;
 				Debug.Log(v);
-				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
+				if (character.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
 						t.removeItem(selectedItem,1);
 						minorsLeft--;
 					}
-					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
+					character.characterSheet.inventory.insertItemInSlot(selectedItem, v);
 					selectedItem = null;
 					return;
 				}
 				else {
-					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[characterSheet.characterSheet.inventory.getIndexForSlot(v2)];
+					InventoryItemSlot invSlot = character.characterSheet.inventory.inventory[character.characterSheet.inventory.getIndexForSlot(v2)];
 					Item invSlotItem = invSlot.getItem();
-					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
+					if (invSlotItem != null && character.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {
 							t.removeItem(selectedItem,1);
 							minorsLeft--;
 						}
-						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
+						character.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
 						selectedItem = null;
 						return;
 					}
@@ -1335,13 +1335,13 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		else if (selectedItemWasInSlot!=InventorySlot.None) {
-			if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot))) {
-				characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
+			if (character.characterSheet.inventory.canInsertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot))) {
+				character.characterSheet.inventory.insertItemInSlot(selectedItem, getIndexOfSlot(selectedItemWasInSlot));
 			}
 			else {
 				int slot1 = getLinearIndexFromIndex(getIndexOfSlot(selectedItemWasInSlot));
-				if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
-					characterSheet.characterSheet.inventory.stackItemWith(characterSheet.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
+				if (slot1 > -1 && character.characterSheet.inventory.itemCanStackWith(character.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
+					character.characterSheet.inventory.stackItemWith(character.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
 				}
 			}
 		}
@@ -1373,9 +1373,9 @@ public class Unit : MonoBehaviour {
 		float compY = 25.0f;*/
 		float tabButtonsY = 0.0f;
 	//	int healthFont = 0;
-		string healthText = "Health: " + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth();
+        string healthText = "Health: " + character.characterSheet.combatScores.getCurrentHealth() + "/" + character.characterSheet.combatScores.getMaxHealth();
 		GUIContent healthContent = new GUIContent(healthText);
-		string composureText = "Composure: " + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure();
+        string composureText = "Composure: " + character.characterSheet.combatScores.getCurrentComposure() + "/" + character.characterSheet.combatScores.getMaxComposure();
 		GUIContent composureContent = new GUIContent(composureText);
 		if (gui.openTab == Tab.None) {
 			Texture[] textures = getPaperDollTexturesHead();
@@ -1404,7 +1404,7 @@ public class Unit : MonoBehaviour {
 			GUI.DrawTexture(new Rect(0.0f, 0.0f, paperDollFullWidth, paperDollFullHeight), getPaperDollFullBackgroundTexture((int)paperDollFullWidth, (int)paperDollFullHeight));
 			float y = 0.0f;
 			GUIStyle textStyle = getPlayerInfoStyle();
-			GUIContent name = new GUIContent(characterSheet.personalInfo.getCharacterName().fullName());
+            GUIContent name = new GUIContent(character.characterSheet.personalInformation.getCharacterName().fullName());
 			Vector2 nameSize = textStyle.CalcSize(name);
 			GUI.Label(new Rect((paperDollFullWidth - nameSize.x)/2.0f, y, nameSize.x, nameSize.y), name, textStyle);
 			y += nameSize.y;
@@ -1433,22 +1433,22 @@ public class Unit : MonoBehaviour {
 			GUI.Label(new Rect(healthCenter - healthSize.x/2.0f, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
 			GUI.Label(new Rect(healthCenter - composureSize.x/2.0f, compY, composureSize.x, composureSize.y), composureContent, compStyle);
 			y = compY + composureSize.y - mid;
-			GUIContent profession = new GUIContent(characterSheet.characterProgress.getCharacterClass().getClassName().ToString());
+            GUIContent profession = new GUIContent(character.characterSheet.characterProgress.getCharacterClass().getClassName().ToString());
 			Vector2 professionSize = textStyle.CalcSize(profession);
 			GUI.Label(new Rect((paperDollFullWidth - professionSize.x)/2.0f, y, professionSize.x, professionSize.y), profession, textStyle);
 			y += professionSize.y - mid;
-			GUIContent race = new GUIContent(characterSheet.personalInfo.getCharacterRace().getRaceString());
+            GUIContent race = new GUIContent(character.characterSheet.personalInformation.getCharacterRace().getRaceString());
 			Vector2 raceSize = textStyle.CalcSize(race);
 			GUI.Label(new Rect((paperDollFullWidth - raceSize.x)/2.0f, y, raceSize.x, raceSize.y), race, textStyle);
 			y += raceSize.y - mid;
-			GUIContent background = new GUIContent(characterSheet.personalInfo.getCharacterBackground().ToString());
+            GUIContent background = new GUIContent(character.characterSheet.personalInformation.getCharacterBackground().ToString());
 			Vector2 backgroundSize = textStyle.CalcSize(background);
 			GUI.Label(new Rect((paperDollFullWidth - backgroundSize.x)/2.0f, y, backgroundSize.x, backgroundSize.y), background, textStyle);
 			y += backgroundSize.y;
-			GUIContent level = new GUIContent("Level: " + characterSheet.characterProgress.getCharacterLevel());
+            GUIContent level = new GUIContent("Level: " + character.characterSheet.characterProgress.getCharacterLevel());
 			Vector2 levelSize = textStyle.CalcSize(level);
 			GUI.Label(new Rect(5.0f, y, levelSize.x, levelSize.y), level, textStyle);
-			GUIContent experience = new GUIContent(characterSheet.characterProgress.getCharacterExperience() + " exp");
+            GUIContent experience = new GUIContent(character.characterSheet.characterProgress.getCharacterExperience() + " exp");
 			Vector2 experienceSize = textStyle.CalcSize(experience);
 			GUI.Label(new Rect(paperDollFullWidth - experienceSize.x - 5.0f, y, experienceSize.x, experienceSize.y), experience, textStyle);
 		}
@@ -1550,7 +1550,7 @@ public class Unit : MonoBehaviour {
 				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderNameStyle(player))) {
 					selectUnit(player);
 				}
-				name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
+                name = new GUIContent(player.character.characterSheet.personalInformation.getCharacterName().fullName());
 				nameSize = st.CalcSize(name);
 				GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
 				x += turnOrderNameWidth - 1.0f;
@@ -1587,8 +1587,8 @@ public class Unit : MonoBehaviour {
 			float y = characterStatsSize.y + 5.0f;
 			GUIStyle st = getPlayerInfoStyle();
 			string[] stats = new string[]{"", "STR", "PER", "TEC", "W-VER"};
-			string[] bases = new string[]{"Base", "" + characterSheet.abilityScores.getSturdy(), "" + characterSheet.abilityScores.getPerception(), "" + characterSheet.abilityScores.getTechnique(), "" + characterSheet.abilityScores.getWellVersed()};
-			string[] mods = new string[]{"Mod", "" + characterSheet.combatScores.getInitiative(), "" + characterSheet.combatScores.getCritical(), "" + characterSheet.combatScores.getHandling(), "" + characterSheet.combatScores.getDominion()};
+            string[] bases = new string[] { "Base", "" + character.characterSheet.abilityScores.getSturdy(), "" + character.characterSheet.abilityScores.getPerception(), "" + character.characterSheet.abilityScores.getTechnique(), "" + character.characterSheet.abilityScores.getWellVersed() };
+            string[] mods = new string[] { "Mod", "" + character.characterSheet.combatScores.getInitiative(), "" + character.characterSheet.combatScores.getCritical(), "" + character.characterSheet.combatScores.getHandling(), "" + character.characterSheet.combatScores.getDominion() };
 			for (int n=0;n<stats.Length;n++) {
 				GUIContent stat = new GUIContent(stats[n]);
 				Vector2 statSize = st.CalcSize(stat);
@@ -1602,14 +1602,14 @@ public class Unit : MonoBehaviour {
 				y += Mathf.Max(new float[]{statSize.y, modSize.y, baseSize.y});
 			}
 			y += 10.0f;
-			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterSheet.characterLoadout.getAC());
+			GUIContent armorClass = new GUIContent("Armor Class: " + character.characterSheet.characterLoadout.getAC());
 			Vector2 armorClassSize = st.CalcSize(armorClass);
 			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClass, st);
 			y += armorClassSize.y + 10.0f;
 			GUIContent healthTitle = new GUIContent("Health");
-			GUIContent healthAmount = new GUIContent(characterSheet.combatScores.getMaxHealth() + "");
+            GUIContent healthAmount = new GUIContent(character.characterSheet.combatScores.getMaxHealth() + "");
 			GUIContent composureTitle = new GUIContent("Composure");
-			GUIContent composureAmount = new GUIContent(characterSheet.combatScores.getMaxComposure() + "");
+            GUIContent composureAmount = new GUIContent(character.characterSheet.combatScores.getMaxComposure() + "");
 			Vector2 healthTitleSize = st.CalcSize(healthTitle);
 			Vector2 healthSize = st.CalcSize(healthAmount);
 			Vector2 composureTitleSize = st.CalcSize(composureTitle);
@@ -1628,7 +1628,7 @@ public class Unit : MonoBehaviour {
 			GUI.Label(new Rect(paperDollFullWidth + (skillsWidth - 1.0f - skillSize.x)/2.0f, 0.0f, skillSize.x, skillSize.y), skills, titleStyle);
 			string[] skillCategories = new string[]{"Physique", "Prowess", "Mastery", "Knowledge"};
 			string[] skillNames = new string[]{"Athletics","Melee","Ranged","Stealth","Mechanical","Medicinal","Historical","Political"};
-			string[] skillScores = new string[]{"" + characterSheet.skillScores.getScore(Skill.Athletics),"" + characterSheet.skillScores.getScore(Skill.Melee),"" + characterSheet.skillScores.getScore(Skill.Ranged),"" + characterSheet.skillScores.getScore(Skill.Stealth),"" + characterSheet.skillScores.getScore(Skill.Mechanical),"" + characterSheet.skillScores.getScore(Skill.Medicinal),"" + characterSheet.skillScores.getScore(Skill.Historical),"" + characterSheet.skillScores.getScore(Skill.Political)};
+            string[] skillScores = new string[] { "" + character.characterSheet.skillScores.getScore(Skill.Athletics), "" + character.characterSheet.skillScores.getScore(Skill.Melee), "" + character.characterSheet.skillScores.getScore(Skill.Ranged), "" + character.characterSheet.skillScores.getScore(Skill.Stealth), "" + character.characterSheet.skillScores.getScore(Skill.Mechanical), "" + character.characterSheet.skillScores.getScore(Skill.Medicinal), "" + character.characterSheet.skillScores.getScore(Skill.Historical), "" + character.characterSheet.skillScores.getScore(Skill.Political) };
 			float skillCategoryX = paperDollFullWidth + 5.0f;
 			float skillCategoryWidth = 80.0f;
 			float skillNameX = skillCategoryX + skillCategoryWidth;
@@ -1667,7 +1667,7 @@ public class Unit : MonoBehaviour {
 			GUIStyle featuresStyle = st;
 			GUIContent c = new GUIContent("Feature");
 			float featuresHeight = featuresStyle.CalcSize(c).y;
-			ClassFeature[] classFeatures = characterSheet.characterSheet.characterProgress.getClassFeatures();
+			ClassFeature[] classFeatures = character.characterSheet.characterProgress.getClassFeatures();
 			float scrollHeight = featuresHeight * classFeatures.Length;
 			float remainingHeight = skillsHeight - y;
 			classFeaturesScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth - 1.0f, y, skillsWidth, remainingHeight), classFeaturesScrollPos, new Rect(paperDollFullWidth - 1.0f, y, skillsWidth - (scrollHeight > remainingHeight ? 16.0f : 0.0f), scrollHeight));
@@ -1729,7 +1729,7 @@ public class Unit : MonoBehaviour {
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
-				Item i = characterSheet.characterSheet.characterLoadout.getItemInSlot(slot);
+				Item i = character.characterSheet.characterLoadout.getItemInSlot(slot);
 				if (i != null && i.inventoryTexture != null) {
 					GUI.DrawTexture(r, i.inventoryTexture);
 				}
@@ -1746,7 +1746,7 @@ public class Unit : MonoBehaviour {
 			foreach (InventorySlot slot in inventorySlots) {
 				Vector2 vec = getIndexOfSlot(slot);
 				int ind = getLinearIndexFromIndex(vec);
-				InventoryItemSlot isl = characterSheet.characterSheet.inventory.inventory[ind];
+				InventoryItemSlot isl = character.characterSheet.inventory.inventory[ind];
 				Item i = isl.item;
 				if (i == null) continue;
 				Vector2 origin = getInventorySlotPos(slot);
@@ -2187,15 +2187,15 @@ public class Unit : MonoBehaviour {
 	public void loadCharacterSheet() {
 		if (characterSheetLoaded) return;
 		characterSheetLoaded = true;
-		characterSheet.loadData();
-		characterSheet.unit = this;
+		character.loadData();
+		character.unit = this;
 	}
 
 	public void loadCharacterSheetFromTextFile(string textFile) {
 		if (characterSheetLoaded) return;
-		characterSheet.loadCharacterFromTextFile(textFile);
+		character.loadCharacterFromTextFile(textFile);
 		characterSheetLoaded = true;
-		characterSheet.unit = this;
+		character.unit = this;
 	}
 
 	public void setMapGenerator(MapGenerator mg) {
@@ -2264,8 +2264,8 @@ public class Unit : MonoBehaviour {
 					Tile t = mapGenerator.tiles[(int)from.x,(int)from.y];
 					int passability = t.passabilityInDirection(dir);
 					if (passability > 1) {
-						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
-						int check = characterSheet.rollForSkill(Skill.Athletics);
+                        int athletics = character.characterSheet.skillScores.getScore(Skill.Athletics);
+						int check = character.rollForSkill(Skill.Athletics);
 						if (check >= passability) {
 							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
 						}
@@ -2300,7 +2300,8 @@ public class Unit : MonoBehaviour {
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
 				setRotationToMostInterestingTile();
-				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
+                if (!usedStandard && closestEnemyDist() <= character.characterSheet.characterLoadout.rightHand.range)
+                {
 					gui.selectAttack();
 				}
 			}
@@ -2347,7 +2348,7 @@ public class Unit : MonoBehaviour {
 
 	void throwAnimation() {
 		attackEnemy.setRotationToCharacter(this);
-		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative(), this);
+        attackEnemy.getThrown(directionOf(attackEnemy), character.characterSheet.combatScores.getInitiative(), this);
 		mapGenerator.resetAttack(this);
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
@@ -2398,7 +2399,7 @@ public class Unit : MonoBehaviour {
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u) {
-					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
+					if (u.character.rollForSkill(Skill.Athletics) < 15) {
 //					u.affliction = Affliction.Prone;
 						u.becomeProne();
 						alsoProne = u;
@@ -2410,7 +2411,7 @@ public class Unit : MonoBehaviour {
 			gui.log.addMessage(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
 		}
 		else {
-			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.green);
+			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (character.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.green);
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
@@ -2467,10 +2468,10 @@ public class Unit : MonoBehaviour {
 
 	void dealIntimidationDamage() {
 		if (attackEnemy != null) {
-			int sturdy = characterSheet.rollForSkill(Skill.Melee, 20);
-			int wellV = attackEnemy.characterSheet.rollForSkill(Skill.Political, 10);
+			int sturdy = character.rollForSkill(Skill.Melee, 20);
+			int wellV = attackEnemy.character.rollForSkill(Skill.Political, 10);
 			bool didHit = sturdy >= wellV;
-			int wapoon = Mathf.Max(1, characterSheet.combatScores.getInitiative());
+            int wapoon = Mathf.Max(1, character.characterSheet.combatScores.getInitiative());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
@@ -2484,7 +2485,7 @@ public class Unit : MonoBehaviour {
 	public void damageComposure(int damage, Unit u) {
 		if (damage > 0) {
 			crushingHitSFX();
-			characterSheet.combatScores.loseComposure(damage);
+			character.characterSheet.combatScores.loseComposure(damage);
 		}
 	}
 
@@ -2517,14 +2518,14 @@ public class Unit : MonoBehaviour {
 	void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
         Hit hit = Combat.rollHit(this);
-		int enemyAC = attackEnemy.characterSheet.characterSheet.characterLoadout.getAC();
+		int enemyAC = attackEnemy.character.characterSheet.characterLoadout.getAC();
 		Hit critHit = Combat.rollHit(this);
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
-		int wapoon = characterSheet.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
+		int wapoon = character.rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, attackEnemy);
-		gui.log.addMessage(characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.characterSheet.personalInfo.getCharacterName().fullName() + (didHit ? " with " + (characterSheet.characterSheet.characterLoadout.rightHand == null ?  (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? " her " : " his ") + "fist " : characterSheet.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
+        gui.log.addMessage(character.characterSheet.personalInformation.getCharacterName().fullName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.character.characterSheet.personalInformation.getCharacterName().fullName() + (didHit ? " with " + (character.characterSheet.characterLoadout.rightHand == null ? (character.characterSheet.personalInformation.getCharacterSex() == CharacterSex.Female ? " her " : " his ") + "fist " : character.characterSheet.characterLoadout.rightHand.itemName + " ") + "for " + wapoon + " damage!" : "!"), (team == 0 ? Color.green : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2551,7 +2552,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public string getName() {
-		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
+		return character.characterSheet.personalInformation.getCharacterName().fullName();
 	}
 
 	public void killedEnemy(Unit enemy) {
@@ -2582,7 +2583,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public bool deadOrDyingOrUnconscious() {
-		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
+        return character.characterSheet.combatScores.isDead() || character.characterSheet.combatScores.isUnconscious() || character.characterSheet.combatScores.isDying();
 	}
 
 	public void damage(int damage, Unit u) {
@@ -2592,7 +2593,7 @@ public class Unit : MonoBehaviour {
 //			hitPoints -= damage;
 //			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
-			characterSheet.combatScores.loseHealth(damage);
+            character.characterSheet.combatScores.loseHealth(damage);
 			if (!d && deadOrDyingOrUnconscious()) {
 				u.killedEnemy(this);
 			}
@@ -2601,7 +2602,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool isDead() {
-		return characterSheet.combatScores.isDead();
+        return character.characterSheet.combatScores.isDead();
 	}
 
 	void doDeath() {
@@ -2632,7 +2633,7 @@ public class Unit : MonoBehaviour {
 
 	void handleClassFeature(ClassFeature feature) {
 		Debug.Log("handleClassFeature("+feature + ")");
-		if (!characterSheet.characterProgress.hasFeature(feature)) return;
+        if (!character.characterSheet.characterProgress.hasFeature(feature)) return;
 		Debug.Log("Has!!");
 		switch(feature) {
 		case ClassFeature.Decisive_Strike:

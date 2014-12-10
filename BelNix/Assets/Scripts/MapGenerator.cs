@@ -384,7 +384,7 @@ public class MapGenerator : MonoBehaviour {
 			pl.loadCharacterSheetFromTextFile(chars[n]);
 			pl.rollInitiative();
 			selectionUnits.Add(pl);
-			Debug.Log(pl.characterSheet.personalInfo.getCharacterName().fullName());
+            Debug.Log(pl.character.characterSheet.personalInformation.getCharacterName().fullName());
 		}
 		sortPriority();
 		repositionSelectionUnits();
@@ -498,7 +498,8 @@ public class MapGenerator : MonoBehaviour {
 			moveCameraToSelected();
 			lastPlayerPath = selectedUnit.currentPath;
 			float closestEnemy = selectedUnit.closestEnemyDist();
-			if (closestEnemy > selectedUnit.characterSheet.characterLoadout.rightHand.getWeapon().range) {
+            if (closestEnemy > selectedUnit.character.characterSheet.characterLoadout.rightHand.range)
+            {
 				gui.selectMove();
 			}
 			else {

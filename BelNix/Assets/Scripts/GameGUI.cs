@@ -561,7 +561,7 @@ public class GameGUI : MonoBehaviour {
 					y += mapGenerator.spriteSeparator + mapGenerator.spriteSize;
 				}
 				Unit u = mapGenerator.selectionUnits[n];
-				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
+                GUIContent content = new GUIContent(u.character.characterSheet.personalInformation.getCharacterName().fullName());
 				Vector2 size = st.CalcSize(content);
 				float height = st.CalcHeight(content, width);
 				GUI.Label(new Rect(Screen.width - mapGenerator.selectionWidth, y, width, height + 0 * size.y), content, st);
@@ -572,7 +572,7 @@ public class GameGUI : MonoBehaviour {
 			if (mapGenerator.selectedSelectionObject) {
 				Vector3 pos = Camera.main.WorldToScreenPoint(mapGenerator.selectedSelectionObject.transform.position);
 				Unit u = mapGenerator.selectedSelectionObject.GetComponent<Unit>();
-				GUIContent content = new GUIContent(u.characterSheet.personalInfo.getCharacterName().fullName());
+                GUIContent content = new GUIContent(u.character.characterSheet.personalInformation.getCharacterName().fullName());
 				float height = st.CalcHeight(content, width);
 				GUI.Label(new Rect(pos.x - width/2.0f, Screen.height - (pos.y - mapGenerator.spriteSize/2.0f + 10.0f), width, height), content, st);
 				

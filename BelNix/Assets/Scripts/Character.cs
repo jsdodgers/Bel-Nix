@@ -12,27 +12,17 @@ public struct Hit {
 
 public class Character : MonoBehaviour
 {
-	public PersonalInformation personalInfo;
-	public CharacterProgress characterProgress;
-	public AbilityScores abilityScores;
-	public CombatScores combatScores;
-	public CharacterLoadout characterLoadout;
-	public SkillScores skillScores;
+	//private PersonalInformation personalInfo;
+    //private CharacterProgress characterProgress;
+    //private AbilityScores abilityScores;
+    //private CombatScores combatScores;
+    private CharacterLoadout characterLoadout;
+    //private SkillScores skillScores;
 	public CharacterSheet characterSheet;
 	public Unit unit;
 //	public ItemWeapon mainHand;
 
 
-	//bool flanking() {
-    //    return Combat.flanking(this.unit);
-		//Vector3 pos = unit.position;
-		//Vector3 enemyPos = unit.attackEnemy.position;
-		//int eX = (int)enemyPos.x, eY = (int)-enemyPos.y;
-		//int pX = (int)pos.x, pY = (int)-pos.y;
-		//int flankX = (pX == eX ? pX : eX - (pX - eX));
-		//int flankY = (pY == eY ? pY : eY - (pY - eY));
-		//return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
-	//}
 
 	public int rollForSkill(Skill skill, int dieType = 10) {
 		int roll = Random.Range(1, dieType + 1);
@@ -44,16 +34,9 @@ public class Character : MonoBehaviour
 	}
 
 	public int rollDamage(bool critical) {
-		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
+        return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? characterSheet.combatScores.getCritical() : 0);
 	}
 
-	//public Hit rollHit() {
-    //    return Combat.rollHit(this.unit);
-		//int rand = Random.Range(1,21);
-		//Debug.Log(skillScores);
-		//int critChance = characterSheet.characterLoadout.rightHand.criticalChance;
-		//return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
-	//}
 
 	public int stackabilityOfItem(Item i) {
 		if (i is ItemMechanical) {
@@ -108,14 +91,14 @@ public class Character : MonoBehaviour
 		int heightRemainder = height % 12;
 		height -= heightRemainder;
 
-		personalInfo = new PersonalInformation(new CharacterName(firstName, lastName), 
+		PersonalInformation personalInfo = new PersonalInformation(new CharacterName(firstName, lastName), 
 		                                       mCSex, mCRace, mCBackground, new CharacterAge(age),
 		                                       new CharacterHeight(height, heightRemainder), 
 		                                       new CharacterWeight(weight));
-		characterProgress = new CharacterProgress(mCClass);
-		abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
-		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
-		skillScores = new SkillScores(combatScores, characterProgress);
+		CharacterProgress characterProgress = new CharacterProgress(mCClass);
+		AbilityScores abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
+		CombatScores combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
+		SkillScores skillScores = new SkillScores(combatScores, characterProgress);
 		
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
 		                                     characterProgress, combatScores, skillScores, this, characterLoadout);
@@ -151,13 +134,13 @@ public class Character : MonoBehaviour
 		int medicinal = int.Parse(components[curr++]);
 		int historical = int.Parse(components[curr++]);
 		int political = int.Parse(components[curr++]);
-		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
+		PersonalInformation personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
 		                                       new CharacterWeight(weight));
-		characterProgress = new CharacterProgress(CharacterClass.getClass(className));
-		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
-		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
-		skillScores = new SkillScores(combatScores, characterProgress);
+		CharacterProgress characterProgress = new CharacterProgress(CharacterClass.getClass(className));
+		AbilityScores abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
+		CombatScores combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
+		SkillScores skillScores = new SkillScores(combatScores, characterProgress);
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, this, characterLoadout);
 		skillScores.incrementScore(Skill.Athletics,athletics);
 		skillScores.incrementScore(Skill.Melee,melee);

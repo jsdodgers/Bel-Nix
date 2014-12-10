@@ -43,8 +43,8 @@ public class CharacterTemplate : Character
 			loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
 			              mCSturdy, mCPerception, mCTechnique, mCWellVersed);
-			int level = characterProgress.setLevel(mClevel);
-			int experience = characterProgress.setExperience(mCexperience);
+            int level = characterSheet.characterProgress.setLevel(mClevel);
+            int experience = characterSheet.characterProgress.setExperience(mCexperience);
 		}
 	}
 	
