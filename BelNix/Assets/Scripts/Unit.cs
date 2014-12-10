@@ -2395,7 +2395,7 @@ public class Unit : MonoBehaviour {
 			}
 			if (currentPath.Count >= 2 && !shouldCancelMovement) {
 				float speed = 2.0f;
-				speed = 4.0f;
+				speed = 4.0f / 40.0f;
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist, true);
@@ -2618,6 +2618,7 @@ public class Unit : MonoBehaviour {
 
 	void moveAnimation(bool moving) {
 		anim.SetBool("Move",moving);
+		movementAnimationAllSprites(moving);
 	}
 	
 	void attackAnimation() {
@@ -2628,6 +2629,18 @@ public class Unit : MonoBehaviour {
 
 	void attackAnimationAllSprites() {
 		setAllSpritesTrigger("Attack");
+	}
+
+	void movementAnimationAllSprites(bool move) {
+		setAllSpritesBool("Move",move);
+	}
+
+	void setAllSpritesBool(string boolName, bool b) {
+		Debug.Log(boolName + "  " + b);
+		List<SpriteOrder> sprites = getSprites();
+		foreach (SpriteOrder sprite in sprites) {
+			sprite.sprite.GetComponent<Animator>().SetBool(boolName, b);
+		}
 	}
 
 	void setAllSpritesTrigger(string trigger) {
