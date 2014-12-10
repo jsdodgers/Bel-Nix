@@ -2806,6 +2806,7 @@ public class Unit : MonoBehaviour {
 		//	if (dieTime >= 0.5f) {
 		if (isDead() && !didDeath) {
 			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking || !mapGenerator.selectedUnit.moving) {
+				didDeath = true;
 				if (mapGenerator.selectedUnit) {
 					Unit p = mapGenerator.selectedUnit;
 					if (p.attackEnemy==this) p.attackEnemy = null;
