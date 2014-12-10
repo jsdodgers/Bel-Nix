@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.IO;
+using System.Collections.Generic;
 
 public class GraphicalUserInterface : MonoBehaviour
 {
@@ -15,7 +16,8 @@ public class GraphicalUserInterface : MonoBehaviour
 	public string[] backgroundAshpian = new string[] {"Commoner", "Immigrant"};
 	public string[] backgroundRorrul = new string[] {"Sevrant", "Unknown"};
 	public string[] characterClass = new string[] {"Ex-Soldier", "Engineer", "Investigator", "Researcher", "Orator"};
-	int sexSelect, raceSelect, backgroundSelect, classSelect = 0;
+	public string[] colorTypes = new string[] {"Body", "Hair", "Primary", "Secondary"};
+	int sexSelect, raceSelect, backgroundSelect, classSelect, colorSelect = 0;
 	int age = 25;
 	int ageUpperBound = 40;
 	int ageLowerBound = 20;
@@ -33,16 +35,44 @@ public class GraphicalUserInterface : MonoBehaviour
 	int skillLowerBound = 0;
 	int athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill = 0;
 
+	Color primaryColor;
+	Color secondaryColor;
+	Color berrindColor;
+	Color ashpianColor;
+	Color rorrulColor;
+	Color hairColor;
+	SpriteRenderer characterSprite;
+	SpriteRenderer shirtSprite;
+	SpriteRenderer pantsSprite;
+	SpriteRenderer shoesSprite;
+
+	static Color createColor(float r, float g, float b) {
+		return new Color(r/255.0f, g/255.0f, b/255.0f);
+	}
+
+	static Color[] berrindColors = new Color[]{Color.white, createColor(223, 223, 223), createColor(251, 235, 218), createColor(227, 216, 205)};
+	static Color[] ashpianColors = new Color[]{createColor(255, 204, 147), createColor(197, 154, 109), createColor(180, 147, 122), createColor(177, 118, 105)};
+	static Color[] rorrulColors = new Color[]{createColor(114, 90, 65), createColor(73, 52, 30), createColor(111, 98, 85), createColor(69, 63, 66)};
+	static Color[] hairColors = new Color[]{Color.white, Color.black, createColor(100, 80, 60), Color.red, Color.blue, Color.green};
+	static Color[] favoriteColors = new Color[]{Color.white, Color.black, Color.blue, Color.red, Color.green, Color.gray, Color.cyan, Color.magenta, Color.yellow};
 	// Use this for initialization
 	void Start()
 	{
-
+		characterSprite = GameObject.Find("Character").GetComponent<SpriteRenderer>();
+		shirtSprite = GameObject.Find("Shirt").GetComponent<SpriteRenderer>();
+		pantsSprite = GameObject.Find("Pants").GetComponent<SpriteRenderer>();
+		shoesSprite = GameObject.Find("Shoes").GetComponent<SpriteRenderer>();
+		berrindColor = berrindColors[Random.Range(0, berrindColors.Length)];
+		ashpianColor = ashpianColors[Random.Range(0, ashpianColors.Length)];
+		rorrulColor = rorrulColors[Random.Range(0, rorrulColors.Length)];
+		hairColor = hairColors[Random.Range(0, hairColors.Length)];
+		primaryColor = favoriteColors[Random.Range(0, favoriteColors.Length)];
+		secondaryColor = favoriteColors[Random.Range(0, favoriteColors.Length)];
 	}
 	
 	// Update is called once per frame
-	void Update()
-	{
-	
+	void Update() {
+
 	}
 
 	int calculateBoxHeight(int n)
@@ -217,6 +247,31 @@ public class GraphicalUserInterface : MonoBehaviour
 		return skill;
 	}
 
+
+	const int colorSquareWidth = 40;
+	static Texture2D makeTex( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
+
+	static Dictionary<Color, GUIStyle> colorStyles = new Dictionary<Color, GUIStyle>();
+	static GUIStyle getColorStyle(Color c) {
+		if (colorStyles.ContainsKey(c)) return colorStyles[c];
+		Texture2D tex = makeTex(colorSquareWidth, colorSquareWidth, c);
+		GUIStyle st = new GUIStyle("Button");
+		st.normal.background = st.hover.background = st.active.background = tex;
+		colorStyles[c] = st;
+		return st;
+	}
+
 	void OnGUI()
 	{
 		if(Application.loadedLevel == 0)
@@ -248,8 +303,73 @@ public class GraphicalUserInterface : MonoBehaviour
 		if(Application.loadedLevel == 1)
 		{
 			cCProgressionSelect = GUI.SelectionGrid(new Rect(225, Screen.height - 100, Screen.width - 450, 100), cCProgressionSelect, cCProgression, 4);
-			GUI.Box(new Rect(Screen.width - 510, 10, 500, 50), "Portrait/Looks");
-			GUI.Box(new Rect(Screen.width - 510, calculateBoxHeight(3), 500, 400), "");
+			GUI.Box(new Rect(Screen.width/2.0f - 150, 10, 300, 50), "Portrait/Looks");
+			GUI.Box(new Rect(Screen.width/2.0f - 150, calculateBoxHeight(3), 300, calculateBoxHeight(16)), "");
+			colorSelect = GUI.SelectionGrid(new Rect(Screen.width/2.0f - 150, calculateBoxHeight(3), 300, 20),colorSelect, colorTypes, 4);
+			int num = 285 / (colorSquareWidth + 5);
+			int totesWidth = num * (colorSquareWidth + 5);
+			int x = Screen.width/2 - 150 + (300 - totesWidth)/2;
+			int startX = x;
+			int y = calculateBoxHeight(4) + 10;
+			Color[] colorss = null;
+			switch (colorSelect) {
+			case 0:
+				switch (raceSelect) {
+				case 0:
+					colorss = berrindColors;
+					break;
+				case 1:
+					colorss = ashpianColors;
+					break;
+				default:
+					colorss = rorrulColors;
+					break;
+				}
+				break;
+			case 1:
+				colorss = hairColors;
+				break;
+			default:
+				colorss = favoriteColors;
+				break;
+			}
+			int num2 = 0;
+			foreach (Color c in colorss) {
+				if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", getColorStyle(c))) {
+					switch (colorSelect) {
+					case 0:
+						switch (raceSelect) {
+						case 0:
+							berrindColor = c;
+							break;
+						case 1:
+							ashpianColor = c;
+							break;
+						default:
+							rorrulColor = c;
+							break;
+						}
+						break;
+					case 1:
+						hairColor = c;
+						break;
+					case 2:
+						primaryColor = c;
+						break;
+					default:
+						secondaryColor = c;
+						break;
+					}
+				}
+				x += colorSquareWidth + 5;
+				num2++;
+				if (num2%num==0) {
+					x = startX;
+					y += colorSquareWidth + 5;
+				}
+			}
+
+
 
 			if(cCProgressionSelect == 0)
 			{
@@ -268,16 +388,19 @@ public class GraphicalUserInterface : MonoBehaviour
 				switch(raceSelect)
 				{
 				case 0:
+					characterSprite.color = berrindColor;
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "-1 Health/ +1 Composure");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Reckless");
 					backgroundSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(9), 250, 20),backgroundSelect, backgroundBerrind, 2);
 					break;
 				case 1:
+					characterSprite.color = ashpianColor;
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "No Changes");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Passive");
 					backgroundSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(9), 250, 20),backgroundSelect, backgroundAshpian, 2);
 					break;
 				case 2:
+					characterSprite.color = rorrulColor;
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "+1 Health/ -1 Composure");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Threatened");
 					backgroundSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(9), 250, 20),backgroundSelect, backgroundRorrul, 2);
