@@ -439,6 +439,7 @@ public class MapGenerator : MonoBehaviour {
 			priorityOrder.Add(pl);
 			pl.loadCharacterSheetFromTextFile(chars[n]);
 			pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
+			sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
 			pl.rollInitiative();
 			selectionUnits.Add(pl);
 			Debug.Log(pl.characterSheet.personalInfo.getCharacterName().fullName());

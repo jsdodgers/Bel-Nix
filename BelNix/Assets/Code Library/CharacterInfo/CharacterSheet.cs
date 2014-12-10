@@ -10,9 +10,10 @@ namespace CharacterInfo
 		public SkillScores skillScores;
         public CharacterLoadoutActual characterLoadout;
         public Inventory inventory;
+		public CharacterColors characterColors;
 
 		public CharacterSheet (AbilityScores abilityScore, PersonalInformation personalInfo, 
-		                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores, Character character, CharacterLoadout loadout)
+		                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores, CharacterColors characterColors, Character character, CharacterLoadout loadout)
 		{
 			abilityScores			= abilityScore;
 			personalInformation		= personalInfo;
@@ -21,7 +22,8 @@ namespace CharacterInfo
 			skillScores				= sScores;
 			inventory = new Inventory();
 			inventory.character = character;
-			characterLoadout = new CharacterLoadoutActual(loadout, character);
+			this.characterColors = characterColors;
+			characterLoadout = new CharacterLoadoutActual(loadout, character, characterColors);
             // Character Armor
             // Character Inventory
 		}

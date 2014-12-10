@@ -109,7 +109,8 @@ public class Character : MonoBehaviour
 
 	public void loadCharacter(string firstName, string lastName, CharacterSex mCSex, CharacterRace mCRace, int age,
 	                   CharacterBackground mCBackground, int height, int weight, CharacterClass mCClass,
-	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed)
+	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed,
+	                          Color characterColor, Color headColor, Color primaryColor, Color secondaryColor)
 	{
 		int heightRemainder = height % 12;
 		height -= heightRemainder;
@@ -122,9 +123,10 @@ public class Character : MonoBehaviour
 		abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
 		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
 		skillScores = new SkillScores(combatScores, characterProgress);
-		
+		CharacterColors characterColors = new CharacterColors(characterColor, headColor, primaryColor, secondaryColor);
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
-		                                     characterProgress, combatScores, skillScores, this, characterLoadout);
+		                                     characterProgress, combatScores, skillScores, characterColors, this, characterLoadout);
+
 	}
 
 	public void loadCharacterFromTextFile(string fileName) {
@@ -158,6 +160,11 @@ public class Character : MonoBehaviour
 		int medicinal = int.Parse(components[curr++]);
 		int historical = int.Parse(components[curr++]);
 		int political = int.Parse(components[curr++]);
+		Color characterColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		Debug.Log(characterColor.r + " " + characterColor.g + " " + characterColor.b);
+		Color headColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		Color primaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		Color secondaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
 		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
 		                                       new CharacterWeight(weight));
@@ -165,7 +172,8 @@ public class Character : MonoBehaviour
 		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
 		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
 		skillScores = new SkillScores(combatScores, characterProgress);
-		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, this, characterLoadout);
+		CharacterColors characterColors = new CharacterColors(characterColor, headColor, primaryColor, secondaryColor);
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, characterColors, this, characterLoadout);
 		skillScores.incrementScore(Skill.Athletics,athletics);
 		skillScores.incrementScore(Skill.Melee,melee);
 		skillScores.incrementScore(Skill.Ranged,ranged);
