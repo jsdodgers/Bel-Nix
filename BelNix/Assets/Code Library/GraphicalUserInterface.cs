@@ -308,6 +308,7 @@ public class GraphicalUserInterface : MonoBehaviour
 			colorSelect = GUI.SelectionGrid(new Rect(Screen.width/2.0f - 150, calculateBoxHeight(3), 300, 20),colorSelect, colorTypes, 4);
 			int num = 285 / (colorSquareWidth + 5);
 			int totesWidth = num * (colorSquareWidth + 5);
+
 			int x = Screen.width/2 - 150 + (300 - totesWidth)/2;
 			int startX = x;
 			int y = calculateBoxHeight(4) + 10;
