@@ -132,6 +132,12 @@ namespace CharacterInfo
 			for (int n=0;n<5;n++) {
 				inventory[2].item.addToStack(new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger()));
 			}
+			inventory[0].addOtherSlot(inventory[1]);
+			inventory[0].addOtherSlot(inventory[4]);
+			inventory[0].addOtherSlot(inventory[5]);
+			inventory[2].addOtherSlot(inventory[3]);
+			inventory[2].addOtherSlot(inventory[6]);
+			inventory[2].addOtherSlot(inventory[7]);
 		}
 
 		public bool removeItem(Item i) {

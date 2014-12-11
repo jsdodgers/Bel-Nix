@@ -1803,6 +1803,7 @@ public class Unit : MonoBehaviour {
 				Rect r = getInventorySlotRect(slot);
 				if (r.Contains(mousePos)) {
 					GUI.DrawTexture(r, getArmorHoverBackground());
+					break;
 				}
 			}
 			foreach (InventorySlot slot in armorSlots) {
@@ -1818,7 +1819,14 @@ public class Unit : MonoBehaviour {
 				GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),getInventoryLineWide());
 				Item i = characterSheet.characterSheet.characterLoadout.getItemInSlot(slot);
 				if (i != null && i.inventoryTexture != null) {
-					GUI.DrawTexture(r, i.inventoryTexture);
+					float w = i.getSize().x*inventoryCellSize;
+					float h = i.getSize().y*inventoryCellSize;
+					float x = r.x;
+					float y = r.y;
+					if (h > r.height) y = r.y + r.height - h;
+					else y = r.y + (r.height - h)/2.0f;
+					x = r.x + (r.width - w)/2.0f;
+					GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
 				}
 			}
 			foreach (InventorySlot slot in inventorySlots) {
