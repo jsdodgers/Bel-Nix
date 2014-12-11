@@ -1,4 +1,5 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 894e7a5bab937a145af2b7c34e97f05d
 TextureImporter:
   fileIDToRecycleName:
@@ -12,6 +13,15 @@ TextureImporter:
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
+=======
+guid: 2c83a72ee54ee4d10b53de6203fcfe6b
+TextureImporter:
+  fileIDToRecycleName: {}
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+>>>>>>> 9a5a5850e568de645d212b5e69f070f0e6b71161
     linearTexture: 0
     correctGamma: 0
     fadeOut: 0
@@ -27,6 +37,7 @@ TextureImporter:
   grayScaleToAlpha: 0
   generateCubemap: 0
   seamlessCubemap: 0
+<<<<<<< HEAD
   textureFormat: -3
   maxTextureSize: 4096
   textureSettings:
@@ -38,11 +49,25 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
+=======
+  textureFormat: -1
+  maxTextureSize: 1024
+  textureSettings:
+    filterMode: -1
+    aniso: -1
+    mipBias: -1
+    wrapMode: -1
+  nPOTScale: 1
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 0
+>>>>>>> 9a5a5850e568de645d212b5e69f070f0e6b71161
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: .5, y: .5}
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+<<<<<<< HEAD
   spritePixelsToUnits: 64
   alphaIsTransparency: 1
   textureType: 8
@@ -109,5 +134,13 @@ TextureImporter:
       alignment: 9
       pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
+=======
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 0
+  textureType: -1
+  buildTargetSettings: []
+  spriteSheet:
+    sprites: []
+>>>>>>> 9a5a5850e568de645d212b5e69f070f0e6b71161
   spritePackingTag: 
   userData: 
