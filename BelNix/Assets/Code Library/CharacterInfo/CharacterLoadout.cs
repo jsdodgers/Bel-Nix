@@ -68,10 +68,24 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public void setItemInSlot(InventorySlot itemSlot, Item item) {
+	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
 		removeSprite(getItemInSlot(itemSlot));
 		if (item.spritePrefab != null) {
+			if (colors==null) colors = character.characterSheet.characterColors;
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
+			SpriteRenderer sr = sprite.GetComponent<SpriteRenderer>();
+			switch (itemSlot) {
+			case InventorySlot.Head:
+			case InventorySlot.Chest:
+				sr.color = colors.primaryColor;
+				break;
+			case InventorySlot.Boots:
+			case InventorySlot.Pants:
+				sr.color = colors.secondaryColor;
+				break;
+			default:
+				break;
+			}
 			item.sprite = sprite;
 			sprite.transform.parent = character.unit.transform;
 			sprite.transform.localPosition = new Vector3(0,0,0);
@@ -144,17 +158,17 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public CharacterLoadoutActual(CharacterLoadout loadout, Character character) {
+	public CharacterLoadoutActual(CharacterLoadout loadout, Character character, CharacterColors colors) {
 		sprites = new List<SpriteOrder>();
 		this.character = character;
-		if (loadout.headSlot) setItemInSlot(InventorySlot.Head, loadout.headSlot.getArmor());
-		if (loadout.chestSlot) setItemInSlot(InventorySlot.Chest, loadout.chestSlot.getArmor());
-		if (loadout.gloveSlot) setItemInSlot(InventorySlot.Glove, loadout.gloveSlot.getArmor());
-		if (loadout.pantsSlot) setItemInSlot(InventorySlot.Pants, loadout.pantsSlot.getArmor());
-		if (loadout.bootsSlot) setItemInSlot(InventorySlot.Boots, loadout.bootsSlot.getArmor());
-		if (loadout.rightHand) setItemInSlot(InventorySlot.RightHand, loadout.rightHand.getWeapon());
-		if (loadout.leftHand) setItemInSlot(InventorySlot.LeftHand, loadout.leftHand.getWeapon());
-		if (loadout.shoulderSlot) setItemInSlot(InventorySlot.Shoulder, loadout.shoulderSlot.getItem());
+		if (loadout.headSlot) setItemInSlot(InventorySlot.Head, loadout.headSlot.getArmor(), colors);
+		if (loadout.chestSlot) setItemInSlot(InventorySlot.Chest, loadout.chestSlot.getArmor(), colors);
+		if (loadout.gloveSlot) setItemInSlot(InventorySlot.Glove, loadout.gloveSlot.getArmor(), colors);
+		if (loadout.pantsSlot) setItemInSlot(InventorySlot.Pants, loadout.pantsSlot.getArmor(), colors);
+		if (loadout.bootsSlot) setItemInSlot(InventorySlot.Boots, loadout.bootsSlot.getArmor(), colors);
+		if (loadout.rightHand) setItemInSlot(InventorySlot.RightHand, loadout.rightHand.getWeapon(), colors);
+		if (loadout.leftHand) setItemInSlot(InventorySlot.LeftHand, loadout.leftHand.getWeapon(), colors);
+		if (loadout.shoulderSlot) setItemInSlot(InventorySlot.Shoulder, loadout.shoulderSlot.getItem(), colors);
 	}
 
 	public int getAC()

@@ -1,0 +1,146 @@
+fileFormatVersion: 2
+<<<<<<< HEAD
+guid: 894e7a5bab937a145af2b7c34e97f05d
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: male_battle_running_shortHair_0
+    21300002: male_battle_running_shortHair_1
+    21300004: male_battle_running_shortHair_2
+    21300006: male_battle_running_shortHair_3
+    21300008: male_battle_running_shortHair_4
+    21300010: male_battle_running_shortHair_5
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+=======
+guid: 2c83a72ee54ee4d10b53de6203fcfe6b
+TextureImporter:
+  fileIDToRecycleName: {}
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+>>>>>>> 9a5a5850e568de645d212b5e69f070f0e6b71161
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: .25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  seamlessCubemap: 0
+<<<<<<< HEAD
+  textureFormat: -3
+  maxTextureSize: 4096
+  textureSettings:
+    filterMode: 0
+    aniso: 1
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+=======
+  textureFormat: -1
+  maxTextureSize: 1024
+  textureSettings:
+    filterMode: -1
+    aniso: -1
+    mipBias: -1
+    wrapMode: -1
+  nPOTScale: 1
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 0
+>>>>>>> 9a5a5850e568de645d212b5e69f070f0e6b71161
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: .5, y: .5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+<<<<<<< HEAD
+  spritePixelsToUnits: 64
+  alphaIsTransparency: 1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: male_battle_running_shortHair_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 64
+        height: 128
+      alignment: 9
+      pivot: {x: .5, y: .75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: male_battle_running_shortHair_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 64
+        height: 128
+      alignment: 9
+      pivot: {x: .5, y: .75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: male_battle_running_shortHair_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 64
+        height: 128
+      alignment: 9
+      pivot: {x: .5, y: .75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: male_battle_running_shortHair_3
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 64
+        height: 128
+      alignment: 9
+      pivot: {x: .5, y: .75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: male_battle_running_shortHair_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 64
+        height: 128
+      alignment: 9
+      pivot: {x: .5, y: .75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: male_battle_running_shortHair_5
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 0
+        width: 64
+        height: 128
+      alignment: 9
+      pivot: {x: .5, y: .75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+=======
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 0
+  textureType: -1
+  buildTargetSettings: []
+  spriteSheet:
+    sprites: []
+>>>>>>> 9a5a5850e568de645d212b5e69f070f0e6b71161
+  spritePackingTag: 
+  userData: 

@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.IO;
+using System.Collections.Generic;
 
 public class GraphicalUserInterface : MonoBehaviour
 {
@@ -15,7 +16,8 @@ public class GraphicalUserInterface : MonoBehaviour
 	public string[] backgroundAshpian = new string[] {"Commoner", "Immigrant"};
 	public string[] backgroundRorrul = new string[] {"Sevrant", "Unknown"};
 	public string[] characterClass = new string[] {"Ex-Soldier", "Engineer", "Investigator", "Researcher", "Orator"};
-	int sexSelect, raceSelect, backgroundSelect, classSelect = 0;
+	public string[] colorTypes = new string[] {"Body", "Hair", "Primary", "Secondary"};
+	int sexSelect, raceSelect, backgroundSelect, classSelect, colorSelect = 0;
 	int age = 25;
 	int ageUpperBound = 40;
 	int ageLowerBound = 20;
@@ -33,16 +35,45 @@ public class GraphicalUserInterface : MonoBehaviour
 	int skillLowerBound = 0;
 	int athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill = 0;
 
+	Color primaryColor;
+	Color secondaryColor;
+	Color berrindColor;
+	Color ashpianColor;
+	Color rorrulColor;
+	Color hairColor;
+	SpriteRenderer characterSprite;
+	SpriteRenderer shirtSprite;
+	SpriteRenderer pantsSprite;
+	SpriteRenderer shoesSprite;
+
+	static Color createColor(float r, float g, float b) {
+		return new Color(r/255.0f, g/255.0f, b/255.0f);
+	}
+
+	static Color[] berrindColors = new Color[]{Color.white, createColor(223, 223, 223), createColor(251, 235, 218), createColor(227, 216, 205)};
+	static Color[] ashpianColors = new Color[]{createColor(255, 204, 147), createColor(197, 154, 109), createColor(180, 147, 122), createColor(177, 118, 105)};
+	static Color[] rorrulColors = new Color[]{createColor(114, 90, 65), createColor(73, 52, 30), createColor(111, 98, 85), createColor(69, 63, 66)};
+	static Color[] hairColors = new Color[]{Color.white, Color.black, createColor(100, 80, 60), Color.red, Color.blue, Color.green};
+	static Color[] favoriteColors = new Color[]{Color.white, Color.black, Color.blue, Color.red, Color.green, Color.gray, Color.cyan, Color.magenta, Color.yellow};
 	// Use this for initialization
 	void Start()
 	{
-
+		if (Application.loadedLevel == 0) return;
+		characterSprite = GameObject.Find("Character").GetComponent<SpriteRenderer>();
+		shirtSprite = GameObject.Find("Shirt").GetComponent<SpriteRenderer>();
+		pantsSprite = GameObject.Find("Pants").GetComponent<SpriteRenderer>();
+		shoesSprite = GameObject.Find("Shoes").GetComponent<SpriteRenderer>();
+		berrindColor = berrindColors[Random.Range(0, berrindColors.Length)];
+		ashpianColor = ashpianColors[Random.Range(0, ashpianColors.Length)];
+		rorrulColor = rorrulColors[Random.Range(0, rorrulColors.Length)];
+		hairColor = hairColors[Random.Range(0, hairColors.Length)];
+		primaryColor = favoriteColors[Random.Range(0, favoriteColors.Length)];
+		secondaryColor = favoriteColors[Random.Range(0, favoriteColors.Length)];
 	}
 	
 	// Update is called once per frame
-	void Update()
-	{
-	
+	void Update() {
+
 	}
 
 	int calculateBoxHeight(int n)
@@ -217,6 +248,57 @@ public class GraphicalUserInterface : MonoBehaviour
 		return skill;
 	}
 
+
+	const int colorSquareWidth = 40;
+	static Texture2D makeTex( int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
+	
+	
+	static Texture2D makeTexBorder(int width, int height, Color col )
+	{
+		Color[] pix = new Color[width * height];
+		for( int i = 0; i < pix.Length; ++i )
+		{
+			//	Debug.Log("it is: " + (i/width));
+			if (i/width == 0 || i/width == height-1) pix[i] = Color.red;
+			else if (i%width == 0 || i % width == width-1) pix[i] = Color.red;
+			else pix[ i ] = col;
+		}
+		Texture2D result = new Texture2D( width, height );
+		result.SetPixels( pix );
+		result.Apply();
+		return result;
+	}
+	static Dictionary<Color, GUIStyle> colorStyles = new Dictionary<Color, GUIStyle>();
+	static GUIStyle getColorStyle(Color c) {
+		if (colorStyles.ContainsKey(c)) return colorStyles[c];
+		Texture2D tex = makeTex(colorSquareWidth, colorSquareWidth, c);
+		GUIStyle st = new GUIStyle("Button");
+		st.normal.background = st.hover.background = st.active.background = tex;
+		colorStyles[c] = st;
+		return st;
+	}
+
+	static Dictionary<Color, GUIStyle> colorStylesSelected = new Dictionary<Color, GUIStyle>();
+	static GUIStyle getColorStyleSelected(Color c) {
+		if (colorStylesSelected.ContainsKey(c)) return colorStylesSelected[c];
+		Texture2D tex = makeTexBorder(colorSquareWidth, colorSquareWidth, c);
+		GUIStyle st = new GUIStyle("Button");
+		st.normal.background = st.hover.background = st.active.background = tex;
+		colorStylesSelected[c] = st;
+		return st;
+	}
+
 	void OnGUI()
 	{
 		if(Application.loadedLevel == 0)
@@ -248,9 +330,101 @@ public class GraphicalUserInterface : MonoBehaviour
 		if(Application.loadedLevel == 1)
 		{
 			cCProgressionSelect = GUI.SelectionGrid(new Rect(225, Screen.height - 100, Screen.width - 450, 100), cCProgressionSelect, cCProgression, 4);
-			GUI.Box(new Rect(Screen.width - 510, 10, 500, 50), "Portrait/Looks");
-			GUI.Box(new Rect(Screen.width - 510, calculateBoxHeight(3), 500, 400), "");
+			GUI.Box(new Rect(Screen.width/2.0f - 150, 10, 300, 50), "Portrait/Looks");
+			GUI.Box(new Rect(Screen.width/2.0f - 150, calculateBoxHeight(3), 300, calculateBoxHeight(16)), "");
+			colorSelect = GUI.SelectionGrid(new Rect(Screen.width/2.0f - 150, calculateBoxHeight(3), 300, 20),colorSelect, colorTypes, 4);
+			int num = 285 / (colorSquareWidth + 5);
+			int totesWidth = num * (colorSquareWidth + 5);
 
+			int x = Screen.width/2 - 150 + (300 - totesWidth)/2;
+			int startX = x;
+			int y = calculateBoxHeight(4) + 10;
+			Color[] colorss = null;
+			Color current = Color.clear;
+			switch (colorSelect) {
+			case 0:
+				switch (raceSelect) {
+				case 0:
+					colorss = berrindColors;
+					current = berrindColor;
+					break;
+				case 1:
+					colorss = ashpianColors;
+					current = ashpianColor;
+					break;
+				default:
+					colorss = rorrulColors;
+					current = rorrulColor;
+					break;
+				}
+				break;
+			case 1:
+				colorss = hairColors;
+				current = hairColor;
+				break;
+			case 2:
+				current = primaryColor;
+				colorss = favoriteColors;
+				break;
+			default:
+				current = secondaryColor;
+				colorss = favoriteColors;
+				break;
+			}
+			int num2 = 0;
+			foreach (Color c in colorss) {
+				if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", (c ==current ? getColorStyleSelected(c) : getColorStyle(c)))) {
+					switch (colorSelect) {
+					case 0:
+						switch (raceSelect) {
+						case 0:
+							berrindColor = c;
+							break;
+						case 1:
+							ashpianColor = c;
+							break;
+						default:
+							rorrulColor = c;
+							break;
+						}
+						break;
+					case 1:
+						hairColor = c;
+						break;
+					case 2:
+						primaryColor = c;
+						break;
+					default:
+						secondaryColor = c;
+						break;
+					}
+				}
+				x += colorSquareWidth + 5;
+				num2++;
+				if (num2%num==0) {
+					x = startX;
+					y += colorSquareWidth + 5;
+				}
+			}
+
+			shirtSprite.color = primaryColor;
+			pantsSprite.color = secondaryColor;
+			shoesSprite.color = secondaryColor;
+
+			switch(raceSelect)
+			{
+			case 0:
+				characterSprite.color = berrindColor;
+				break;
+			case 1:
+				characterSprite.color = ashpianColor;
+				break;
+			case 2:
+				characterSprite.color = rorrulColor;
+				break;
+			default:
+				break;
+			}
 			if(cCProgressionSelect == 0)
 			{
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Personal Information");
@@ -690,12 +864,12 @@ public class GraphicalUserInterface : MonoBehaviour
 			}
 		}
 	}
+	const string delimiter = ";";
 
 	public void writeCharacter()
 	{
 		string characterStr = "";
-		string delimiter = ";";
-		//********PERSONAL INFORMATION ********
+		//********PERSONAL INFORMATION********\\
 		//Adding player first name.
 		characterStr += characterName + delimiter;
 		//If the player has a last name, add it.
@@ -714,12 +888,12 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += weight.ToString() + delimiter;
 		//classSelect 0 = Ex-Soldier, 1 = Engineer, 2 = Investigator, 3 = Researcher, 4 = Orator
 		characterStr += classSelect.ToString() + delimiter;
-		//********Ability Scores********
+		//********Ability Scores********\\
 		characterStr += sturdyScore.ToString() + delimiter;
 		characterStr += perceptionScore.ToString() + delimiter;
 		characterStr += techniqueScore.ToString() + delimiter;
 		characterStr += wellVersedScore.ToString() + delimiter;
-		//********Skills********
+		//********Skills********\\
 		characterStr += athleticsSkill.ToString() + delimiter;
 		characterStr += meleeSkill.ToString() + delimiter;
 		characterStr += rangedSkill.ToString() + delimiter;
@@ -728,8 +902,24 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += medicinalSkill.ToString() + delimiter;
 		characterStr += historicalSkill.ToString() + delimiter;
 		characterStr += politicalSkill.ToString() + delimiter;
-		//********Talents********
-
+		//********Talents********\\
+		Color raceColor = Color.white;
+		switch (raceSelect) {
+		case 0:
+			raceColor = berrindColor;
+			break;
+		case 1:
+			raceColor = ashpianColor;
+			break;
+		default:
+			raceColor = rorrulColor;
+			break;
+		}
+		characterStr += colorString(raceColor);
+		characterStr += colorString(hairColor);
+		characterStr += colorString(primaryColor);
+		characterStr += colorString(secondaryColor);
+		//********Colors********\\
 
 		int currAdd = 0;
 		string fileDirectory = Application.persistentDataPath + "/Saves/";
@@ -769,4 +959,9 @@ public class GraphicalUserInterface : MonoBehaviour
 		File.AppendAllText(path2, fileN2 + ";");
 	//	Debug.Log(characterStr);
 	}
+
+	static string colorString(Color c) {
+		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
+	}
+
 }

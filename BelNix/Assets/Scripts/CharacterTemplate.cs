@@ -17,6 +17,10 @@ public class CharacterTemplate : Character
 	public int mCexperience;
 	public ClassName mCClassName;
 	public int mCSturdy, mCPerception, mCTechnique, mCWellVersed;
+	public Color characterColor;
+	public Color headColor;
+	public Color primaryColor;
+	public Color secondaryColor;
 
 	// Use this for initialization
 	void Start ()
@@ -42,9 +46,9 @@ public class CharacterTemplate : Character
 			
 			loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
-			              mCSturdy, mCPerception, mCTechnique, mCWellVersed);
-            int level = characterSheet.characterProgress.setLevel(mClevel);
-            int experience = characterSheet.characterProgress.setExperience(mCexperience);
+			              mCSturdy, mCPerception, mCTechnique, mCWellVersed, characterColor, headColor, primaryColor, secondaryColor);
+			int level = characterProgress.setLevel(mClevel);
+			int experience = characterProgress.setExperience(mCexperience);
 		}
 	}
 	

@@ -14,17 +14,27 @@ public struct Hit {
 
 public class Character : MonoBehaviour
 {
-	//private PersonalInformation personalInfo;
-    //private CharacterProgress characterProgress;
-    //private AbilityScores abilityScores;
-    //private CombatScores combatScores;
-    private CharacterLoadout characterLoadout;
-    //private SkillScores skillScores;
+	public PersonalInformation personalInfo;
+	public CharacterProgress characterProgress;
+	public AbilityScores abilityScores;
+	public CombatScores combatScores;
+	public CharacterLoadout characterLoadout;
+	public SkillScores skillScores;
 	public CharacterSheet characterSheet;
 	public Unit unit;
 //	public ItemWeapon mainHand;
 
 
+	//bool flanking() {
+    //    return Combat.flanking(this.unit);
+		//Vector3 pos = unit.position;
+		//Vector3 enemyPos = unit.attackEnemy.position;
+		//int eX = (int)enemyPos.x, eY = (int)-enemyPos.y;
+		//int pX = (int)pos.x, pY = (int)-pos.y;
+		//int flankX = (pX == eX ? pX : eX - (pX - eX));
+		//int flankY = (pY == eY ? pY : eY - (pY - eY));
+		//return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
+	//}
 
 	public List<SpriteOrder> getSprites() {
 		return characterSheet.characterLoadout.sprites;
@@ -40,9 +50,16 @@ public class Character : MonoBehaviour
 	}
 
 	public int rollDamage(bool critical) {
-        return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? characterSheet.combatScores.getCritical() : 0);
+		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
 	}
 
+	//public Hit rollHit() {
+    //    return Combat.rollHit(this.unit);
+		//int rand = Random.Range(1,21);
+		//Debug.Log(skillScores);
+		//int critChance = characterSheet.characterLoadout.rightHand.criticalChance;
+		//return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
+	//}
 
 	public int stackabilityOfItem(Item i) {
 		if (i is ItemMechanical) {
@@ -92,22 +109,24 @@ public class Character : MonoBehaviour
 
 	public void loadCharacter(string firstName, string lastName, CharacterSex mCSex, CharacterRace mCRace, int age,
 	                   CharacterBackground mCBackground, int height, int weight, CharacterClass mCClass,
-	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed)
+	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed,
+	                          Color characterColor, Color headColor, Color primaryColor, Color secondaryColor)
 	{
 		int heightRemainder = height % 12;
 		height -= heightRemainder;
 
-		PersonalInformation personalInfo = new PersonalInformation(new CharacterName(firstName, lastName), 
+		personalInfo = new PersonalInformation(new CharacterName(firstName, lastName), 
 		                                       mCSex, mCRace, mCBackground, new CharacterAge(age),
 		                                       new CharacterHeight(height, heightRemainder), 
 		                                       new CharacterWeight(weight));
-		CharacterProgress characterProgress = new CharacterProgress(mCClass);
-		AbilityScores abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
-		CombatScores combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
-		SkillScores skillScores = new SkillScores(combatScores, characterProgress);
-		
+		characterProgress = new CharacterProgress(mCClass);
+		abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
+		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
+		skillScores = new SkillScores(combatScores, characterProgress);
+		CharacterColors characterColors = new CharacterColors(characterColor, headColor, primaryColor, secondaryColor);
 		characterSheet = new CharacterSheet(abilityScores, personalInfo, 
-		                                     characterProgress, combatScores, skillScores, this, characterLoadout);
+		                                     characterProgress, combatScores, skillScores, characterColors, this, characterLoadout);
+
 	}
 
 	public void loadCharacterFromTextFile(string fileName) {
@@ -141,14 +160,20 @@ public class Character : MonoBehaviour
 		int medicinal = int.Parse(components[curr++]);
 		int historical = int.Parse(components[curr++]);
 		int political = int.Parse(components[curr++]);
-		PersonalInformation personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
+		Color characterColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		Debug.Log(characterColor.r + " " + characterColor.g + " " + characterColor.b);
+		Color headColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		Color primaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		Color secondaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
 		                                       new CharacterWeight(weight));
-		CharacterProgress characterProgress = new CharacterProgress(CharacterClass.getClass(className));
-		AbilityScores abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
-		CombatScores combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
-		SkillScores skillScores = new SkillScores(combatScores, characterProgress);
-		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, this, characterLoadout);
+		characterProgress = new CharacterProgress(CharacterClass.getClass(className));
+		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
+		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
+		skillScores = new SkillScores(combatScores, characterProgress);
+		CharacterColors characterColors = new CharacterColors(characterColor, headColor, primaryColor, secondaryColor);
+		characterSheet = new CharacterSheet(abilityScores, personalInfo, characterProgress, combatScores, skillScores, characterColors, this, characterLoadout);
 		skillScores.incrementScore(Skill.Athletics,athletics);
 		skillScores.incrementScore(Skill.Melee,melee);
 		skillScores.incrementScore(Skill.Ranged,ranged);
