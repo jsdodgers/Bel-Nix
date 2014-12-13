@@ -110,7 +110,7 @@ public class Character : MonoBehaviour
 	public void loadCharacter(string firstName, string lastName, CharacterSex mCSex, CharacterRace mCRace, int age,
 	                   CharacterBackground mCBackground, int height, int weight, CharacterClass mCClass,
 	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed,
-	                          Color characterColor, Color headColor, Color primaryColor, Color secondaryColor)
+	                          Color characterColor, Color headColor, Color primaryColor, Color secondaryColor, CharacterHairStyle hairStyle)
 	{
 		int heightRemainder = height % 12;
 		height -= heightRemainder;
@@ -118,7 +118,7 @@ public class Character : MonoBehaviour
 		personalInfo = new PersonalInformation(new CharacterName(firstName, lastName), 
 		                                       mCSex, mCRace, mCBackground, new CharacterAge(age),
 		                                       new CharacterHeight(height, heightRemainder), 
-		                                       new CharacterWeight(weight));
+		                                       new CharacterWeight(weight), hairStyle);
 		characterProgress = new CharacterProgress(mCClass);
 		abilityScores = new AbilityScores(mCSturdy, mCPerception, mCTechnique, mCWellVersed);
 		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);
@@ -165,9 +165,12 @@ public class Character : MonoBehaviour
 		Color headColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
 		Color primaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
 		Color secondaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
+		int hairStyle = 0;
+		if (curr < components.Length-1)
+			hairStyle = int.Parse(components[curr++]);
 		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
-		                                       new CharacterWeight(weight));
+		                                       new CharacterWeight(weight), new CharacterHairStyle(hairStyle));
 		characterProgress = new CharacterProgress(CharacterClass.getClass(className));
 		abilityScores = new AbilityScores(sturdy, perception, technique, wellVersed);
 		combatScores = new CombatScores(abilityScores, personalInfo, characterProgress);

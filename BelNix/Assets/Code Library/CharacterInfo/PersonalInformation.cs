@@ -1,6 +1,7 @@
 using System;
-namespace CharacterInfo
-{
+using UnityEngine;
+
+namespace CharacterInfo {
 	public struct 	CharacterName 
 	{ 
 		public string firstName;
@@ -35,6 +36,33 @@ namespace CharacterInfo
 		public CharacterAge(int a) { age = a; }
 	}
 
+	public class CharacterHairStyle {
+		public int hairStyle = 0;
+		public GameObject hairStyleObject = null;
+		public CharacterHairStyle(int hairStyle) { this.hairStyle = hairStyle; }
+		public CharacterHairStyle(GameObject hairStyle) { this.hairStyleObject = hairStyle; }
+		static GameObject[] hairPrefabs;
+		
+		public string getName() {
+			return PersonalInformation.hairTypes[hairStyle];
+		}
+		public GameObject getHairPrefab() {
+			if (hairStyleObject == null) {
+				hairStyleObject = getHairPrefabs()[hairStyle];
+			}
+			return hairStyleObject;
+		}
+		public static GameObject[] getHairPrefabs() {
+			if (hairPrefabs==null) {
+				hairPrefabs = new GameObject[PersonalInformation.hairTypes.Length];
+				for (int n=0;n<PersonalInformation.hairTypes.Length;n++) {
+					hairPrefabs[n] = Resources.Load<GameObject>("Units/Hair/" + PersonalInformation.hairTypes[n]);
+				}
+			}
+			return hairPrefabs;
+		}
+	}
+
 	public class PersonalInformation
 	{
 		private CharacterName		cName;
@@ -44,10 +72,13 @@ namespace CharacterInfo
 		private CharacterHeight		cHeight;
 		private CharacterWeight		cWeight;
 		private CharacterAge		cAge;
+		private CharacterHairStyle	cHair;
+
+		public static string[] hairTypes = new string[]{"Hair_Short","Hair_Ponytail"};
 
 		public PersonalInformation(CharacterName characterName, CharacterSex characterSex,
 		                           CharacterRace characterRace, CharacterBackground characterBackground, CharacterAge characterAge,
-		                           CharacterHeight characterHeight,CharacterWeight characterWeight)
+		                           CharacterHeight characterHeight,CharacterWeight characterWeight, CharacterHairStyle hairStyle)
 		{
 			cName 		= characterName;
 			cRace 		= characterRace;
@@ -56,6 +87,7 @@ namespace CharacterInfo
 			cHeight		= characterHeight;
 			cWeight		= characterWeight;
 			cAge 		= characterAge;
+			cHair		= hairStyle;
 		}
 
 		public CharacterName getCharacterName() 			{ return cName; }
@@ -65,6 +97,7 @@ namespace CharacterInfo
 		public CharacterHeight getCharacterHeight() 		{ return cHeight; }
 		public CharacterWeight getCharacterWeight()			{ return cWeight; }
 		public CharacterAge getCharacterAge()				{ return cAge; }
+		public CharacterHairStyle getCharacterHairStyle()	{ return cHair; }
 	}
 }
 

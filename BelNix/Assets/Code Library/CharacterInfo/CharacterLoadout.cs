@@ -48,13 +48,13 @@ public class CharacterLoadoutActual {
 	public int getOrder(InventorySlot slot) {
 		switch (slot) {
 		case InventorySlot.RightHand:
-			return 9;
+			return 10;
 		case InventorySlot.LeftHand:
-			return 9;
+			return 10;
 		case InventorySlot.Glove:
-			return 8;
+			return 9;
 		case InventorySlot.Head:
-			return 7;
+			return 8;
 		case InventorySlot.Shoulder:
 			return 6;
 		case InventorySlot.Chest:

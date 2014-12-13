@@ -62,6 +62,7 @@ public class Unit : MonoBehaviour {
 	public bool isSelected;
 	public bool isTarget;
 	SpriteRenderer targetSprite;
+	SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
 	public GameGUI gui;
 
@@ -70,8 +71,20 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+
+	public void addHair() {
+		GameObject go = Instantiate(characterSheet.personalInfo.getCharacterHairStyle().getHairPrefab()) as GameObject;
+		go.transform.parent = transform;
+		go.transform.localPosition = new Vector3(0, 0, 0);
+		go.transform.localEulerAngles = new Vector3(0, 0, 0);
+		hairSprite = go.GetComponent<SpriteRenderer>();
+		hairSprite.color = characterSheet.characterSheet.characterColors.headColor;
+	}
+
 	public List<SpriteOrder> getSprites() {
-		return characterSheet.getSprites();
+		List<SpriteOrder> sprites = characterSheet.getSprites();
+		sprites.Add(new SpriteOrder(hairSprite.gameObject, 7));
+		return sprites;
 	}
 
 	public void setAllSpritesToRenderingOrder(int renderingOrder) {
