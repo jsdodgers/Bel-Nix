@@ -12,7 +12,7 @@ public class AStarMap {
 	}
 
 	public virtual ArrayList nextNodesFrom(AStarNode node) {
-		return new ArrayList();
+		return nextNodesFrom(node, null);
 	}
 	
 	public virtual ArrayList nextNodesFrom(AStarNode node, ArrayList closedList) {

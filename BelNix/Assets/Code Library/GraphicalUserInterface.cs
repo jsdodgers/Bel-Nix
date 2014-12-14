@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.IO;
 using System.Collections.Generic;
+using CharacterInfo;
 
 public class GraphicalUserInterface : MonoBehaviour
 {
@@ -34,6 +35,10 @@ public class GraphicalUserInterface : MonoBehaviour
 	int skillPointsAvailable = 2;
 	int skillLowerBound = 0;
 	int athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill = 0;
+	int hairStyle = 0;
+
+	bool texturesSet = false;
+
 
 	Color primaryColor;
 	Color secondaryColor;
@@ -45,6 +50,9 @@ public class GraphicalUserInterface : MonoBehaviour
 	SpriteRenderer shirtSprite;
 	SpriteRenderer pantsSprite;
 	SpriteRenderer shoesSprite;
+	SpriteRenderer hairSprite;
+	GameObject hairGameObject;
+	GUIStyle[] hairTextures;
 
 	static Color createColor(float r, float g, float b) {
 		return new Color(r/255.0f, g/255.0f, b/255.0f);
@@ -56,6 +64,21 @@ public class GraphicalUserInterface : MonoBehaviour
 	static Color[] hairColors = new Color[]{Color.white, Color.black, createColor(100, 80, 60), Color.red, Color.blue, Color.green};
 	static Color[] favoriteColors = new Color[]{Color.white, Color.black, Color.blue, Color.red, Color.green, Color.gray, Color.cyan, Color.magenta, Color.yellow};
 	// Use this for initialization
+
+	void setHairStyle() {
+		if (hairGameObject != null) {
+			GameObject.Destroy(hairGameObject);
+		}
+		hairGameObject = Instantiate(Resources.Load<GameObject>("Units/Hair/" + PersonalInformation.hairTypes[hairStyle])) as GameObject;
+		hairGameObject.transform.parent = characterSprite.transform;
+		hairGameObject.transform.localPosition = new Vector3(0, 0, 0);
+		hairGameObject.transform.localEulerAngles = new Vector3(0, 0, 0);
+		hairGameObject.transform.localScale = new Vector3(1, 1, 1);
+		hairSprite = hairGameObject.GetComponent<SpriteRenderer>();
+		hairSprite.sortingOrder = 10;
+		hairSprite.color = hairColor;
+	}
+
 	void Start()
 	{
 		if (Application.loadedLevel == 0) return;
@@ -69,6 +92,18 @@ public class GraphicalUserInterface : MonoBehaviour
 		hairColor = hairColors[Random.Range(0, hairColors.Length)];
 		primaryColor = favoriteColors[Random.Range(0, favoriteColors.Length)];
 		secondaryColor = favoriteColors[Random.Range(0, favoriteColors.Length)];
+		hairStyle = Random.Range(0, PersonalInformation.hairTypes.Length);
+		setHairStyle();
+	}
+	void setTexturesArray() {
+		hairTextures = new GUIStyle[PersonalInformation.hairTypes.Length];
+		int n=0;
+		foreach (string s in PersonalInformation.hairTypes) {
+			GUIStyle gs = new GUIStyle("Button");
+			gs.normal.background = gs.hover.background = gs.active.background = Resources.Load<Texture>("Units/Hair/" + s) as Texture2D;
+			hairTextures[n++] = gs;
+		}
+		texturesSet = true;
 	}
 	
 	// Update is called once per frame
@@ -406,10 +441,30 @@ public class GraphicalUserInterface : MonoBehaviour
 					y += colorSquareWidth + 5;
 				}
 			}
-
+			num2 = 0;
+			if (colorSelect == 1) {
+				if (!texturesSet) setTexturesArray();
+				Color c = GUI.color;
+				GUI.color = hairColor;
+				for (int n=0;n<hairTextures.Length;n++) {
+					GUIStyle t = hairTextures[n];
+					if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", t)) {
+						hairStyle = n;
+						setHairStyle();
+					}
+					x += colorSquareWidth + 5;
+					num2++;
+					if (num2%num==0) {
+						x = startX;
+						y += colorSquareWidth + 5;
+					}
+				}
+				GUI.color = c;
+			}
 			shirtSprite.color = primaryColor;
 			pantsSprite.color = secondaryColor;
 			shoesSprite.color = secondaryColor;
+			hairSprite.color = hairColor;
 
 			switch(raceSelect)
 			{
@@ -920,6 +975,8 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += colorString(primaryColor);
 		characterStr += colorString(secondaryColor);
 		//********Colors********\\
+		characterStr += hairStyle + delimiter;
+		//*********Hair*********\\
 
 		int currAdd = 0;
 		string fileDirectory = Application.persistentDataPath + "/Saves/";

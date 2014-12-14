@@ -17,6 +17,8 @@ public class CharacterTemplate : Character
 	public int mCexperience;
 	public ClassName mCClassName;
 	public int mCSturdy, mCPerception, mCTechnique, mCWellVersed;
+	public int hairStyle;
+	public GameObject hairPrefab;
 	public Color characterColor;
 	public Color headColor;
 	public Color primaryColor;
@@ -42,11 +44,14 @@ public class CharacterTemplate : Character
 			CharacterRace mCRace = CharacterRace.getRace(mCRaceName);
 			CharacterClass mCClass = CharacterClass.getClass(mCClassName);
 			
-			
+			CharacterHairStyle hairSt;
+			if (hairPrefab != null)
+				hairSt = new CharacterHairStyle(hairPrefab);
+			else hairSt = new CharacterHairStyle((hairStyle >=0 && hairStyle < PersonalInformation.hairTypes.Length ? hairStyle : 0));
 			
 			loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
-			              mCSturdy, mCPerception, mCTechnique, mCWellVersed, characterColor, headColor, primaryColor, secondaryColor);
+			              mCSturdy, mCPerception, mCTechnique, mCWellVersed, characterColor, headColor, primaryColor, secondaryColor, hairSt);
 			int level = characterProgress.setLevel(mClevel);
 			int experience = characterProgress.setExperience(mCexperience);
 		}

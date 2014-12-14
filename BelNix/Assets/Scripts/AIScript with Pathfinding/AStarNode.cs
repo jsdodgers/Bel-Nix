@@ -29,10 +29,6 @@ public class AStarNode {
 	public AStarNode prev;
 	
 	
-	private const float D = 10.0f;
-	private const float D2 = 14.0f;
-	
-	
 	public AStarNode() {
 		prev = null;
 	}
@@ -95,7 +91,3 @@ public class AStarNode {
 		return toString();
 	}
 }
-
-/*h_diagonal(n) = min(abs(n.x-goal.x), abs(n.y-goal.y))
-h_straight(n) = (abs(n.x-goal.x) + abs(n.y-goal.y))
-h(n) = D2 * h_diagonal(n) + D * (h_straight(n) - 2*h_diagonal(n)))*/

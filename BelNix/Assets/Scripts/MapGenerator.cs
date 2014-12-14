@@ -278,6 +278,7 @@ public class MapGenerator : MonoBehaviour {
 			e.characterName = "Enemy" + aaa;
 			priorityOrder.Add(e);
 			e.renderer.sortingOrder = playerNormalOrder;
+			e.addHair();
 			e.setAllSpritesToRenderingOrder(playerArmorOrder);
 	//		e.deselect();
 			aaa++;
@@ -438,6 +439,7 @@ public class MapGenerator : MonoBehaviour {
 			players.Add(pl);
 			priorityOrder.Add(pl);
 			pl.loadCharacterSheetFromTextFile(chars[n]);
+			pl.addHair();
 			pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
 			sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
 			pl.rollInitiative();
