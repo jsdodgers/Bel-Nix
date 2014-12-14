@@ -81,7 +81,11 @@ public class GraphicalUserInterface : MonoBehaviour
 
 	void Start()
 	{
-		if (Application.loadedLevel == 0) return;
+		if (Application.loadedLevel == 0) {
+			if (!Saves.hasCurrentSaveFile())
+				Saves.createCurrentSaveFile();
+			return;
+		}
 		characterSprite = GameObject.Find("Character").GetComponent<SpriteRenderer>();
 		shirtSprite = GameObject.Find("Shirt").GetComponent<SpriteRenderer>();
 		pantsSprite = GameObject.Find("Pants").GetComponent<SpriteRenderer>();
@@ -333,36 +337,94 @@ public class GraphicalUserInterface : MonoBehaviour
 		colorStylesSelected[c] = st;
 		return st;
 	}
-
+	bool loading = false;
+	string loadingName = "";
+	string[] saves;
+	Vector2 loadingScrollPos = new Vector2();
 	void OnGUI()
 	{
 		if(Application.loadedLevel == 0)
 		{
-			GUI.Box(new Rect(Screen.width/4, Screen.height/2, 200, 250), "Main Menu");
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 20, 160, 20), "New Game"))
-			{
-				//Load into Character Creation
-				Application.LoadLevel(1);
+			float boxX = Screen.width/4.0f;
+			float boxY = Screen.height/2.0f;
+			float boxHeight = 250.0f;
+			float boxWidth = 200.0f;
+			float buttX = boxX + 20.0f;
+			float buttWidth = boxWidth - 20.0f*2.0f;
+			GUI.Box(new Rect(boxX, boxY, boxWidth, boxHeight), loading ? (loadingName == "" ? "Choose a file to load" : "Load: " + loadingName) : "Main Menu");
+			if (loading) {
+			//	float width = 250.0f;
+			//	float height = Screen.height * .8f;
+			//	float x = (Screen.width - width)/2.0f;
+			//	float y = (Screen.height - height)/2.0f;
+			//	float boxY = y;
+			//	GUI.Box(new Rect(x, y, width, height), "");
+				float buttonWidth = 80.0f;
+				float buttonHeight = 40.0f;
+				float buttonY = boxY + boxHeight - buttonHeight - 5.0f;
+				float buttonX1 = boxX + 10.0f;
+				float buttonX2 = buttonX1 + buttonWidth + 20.0f;
+				if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel")) {
+					loading = false;
+					loadingName = "";
+				}
+				if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Load")) {
+					Saves.loadSave(loadingName);
+					loading = false;
+					Application.LoadLevel(2);
+				}
+			//	float textFieldHeight = 25.0f;
+			//	saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
+				float savesHeight = 0.0f;
+				GUIStyle st = BaseManager.getSaveButtonsStyle();
+				foreach (string save in saves) {
+					savesHeight += st.CalcSize(new GUIContent(save)).y;
+				}
+				float y = 5.0f + boxY + 20.0f;
+				float scrollHeight = buttonY - y - 5.0f;
+				float scrollX = boxX + 5.0f;
+				float scrollWidth = boxWidth - (scrollX - boxX) * 2.0f;
+				loadingScrollPos = GUI.BeginScrollView(new Rect(scrollX, y, scrollWidth, scrollHeight), loadingScrollPos, new Rect(scrollX, y, scrollWidth - 16.0f, savesHeight));
+				foreach (string save in saves) {
+					GUIContent gc = new GUIContent(save);
+					float h = st.CalcSize(gc).y;
+					if (GUI.Button(new Rect(scrollX, y, scrollWidth, h), gc, st)) {
+						loadingName = save;
+					}
+					y += h;
+				}
+				GUI.EndScrollView();
 			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 40, 160, 20), "Load Into Test Map 1"))
-			{
-				Application.LoadLevel(3);
-			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 60, 160, 20), "Load Into Test Map 2"))
-			{
-				Application.LoadLevel(2);
-			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 80, 160, 20), "Options"))
-			{
-				//Bring up Options UI.  Do NOT load into a new scene.
-			}
-			if(GUI.Button(new Rect(Screen.width/4 + 20, Screen.height/2 + 100, 160, 20), "Quit"))
-			{
-				//Quit the Application
-				Application.Quit();
+			else {
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 20, buttWidth, 40), "New Game"))
+				{
+					Saves.removeFilesFromCurrentSaveFile();
+					//Load into Character Creation
+					Application.LoadLevel(1);
+				}
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 60, buttWidth, 40), "Load Game"))
+				{
+					saves = Saves.getSaveFiles();
+					loading = true;
+					loadingScrollPos = new Vector2();
+	//				Application.LoadLevel(4);
+				}
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 100, buttWidth, 40), "Load Into Test Map 2"))
+				{
+					Application.LoadLevel(3);
+				}
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 140, buttWidth, 40), "Options"))
+				{
+					//Bring up Options UI.  Do NOT load into a new scene.
+				}
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 180, buttWidth, 40), "Quit"))
+				{
+					//Quit the Application
+					Application.Quit();
+				}
 			}
 		}
-		if(Application.loadedLevel == 1)
+		else if(Application.loadedLevel == 1)
 		{
 			cCProgressionSelect = GUI.SelectionGrid(new Rect(225, Screen.height - 100, Screen.width - 450, 100), cCProgressionSelect, cCProgression, 4);
 			GUI.Box(new Rect(Screen.width/2.0f - 150, 10, 300, 50), "Portrait/Looks");
@@ -920,9 +982,11 @@ public class GraphicalUserInterface : MonoBehaviour
 		}
 	}
 	const string delimiter = ";";
-
+	bool saving = false;
 	public void writeCharacter()
 	{
+		if (saving) return;
+		saving = true;
 		string characterStr = "";
 		//********PERSONAL INFORMATION********\\
 		//Adding player first name.
@@ -978,26 +1042,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += hairStyle + delimiter;
 		//*********Hair*********\\
 
-		int currAdd = 0;
-		string fileDirectory = Application.persistentDataPath + "/Saves/";
-		string fileN = System.Guid.NewGuid().ToString();
-		string fileN2 = fileN + (currAdd>0?"" +currAdd:"");
-		string fileName = fileDirectory + fileN2 + ".txt";
-		while(File.Exists(fileName))
-		{
-			currAdd++;
-			fileN2 = fileN + (currAdd>0?"" +currAdd:"");
-			fileName = fileDirectory + fileN2 + ".txt";
-		}
-
-//		StreamWriter sr = File.CreateText(fileName);
-//		sr.WriteLine(characterStr);
-//		sr.Close();
-//		File.CreateText(fileName);
-		if (!Directory.Exists(fileDirectory)) {
-			Directory.CreateDirectory(fileDirectory);
-		}
-		File.WriteAllText(fileName, characterStr);
+		Saves.addCharacter(characterStr);
 
 
 //		TextAsset ta = Resources.Load<TextAsset>("Saves/Characters");
@@ -1009,11 +1054,7 @@ public class GraphicalUserInterface : MonoBehaviour
 //		StreamWriter sw = File.AppendText(Application.dataPath + "/Resources/Saves/Characters.txt");
 //		sw.Write(fileN2 + ";");
 //		sw.Close();
-		string path2 = Application.persistentDataPath + "/Saves/Characters.txt";
-	//	if (!File.Exists(path2)) {
-	//		File.CreateText(path2);
-	//	}
-		File.AppendAllText(path2, fileN2 + ";");
+		Application.LoadLevel(2);
 	//	Debug.Log(characterStr);
 	}
 
