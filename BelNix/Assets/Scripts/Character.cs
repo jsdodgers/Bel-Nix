@@ -166,8 +166,15 @@ public class Character : MonoBehaviour
 		Color primaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
 		Color secondaryColor = new Color(int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f,int.Parse(components[curr++])/255.0f);
 		int hairStyle = 0;
+		int level = 1;
+		int experience = 0;
 		if (curr < components.Length-1)
 			hairStyle = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
+			level = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
+			experience = int.Parse(components[curr++]);
+
 		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
 		                                       new CharacterWeight(weight), new CharacterHairStyle(hairStyle));
@@ -185,7 +192,8 @@ public class Character : MonoBehaviour
 		skillScores.incrementScore(Skill.Medicinal,medicinal);
 		skillScores.incrementScore(Skill.Historical,historical);
 		skillScores.incrementScore(Skill.Political,political);
-
+		characterProgress.setLevel(level);
+		characterProgress.setExperience(experience);
 	}
 
 

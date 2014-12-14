@@ -1037,7 +1037,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		//********Colors********\\
 		characterStr += hairStyle + delimiter;
 		//*********Hair*********\\
-
+		characterStr += "1;0;";
 		Saves.addCharacter(characterStr);
 
 

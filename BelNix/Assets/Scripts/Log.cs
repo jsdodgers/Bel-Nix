@@ -33,7 +33,7 @@ public class Log : MonoBehaviour {
 	void Start () {
 		messages = new Queue<LogMessage>();
 		addMessage("Welcome to Bel Nix.");
-		addMessage("Welcome to Bel Nix. This is a really long message because it takes up the full screen width and some more to test if it is all scrolling and stuff properly and this one will end up being two lines to test that bingo.");
+	/*	addMessage("Welcome to Bel Nix. This is a really long message because it takes up the full screen width and some more to test if it is all scrolling and stuff properly and this one will end up being two lines to test that bingo.");
 		addMessage("This is a shorter one.");
 		addMessage("Another One.");
 		addMessage("This is a shorter one.");
@@ -41,7 +41,7 @@ public class Log : MonoBehaviour {
 		addMessage("This is a shorter one.");
 		addMessage("Another One.");
 		addMessage("This is a shorter one.");
-		addMessage("Another One.");
+		addMessage("Another One.");*/
 		logTexture = Resources.Load<Texture>("UI/console");
 	}
 	

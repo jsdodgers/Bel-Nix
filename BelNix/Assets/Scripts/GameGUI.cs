@@ -53,7 +53,7 @@ public class GameGUI : MonoBehaviour {
 		//selectedButtonStyle = null;
 		//nonSelectedButtonStyle = null;
 		first = true;
-		actionTexture3 = Resources.Load<Texture>("UI/combat-3-button-base") as Texture2D;
+		actionTexture3 = Resources.Load<Texture>("UI/SocketBase_v2") as Texture2D;
 
 		hotkeysBackTextureLeft = Resources.Load<Texture>("UI/action-bar-left") as Texture2D;
 		hotkeysBackTextureCenter = Resources.Load<Texture>("UI/action-bar-center") as Texture2D;
@@ -105,7 +105,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public Vector2 actionButtonsTotalSize() {
-		return new Vector2(180.0f, 130.0f);
+		return new Vector2(236.0f, 200.0f);
 	}
 
 	public Rect rangeRect() {
@@ -142,7 +142,7 @@ public class GameGUI : MonoBehaviour {
 
 	public Rect actionRect() {
 		float boxHeight = actionButtonsSize().y * 3 + (1) * 20.0f;
-		return new Rect(5.0f, Screen.height - actionButtonsTotalSize().y - 5.0f, actionButtonsTotalSize().x, actionButtonsTotalSize().y);
+		return new Rect(-20.0f, Screen.height - actionButtonsTotalSize().y + 10.0f, actionButtonsTotalSize().x, actionButtonsTotalSize().y);
 	}
 
 	public Rect turretTypeRect(int n) {
@@ -195,15 +195,15 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public Rect moveButtonRect() {
-		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 0 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 10.0f, actionRect().y + actionButtonsSize().y * 0 + 20.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect attackButtonRect() {
-		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 1 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 10.0f, actionRect().y + actionButtonsSize().y * 1 + 30.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect minorButtonRect() {	
-		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 2 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 10.0f, actionRect().y + actionButtonsSize().y * 2 + 40.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 	
 	public Rect waitButtonRect() {
