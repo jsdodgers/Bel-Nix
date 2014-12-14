@@ -23,7 +23,7 @@ public class Enemy : Unit {
 
 
 	public override bool isDead() {
-		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isUnconscious() || characterSheet.combatScores.isDying();
+        return characterSheet.characterSheet.combatScores.isDead() || characterSheet.characterSheet.combatScores.isUnconscious() || characterSheet.characterSheet.combatScores.isDying();
 	}
 
 	// Use this for initialization

@@ -132,7 +132,7 @@ public class Character : MonoBehaviour
 	public void loadCharacterFromTextFile(string fileName) {
 	//	TextAsset text = Resources.Load<TextAsset>("Saves/" + fileName);
 	//	string data = text.text;
-		string data = File.ReadAllText(Application.persistentDataPath + "/Saves/" + fileName + ".txt");
+		string data = Saves.getCharactersString(fileName);
 		string[] components = data.Split(new char[]{';'});
 		int curr = 0;
 		string firstName = components[curr++];

@@ -9,7 +9,7 @@ namespace CombatSystem
 {
     class Combat
     {
-
+        /*
         public static void attack(ref CharacterSheet attacker, ref CharacterSheet defender)
         {
             // Calculate hit/miss, if miss we get to skip the following logic.
@@ -23,26 +23,26 @@ namespace CombatSystem
         {
             //attack(attacker.ch
             //int attackPower = attacker.GetComponent<CharacterLoadOut>().rightHand.rollDamage();
-		}
-		/*
-		public static Hit rollHit(Unit attacker)
-		{
-			int diceRoll = rollD20();
-			int criticalHitChance = attacker.characterSheet.characterLoadout.rightHand.criticalChance;
-			return new Hit(attacker.characterSheet.skillScores.getScore(Skill.Melee) + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
-		}
+        }
+        */
 
-		*/
-		
-		public static Hit rollHit(Unit attacker)
-		{
-			int diceRoll = rollD20();
-			int criticalHitChance = attacker.getCritChance();
-			return new Hit(attacker.getMeleeScore() + diceRoll + attacker.getUncannyKnowledgeBonus() + (attacker.hasWeaponFocus() ? 2 : 0) + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
-		}
+        public static Hit rollHit(Unit attacker)
+        {
+            int diceRoll = rollD20();
+            int criticalHitChance = attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
+            return new Hit(attacker.characterSheet.characterSheet.skillScores.getScore(Skill.Melee) + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+        }
 
+
+        public static int rollDamage(Unit attacker) { return rollDamage(attacker, false); }
+        public static int rollDamage(Unit attacker, bool critical)
+        {
+            return 0;   //return attacker.characterSheet.characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? attacker.characterSheet.characterSheet.combatScores.getCritical()
+        }
+
+        // Returns true if the attacker and a teammate are flanking the defender (they are on opposite sides of the defender)
         public static bool flanking(Unit attacker)
-		{	if (attacker.attackEnemy == null) return false;
+        {
             // Get the positions on the grid for the attacker and defender
             Vector3 attackerPosition = attacker.position;
             Vector3 defenderPosition = attacker.attackEnemy.position;

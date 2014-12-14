@@ -21,7 +21,7 @@ public class Globals : MonoBehaviour {
 
 	public IEnumerator loadSave(string saveName)
 	{
-		string path = Application.persistentDataPath + "/Saves/" + saveName;
+		string path = Saves.getSaveDirectory(saveName);
 		WWW www = new WWW("file://" + path);
 		yield return www;
 		string text = www.text;

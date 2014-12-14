@@ -17,18 +17,32 @@ public class Log : MonoBehaviour {
 
 	public GameGUI gui;
 	Queue<LogMessage> messages;
-	float consoleWidth = 500;
-	float consoleHeight = 200;
+	public const float consoleHeight = 85;
 	Vector2 scrollPosition = new Vector2(0,0);
 	float logX = 5.0f;
 	float logY = 5.0f;
 	bool needsScrollSet = false;
 	bool hasScroller = false;
 
+	float left = 150.0f;
+	float right = 0.0f;
+
+	Texture logTexture;
+
 	// Use this for initialization
 	void Start () {
 		messages = new Queue<LogMessage>();
 		addMessage("Welcome to Bel Nix.");
+		addMessage("Welcome to Bel Nix. This is a really long message because it takes up the full screen width and some more to test if it is all scrolling and stuff properly and this one will end up being two lines to test that bingo.");
+		addMessage("This is a shorter one.");
+		addMessage("Another One.");
+		addMessage("This is a shorter one.");
+		addMessage("Another One.");
+		addMessage("This is a shorter one.");
+		addMessage("Another One.");
+		addMessage("This is a shorter one.");
+		addMessage("Another One.");
+		logTexture = Resources.Load<Texture>("UI/console");
 	}
 	
 	// Update is called once per frame
@@ -58,14 +72,14 @@ public class Log : MonoBehaviour {
 	}
 
 	void setScrollPosition() {
-		float height = getHeight();
-		scrollPosition = new Vector2(0.0f, Mathf.Max(0.0f, height - consoleHeight));
+		float height = getHeight(left, right);
+		scrollPosition = new Vector2(0.0f, Mathf.Max(0.0f, height - consoleHeight + 4.0f));
 	}
 
-	float getHeight() {
+	float getHeight(float left, float right) {
 		GUIStyle st = getLogMessageStyle(Color.white);
 		float height = 0;
-		float width = consoleWidth - 16;
+		float width = Screen.width - left - right - 5.0f - 16;
 		foreach (LogMessage s in messages) {
 			height += st.CalcHeight(s.message,width);
 		}
@@ -81,26 +95,36 @@ public class Log : MonoBehaviour {
 	}
 
 	void OnGUI() {
+		doGUI(left, right);
+	}
+	public void doGUI(float left, float right) {
+		this.left = left;
+		this.right = right;
 		if (needsScrollSet) {
 			setScrollPosition();
 			needsScrollSet = false;
-			hasScroller = getHeight() > consoleHeight;
+			hasScroller = getHeight(left, right) > consoleHeight;
 		}
 		if (gui.mapGenerator.isInCharacterPlacement()) return;
 		GUIStyle st = getLogMessageStyle(Color.white);
-		float height = getHeight();
-		float width = consoleWidth - 16;
-		float x = Screen.width - consoleWidth;
+		float consoleWidth = Screen.width;
+		float height = getHeight(left, right);
+		float width = consoleWidth - left - right - 5.0f;
+		float consoleX = 0.0f;
+		float x = left + 5.0f;
 		float y = Screen.height - consoleHeight;
-		Rect logRect = new Rect(x, y, consoleWidth, consoleHeight);
-		GUI.Box(logRect,"");
-		scrollPosition = GUI.BeginScrollView(logRect, scrollPosition, new Rect(x, y, width, height));
+		Rect logRect = new Rect(consoleX, y, consoleWidth, consoleHeight);
+		y+=2.0f;
+		GUIStyle boxStyle = new GUIStyle("Box");
+		boxStyle.normal.background = boxStyle.active.background = boxStyle.hover.background = logTexture as Texture2D;
+		GUI.Box(logRect,"", boxStyle);
+		scrollPosition = GUI.BeginScrollView(new Rect(x, y, width, consoleHeight - 4.0f), scrollPosition, new Rect(x, y, width - 16.0f, height));
 		y+=logY;
 		x += logX;
 		foreach (LogMessage s in messages) {
 			st = getLogMessageStyle(s.color);
-			float h = st.CalcHeight(s.message,width);
-			GUI.Label(new Rect(x, y, width, h), s.message, st);
+			float h = st.CalcHeight(s.message,width - 16.0f);
+			GUI.Label(new Rect(x, y, width - 16.0f, h), s.message, st);
 			y += h;
 		}
 		GUI.EndScrollView();

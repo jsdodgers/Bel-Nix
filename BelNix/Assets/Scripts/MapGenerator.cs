@@ -425,8 +425,7 @@ public class MapGenerator : MonoBehaviour {
 	public void createSelectionUnits() {
 		selectionUnits = new List<Unit>();
 //		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
-		string text = File.ReadAllText(Application.persistentDataPath + "/Saves/Characters.txt");
-		string[] chars = text.Split(new char[]{';'});
+		string[] chars = Saves.getCharacterList();
 		for (int n=0;n<chars.Length-1;n++) {
 			GameObject p = (GameObject)GameObject.Instantiate(playerPrefab);
 			SpriteRenderer sr = p.GetComponent<SpriteRenderer>();
@@ -444,7 +443,7 @@ public class MapGenerator : MonoBehaviour {
 			sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
 			pl.rollInitiative();
 			selectionUnits.Add(pl);
-			Debug.Log(pl.characterSheet.personalInfo.getCharacterName().fullName());
+            Debug.Log(pl.characterSheet.characterSheet.personalInformation.getCharacterName().fullName());
 		}
 		sortPriority();
 		repositionSelectionUnits();
@@ -560,7 +559,8 @@ public class MapGenerator : MonoBehaviour {
 			moveCameraToSelected();
 			lastPlayerPath = selectedUnit.currentPath;
 			float closestEnemy = selectedUnit.closestEnemyDist();
-			if (closestEnemy > selectedUnit.characterSheet.characterLoadout.rightHand.getWeapon().range) {
+            if (closestEnemy > selectedUnit.characterSheet.characterSheet.characterLoadout.rightHand.range)
+            {
 				gui.selectMove();
 			}
 			else {
