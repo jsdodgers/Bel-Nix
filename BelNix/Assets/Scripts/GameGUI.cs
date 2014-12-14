@@ -1031,8 +1031,8 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.gameState != GameState.Playing) {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Main Menu")) {
-					Application.LoadLevel(0);
+			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Back to Base")) {
+					Application.LoadLevel(2);
 			}
 			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 + Screen.height/12, Screen.width/12, Screen.height/12), "Quit")) {
 				Application.Quit();

@@ -370,7 +370,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				}
 				if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Load")) {
 					Saves.loadSave(loadingName);
-					loading = false;
+				//	loading = false;
 					Application.LoadLevel(2);
 				}
 			//	float textFieldHeight = 25.0f;
@@ -409,15 +409,11 @@ public class GraphicalUserInterface : MonoBehaviour
 					loadingScrollPos = new Vector2();
 	//				Application.LoadLevel(4);
 				}
-				if(GUI.Button(new Rect(buttX, Screen.height/2 + 100, buttWidth, 40), "Load Into Test Map 2"))
-				{
-					Application.LoadLevel(3);
-				}
-				if(GUI.Button(new Rect(buttX, Screen.height/2 + 140, buttWidth, 40), "Options"))
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 100, buttWidth, 40), "Options"))
 				{
 					//Bring up Options UI.  Do NOT load into a new scene.
 				}
-				if(GUI.Button(new Rect(buttX, Screen.height/2 + 180, buttWidth, 40), "Quit"))
+				if(GUI.Button(new Rect(buttX, Screen.height/2 + 140, buttWidth, 40), "Quit"))
 				{
 					//Quit the Application
 					Application.Quit();
