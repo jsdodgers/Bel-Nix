@@ -171,7 +171,7 @@ public class Unit : MonoBehaviour {
 			movementTypes.Add(MovementType.Move);
 			movementTypes.Add(MovementType.BackStep);
 		}
-		movementTypes.Add(MovementType.Cancel);
+	//	movementTypes.Add(MovementType.Cancel);
 		return movementTypes.ToArray();
 		return new MovementType[] {MovementType.Move, MovementType.BackStep, MovementType.Cancel};
 	}
@@ -188,12 +188,12 @@ public class Unit : MonoBehaviour {
 		if (characterSheet.characterSheet.inventory.hasTurret()) standardTypes.Add(StandardType.Place_Turret);
 		if (characterSheet.characterSheet.inventory.hasTrap()) standardTypes.Add(StandardType.Lay_Trap);
 		standardTypes.Add(StandardType.Inventory);
-		standardTypes.Add (StandardType.Cancel);
+	//	standardTypes.Add (StandardType.Cancel);
 		return standardTypes.ToArray();
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
 	public MinorType[] getMinorTypes() {
-		return new MinorType[] {MinorType.Loot, MinorType.Cancel};
+		return new MinorType[] {MinorType.Loot};
 	}
 
 	public int numberMinors() {

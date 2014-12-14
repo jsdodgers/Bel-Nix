@@ -88,9 +88,7 @@ public class Log : MonoBehaviour {
 
 	public bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
-		if (hasScroller) {
-			return (new Rect(Screen.width - 16.0f,Screen.height - consoleHeight, 16.0f, consoleHeight)).Contains(mousePos);
-		}
+		return (new Rect(0.0f ,Screen.height - consoleHeight, Screen.width, consoleHeight)).Contains(mousePos);
 		return false;
 	}
 
