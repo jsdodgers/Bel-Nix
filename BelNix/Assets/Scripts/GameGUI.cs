@@ -656,21 +656,21 @@ public class GameGUI : MonoBehaviour {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
 			int index = System.Array.IndexOf(standards,selectedStandardType);
 			index++;
-			if (index >= standards.Length-1) index = 0;
+			if (index >= standards.Length) index = 0;
 			selectStandard(standards[index]);
 		}
 		else if (selectedMovement) {
 			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
 			int index = System.Array.IndexOf(movements,selectedMovementType);
 			index++;
-			if (index >= movements.Length-1) index = 0;
+			if (index >= movements.Length) index = 0;
 			selectMovement(movements[index]);
 		}
 		else if (selectedMinor) {
 			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
 			int index = System.Array.IndexOf(minors,selectedMinorType);
 			index++;
-			if (index >= minors.Length-1) index = 0;
+			if (index >= minors.Length) index = 0;
 			selectMinor(minors[index]);
 		}
 	}
@@ -680,24 +680,24 @@ public class GameGUI : MonoBehaviour {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
 			int index = System.Array.IndexOf(standards,selectedStandardType);
 			index--;
-			if (index >= standards.Length-2) index = 0;
-			if (index < 0) index = standards.Length-2;
+			if (index >= standards.Length-1) index = 0;
+			if (index < 0) index = standards.Length-1;
 			selectStandard(standards[index]);
 		}
 		else if (selectedMovement) {
 			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
 			int index = System.Array.IndexOf(movements,selectedMovementType);
 			index--;
-			if (index >= movements.Length-2) index = 0;
-			if (index < 0) index = movements.Length-2;
+			if (index >= movements.Length-1) index = 0;
+			if (index < 0) index = movements.Length-1;
 			selectMovement(movements[index]);
 		}
 		else if (selectedMinor) {
 			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
 			int index = System.Array.IndexOf(minors,selectedMinorType);
 			index--;
-			if (index >= minors.Length-2) index = 0;
-			if (index < 0) index = minors.Length-2;
+			if (index >= minors.Length-1) index = 0;
+			if (index < 0) index = minors.Length-1;
 			selectMinor(minors[index]);
 		}
 	}
