@@ -24,7 +24,7 @@ public class Log : MonoBehaviour {
 	bool needsScrollSet = false;
 	bool hasScroller = false;
 
-	float left = 150.0f;
+	float left = 185.0f;
 	float right = 0.0f;
 
 	Texture logTexture;

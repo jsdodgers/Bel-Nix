@@ -44,7 +44,8 @@ public class GameGUI : MonoBehaviour {
 	public Mission openMission = Mission.Primary;
 
 	static Texture2D actionTexture3;
-	static Texture2D hotkeysBackTexture;
+	static Texture2D hotkeysBackTextureCenter;
+	static Texture2D hotkeysBackTextureLeft;
 
 	// Use this for initialization
 	void Start () {
@@ -53,7 +54,14 @@ public class GameGUI : MonoBehaviour {
 		//nonSelectedButtonStyle = null;
 		first = true;
 		actionTexture3 = Resources.Load<Texture>("UI/combat-3-button-base") as Texture2D;
-		hotkeysBackTexture = Resources.Load<Texture>("UI/action-bar") as Texture2D;
+
+		hotkeysBackTextureLeft = Resources.Load<Texture>("UI/action-bar-left") as Texture2D;
+		hotkeysBackTextureCenter = Resources.Load<Texture>("UI/action-bar-center") as Texture2D;
+	}
+
+	Texture2D getHotKeysBackTexture(int n) {
+		if (n == -1 || n == Mathf.Max(2, numberActions)) return hotkeysBackTextureLeft;
+		return hotkeysBackTextureCenter;
 	}
 	
 	// Update is called once per frame
@@ -82,10 +90,10 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public Rect actionIconRect(int n) {
-		float y = actionBarRect().y + (actionBarSize().y - actionIconSize().y)/2.0f;
-		float totesWidth = numberActions * actionBarSize().y + (actionBarSize().y - actionIconSize().y);
+		float y = actionBarTotalRect().y + (actionBarTotalSize().y - actionIconSize().y)/2.0f;
+		float totesWidth = numberActions * actionBarTotalSize().y + (actionBarTotalSize().y - actionIconSize().y);
 		float first = (Screen.width - totesWidth)/2.0f;
-		float x = first + actionBarSize().y*n + actionBarSize().y - actionIconSize().x;
+		float x = first + actionBarTotalSize().y*n + actionBarTotalSize().y - actionIconSize().x;
 		return new Rect(x, y, actionIconSize().x, actionIconSize().y);
 	}
 
@@ -105,11 +113,31 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public int numberActions;
-	public Vector2 actionBarSize() {
-		return new Vector2(300.0f, 60.0f);
+	public Vector2 actionBarSectionSize() {
+		return new Vector2(60.0f, 60.0f);
 	}
-	public Rect actionBarRect() {
-		return new Rect((Screen.width - actionBarSize().x)/2.0f, Screen.height - Log.consoleHeight - actionBarSize().y + 10.0f, actionBarSize().x, actionBarSize().y);
+	public Vector2 actionBarSideSize() {
+		return new Vector2(30.0f, 60.0f);
+	}
+	public Vector2 actionBarTotalSize() {
+		return new Vector2(actionBarSideSize().x * 2 + actionBarSectionSize().x * Mathf.Max(2, numberActions), actionBarSectionSize().y);
+	}
+	public Rect actionBarTotalRect() {
+		return new Rect((Screen.width - actionBarTotalSize().x)/2.0f, Screen.height - Log.consoleHeight - actionBarTotalSize().y + 10.0f, actionBarTotalSize().x, actionBarTotalSize().y);
+	}
+	public Rect actionBarRect(int n) {
+		float width = actionBarSectionSize().x;
+		float x = actionBarTotalRect().x;
+		if (n ==-1) width = actionBarSideSize().x;
+		else {
+			x = actionBarTotalRect().x + actionBarSideSize().x + actionBarSectionSize().x * n;
+			if (n >= Mathf.Max(2, numberActions))  {
+				width = -actionBarSideSize().x;
+				x += actionBarSideSize().x;
+			}
+
+		}
+		return new Rect(x, actionBarTotalRect().y, width, actionBarSectionSize().y);
 	}
 
 	public Rect actionRect() {
@@ -240,7 +268,7 @@ public class GameGUI : MonoBehaviour {
 				bool onWait = waitButtonAlwaysRect().Contains(mousePos);
 				bool others = onPlayer || onWait;
 				if (mapGenerator.selectedUnit == mapGenerator.getCurrentUnit() && mapGenerator.selectedUnits.Count == 0) {
-					if (actionRect().Contains(mousePos) || actionBarRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others) return true;
+					if (actionRect().Contains(mousePos) || actionBarTotalRect().Contains(mousePos) || (hasConfirmButton() && confirmButtonRect().Contains(mousePos)) || others) return true;
 					if (selectedStandard && selectedStandardType==StandardType.Place_Turret)
 						if (turretTypesRect().Contains(mousePos)) return true;
 					if (selectedStandard && selectedStandardType==StandardType.Lay_Trap && selectedTrap == null)
@@ -885,7 +913,7 @@ public class GameGUI : MonoBehaviour {
 			//	if (GUI.Button(waitButtonRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 			//		clickWait();
 			//	}
-				GUI.DrawTexture(actionBarRect(), hotkeysBackTexture);
+//				GUI.DrawTexture(actionBarRect(), hotkeysBackTexture);
 				if (selectedMovement) {
 					numberActions = mapGenerator.getCurrentUnit().getMovementTypes().Count();
 				}
@@ -894,6 +922,10 @@ public class GameGUI : MonoBehaviour {
 				}
 				else if (selectedMinor) {
 					numberActions = mapGenerator.getCurrentUnit().getMinorTypes().Count();
+				}
+				else numberActions = 2;
+				for (int n=-1; n <= Mathf.Max(2, numberActions); n++) {
+					GUI.DrawTexture(actionBarRect(n), getHotKeysBackTexture(n));
 				}
 				if (selectedMovement) {
 					MovementType[] types = mapGenerator.getCurrentUnit().getMovementTypes();
