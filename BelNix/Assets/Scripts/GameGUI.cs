@@ -430,7 +430,7 @@ public class GameGUI : MonoBehaviour {
 	static GUIStyle getSelectedActionStyle(string name) {
 		if (!selectedActionStyles.ContainsKey(name)) {
 			GUIStyle st = new GUIStyle("Button");
-			st.normal.background = st.hover.background = st.active.background = Resources.Load<Texture>("UI/Hotkey Icons/" + name) as Texture2D;
+			st.normal.background = st.hover.background = st.active.background = Resources.Load<Texture>("UI/Hotkey Icons/" + name + " Selected") as Texture2D;
 			selectedActionStyles[name] = st;
 		}
 		return selectedActionStyles[name];
