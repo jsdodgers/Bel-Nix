@@ -43,12 +43,17 @@ public class GameGUI : MonoBehaviour {
 	public Tab openTab = Tab.None;
 	public Mission openMission = Mission.Primary;
 
+	static Texture2D actionTexture3;
+	static Texture2D hotkeysBackTexture;
+
 	// Use this for initialization
 	void Start () {
 		position = new Vector2(0.0f, 0.0f);
 		//selectedButtonStyle = null;
 		//nonSelectedButtonStyle = null;
 		first = true;
+		actionTexture3 = Resources.Load<Texture>("UI/combat-3-button-base") as Texture2D;
+		hotkeysBackTexture = Resources.Load<Texture>("UI/action-bar") as Texture2D;
 	}
 	
 	// Update is called once per frame
@@ -74,17 +79,30 @@ public class GameGUI : MonoBehaviour {
 
 	public Vector2 actionButtonsSize() {
 //		return new Vector2(90.0f, 50.0f);
+		return new Vector2(150.0f, 40.0f);
 		return notTurnMoveRangeSize;
 //		return new Vector2(90.0f, 40.0f);
+	}
+
+	public Vector2 actionButtonsTotalSize() {
+		return new Vector2(180.0f, 130.0f);
 	}
 
 	public Rect rangeRect() {
 		return new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y*2 + 1, notTurnMoveRangeSize.x, notTurnMoveRangeSize.y*2-1);
 	}
 
+	public int numberActions;
+	public Vector2 actionBarSize() {
+		return new Vector2(250.0f, 50.0f);
+	}
+	public Rect actionBarRect() {
+		return new Rect((Screen.width - actionBarSize().x)/2.0f, Screen.height - Log.consoleHeight - actionBarSize().y + 10.0f, actionBarSize().x, actionBarSize().y);
+	}
+
 	public Rect actionRect() {
-		float boxHeight = actionButtonsSize().y * 4 - 3;
-		return new Rect(0.0f, Screen.height - boxHeight, actionButtonsSize().x, boxHeight);
+		float boxHeight = actionButtonsSize().y * 3 + (1) * 20.0f;
+		return new Rect(5.0f, Screen.height - actionButtonsTotalSize().y - 5.0f, actionButtonsTotalSize().x, actionButtonsTotalSize().y);
 	}
 
 	public Rect turretTypeRect(int n) {
@@ -137,19 +155,19 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public Rect moveButtonRect() {
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 0, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 0 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect attackButtonRect() {
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 1 - 1, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 1 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect minorButtonRect() {	
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 2 - 2, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 2 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 	
 	public Rect waitButtonRect() {
-		return new Rect(0.0f, actionRect().y + actionButtonsSize().y * 3 - 3, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 3 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect waitButtonAlwaysRect() {
@@ -258,14 +276,51 @@ public class GameGUI : MonoBehaviour {
 
 		return playerBoldStyle;
 	}
+
+	Dictionary<string, GUIStyle> selectedButtonStyles = null;
+	Dictionary<string, GUIStyle> unselectedButtonStyles = null;
+	Dictionary<string, GUIStyle> disabledButtonStyles = null;
+	GUIStyle getSelectedButtonStyle(string name) {
+		if (selectedButtonStyles == null) selectedButtonStyles = new Dictionary<string, GUIStyle>();
+		if (!selectedButtonStyles.ContainsKey(name)) {
+			GUIStyle st = new GUIStyle("Button");
+			st.normal.background = st.hover.background = Resources.Load<Texture>("UI/" + name + "_hover") as Texture2D;
+			st.active.background = Resources.Load<Texture>("UI/" + name + "_lit") as Texture2D;
+			selectedButtonStyles[name] = st;
+		}
+		return selectedButtonStyles[name];
+	}
 	
+	GUIStyle getNonSelectedButtonStyle(string name) {
+		if (unselectedButtonStyles == null) unselectedButtonStyles = new Dictionary<string, GUIStyle>();
+		if (!unselectedButtonStyles.ContainsKey(name)) {
+			GUIStyle st = new GUIStyle("Button");
+			st.hover.background =  Resources.Load<Texture>("UI/" + name + "_hover") as Texture2D;
+			st.normal.background = Resources.Load<Texture>("UI/" + name + "_lit") as Texture2D;
+			st.active.background = Resources.Load<Texture>("UI/" + name + "_pressed") as Texture2D;
+			unselectedButtonStyles[name] = st;
+		}
+		return unselectedButtonStyles[name];
+	}
+	
+	GUIStyle getDisabledButtonStyle(string name) {
+		if (disabledButtonStyles == null) disabledButtonStyles = new Dictionary<string, GUIStyle>();
+		if (!disabledButtonStyles.ContainsKey(name)) {
+			GUIStyle st = new GUIStyle("Button");
+			st.hover.background = st.normal.background = st.active.background = Resources.Load<Texture>("UI/" + name + "_unlit") as Texture2D;
+			disabledButtonStyles[name] = st;
+		}
+		return disabledButtonStyles[name];
+	}
+
 	GUIStyle getSelectedButtonStyle() {
 		if (selectedButtonStyle == null) {
 			selectedButtonStyle = new GUIStyle(GUI.skin.button);
-			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
-			selectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
-			selectedButtonStyle.hover.background = tex;//selectedButtonStyle.normal.background;
-			selectedButtonStyle.active.background = tex;
+		//	Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
+			//selectedButtonStyle.normal.background = tex;//makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f, 40.0f, 210.0f));
+		//	selectedButtonStyle.hover.background = tex;//selectedButtonStyle.normal.background;
+		//	selectedButtonStyle.active.background = tex;
+			selectedButtonStyle.hover.background = selectedButtonStyle.normal.background = selectedButtonStyle.active.background = Resources.Load<Texture>("") as Texture2D;
 			selectedButtonStyle.hover.textColor = Color.white;
 			selectedButtonStyle.normal.textColor = Color.white;
 			selectedButtonStyle.active.textColor = Color.white;
@@ -757,43 +812,47 @@ public class GameGUI : MonoBehaviour {
 				Unit p = mapGenerator.selectedUnit;
 				//			if (mapGenerator.lastPlayerPath.Count >1 && !p.moving) {
 				//		path = true;
-				GUI.enabled = !p.usedMovement;
+				GUI.DrawTexture(actionRect(), actionTexture3);
+				bool enabled = !p.usedMovement;
 				if (selectedMovement && p.usedMovement) {
 					deselectMovement();
 			//		selectedMovement = false;
 			//		selectedMovementType = MovementType.None;
 			//		mapGenerator.resetRanges();
 				}
-				if(GUI.Button(moveButtonRect(), "Movement", (selectedMovement || p.usedMovement ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
+				if(GUI.Button(moveButtonRect(), "", (p.usedMovement ? getDisabledButtonStyle("movement") : (selectedMovement ? getSelectedButtonStyle("movement") : getNonSelectedButtonStyle("movement"))))) {
 					//	Debug.Log("Move Player!");
-					clickMovement();
+					if (enabled)
+						clickMovement();
 
 				}
 				//		}
-				GUI.enabled = !p.usedStandard && !p.isProne();
+				enabled = !p.usedStandard && !p.isProne();
 				if (selectedStandard && p.usedStandard) {
 					deselectStandard();
 //					selectedStandard = false;
 //					selectedStandardType = StandardType.None;
 				}
 				//	if (p.attackEnemy!=null && !p.moving && !p.attacking) {
-				if (GUI.Button(attackButtonRect(), "Standard", (selectedStandard || p.usedStandard ? getSelectedButtonStyle() : getNonSelectedButtonStyle()))) {
-					clickStandard();
+				if (GUI.Button(attackButtonRect(), "", (p.usedStandard || p.isProne() ? getDisabledButtonStyle("standard") :(selectedStandard ? getSelectedButtonStyle("standard") : getNonSelectedButtonStyle("standard"))))) {
+					if (enabled)
+						clickStandard();
 
 				}
-				GUI.enabled = p.minorsLeft > 0;//!p.usedMinor1 || !p.usedMinor2;
+				enabled = p.minorsLeft > 0;//!p.usedMinor1 || !p.usedMinor2;
 				if (selectedMinor && p.minorsLeft==0) {
 					if (selectedMinorType == MinorType.Loot) previouslyOpenTab = Tab.I;
 					deselectMinor();//selectedMinor = false;
 				}
-				if (GUI.Button(minorButtonRect(), "Minor", (selectedMinor && p.minorsLeft>0 ? getSelectedButtonStyle() : getNonSelectedButtonStyle())) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
-					clickMinor();
+				if (GUI.Button(minorButtonRect(), "", (p.minorsLeft <= 0 ? getDisabledButtonStyle("minor") : (selectedMinor ? getSelectedButtonStyle("minor") : getNonSelectedButtonStyle("minor")))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+					if (enabled)
+						clickMinor();
 				}
 				GUI.enabled = true;
-				if (GUI.Button(waitButtonRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
-					clickWait();
-				}
-
+			//	if (GUI.Button(waitButtonRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+			//		clickWait();
+			//	}
+				GUI.DrawTexture(actionBarRect(), hotkeysBackTexture);
 				if (selectedMovement) {
 					MovementType[] types = mapGenerator.getCurrentUnit().getMovementTypes();
 					for (int n=0;n<types.Length;n++) {
@@ -1031,8 +1090,8 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.gameState != GameState.Playing) {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Main Menu")) {
-					Application.LoadLevel(0);
+			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Back to Base")) {
+					Application.LoadLevel(2);
 			}
 			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 + Screen.height/12, Screen.width/12, Screen.height/12), "Quit")) {
 				Application.Quit();

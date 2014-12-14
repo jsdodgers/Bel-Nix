@@ -34,6 +34,7 @@ public class BaseManager : MonoBehaviour {
 		tooltips.Add("exit", "Exit to Main Menu");
 		tooltips.Add("map", "Open Map");
 		tooltips.Add("infirmary", "Infirmary");
+		tooltips.Add("newcharacter", "Create a new Character");
 		int n=0;
 		do {
 			n++;
@@ -62,6 +63,9 @@ public class BaseManager : MonoBehaviour {
 				else if (hoveredObject.tag=="map") {
 					loadMapScrollPos = new Vector2();
 					choosingMap = true;
+				}
+				else if (hoveredObject.tag=="newcharacter") {
+					Application.LoadLevel(1);
 				}
 			}
 		}
