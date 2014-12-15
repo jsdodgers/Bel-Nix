@@ -30,6 +30,7 @@ public class GameGUI : MonoBehaviour {
 	public Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
 	public Vector2 turretsScrollPosition = new Vector2(0.0f, 0.0f);
 	public Vector2 trapsScrollPosition = new Vector2(0.0f, 0.0f);
+	static Vector2 turnOrderScrollPos = new Vector2(0.0f, 0.0f);
 
 	public bool selectedMovement = false;
 	public bool selectedStandard = false;
@@ -41,11 +42,13 @@ public class GameGUI : MonoBehaviour {
 
 
 	public Tab openTab = Tab.None;
+	public Tab clipboardTab = Tab.None;
 	public Mission openMission = Mission.Primary;
 
 	static Texture2D actionTexture3;
 	static Texture2D hotkeysBackTextureCenter;
 	static Texture2D hotkeysBackTextureLeft;
+	static Texture2D clipBoardBodyTexture;
 
 	// Use this for initialization
 	void Start () {
@@ -57,6 +60,7 @@ public class GameGUI : MonoBehaviour {
 
 		hotkeysBackTextureLeft = Resources.Load<Texture>("UI/action-bar-left") as Texture2D;
 		hotkeysBackTextureCenter = Resources.Load<Texture>("UI/action-bar-center") as Texture2D;
+		clipBoardBodyTexture = Resources.Load<Texture>("UI/clipboard-body") as Texture2D;
 	}
 
 	Texture2D getHotKeysBackTexture(int n) {
@@ -214,6 +218,21 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
+	public bool clipboardUp = true;
+	public const float clipboardBodyWidth = 158.0f;
+	public Vector2 clipboardBodySize() {
+		return new Vector2(clipboardBodyWidth, (clipboardUp ? 250.0f : 190.0f));
+	}
+	public Vector2 clipboardClipSize() {
+		return new Vector2(150.0f, 50.0f);
+	}
+	public Rect clipBoardBodyRect() {
+		return new Rect(Screen.width - clipboardBodySize().x, Screen.height - clipboardBodySize().y, clipboardBodySize().x, clipboardBodySize().y);
+	}
+	public Rect clipBoardClipRect() {
+		return new Rect(clipBoardBodyRect().x + (clipboardBodySize().x - clipboardClipSize().x)/2.0f, clipBoardBodyRect().y + 10.0f - clipboardClipSize().y, clipboardClipSize().x, clipboardClipSize().y);
+	}
+
 	public Rect subMenuButtonsRect() {
 //		System.Enum[] values = null;
 		int values = 0;
@@ -262,6 +281,10 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator) {
 			if (mapGenerator.isInCharacterPlacement()) {
 				if (beginButtonRect().Contains(mousePos)) return true;
+			}
+			else {
+				if (clipBoardBodyRect().Contains(mousePos)) return true;
+				if (clipBoardClipRect().Contains(mousePos)) return true;
 			}
 			if (mapGenerator.selectedUnit != null) {
 				bool onPlayer = mapGenerator.selectedUnits.Count == 0 && mapGenerator.selectedUnit.guiContainsMouse(mousePos);
@@ -451,6 +474,15 @@ public class GameGUI : MonoBehaviour {
 		}
 		return beginButtonStyle;
 	}
+	static GUIStyle clipBoardClipStyle = null;
+	static GUIStyle getClipBoardClipStyle() {
+		if (clipBoardClipStyle==null) {
+			clipBoardClipStyle = new GUIStyle("Button");
+			clipBoardClipStyle.normal.background = clipBoardClipStyle.hover.background = Resources.Load<Texture>("UI/clipboard-clip") as Texture2D;
+			clipBoardClipStyle.active.background = Resources.Load<Texture>("UI/clipboard-clip-pressed") as Texture2D;
+		}
+		return clipBoardClipStyle;
+	}
 
 	static Dictionary<string, GUIStyle> selectedActionStyles = new Dictionary<string, GUIStyle>();
 	static Dictionary<string, GUIStyle> nonSelectedActionStyles = new Dictionary<string, GUIStyle>();
@@ -462,7 +494,8 @@ public class GameGUI : MonoBehaviour {
 			selectedActionStyles[name] = st;
 			st.alignment = TextAnchor.LowerRight;
 			st.padding = new RectOffset(1, 0, 0, -1);
-			st.normal.textColor = st.active.textColor = st.hover.textColor = Color.black;
+			st.fontSize = 9;
+			st.normal.textColor = st.active.textColor = st.hover.textColor = Color.white;
 		}
 		return selectedActionStyles[name];
 	}
@@ -474,7 +507,8 @@ public class GameGUI : MonoBehaviour {
 			nonSelectedActionStyles[name] = st;
 			st.alignment = TextAnchor.LowerRight;
 			st.padding = new RectOffset(1, 0, 0, -1);
-			st.normal.textColor = st.active.textColor = st.hover.textColor = Color.black;
+			st.fontSize = 9;
+			st.normal.textColor = st.active.textColor = st.hover.textColor = Color.white;
 		}
 		return nonSelectedActionStyles[name];
 	}
@@ -504,7 +538,16 @@ public class GameGUI : MonoBehaviour {
 		}
 		return nonSelectedSubMenuTurnStyle;
 	}
-
+	
+	static GUIStyle titleTextStyle = null;
+	public GUIStyle getTitleTextStyle() {
+		if (titleTextStyle == null) {
+			titleTextStyle = new GUIStyle("Label");
+			titleTextStyle.normal.textColor = Color.white;
+			titleTextStyle.fontSize = 15;
+		}
+		return titleTextStyle;
+	}
 	GUIStyle namesStyle = null;
 	GUIStyle getNamesStyle() {
 		if (namesStyle==null) {
@@ -567,6 +610,7 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		if (p==null || p.usedStandard || p.isProne()) return;
 		if (p.usedStandard) return;
+		if (selectedStandard) return;
 		if (selectedMovement) {
 			deselectMovement();
 		}
@@ -586,6 +630,7 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (p==null || p.usedMovement) return;
+		if (selectedMovement) return;
 		if (selectedStandard) {
 			//		selectedStandardType = StandardType.None;
 			deselectStandard();
@@ -621,6 +666,7 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (p==null || p.minorsLeft==0) return;
+		if (selectedMinor) return;
 		if (selectedMovement) {
 			//		selectedMovementType = MovementType.None;
 //			selectedMovement = false;
@@ -642,22 +688,26 @@ public class GameGUI : MonoBehaviour {
 	public void selectTypeAt(int index) {
 		if (selectedStandard) {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
-			if (index >= standards.Length-1) return;
+			if (index >= standards.Length) return;
 			selectStandard(standards[index]);
 		}
 		else if (selectedMovement) {
 			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
-			if (index >= movements.Length-1) return;
+			if (index >= movements.Length) return;
 			selectMovement(movements[index]);
 		}
 		else if (selectedMinor) {
 			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
-			if (index >= minors.Length-1) return;
+			if (index >= minors.Length) return;
 			selectMinor(minors[index]);
 		}
 	}
 
 	public void selectNextOfType() {
+		if (selectedMovement) clickStandard();
+		else if (selectedStandard) clickMinor();
+		else clickMovement();
+		return;
 		if (selectedStandard) {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
 			int index = System.Array.IndexOf(standards,selectedStandardType);
@@ -682,6 +732,10 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public void selectPreviousOfType() {
+		if (selectedMinor) clickStandard();
+		else if (selectedStandard) clickMovement();
+		else clickMinor();
+		return;
 		if (selectedStandard) {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
 			int index = System.Array.IndexOf(standards,selectedStandardType);
@@ -775,6 +829,11 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.resetRanges();
 		 */
 	}
+
+	const float turnOrderSectionHeight = 30.0f;
+	const float turnOrderTableX = 15.0f;
+	const float turnOrderNameWidth = clipboardBodyWidth - turnOrderTableX * 2 - turnOrderSectionHeight * 2;
+
 		
 	void OnGUI() {
 			//	Debug.Log("OnGUI");
@@ -843,6 +902,87 @@ public class GameGUI : MonoBehaviour {
 			}
 		}
 
+		// Game GUI
+		else {
+			Rect clipBoardRect = clipBoardBodyRect();
+			GUI.DrawTexture(clipBoardRect, clipBoardBodyTexture);
+			if (GUI.Button(clipBoardClipRect(), "", getClipBoardClipStyle())) {
+				clipboardUp = !clipboardUp;
+			}
+			if (clipboardTab == Tab.T) {
+				float y = clipBoardRect.y + 10.0f;
+				GUIStyle titleStyle = getTitleTextStyle();
+				GUIContent turnOrder = new GUIContent("Turn Order");
+				Vector2 turnOrderSize = titleStyle.CalcSize(turnOrder);
+				GUI.Label(new Rect(clipBoardRect.x + (clipBoardRect.width - turnOrderSize.x)/2.0f, y , turnOrderSize.x, turnOrderSize.y), turnOrder, titleStyle);
+			
+				y += turnOrderSize.y;
+				int numPlayers = mapGenerator.priorityOrder.Count;
+				int currentPlayer = mapGenerator.currentUnit;
+				if (currentPlayer < 0) currentPlayer = 0;
+				turnOrderScrollPos = GUI.BeginScrollView(new Rect(clipBoardRect.x, y, clipBoardRect.width - 2.0f, clipBoardRect.height - (y - clipBoardRect.y)), turnOrderScrollPos, new Rect(clipBoardRect.x, y, clipBoardRect.width - 16.0f - 2.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f*38));
+			
+				/*
+				GUIStyle st = getPlayerInfoStyle();
+				st.wordWrap = false;
+				float x = paperDollFullWidth + turnOrderTableX - 5.0f;
+				GUIContent num = new GUIContent("Pos");
+				Vector2 numSize = st.CalcSize(num);
+				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
+				x += turnOrderSectionHeight - 1.0f;
+				GUIContent name = new GUIContent("Name");
+				Vector2 nameSize = st.CalcSize(name);
+				GUI.Label(new Rect(x + (turnOrderNameWidth - nameSize.x)/2.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, nameSize.x, nameSize.y), name, getPlayerInfoStyle());
+				x += turnOrderNameWidth - 1.0f;
+				GUIContent initiative = new GUIContent("Roll");
+				Vector2 initiativeSize = st.CalcSize(initiative);
+				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
+				y+=turnOrderSectionHeight;
+				for (int n=0;n<numPlayers;n++) {
+					int playerNum = (n + currentPlayer) % numPlayers;
+					Unit player = mapGenerator.priorityOrder[playerNum];
+					if (player == this) {
+						st.normal.textColor = Color.Lerp (start, end, t);
+						st.fontStyle = FontStyle.Bold;
+					}
+					x = paperDollFullWidth + turnOrderTableX - 5.0f;
+					Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
+					//	Rect r2 = new Rect(x + (turnOrderSectionHeight
+					//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+					if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
+						selectUnit(player);
+					}
+					num = new GUIContent("" + (playerNum + 1));
+					numSize = st.CalcSize(num);
+					GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
+					x += turnOrderSectionHeight - 1.0f;
+					r = new Rect(x, y, turnOrderNameWidth, turnOrderSectionHeight);
+					//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderNameBackgroundTexture() : getTurnOrderNameBackgroundTextureEnemy()));
+					if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderNameStyle(player))) {
+						selectUnit(player);
+					}
+					name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
+					nameSize = st.CalcSize(name);
+					GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
+					x += turnOrderNameWidth - 1.0f;
+					r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
+					//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
+					if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
+						selectUnit(player);
+					}
+					initiative = new GUIContent(player.getInitiative() + "");
+					initiativeSize = st.CalcSize(initiative);
+					GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
+					y += turnOrderSectionHeight - 1.0f;
+					if (player == this) {
+						st.normal.textColor = Color.white;
+						st.fontStyle = FontStyle.Normal;
+					}
+				}
+				*/
+				GUI.EndScrollView();
+			}
+		}
 		if (mapGenerator.currentUnit >= 0) {
 			if (GUI.Button(waitButtonAlwaysRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 				if (selectedMovement) {
@@ -938,7 +1078,7 @@ public class GameGUI : MonoBehaviour {
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfMovementType(types[n]);
 						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(actionIconRect(n), "" + (n+1), (selectedMovementType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+						if (GUI.Button(actionIconRect(n), (n < 9 ? (n+1) + "" : (n==9?"0":"")), (selectedMovementType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMovement(types[n]);
 						}
@@ -958,7 +1098,7 @@ public class GameGUI : MonoBehaviour {
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfStandardType(types[n]);
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(actionIconRect(n), "" + (n+1), (selectedStandardType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(actionIconRect(n), (n < 9 ? (n+1) + "" : (n==9?"0":"")), (selectedStandardType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectStandard(types[n]);
 						}
@@ -985,7 +1125,7 @@ public class GameGUI : MonoBehaviour {
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfMinorType(types[n]);
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(actionIconRect(n), "" + (n+1), (selectedMinorType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(actionIconRect(n), (n < 9 ? (n+1) + "" : (n==9?"0":"")), (selectedMinorType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMinor(types[n]);
 						}
