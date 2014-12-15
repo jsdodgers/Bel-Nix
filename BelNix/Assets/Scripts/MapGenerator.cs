@@ -424,6 +424,11 @@ public class MapGenerator : MonoBehaviour {
 	public List<Unit> selectionUnits;
 	float selectionUnitsX;
 	public void createSelectionUnits() {
+        if (!Directory.Exists(Saves.getCurrentSaveDirectory()) || !File.Exists(Saves.getCharactersListFilePath()))
+        {
+            Application.LoadLevel("MainMenu");
+            return;
+        }
 		selectionUnits = new List<Unit>();
 //		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
 		string[] chars = Saves.getCharacterList();
