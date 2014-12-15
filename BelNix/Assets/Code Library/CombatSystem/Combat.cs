@@ -29,8 +29,8 @@ namespace CombatSystem
         public static Hit rollHit(Unit attacker)
         {
             int diceRoll = rollD20();
-            int criticalHitChance = attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
-            return new Hit(attacker.characterSheet.characterSheet.skillScores.getScore(Skill.Melee) + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+			int criticalHitChance = attacker.getCritChance();//attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
+            return new Hit(attacker.getMeleeScore() + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
         }
 
 

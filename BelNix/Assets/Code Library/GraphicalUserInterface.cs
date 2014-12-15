@@ -58,7 +58,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		return new Color(r/255.0f, g/255.0f, b/255.0f);
 	}
 
-	static Color[] berrindColors = new Color[]{Color.white, createColor(223, 223, 223), createColor(251, 235, 218), createColor(227, 216, 205)};
+	static Color[] berrindColors = new Color[]{createColor(246, 197, 197), createColor(236, 181, 181), createColor(250, 213, 179), createColor(234, 196, 160)};
 	static Color[] ashpianColors = new Color[]{createColor(255, 204, 147), createColor(197, 154, 109), createColor(180, 147, 122), createColor(177, 118, 105)};
 	static Color[] rorrulColors = new Color[]{createColor(114, 90, 65), createColor(73, 52, 30), createColor(111, 98, 85), createColor(69, 63, 66)};
 	static Color[] hairColors = new Color[]{Color.white, Color.black, createColor(100, 80, 60), Color.red, Color.blue, Color.green};
