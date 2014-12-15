@@ -195,15 +195,15 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public Rect moveButtonRect() {
-		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 10.0f, actionRect().y + actionButtonsSize().y * 0 + 20.0f, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 6.0f, actionRect().y + actionButtonsSize().y * 0 + 20.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect attackButtonRect() {
-		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 10.0f, actionRect().y + actionButtonsSize().y * 1 + 30.0f, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 6.0f, actionRect().y + actionButtonsSize().y * 1 + 30.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
 	public Rect minorButtonRect() {	
-		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 10.0f, actionRect().y + actionButtonsSize().y * 2 + 40.0f, actionButtonsSize().x, actionButtonsSize().y);
+		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 6.0f, actionRect().y + actionButtonsSize().y * 2 + 40.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 	
 	public Rect waitButtonRect() {
