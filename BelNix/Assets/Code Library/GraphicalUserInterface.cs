@@ -62,11 +62,18 @@ public class GraphicalUserInterface : MonoBehaviour
 	static Color[] ashpianColors = new Color[]{createColor(223, 180, 135), createColor(199, 149, 95), createColor(174, 125, 73), createColor(188, 113, 85), createColor(171, 100, 74), createColor(142, 79, 56)};
 	static Color[] rorrulColors = new Color[]{createColor(98, 71, 56), createColor(82, 54, 44), createColor(62, 41, 30), createColor(49, 32, 24)};
 	static Color[] hairColors = new Color[]{createColor(214, 214, 214), createColor(173, 173, 173), createColor(132, 132, 132), createColor(91, 91, 91), createColor(50, 50, 50), createColor(20, 20, 20),
-											createColor(218, 88, 77), createColor(186, 63, 52), createColor(146, 42, 32), 
-											createColor(212, 90, 45), createColor(195, 81, 39), createColor(180, 76, 37), 
-											createColor(227, 190, 93), createColor(202, 163, 73), createColor(174, 140, 41), 
-											createColor(100, 80, 60)};
-	static Color[] favoriteColors = new Color[]{Color.white, Color.black, Color.blue, Color.red, Color.green, Color.gray, Color.cyan, Color.magenta, Color.yellow};
+								/*Red*/		createColor(218, 88, 77), createColor(186, 63, 52), createColor(146, 42, 32), 
+								/*Orange*/	createColor(212, 90, 45), createColor(195, 81, 39), createColor(180, 76, 37), 
+								/*Blond*/	createColor(227, 190, 93), createColor(202, 163, 73), createColor(174, 140, 41), 
+								/*Brown*/	createColor(100, 73, 41), createColor(81, 54, 27), createColor(53, 33, 13)};
+	static Color[] favoriteColors = new Color[]{createColor(224, 224, 224), createColor(183, 183, 183), createColor(142, 142, 142), createColor(101, 101, 101), createColor(60, 60, 60), createColor(30, 30, 30), 
+								/*Red*/		createColor(231, 144, 144), createColor(208, 100, 100), createColor(188, 70, 70), createColor(150, 45, 45), createColor(118, 29, 29), createColor(88, 17, 17), 
+								/*Orange*/	createColor(216, 133, 59), createColor(191, 119, 53), createColor(163, 102, 47), createColor(131, 82, 36), createColor(99, 70, 43), createColor(77, 57, 39), 
+								/*Yellow*/	createColor(234, 219, 95), createColor(202, 189, 80), createColor(165, 154, 66), createColor(135, 126, 53), createColor(105, 98, 41), createColor(82, 77, 33), 
+								/*Green*/	createColor(117, 206, 109), createColor(83, 172, 76), createColor(68, 142, 62), createColor(53, 112, 48), createColor(40, 88, 36), createColor(27, 60, 24), 
+								/*Blue*/	createColor(114, 147, 210), createColor(84, 113, 171), createColor(62, 85, 129), createColor(49, 68, 105), createColor(36, 49, 75), createColor(25, 34, 53), 
+								/*Purple*/	createColor(193, 112, 210), createColor(161, 91, 176), createColor(134, 71, 148), createColor(106, 52, 118), createColor(81, 38, 90), createColor(47, 21, 53)
+											};
 	// Use this for initialization
 
 	void setHairStyle() {
@@ -551,7 +558,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Personal Information");
 				GUI.Box(new Rect(10, calculateBoxHeight(3), 250, 20), "First Name:");
 				characterName = GUI.TextField(new Rect(260, calculateBoxHeight(3), 250, 20), characterName);
-				GUI.Box(new Rect(10, calculateBoxHeight(4), 230, 20), "Last Name:");
+				GUI.Box(new Rect(10, calculateBoxHeight(4), 250, 20), "Last Name:");
 				characterLastName = GUI.TextField(new Rect(260, calculateBoxHeight(4), 250, 20), characterLastName);
 				GUI.Box(new Rect(10, calculateBoxHeight(5), 250, 20), "Sex:");
 				sexSelect = GUI.SelectionGrid(new Rect(260, calculateBoxHeight(5), 250, 20),sexSelect, sex, 2);

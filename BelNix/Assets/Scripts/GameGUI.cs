@@ -42,7 +42,7 @@ public class GameGUI : MonoBehaviour {
 
 
 	public Tab openTab = Tab.None;
-	public Tab clipboardTab = Tab.None;
+	public Tab clipboardTab = Tab.T;
 	public Mission openMission = Mission.Primary;
 
 	static Texture2D actionTexture3;
@@ -52,6 +52,7 @@ public class GameGUI : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		clipboardTab = Tab.T;
 		position = new Vector2(0.0f, 0.0f);
 		//selectedButtonStyle = null;
 		//nonSelectedButtonStyle = null;
@@ -218,6 +219,19 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
+	Vector2 tabButtonSize = new Vector2(80.0f, 60.0f);
+	public Rect getTabButtonRect(Tab t) {
+		float x = 0.0f;
+		float y = 0.0f;
+		if (t == Tab.T || t == Tab.M) {
+			x = clipBoardBodyRect().x - tabButtonSize.x + 35.0f;
+			y = clipBoardBodyRect().y + 10.0f;
+			if (t == Tab.M) {
+				y += tabButtonSize.y + 5.0f;
+			}
+		}
+		return new Rect(x, y, tabButtonSize.x, tabButtonSize.y);
+	}
 	public bool clipboardUp = true;
 	public const float clipboardBodyWidth = 158.0f;
 	public Vector2 clipboardBodySize() {
@@ -285,6 +299,7 @@ public class GameGUI : MonoBehaviour {
 			else {
 				if (clipBoardBodyRect().Contains(mousePos)) return true;
 				if (clipBoardClipRect().Contains(mousePos)) return true;
+				if (getTabButtonRect(Tab.T).Contains(mousePos) || getTabButtonRect(Tab.M).Contains(mousePos)) return true;
 			}
 			if (mapGenerator.selectedUnit != null) {
 				bool onPlayer = mapGenerator.selectedUnits.Count == 0 && mapGenerator.selectedUnit.guiContainsMouse(mousePos);
@@ -612,6 +627,16 @@ public class GameGUI : MonoBehaviour {
 			}
 			return turnOrderNameStyleEnemy;
 		}
+	}
+
+	static GUIStyle tabButtonStyle;
+	static GUIStyle getTabButtonStyle() {
+		if (tabButtonStyle == null) {
+			tabButtonStyle = new GUIStyle("Button");
+			tabButtonStyle.normal.background = tabButtonStyle.hover.background = tabButtonStyle.active.background = Resources.Load<Texture>("UI/tab-button") as Texture2D;
+			tabButtonStyle.normal.textColor = tabButtonStyle.hover.textColor = tabButtonStyle.active.textColor = Color.black;
+		}
+		return tabButtonStyle;
 	}
 
 
@@ -1018,6 +1043,12 @@ public class GameGUI : MonoBehaviour {
 		// Game GUI
 		else {
 			Rect clipBoardRect = clipBoardBodyRect();
+			if (GUI.Button(getTabButtonRect(Tab.T), "T       .", getTabButtonStyle())) {
+				clipboardTab = Tab.T;
+			}
+			if (GUI.Button(getTabButtonRect(Tab.M), "M       .", getTabButtonStyle())) {
+				clipboardTab = Tab.M;
+			}
 			GUI.DrawTexture(clipBoardRect, clipBoardBodyTexture);
 			if (GUI.Button(clipBoardClipRect(), "", getClipBoardClipStyle())) {
 				clipboardUp = !clipboardUp;
