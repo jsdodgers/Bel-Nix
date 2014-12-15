@@ -72,11 +72,6 @@ public class Saves {
 	}
 
 	public static string[] getCharacterList() {
-        if (!Directory.Exists(Saves.getCurrentSaveDirectory()) || !File.Exists(Saves.getCharactersListFilePath()))
-        {
-            Application.LoadLevel("MainMenu");
-            return new string[]{};
-        }
 		string text = File.ReadAllText(getCharactersListFilePath());
 		return text.Split(new char[]{';'});
 
