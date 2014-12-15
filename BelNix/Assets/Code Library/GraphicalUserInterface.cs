@@ -505,6 +505,10 @@ public class GraphicalUserInterface : MonoBehaviour
 			}
 			num2 = 0;
 			if (colorSelect == 1) {
+				if (x!=startX) {
+					x = startX;
+					y += colorSquareWidth + 5;
+				}
 				if (!texturesSet) setTexturesArray();
 				Color c = GUI.color;
 				GUI.color = hairColor;

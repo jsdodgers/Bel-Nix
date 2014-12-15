@@ -1243,7 +1243,7 @@ public class MapGenerator : MonoBehaviour {
 			gui.clickMovement();
 		}
 		if (Input.GetKeyDown(KeyCode.T)) {
-			gui.clickMinor();
+			gui.clipboardTab = Tab.T;
 		}
 		if (Input.GetKeyDown(KeyCode.Q)) {
 			gui.clickWait();
@@ -1280,6 +1280,9 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha9)) {
 			gui.selectTypeAt(8);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha0)) {
+			gui.selectTypeAt(9);
 		}
 		if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) {
 			deleteCurrentTrap();
