@@ -221,7 +221,7 @@ public class GameGUI : MonoBehaviour {
 	public bool clipboardUp = true;
 	public const float clipboardBodyWidth = 158.0f;
 	public Vector2 clipboardBodySize() {
-		return new Vector2(clipboardBodyWidth, (clipboardUp ? 250.0f : 190.0f));
+		return new Vector2(clipboardBodyWidth, (clipboardUp ? 250.0f : 150.0f));
 	}
 	public Vector2 clipboardClipSize() {
 		return new Vector2(150.0f, 50.0f);
@@ -538,7 +538,72 @@ public class GameGUI : MonoBehaviour {
 		}
 		return nonSelectedSubMenuTurnStyle;
 	}
+
+
 	
+	static Texture2D turnOrderNameBackgroundTexture = null;
+	Texture2D getTurnOrderNameBackgroundTexture() {
+		if (turnOrderNameBackgroundTexture == null) {
+			turnOrderNameBackgroundTexture = Unit.makeTexBorder((int)turnOrderNameWidth, (int)turnOrderSectionHeight, new Color(0.5f, 0.8f, 0.1f));
+		}
+		return turnOrderNameBackgroundTexture;
+	}
+	
+	static Texture2D turnOrderSectionBackgroundTexture = null;
+	Texture2D getTurnOrderSectionBackgroundTexture() {
+		if (turnOrderSectionBackgroundTexture == null) {
+			turnOrderSectionBackgroundTexture = Unit.makeTexBorder((int)turnOrderSectionHeight, (int)turnOrderSectionHeight, new Color(0.5f, 0.8f, 0.1f));
+		}
+		return turnOrderSectionBackgroundTexture;
+	}
+	
+	static Texture2D turnOrderNameBackgroundTextureEnemy = null;
+	Texture2D getTurnOrderNameBackgroundTextureEnemy() {
+		if (turnOrderNameBackgroundTextureEnemy == null) {
+			turnOrderNameBackgroundTextureEnemy = Unit.makeTexBorder((int)turnOrderNameWidth, (int)turnOrderSectionHeight, new Color(0.8f, 0.2f, 0.1f));
+		}
+		return turnOrderNameBackgroundTextureEnemy;
+	}
+	
+	static Texture2D turnOrderSectionBackgroundTextureEnemy = null;
+	Texture2D getTurnOrderSectionBackgroundTextureEnemy() {
+		if (turnOrderSectionBackgroundTextureEnemy == null) {
+			turnOrderSectionBackgroundTextureEnemy = Unit.makeTexBorder((int)turnOrderSectionHeight, (int)turnOrderSectionHeight, new Color(0.8f, 0.2f, 0.1f));
+		}
+		return turnOrderSectionBackgroundTextureEnemy;
+	}
+
+	
+	static GUIStyle turnOrderSectionStyle;
+	static GUIStyle turnOrderSectionStyleEnemy;
+	GUIStyle getTurnOrderSectionStyle(Unit u) {
+		if (u.team == 0) {
+			if (turnOrderSectionStyle == null) {
+				turnOrderSectionStyle = new GUIStyle("button");
+				turnOrderSectionStyle.normal.background = turnOrderSectionStyle.hover.background = turnOrderSectionStyle.active.background = getTurnOrderSectionBackgroundTexture();
+			}
+			return turnOrderSectionStyle;
+		}
+		else {
+			if (turnOrderSectionStyleEnemy == null) {
+				turnOrderSectionStyleEnemy = new GUIStyle("button");
+				turnOrderSectionStyleEnemy.normal.background = turnOrderSectionStyleEnemy.hover.background = turnOrderSectionStyleEnemy.active.background = getTurnOrderSectionBackgroundTextureEnemy();
+			}
+			return turnOrderSectionStyleEnemy;
+		}
+	}
+
+
+	static GUIStyle playerInfoStyle;
+	GUIStyle getPlayerInfoStyle() {
+		if (playerInfoStyle == null) {
+			playerInfoStyle = new GUIStyle("Label");
+			playerInfoStyle.normal.textColor = Color.white;
+			playerInfoStyle.fontSize = 11;
+		}
+		return playerInfoStyle;
+	}
+
 	static GUIStyle titleTextStyle = null;
 	public GUIStyle getTitleTextStyle() {
 		if (titleTextStyle == null) {
@@ -830,13 +895,38 @@ public class GameGUI : MonoBehaviour {
 		 */
 	}
 
+	
+	void selectUnit(Unit player) {
+		if (player != mapGenerator.selectedUnit) {
+			mapGenerator.deselectAllUnits();
+			mapGenerator.selectUnit(player, false);
+			if (player.transform.parent == mapGenerator.playerTransform || player.transform.parent == mapGenerator.enemyTransform)
+				mapGenerator.moveCameraToSelected(false);
+		}
+	}
+
 	const float turnOrderSectionHeight = 30.0f;
 	const float turnOrderTableX = 15.0f;
 	const float turnOrderNameWidth = clipboardBodyWidth - turnOrderTableX * 2 - turnOrderSectionHeight * 2;
 
 		
-	void OnGUI() {
-			//	Debug.Log("OnGUI");
+	static float t = 0;
+	static int dir = 1;
+	public void OnGUI() {
+		float speed = 1.0f/3.0f;
+		t += Time.deltaTime * speed * dir;
+		Color start = Color.cyan;
+		Color end = Color.black;
+		float max = 0.9f;
+		float min = 0.35f;
+		if (t > max) {
+			dir = -1;
+			t = max;
+		}
+		if (t < min) {
+			dir = 1;
+			t = min;
+		}			//	Debug.Log("OnGUI");
 			
 		if (first) {
 			first = false;
@@ -920,38 +1010,40 @@ public class GameGUI : MonoBehaviour {
 				int numPlayers = mapGenerator.priorityOrder.Count;
 				int currentPlayer = mapGenerator.currentUnit;
 				if (currentPlayer < 0) currentPlayer = 0;
-				turnOrderScrollPos = GUI.BeginScrollView(new Rect(clipBoardRect.x, y, clipBoardRect.width - 2.0f, clipBoardRect.height - (y - clipBoardRect.y)), turnOrderScrollPos, new Rect(clipBoardRect.x, y, clipBoardRect.width - 16.0f - 2.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f*38));
-			
-				/*
+
+
 				GUIStyle st = getPlayerInfoStyle();
 				st.wordWrap = false;
-				float x = paperDollFullWidth + turnOrderTableX - 5.0f;
+				float x = clipBoardRect.x + turnOrderTableX - 5.0f;
 				GUIContent num = new GUIContent("Pos");
 				Vector2 numSize = st.CalcSize(num);
-				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
+				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, st);
 				x += turnOrderSectionHeight - 1.0f;
 				GUIContent name = new GUIContent("Name");
 				Vector2 nameSize = st.CalcSize(name);
-				GUI.Label(new Rect(x + (turnOrderNameWidth - nameSize.x)/2.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, nameSize.x, nameSize.y), name, getPlayerInfoStyle());
+				GUI.Label(new Rect(x + (turnOrderNameWidth - nameSize.x)/2.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, nameSize.x, nameSize.y), name, st);
 				x += turnOrderNameWidth - 1.0f;
 				GUIContent initiative = new GUIContent("Roll");
 				Vector2 initiativeSize = st.CalcSize(initiative);
-				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
+				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, st);
 				y+=turnOrderSectionHeight;
+				turnOrderScrollPos = GUI.BeginScrollView(new Rect(clipBoardRect.x, y, clipBoardRect.width - 2.0f, clipBoardRect.height - (y - clipBoardRect.y)), turnOrderScrollPos, new Rect(clipBoardRect.x, y, clipBoardRect.width - 16.0f - 2.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f*38));
+
 				for (int n=0;n<numPlayers;n++) {
 					int playerNum = (n + currentPlayer) % numPlayers;
 					Unit player = mapGenerator.priorityOrder[playerNum];
-					if (player == this) {
+					if (player == mapGenerator.selectedUnit) {
 						st.normal.textColor = Color.Lerp (start, end, t);
 						st.fontStyle = FontStyle.Bold;
 					}
-					x = paperDollFullWidth + turnOrderTableX - 5.0f;
+					x = clipBoardRect.x + turnOrderTableX - 5.0f;
 					Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
 					//	Rect r2 = new Rect(x + (turnOrderSectionHeight
 					//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
 					if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
 						selectUnit(player);
 					}
+					/*
 					num = new GUIContent("" + (playerNum + 1));
 					numSize = st.CalcSize(num);
 					GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
@@ -977,9 +1069,9 @@ public class GameGUI : MonoBehaviour {
 					if (player == this) {
 						st.normal.textColor = Color.white;
 						st.fontStyle = FontStyle.Normal;
-					}
+					}*/
 				}
-				*/
+
 				GUI.EndScrollView();
 			}
 		}
