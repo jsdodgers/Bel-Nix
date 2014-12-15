@@ -15,7 +15,7 @@ public class GraphicalUserInterface : MonoBehaviour
 	public string[] race = new string[] {"Berrind", "Ashpian", "Rorrul"};
 	public string[] backgroundBerrind = new string[] {"Fallen Noble", "White Gem"};
 	public string[] backgroundAshpian = new string[] {"Commoner", "Immigrant"};
-	public string[] backgroundRorrul = new string[] {"Sevrant", "Unknown"};
+	public string[] backgroundRorrul = new string[] {"Servant", "Unknown"};
 	public string[] characterClass = new string[] {"Ex-Soldier", "Engineer", "Investigator", "Researcher", "Orator"};
 	public string[] colorTypes = new string[] {"Body", "Hair", "Primary", "Secondary"};
 	int sexSelect, raceSelect, backgroundSelect, classSelect, colorSelect = 0;
@@ -23,7 +23,7 @@ public class GraphicalUserInterface : MonoBehaviour
 	int ageUpperBound = 40;
 	int ageLowerBound = 20;
 	int height = 0;
-	int weight = 0;
+	int weight = 150;
 
 	int abilityScorePointsAvailable = 8;
 	int sturdyScore = 1;
@@ -590,6 +590,22 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				GUI.Box(new Rect(10, calculateBoxHeight(10), 500, 20), "Physical Features:");
 				GUI.Box(new Rect(135, calculateBoxHeight(11), 125, 20), "Age:");
+				int tempAge = (int) GUI.Slider(new Rect(310, calculateBoxHeight(11), 200, 20), Mathf.Max(20, Mathf.Min(age, 40)), 0, 20, 40, new GUIStyle(GUI.skin.horizontalSlider), new GUIStyle(GUI.skin.horizontalSliderThumb), true, 1);
+				if(GUI.GetNameOfFocusedControl() != "ageTextField")
+				{
+					age = tempAge;
+				}
+				GUI.SetNextControlName("ageTextField");
+				string newAge = GUI.TextField(new Rect(260, calculateBoxHeight(11), 50, 20), (age == 0 && GUI.GetNameOfFocusedControl() == "ageTextField" ? "" : age.ToString()));
+				int.TryParse(newAge, out age);
+				if(GUI.GetNameOfFocusedControl() != "ageTextField")
+				{
+					if(age < 20)
+						age = 20;
+					if(age > 40)
+						age = 40;
+				}
+				/*
 				if(age == ageLowerBound)
 				{
 					GUI.enabled = false;
@@ -624,7 +640,7 @@ public class GraphicalUserInterface : MonoBehaviour
 					}
 				}
 				GUI.enabled = true;
-				
+				*/
 				GUI.Box(new Rect(135, calculateBoxHeight(12), 125, 20), "Height:");
 				if(GUI.Button(new Rect(260, calculateBoxHeight(12), 25, 20), "<"))
 				{
@@ -637,15 +653,29 @@ public class GraphicalUserInterface : MonoBehaviour
 				}
 				
 				GUI.Box(new Rect(135, calculateBoxHeight(13), 125, 20), "Weight:");
-				if(GUI.Button(new Rect(260, calculateBoxHeight(13), 25, 20), "<"))
+				int tempWeight = (int) GUI.Slider(new Rect(310, calculateBoxHeight(13), 200, 20), Mathf.Max(100, Mathf.Min(weight, 200)), 0, 100, 200, new GUIStyle(GUI.skin.horizontalSlider), new GUIStyle(GUI.skin.horizontalSliderThumb), true, 0);
+				if(GUI.GetNameOfFocusedControl() != "weightTextField")
+				{
+					weight = tempWeight;
+				}
+				GUI.SetNextControlName("weightTextField");
+				string newWeight = GUI.TextField(new Rect(260, calculateBoxHeight(13), 50, 20), (weight == 0 && GUI.GetNameOfFocusedControl() == "weightTextField" ? "" : weight.ToString()));
+				int.TryParse(newWeight, out weight);
+				if(GUI.GetNameOfFocusedControl() != "weightTextField")
+				{
+					if(weight < 100)
+						weight = 100;
+					if(weight > 200)
+						weight = 200;
+				}
+				/*if(GUI.Button(new Rect(260, calculateBoxHeight(13), 25, 20), "<"))
 				{
 					weight--;
-				}
-				GUI.Box(new Rect(285, calculateBoxHeight(13), 200, 20), weight.ToString());
-				if(GUI.Button(new Rect(485, calculateBoxHeight(13), 25, 20), ">"))
+				}*/
+				/*if(GUI.Button(new Rect(485, calculateBoxHeight(13), 25, 20), ">"))
 				{
 					weight++;
-				}
+				}*/
 				
 				
 				GUI.Box(new Rect(10, calculateBoxHeight(14), 250, 40), "Class:");
@@ -870,7 +900,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(510, calculateBoxHeight(7), 125, 20), (techniqueScore + wellVersedScore + classModifications(classSelect, "Composure") + raceModifications(raceSelect, "Composure")).ToString());
 
 				GUI.Box(new Rect(10, calculateBoxHeight(9), 250, 20), "Combat Scores:");
-				GUI.Box(new Rect(135, calculateBoxHeight(10), 125, 20), "Initiatve:");
+				GUI.Box(new Rect(135, calculateBoxHeight(10), 125, 20), "Initiative:");
 				GUI.Box(new Rect(260, calculateBoxHeight(10), 125, 20), calculateMod(sturdyScore).ToString());
 				GUI.Box(new Rect(135, calculateBoxHeight(11), 125, 20), "Critical:");
 				GUI.Box(new Rect(260, calculateBoxHeight(11), 125, 20), calculateMod(perceptionScore).ToString());
