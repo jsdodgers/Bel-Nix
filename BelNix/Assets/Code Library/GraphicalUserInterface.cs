@@ -59,9 +59,13 @@ public class GraphicalUserInterface : MonoBehaviour
 	}
 
 	static Color[] berrindColors = new Color[]{createColor(246, 197, 197), createColor(236, 181, 181), createColor(250, 213, 179), createColor(234, 196, 160)};
-	static Color[] ashpianColors = new Color[]{createColor(255, 204, 147), createColor(197, 154, 109), createColor(180, 147, 122), createColor(177, 118, 105)};
-	static Color[] rorrulColors = new Color[]{createColor(114, 90, 65), createColor(73, 52, 30), createColor(111, 98, 85), createColor(69, 63, 66)};
-	static Color[] hairColors = new Color[]{Color.white, Color.black, createColor(100, 80, 60), Color.red, Color.blue, Color.green};
+	static Color[] ashpianColors = new Color[]{createColor(223, 180, 135), createColor(199, 149, 95), createColor(174, 125, 73), createColor(188, 113, 85), createColor(171, 100, 74), createColor(142, 79, 56)};
+	static Color[] rorrulColors = new Color[]{createColor(98, 71, 56), createColor(82, 54, 44), createColor(62, 41, 30), createColor(49, 32, 24)};
+	static Color[] hairColors = new Color[]{createColor(214, 214, 214), createColor(173, 173, 173), createColor(132, 132, 132), createColor(91, 91, 91), createColor(50, 50, 50), createColor(20, 20, 20),
+											createColor(218, 88, 77), createColor(186, 63, 52), createColor(146, 42, 32), 
+											createColor(212, 90, 45), createColor(195, 81, 39), createColor(180, 76, 37), 
+											createColor(227, 190, 93), createColor(202, 163, 73), createColor(174, 140, 41), 
+											createColor(100, 80, 60)};
 	static Color[] favoriteColors = new Color[]{Color.white, Color.black, Color.blue, Color.red, Color.green, Color.gray, Color.cyan, Color.magenta, Color.yellow};
 	// Use this for initialization
 
