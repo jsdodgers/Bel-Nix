@@ -219,12 +219,12 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
-	Vector2 tabButtonSize = new Vector2(80.0f, 60.0f);
+	Vector2 tabButtonSize = new Vector2(45.0f, 60.0f);
 	public Rect getTabButtonRect(Tab t) {
 		float x = 0.0f;
 		float y = 0.0f;
 		if (t == Tab.T || t == Tab.M) {
-			x = clipBoardBodyRect().x - tabButtonSize.x + 35.0f;
+			x = clipBoardBodyRect().x - tabButtonSize.x;
 			y = clipBoardBodyRect().y + 10.0f;
 			if (t == Tab.M) {
 				y += tabButtonSize.y + 5.0f;
@@ -499,6 +499,18 @@ public class GameGUI : MonoBehaviour {
 		return clipBoardClipStyle;
 	}
 
+	static GUIStyle missionTypeSelectStyle;
+	static GUIStyle getMissionTypeSelectStyle() {
+		if (missionTypeSelectStyle == null) {
+			missionTypeSelectStyle = new GUIStyle("Button");
+			missionTypeSelectStyle.normal.background = missionTypeSelectStyle.active.background = missionTypeSelectStyle.hover.background = null;
+			missionTypeSelectStyle.padding = new RectOffset(0, 0, 0, 0);
+			missionTypeSelectStyle.margin = new RectOffset(0, 0, 0, 0);
+			missionTypeSelectStyle.fontSize = 10;
+		}
+		return missionTypeSelectStyle;
+	}
+
 	static Dictionary<string, GUIStyle> selectedActionStyles = new Dictionary<string, GUIStyle>();
 	static Dictionary<string, GUIStyle> nonSelectedActionStyles = new Dictionary<string, GUIStyle>();
 
@@ -633,7 +645,7 @@ public class GameGUI : MonoBehaviour {
 	static GUIStyle getTabButtonStyle() {
 		if (tabButtonStyle == null) {
 			tabButtonStyle = new GUIStyle("Button");
-			tabButtonStyle.normal.background = tabButtonStyle.hover.background = tabButtonStyle.active.background = Resources.Load<Texture>("UI/tab-button") as Texture2D;
+			tabButtonStyle.normal.background = tabButtonStyle.hover.background = tabButtonStyle.active.background = Resources.Load<Texture>("UI/tab-button-left") as Texture2D;
 			tabButtonStyle.normal.textColor = tabButtonStyle.hover.textColor = tabButtonStyle.active.textColor = Color.black;
 		}
 		return tabButtonStyle;
@@ -1043,17 +1055,69 @@ public class GameGUI : MonoBehaviour {
 		// Game GUI
 		else {
 			Rect clipBoardRect = clipBoardBodyRect();
-			if (GUI.Button(getTabButtonRect(Tab.T), "T       .", getTabButtonStyle())) {
+			if (GUI.Button(getTabButtonRect(Tab.T), "T", getTabButtonStyle())) {
 				clipboardTab = Tab.T;
 			}
-			if (GUI.Button(getTabButtonRect(Tab.M), "M       .", getTabButtonStyle())) {
+			if (GUI.Button(getTabButtonRect(Tab.M), "M", getTabButtonStyle())) {
 				clipboardTab = Tab.M;
 			}
 			GUI.DrawTexture(clipBoardRect, clipBoardBodyTexture);
 			if (GUI.Button(clipBoardClipRect(), "", getClipBoardClipStyle())) {
 				clipboardUp = !clipboardUp;
 			}
-			if (clipboardTab == Tab.T) {
+			if (clipboardTab == Tab.M) {
+				float y = clipBoardRect.y + 10.0f;
+				GUIStyle titleStyle = getTitleTextStyle();
+				GUIContent turnOrder = new GUIContent("Missions");
+				Vector2 turnOrderSize = titleStyle.CalcSize(turnOrder);
+				GUI.Label(new Rect(clipBoardRect.x + (clipBoardRect.width - turnOrderSize.x)/2.0f, y , turnOrderSize.x, turnOrderSize.y), turnOrder, titleStyle);
+				float x = clipBoardRect.x;
+				y += turnOrderSize.y;
+				float widths = clipBoardRect.width / 3.0f;
+				GUIStyle missionStyle = getMissionTypeSelectStyle();
+				GUIContent primaryContent = new GUIContent("Primary");
+				GUIContent secondaryContent = new GUIContent("Secondary");
+				GUIContent optionalContent = new GUIContent("Optional");
+				float height = missionStyle.CalcSize(primaryContent).y;
+				if (GUI.Button(new Rect(x, y, widths, height), primaryContent, missionStyle)) {
+					openMission = Mission.Primary;
+				}
+				x += widths;
+				if (GUI.Button(new Rect(x, y, widths, height), secondaryContent, missionStyle)) {
+					openMission = Mission.Secondary;
+				}
+				x += widths;
+				if (GUI.Button(new Rect(x, y, widths, height), optionalContent, missionStyle)) {
+					openMission = Mission.Optional;
+				}
+				x = clipBoardRect.x + 10.0f;
+				y += height;
+				GUIContent objectives = new GUIContent(openMission.ToString());
+				Vector2 objectivesSize = titleStyle.CalcSize(objectives);
+				GUI.Label(new Rect(x + (clipBoardRect.width - objectivesSize.x)/2.0f, y, objectivesSize.x, objectivesSize.y), objectives, titleStyle);
+				
+				y += objectivesSize.y;
+//				float y = missionTopHeight + objectivesSize.y + 20.0f;
+//				float x = paperDollFullWidth + missionTabWidth + 10.0f;
+				float toggleHeight = 20.0f;
+				float toggleWidth = 200.0f;
+				//			GUI.enabled = false;
+				GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (openMission == Mission.Optional ? true : false), "Main Objective");
+				x += 20.0f;
+				y += toggleHeight;
+				GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), true, (openMission == Mission.Primary ? "How you do it" : (openMission == Mission.Secondary ? "Destroy Enemy" : "Enjoy the view")));
+				y += toggleHeight;
+				GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (openMission != Mission.Secondary ? true : false), (openMission == Mission.Primary ? "This too" : (openMission == Mission.Secondary ? "Reinforcements" : "Daydream")));
+				y += toggleHeight;
+				GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (openMission != Mission.Primary ? true : false), (openMission == Mission.Primary ? "And this as well" : (openMission == Mission.Secondary ? "Conquer" : "Eat Snacks")));
+				y += toggleHeight;
+				if (openMission == Mission.Optional) {
+					GUI.Toggle (new Rect(x, y, toggleWidth, toggleHeight), true, "Nap Time!");
+					y += toggleHeight;
+				}
+
+			}
+			else if (clipboardTab == Tab.T) {
 				float y = clipBoardRect.y + 10.0f;
 				GUIStyle titleStyle = getTitleTextStyle();
 				GUIContent turnOrder = new GUIContent("Turn Order");

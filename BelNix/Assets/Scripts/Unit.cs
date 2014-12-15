@@ -1120,7 +1120,7 @@ public class Unit : MonoBehaviour {
 	public bool guiContainsMouse(Vector2 mousePos) {
 		if (gui.openTab == Tab.None) {
 			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
-			if (mousePos.y <= paperDollHeadSize + tabButtonsWidth && mousePos.x <= (tabButtonsWidth - 1.0f) * 5 + 1) return true;
+			if (mousePos.y <= paperDollHeadSize + tabButtonsWidth && mousePos.x <= (tabButtonsWidth - 1.0f) * 3 + 1) return true;
 		}
 		else {
 			if (fullCharacterRect().Contains(mousePos) || fullTabsRect().Contains(mousePos)) return true;
@@ -1546,6 +1546,7 @@ public class Unit : MonoBehaviour {
 			Vector2 experienceSize = textStyle.CalcSize(experience);
 			GUI.Label(new Rect(paperDollFullWidth - experienceSize.x - 5.0f, y, experienceSize.x, experienceSize.y), experience, textStyle);
 		}
+		/*
 		if (gui.openTab == Tab.M) {
 			GUI.DrawTexture(new Rect(paperDollFullWidth - 1.0f, 0.0f, missionTabWidth + missionObjectivesWidth - 1.0f, missionTopHeight), getMissionTitleBackgroundTexture());
 			GUI.DrawTexture(new Rect(paperDollFullWidth + missionTabWidth - 2.0f, missionTopHeight - 1.0f, missionObjectivesWidth, missionObjectivesHeight), getMissionObjectivesBackgroundTexture());
@@ -1664,8 +1665,8 @@ public class Unit : MonoBehaviour {
 			}
 
 			GUI.EndScrollView();
-		}
-		else if (gui.openTab == Tab.C) {
+		}*/
+		if (gui.openTab == Tab.C) {
 			GUI.DrawTexture(fullCRect(), getCharacterStatsBackgroundTexture());
 			GUIStyle titleStyle = getTitleTextStyle();
 			GUIContent characterStats = new GUIContent("Character Stats");
@@ -1907,24 +1908,25 @@ public class Unit : MonoBehaviour {
 				}
 			}
 
-		}
+		}/*
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 		//	if (gui.openTab == Tab.M) gui.openTab = Tab.None;
 		//	else gui.openTab = Tab.M;
 			gui.clickTab(Tab.M);
-		}
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+		}*/
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			gui.clickTab(Tab.C);
 		}
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			gui.clickTab(Tab.K);
 		}
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*3, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			gui.clickTab(Tab.I);
 		}
+		/*
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			gui.clickTab(Tab.T);
-		}
+		}*/
 		string tt = GUI.tooltip;
 		if (tt != null && tt!="") {
 			int num = int.Parse(tt);

@@ -1223,7 +1223,8 @@ public class MapGenerator : MonoBehaviour {
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
 		if (Input.GetKeyDown(KeyCode.M)) {
-			gui.clickTab(Tab.M);
+//			gui.clickTab(Tab.M);
+			gui.clipboardTab = Tab.M;
 		}
 		if (Input.GetKeyDown(KeyCode.C)) {
 			gui.clickTab(Tab.C);
