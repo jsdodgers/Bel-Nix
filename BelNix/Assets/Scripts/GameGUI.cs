@@ -221,7 +221,7 @@ public class GameGUI : MonoBehaviour {
 	public bool clipboardUp = true;
 	public const float clipboardBodyWidth = 158.0f;
 	public Vector2 clipboardBodySize() {
-		return new Vector2(clipboardBodyWidth, (clipboardUp ? 250.0f : 150.0f));
+		return new Vector2(clipboardBodyWidth, (clipboardUp ? 250.0f : 160.0f));
 	}
 	public Vector2 clipboardClipSize() {
 		return new Vector2(150.0f, 50.0f);
@@ -594,6 +594,27 @@ public class GameGUI : MonoBehaviour {
 	}
 
 
+	
+	static GUIStyle turnOrderNameStyle;
+	static GUIStyle turnOrderNameStyleEnemy;
+	GUIStyle getTurnOrderNameStyle(Unit u) {
+		if (u.team == 0) {
+			if (turnOrderNameStyle == null) {
+				turnOrderNameStyle = new GUIStyle("button");
+				turnOrderNameStyle.normal.background = turnOrderNameStyle.hover.background = turnOrderNameStyle.active.background = getTurnOrderNameBackgroundTexture();
+			}
+			return turnOrderNameStyle;
+		}
+		else {
+			if (turnOrderNameStyleEnemy == null) {
+				turnOrderNameStyleEnemy = new GUIStyle("button");
+				turnOrderNameStyleEnemy.normal.background = turnOrderNameStyleEnemy.hover.background = turnOrderNameStyleEnemy.active.background = getTurnOrderNameBackgroundTextureEnemy();
+			}
+			return turnOrderNameStyleEnemy;
+		}
+	}
+
+
 	static GUIStyle playerInfoStyle;
 	GUIStyle getPlayerInfoStyle() {
 		if (playerInfoStyle == null) {
@@ -769,8 +790,9 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public void selectNextOfType() {
-		if (selectedMovement) clickStandard();
-		else if (selectedStandard) clickMinor();
+		if (mapGenerator.getCurrentUnit() != mapGenerator.selectedUnit || mapGenerator.getCurrentUnit()==null) return;
+		if (selectedMovement && !mapGenerator.getCurrentUnit().usedStandard) clickStandard();
+		else if ((selectedStandard || selectedMovement) && mapGenerator.getCurrentUnit().minorsLeft>0) clickMinor();
 		else clickMovement();
 		return;
 		if (selectedStandard) {
@@ -797,8 +819,9 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public void selectPreviousOfType() {
-		if (selectedMinor) clickStandard();
-		else if (selectedStandard) clickMovement();
+		if (mapGenerator.getCurrentUnit() != mapGenerator.selectedUnit || mapGenerator.getCurrentUnit()==null) return;
+		if (selectedMinor && !mapGenerator.getCurrentUnit().usedStandard) clickStandard();
+		else if ((selectedStandard || selectedMinor) && !mapGenerator.getCurrentUnit().usedMovement) clickMovement();
 		else clickMinor();
 		return;
 		if (selectedStandard) {
@@ -1011,10 +1034,14 @@ public class GameGUI : MonoBehaviour {
 				int currentPlayer = mapGenerator.currentUnit;
 				if (currentPlayer < 0) currentPlayer = 0;
 
-
+				float height =  (numPlayers) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f;
+				float add = -5.0f;
+				if (height < clipBoardRect.height - (y - clipBoardRect.y)) {
+					add = 0.0f;
+				}
 				GUIStyle st = getPlayerInfoStyle();
 				st.wordWrap = false;
-				float x = clipBoardRect.x + turnOrderTableX - 5.0f;
+				float x = clipBoardRect.x + turnOrderTableX + add;
 				GUIContent num = new GUIContent("Pos");
 				Vector2 numSize = st.CalcSize(num);
 				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, st);
@@ -1027,7 +1054,7 @@ public class GameGUI : MonoBehaviour {
 				Vector2 initiativeSize = st.CalcSize(initiative);
 				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, st);
 				y+=turnOrderSectionHeight;
-				turnOrderScrollPos = GUI.BeginScrollView(new Rect(clipBoardRect.x, y, clipBoardRect.width - 2.0f, clipBoardRect.height - (y - clipBoardRect.y)), turnOrderScrollPos, new Rect(clipBoardRect.x, y, clipBoardRect.width - 16.0f - 2.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f*38));
+				turnOrderScrollPos = GUI.BeginScrollView(new Rect(clipBoardRect.x, y, clipBoardRect.width - 2.0f, clipBoardRect.height - (y - clipBoardRect.y)), turnOrderScrollPos, new Rect(clipBoardRect.x, y, clipBoardRect.width - 16.0f - 2.0f, height));
 
 				for (int n=0;n<numPlayers;n++) {
 					int playerNum = (n + currentPlayer) % numPlayers;
@@ -1036,14 +1063,14 @@ public class GameGUI : MonoBehaviour {
 						st.normal.textColor = Color.Lerp (start, end, t);
 						st.fontStyle = FontStyle.Bold;
 					}
-					x = clipBoardRect.x + turnOrderTableX - 5.0f;
+					x = clipBoardRect.x + turnOrderTableX + add;
 					Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
 					//	Rect r2 = new Rect(x + (turnOrderSectionHeight
 					//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
 					if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
 						selectUnit(player);
 					}
-					/*
+
 					num = new GUIContent("" + (playerNum + 1));
 					numSize = st.CalcSize(num);
 					GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
@@ -1053,6 +1080,7 @@ public class GameGUI : MonoBehaviour {
 					if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderNameStyle(player))) {
 						selectUnit(player);
 					}
+
 					name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
 					nameSize = st.CalcSize(name);
 					GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
@@ -1065,11 +1093,12 @@ public class GameGUI : MonoBehaviour {
 					initiative = new GUIContent(player.getInitiative() + "");
 					initiativeSize = st.CalcSize(initiative);
 					GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
+
 					y += turnOrderSectionHeight - 1.0f;
-					if (player == this) {
+					if (player == mapGenerator.selectedUnit) {
 						st.normal.textColor = Color.white;
 						st.fontStyle = FontStyle.Normal;
-					}*/
+					}
 				}
 
 				GUI.EndScrollView();
