@@ -460,6 +460,9 @@ public class GameGUI : MonoBehaviour {
 			GUIStyle st = new GUIStyle("Button");
 			st.normal.background = st.hover.background = st.active.background = Resources.Load<Texture>("UI/Hotkey Icons/" + name + " Selected") as Texture2D;
 			selectedActionStyles[name] = st;
+			st.alignment = TextAnchor.LowerRight;
+			st.padding = new RectOffset(1, 0, 0, -1);
+			st.normal.textColor = st.active.textColor = st.hover.textColor = Color.black;
 		}
 		return selectedActionStyles[name];
 	}
@@ -469,6 +472,9 @@ public class GameGUI : MonoBehaviour {
 			GUIStyle st = new GUIStyle("Button");
 			st.normal.background = st.hover.background = st.active.background = Resources.Load<Texture>("UI/Hotkey Icons/" + name) as Texture2D;
 			nonSelectedActionStyles[name] = st;
+			st.alignment = TextAnchor.LowerRight;
+			st.padding = new RectOffset(1, 0, 0, -1);
+			st.normal.textColor = st.active.textColor = st.hover.textColor = Color.black;
 		}
 		return nonSelectedActionStyles[name];
 	}
@@ -932,7 +938,7 @@ public class GameGUI : MonoBehaviour {
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfMovementType(types[n]);
 						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(actionIconRect(n), "", (selectedMovementType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+						if (GUI.Button(actionIconRect(n), "" + (n+1), (selectedMovementType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMovement(types[n]);
 						}
@@ -952,7 +958,7 @@ public class GameGUI : MonoBehaviour {
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfStandardType(types[n]);
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(actionIconRect(n), "", (selectedStandardType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(actionIconRect(n), "" + (n+1), (selectedStandardType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectStandard(types[n]);
 						}
@@ -979,7 +985,7 @@ public class GameGUI : MonoBehaviour {
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfMinorType(types[n]);
 						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
-						if (GUI.Button(actionIconRect(n), "", (selectedMinorType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
+						if (GUI.Button(actionIconRect(n), "" + (n+1), (selectedMinorType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMinor(types[n]);
 						}
