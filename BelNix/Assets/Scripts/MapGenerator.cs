@@ -1296,26 +1296,26 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (Input.GetKeyDown(KeyCode.Escape) && !normalDraggin && !shiftDraggin) {
 			if (gui.openTab == Tab.None) {
-				if (gui.selectedStandard) {
-					if (gui.selectedStandardType==StandardType.None) gui.clickStandard();
-					else if (gui.selectedStandardType==StandardType.Lay_Trap && gui.selectedTrap != null) {
+				if (gui.selectedStandard && gui.selectedStandardType != StandardType.None) {
+					if (gui.selectedStandardType==StandardType.Lay_Trap && gui.selectedTrap != null) {
 						gui.selectedTrap = null;
 						resetRanges();
 					}
 					else gui.selectStandard(gui.selectedStandardType);
 				}
-				else if (gui.selectedMovement) {
-					if (gui.selectedMovementType==MovementType.None) gui.clickMovement();
-					else gui.selectMovement(gui.selectedMovementType);
+				else if (gui.selectedMovement && gui.selectedMovementType!=MovementType.None) {
+					gui.selectMovement(gui.selectedMovementType);
 				}
-				else if (gui.selectedMinor) {
-					gui.clickMinor();
+				else if (gui.selectedMinor && gui.selectedMinorType != MinorType.None) {
+					gui.selectMinor(gui.selectedMinorType);
 				}
-				else if (selectedUnit == null) {
-					selectUnit(getCurrentUnit(),false);
-				}
+		//		else if (selectedUnit == null) {
+		//			openEscapeMenu();
+//					selectUnit(getCurrentUnit(),false);
+		//		}
 				else {
-					deselectAllUnits();
+		//			deselectAllUnits();
+					openEscapeMenu();
 				}
 			}
 			else if (gui.selectedMinor && gui.selectedMinorType==MinorType.Loot) {
@@ -1349,7 +1349,7 @@ public class MapGenerator : MonoBehaviour {
 				handleKeyUpInput(Direction.Right);
 			}
 		}
-		if (Input.GetKeyDown(KeyCode.Return)) {
+		if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)) {
 			performAction();
 		}
 		if (Input.GetKeyDown(KeyCode.Tab)) {
@@ -1372,6 +1372,10 @@ public class MapGenerator : MonoBehaviour {
 		}
 		handleArrows();
 		handleSpace();
+	}
+
+	public void openEscapeMenu() {
+		gui.escapeMenuOpen = !gui.escapeMenuOpen;
 	}
 
 	public void deleteCurrentTrap() {
@@ -1721,7 +1725,7 @@ public class MapGenerator : MonoBehaviour {
 	float maxTimeSpace = .25f;
 	void handleSpace() {
 		timeSinceSpace += Time.deltaTime * Time.timeScale;
-		if (Input.GetKeyDown(KeyCode.Space)) {
+		if (Input.GetKeyDown(KeyCode.F) && isInPriority()) {
 			if (gui.selectedStandard && gui.selectedStandardType==StandardType.Place_Turret) {
 				
 				if (shiftDown) gui.selectedTurretIndex--;
@@ -1939,34 +1943,36 @@ public class MapGenerator : MonoBehaviour {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<10);
 			if (hit) {
 				GameObject go = hit.collider.gameObject;
-				selectedSelectionObject = go;
-//				selectedUnit = go.GetComponent<Unit>();
-//				selectedUnit.setSelected();
-				deselectAllUnits();
 				Unit uu = go.GetComponent<Unit>();
-				selectUnit(uu,false);
-				go.transform.parent = playerTransform;
-				go.GetComponent<SpriteRenderer>().sortingOrder = playerSelectSelectedPlayerOrder;
-				uu.setAllSpritesToRenderingOrder(playerSelectSelectedPlayerArmorOrder);
-				Vector3 pos = Input.mousePosition;
-				pos.z = 10.0f;
-				pos = Camera.main.ScreenToWorldPoint(pos);
-				selectedSelectionDiff = new Vector2(pos.x - go.transform.localPosition.x, pos.y - go.transform.localPosition.y);
-				if (lastHit) {
-					int posX = (int)lastHit.transform.localPosition.x;
-					int posY = -(int)lastHit.transform.localPosition.y;
-					Tile t = tiles[posX,posY];
-					if (t.getCharacter()==go.GetComponent<Unit>()) {
-						selectionStartingTile = t;
+				if (uu.team == 0) {
+					selectedSelectionObject = go;
+	//				selectedUnit = go.GetComponent<Unit>();
+	//				selectedUnit.setSelected();
+					deselectAllUnits();
+					selectUnit(uu,false);
+					go.transform.parent = playerTransform;
+					go.GetComponent<SpriteRenderer>().sortingOrder = playerSelectSelectedPlayerOrder;
+					uu.setAllSpritesToRenderingOrder(playerSelectSelectedPlayerArmorOrder);
+					Vector3 pos = Input.mousePosition;
+					pos.z = 10.0f;
+					pos = Camera.main.ScreenToWorldPoint(pos);
+					selectedSelectionDiff = new Vector2(pos.x - go.transform.localPosition.x, pos.y - go.transform.localPosition.y);
+					if (lastHit) {
+						int posX = (int)lastHit.transform.localPosition.x;
+						int posY = -(int)lastHit.transform.localPosition.y;
+						Tile t = tiles[posX,posY];
+						if (t.getCharacter()==go.GetComponent<Unit>()) {
+							selectionStartingTile = t;
+						}
+						else selectionStartingTile = null;
 					}
-					else selectionStartingTile = null;
+					selectionCurrentIndex = selectionUnits.IndexOf(go.GetComponent<Unit>());
+					if (selectionStartingTile==null) {
+						selectionStartingIndex = selectionCurrentIndex;
+					}
+					selectionUnits.Remove(go.GetComponent<Unit>());
+					selectionStartingPos = go.transform.position;
 				}
-				selectionCurrentIndex = selectionUnits.IndexOf(go.GetComponent<Unit>());
-				if (selectionStartingTile==null) {
-					selectionStartingIndex = selectionCurrentIndex;
-				}
-				selectionUnits.Remove(go.GetComponent<Unit>());
-				selectionStartingPos = go.transform.position;
 			}
 		}
 	

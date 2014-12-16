@@ -14,11 +14,12 @@ public class GameGUI : MonoBehaviour {
 	GUIStyle selectedButtonStyle = null;
 	GUIStyle nonSelectedButtonStyle = null;
 	GUIStyle selectedSubMenuTurnStyle = null;
-	GUIStyle nonSelectedSubMenuTurnStyle = null;
+	GUIStyle confirmButtonStyle = null;
 	Vector2 position = new Vector2(0.0f, 0.0f);
 	Rect scrollRect;
 	bool scrollShowing;
 	bool first = true;
+	public bool escapeMenuOpen = false;
 
 	public bool showAttack = false;
 	public bool showMovement = false;
@@ -273,7 +274,7 @@ public class GameGUI : MonoBehaviour {
 
 	public Rect confirmButtonRect() {
 		Rect r = subMenuButtonsRect();
-		return new Rect(r.x + r.width - 1, r.y, subMenuTurnActionSize.x, subMenuTurnActionSize.y);
+		return new Rect((Screen.width - subMenuTurnActionSize.x)/2.0f, actionBarTotalRect().y - subMenuTurnActionSize.y + 2.0f, subMenuTurnActionSize.x, subMenuTurnActionSize.y);
 	}
 
 	float beginButtonWidth = 150.0f;
@@ -293,6 +294,11 @@ public class GameGUI : MonoBehaviour {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (log.mouseIsOnGUI()) return true;
 		if (mapGenerator) {
+			if (escapeMenuOpen || mapGenerator.gameState != GameState.Playing) {
+				for (int n=0;n<(escapeMenuOpen ? 3 : 2); n++) {
+					if (getMenuRect(n, escapeMenuOpen).Contains(mousePos)) return true;
+				}
+			}
 			if (mapGenerator.isInCharacterPlacement()) {
 				if (beginButtonRect().Contains(mousePos)) return true;
 			}
@@ -554,16 +560,14 @@ public class GameGUI : MonoBehaviour {
 		return selectedSubMenuTurnStyle;
 	}
 
-	GUIStyle getNonSelectedSubMenuTurnStyle() {
-		if (nonSelectedSubMenuTurnStyle == null) {
-			nonSelectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
+	GUIStyle getConfirmButtonStyle() {
+		if (confirmButtonStyle == null) {
+			confirmButtonStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
-			nonSelectedSubMenuTurnStyle.normal.background = tex;
-			nonSelectedSubMenuTurnStyle.hover.background = tex;
-			nonSelectedSubMenuTurnStyle.active.background = tex;
-			nonSelectedSubMenuTurnStyle.active.textColor = nonSelectedSubMenuTurnStyle.normal.textColor = nonSelectedSubMenuTurnStyle.hover.textColor = Color.white;
+			confirmButtonStyle.normal.background = confirmButtonStyle.hover.background = confirmButtonStyle.active.background = Resources.Load<Texture>("UI/tab-button") as Texture2D;
+			confirmButtonStyle.active.textColor = confirmButtonStyle.normal.textColor = confirmButtonStyle.hover.textColor = Color.white;
 		}
-		return nonSelectedSubMenuTurnStyle;
+		return confirmButtonStyle;
 	}
 
 
@@ -993,7 +997,7 @@ public class GameGUI : MonoBehaviour {
 			getSelectedButtonStyle();
 			getSelectedSubMenuTurnStyle();
 			getNonSelectedButtonStyle();
-			getNonSelectedSubMenuTurnStyle();
+			getConfirmButtonStyle();
 		}
 		if (mapGenerator == null) return;
 
@@ -1200,7 +1204,7 @@ public class GameGUI : MonoBehaviour {
 			}
 		}
 		if (mapGenerator.currentUnit >= 0) {
-			if (GUI.Button(waitButtonAlwaysRect(), "End Turn", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+			if (GUI.Button(waitButtonAlwaysRect(), "End Turn (Q)", getNonSelectedButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 				if (selectedMovement) {
 					//		selectedMovementType = MovementType.None;
 					selectedMovement = false;
@@ -1298,10 +1302,11 @@ public class GameGUI : MonoBehaviour {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMovement(types[n]);
 						}
+						GUI.enabled = true;
 					}
 
 					if ((selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move) && mapGenerator.getCurrentUnit().currentPath.Count > 1) {
-						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							if (mapGenerator.lastPlayerPath.Count > 1 && !p.moving) {
 								p.startMoving(selectedMovementType == MovementType.BackStep);
 								//		p.attacking = true;
@@ -1318,10 +1323,11 @@ public class GameGUI : MonoBehaviour {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectStandard(types[n]);
 						}
+						GUI.enabled = true;
 					}
 
 					if (((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedStandardType==StandardType.Place_Turret && mapGenerator.turretBeingPlaced != null) || (selectedStandardType==StandardType.Lay_Trap && mapGenerator.currentTrap.Count>0)) {
-						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							Debug.Log("Confirm: " + StandardType.Throw);
 							mapGenerator.performAction();
 /*							if (selectedStandardType == StandardType.Attack) {
@@ -1345,6 +1351,7 @@ public class GameGUI : MonoBehaviour {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMinor(types[n]);
 						}
+						GUI.enabled = true;
 					}
 					/*
 					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) {
@@ -1529,12 +1536,7 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.gameState != GameState.Playing) {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 - Screen.height/16, Screen.width/12, Screen.height/12), "Back to Base")) {
-					Application.LoadLevel(2);
-			}
-			if (GUI.Button(new Rect(Screen.width/2 - Screen.width/12, Screen.height*2/3 + Screen.height/12, Screen.width/12, Screen.height/12), "Quit")) {
-				Application.Quit();
-			}
+
 			int off = 1;
 		/*	for (int n=-1;n<=1;n++) {
 				for (int m=-1;m<=1;m++) {
@@ -1548,7 +1550,28 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(0,-off,Screen.width, Screen.height), content, getBackStyle());
 			GUI.Label(new Rect(0,0,Screen.width, Screen.height), content, st);
 		}
+		if (escapeMenuOpen || mapGenerator.gameState != GameState.Playing) {
+			if (GUI.Button(getMenuRect(0, escapeMenuOpen), "Back to Base")) {
+				Application.LoadLevel(2);
+			}
+		//	y += height + 10.0f;
+			if (GUI.Button(getMenuRect(1, escapeMenuOpen), "Quit")) {
+				Application.Quit();
+			}
+		//	y += height + 10.0f;
+			if (escapeMenuOpen && GUI.Button(getMenuRect(2, escapeMenuOpen), "Cancel")) {
+				escapeMenuOpen = false;
+			}
+		}
 	//	Debug.Log("OnGUIEnd");
+	}
+
+	public Rect getMenuRect(int num, bool escape=false) {
+		float width = 150.0f;
+		float height = 50.0f;
+		float x = Screen.width/2.0f - width/2.0f;
+		float y = Screen.height/2.0f - ((height + 10.0f) * (escape ? 3 : 2))/2.0f;
+		return new Rect(x, y + num * (height + 10.0f), width, height);
 	}
 
 	GUIStyle turretPartStyle = null;
