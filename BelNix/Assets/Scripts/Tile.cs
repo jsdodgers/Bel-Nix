@@ -313,11 +313,26 @@ public class Tile {
 //			return (this.
 //		}
 		bool provokesOpportunity = false;
-		if (direction != Direction.Left) provokesOpportunity |= hasEnemyDirection(Direction.Left, cs);
-		if (direction != Direction.Right) provokesOpportunity |= hasEnemyDirection(Direction.Right, cs);
-		if (direction != Direction.Up) provokesOpportunity |= hasEnemyDirection(Direction.Up, cs);
-		if (direction != Direction.Down) provokesOpportunity |= hasEnemyDirection(Direction.Down, cs);
+		if (direction != Direction.Left) provokesOpportunity |= hasAliveEnemyDirection(Direction.Left, cs);
+		if (direction != Direction.Right) provokesOpportunity |= hasAliveEnemyDirection(Direction.Right, cs);
+		if (direction != Direction.Up) provokesOpportunity |= hasAliveEnemyDirection(Direction.Up, cs);
+		if (direction != Direction.Down) provokesOpportunity |= hasAliveEnemyDirection(Direction.Down, cs);
 		return provokesOpportunity;
+	}
+
+	public bool hasAliveEnemyDirection(Direction direction, Unit cs) {
+		switch (direction) {
+		case Direction.Left:
+			return this.leftTile != null && this.leftTile.hasAliveEnemy(cs);
+		case Direction.Right:
+			return this.rightTile != null && this.rightTile.hasAliveEnemy(cs);
+		case Direction.Up:
+			return this.upTile != null && this.upTile.hasAliveEnemy(cs);
+		case Direction.Down:
+			return this.downTile != null && this.downTile.hasAliveEnemy(cs);
+		default:
+			return false;
+		}
 	}
 
 	public bool hasEnemyDirection(Direction direction, Unit cs) {
