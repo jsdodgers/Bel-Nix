@@ -1174,6 +1174,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleInput() {
+		if (gui.escapeMenuOpen) return;
 		if (currentUnitIsAI()) {
 			getCurrentUnit().performAI();
 			return;
