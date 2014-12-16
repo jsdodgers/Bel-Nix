@@ -194,6 +194,10 @@ public class Tile {
 		character = null;
 	}
 
+	public bool hasAliveEnemy(Unit cs) {
+		return hasEnemy(cs) && !getEnemy(cs).deadOrDyingOrUnconscious();
+	}
+
 	public bool hasEnemy(Unit cs) {
 		return hasCharacter() && cs.isEnemyOf(character);
 //		return enemy != null;
@@ -260,13 +264,13 @@ public class Tile {
 	//	Debug.Log("Can Turn: " + canTurn);
 		switch (direction) {
 		case Direction.Left:
-			return this.leftTile!=null && !this.leftTile.hasEnemy(cs) && this.passableLeft>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.leftTile!=null && !this.leftTile.hasAliveEnemy(cs) && this.passableLeft>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Right:
-			return this.rightTile!=null && !this.rightTile.hasEnemy(cs) && this.passableRight>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.rightTile!=null && !this.rightTile.hasAliveEnemy(cs) && this.passableRight>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Down:
-			return this.downTile!=null && !this.downTile.hasEnemy(cs) && this.passableDown>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.downTile!=null && !this.downTile.hasAliveEnemy(cs) && this.passableDown>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Up:
-			return this.upTile!=null && !this.upTile.hasEnemy(cs) && this.passableUp>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.upTile!=null && !this.upTile.hasAliveEnemy(cs) && this.passableUp>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		default:
 			return false;
 		}
