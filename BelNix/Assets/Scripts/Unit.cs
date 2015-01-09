@@ -1096,10 +1096,11 @@ public class Unit : MonoBehaviour {
 	}
 	
 	const float paperDollHeadSize = 90.0f;
-	const float bannerX = -100.0f;
-	const float bannerY = -100.0f;
-	const float bannerHeight = 317.0f;
-	const float bannerWidth = 500.0f;
+	const float portraitBorderSize = 107.0f;
+	public const float bannerX = -130.0f;
+	public const float bannerY = -160.0f;
+	public const float bannerHeight = 317.0f;
+	public const float bannerWidth = 500.0f;
 	const float paperDollFullWidth = 201.0f;
 	const float paperDollFullHeight = 400.0f;
 	const float tabButtonsWidth = 51.0f;
@@ -1121,9 +1122,11 @@ public class Unit : MonoBehaviour {
 	public const float inventoryCellSize = 24.0f;
 	const float inventoryLineThickness = 2.0f;
 	public bool guiContainsMouse(Vector2 mousePos) {
-		if (gui.openTab == Tab.None) {
-			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
-			if (mousePos.y <= paperDollHeadSize + tabButtonsWidth && mousePos.x <= (tabButtonsWidth - 1.0f) * 3 + 1) return true;
+		if (new Rect(bannerX, bannerY, bannerWidth, bannerHeight).Contains(mousePos)) return true;
+		if (gui.getTabButtonRect(Tab.C).Contains(mousePos) || gui.getTabButtonRect(Tab.K).Contains(mousePos)) return true;
+		if (gui.openTab == Tab.None || true) {
+//			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
+//			if (mousePos.y <= paperDollHeadSize + tabButtonsWidth && mousePos.x <= (tabButtonsWidth - 1.0f) * 3 + 1) return true;
 		}
 		else {
 			if (fullCharacterRect().Contains(mousePos) || fullTabsRect().Contains(mousePos)) return true;
@@ -1471,6 +1474,12 @@ public class Unit : MonoBehaviour {
 			dir = 1;
 			t = min;
 		}
+		if (GUI.Button(gui.getTabButtonRect(Tab.C), "C", GameGUI.getTabButtonRightStyle())) {
+			gui.clickTab(Tab.C);
+		}
+		if (GUI.Button(gui.getTabButtonRect(Tab.K), "K", GameGUI.getTabButtonRightStyle())) {
+			gui.clickTab(Tab.K);
+		}
 	//	while (t > 1) t--;
 	/*	float healthX = -1.0f;
 		float healthY = 0.0f;
@@ -1479,7 +1488,7 @@ public class Unit : MonoBehaviour {
 		float compY = 25.0f;*/
 		float tabButtonsY = 0.0f;
 	//	int healthFont = 0;
-		string playerText = "N<size=13>AME</size>/A<size=13>LIAS</size>:\n";
+		string playerText = "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
 		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
 		char[] chars = playerName.ToCharArray();
 		bool inLowerCase = false;
@@ -1509,21 +1518,22 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		if (inLowerCase) playerText += "</size>";
-		playerText += "\n";
+		playerText += "\"\n";
 		playerText += "H<size=13>EALTH</size>:\n" + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth() + "\n";
 	//	GUIContent healthContent = new GUIContent(healthText);
 		playerText += "C<size=13>OMPOSURE</size>:\n" + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure() + "\n";
 	//	GUIContent composureContent = new GUIContent(composureText);
 		GUIContent playerContent = new GUIContent(playerText);
-		if (gui.openTab == Tab.None) {
+		if (gui.openTab == Tab.None || true) {
 			Texture[] textures = getPaperDollTexturesHead();
 			//			GUIStyle headStyle = getPaperDollHeadStyle();
 			GUI.DrawTexture(new Rect(bannerX, bannerY, bannerWidth, bannerHeight), playerBannerTexture);
 			foreach (Texture2D texture in textures) {
 //			headStyle.normal.background = texture;
-				GUI.DrawTexture(new Rect(10.0f, ((bannerHeight + bannerY) - paperDollHeadSize)/2.0f, paperDollHeadSize, paperDollHeadSize), texture);
+				GUI.DrawTexture(new Rect(24.0f, ((bannerHeight + bannerY) - paperDollHeadSize)/2.0f - 1.0f, paperDollHeadSize, paperDollHeadSize), texture);
 	//			GUI.Label(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), "", headStyle);
 			}
+			GUI.DrawTexture(new Rect(15.0f, ((bannerHeight + bannerY) - portraitBorderSize)/2.0f, portraitBorderSize, portraitBorderSize), portraitBorderTexture);
 //			GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize + 1), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize + 1));
 	//		float healthX = 35.0f + paperDollHeadSize;
 	//		float healthCompY = paperDollHeadSize/2.0f;
@@ -1540,7 +1550,7 @@ public class Unit : MonoBehaviour {
 			GUIStyle cStyle = getCourierStyle();
 			Vector2 playerTextSize = cStyle.CalcSize(playerContent);
 			float playerTextY = ((bannerHeight + bannerY) - playerTextSize.y)/2.0f;
-			float playerTextX = 35.0f + paperDollHeadSize;
+			float playerTextX = 45.0f + paperDollHeadSize;
 			GUI.Label(new Rect(playerTextX, playerTextY, playerTextSize.x, playerTextSize.y), playerContent, cStyle);
 		}
 		else {
@@ -1966,15 +1976,11 @@ public class Unit : MonoBehaviour {
 		//	else gui.openTab = Tab.M;
 			gui.clickTab(Tab.M);
 		}*/
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			gui.clickTab(Tab.C);
-		}
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*1, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "K",(gui.openTab == Tab.K ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			gui.clickTab(Tab.K);
-		}
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+//		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+
+/*		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			gui.clickTab(Tab.I);
-		}
+		}*/
 		/*
 		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 			gui.clickTab(Tab.T);
@@ -2380,9 +2386,11 @@ public class Unit : MonoBehaviour {
 		turrets.Add(tu);
 	}
 	static Texture2D playerBannerTexture;
+	static Texture2D portraitBorderTexture;
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
 		playerBannerTexture = Resources.Load<Texture>("UI/bottom-sheet") as Texture2D;
+		portraitBorderTexture = Resources.Load<Texture>("UI/portrait-border") as Texture2D;
 		turrets = new List<TurretUnit>();
 		afflictions = new List<Affliction>();
 		loadCharacterSheet();

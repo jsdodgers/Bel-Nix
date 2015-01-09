@@ -231,6 +231,13 @@ public class GameGUI : MonoBehaviour {
 				y += tabButtonSize.y + 5.0f;
 			}
 		}
+		else if (t == Tab.C || t == Tab.K) {
+			x = Unit.bannerX + Unit.bannerWidth - 20.0f;
+			y = 0.0f;
+			if (t == Tab.K) {
+				y += tabButtonSize.y + 5.0f;
+			}
+		}
 		return new Rect(x, y, tabButtonSize.x, tabButtonSize.y);
 	}
 	public bool clipboardUp = true;
@@ -644,15 +651,24 @@ public class GameGUI : MonoBehaviour {
 			return turnOrderNameStyleEnemy;
 		}
 	}
-
+	
 	static GUIStyle tabButtonStyle;
-	static GUIStyle getTabButtonStyle() {
+	public static GUIStyle getTabButtonStyle() {
 		if (tabButtonStyle == null) {
 			tabButtonStyle = new GUIStyle("Button");
 			tabButtonStyle.normal.background = tabButtonStyle.hover.background = tabButtonStyle.active.background = Resources.Load<Texture>("UI/tab-button-left") as Texture2D;
 			tabButtonStyle.normal.textColor = tabButtonStyle.hover.textColor = tabButtonStyle.active.textColor = Color.black;
 		}
 		return tabButtonStyle;
+	}
+	static GUIStyle tabButtonRightStyle;
+	public static GUIStyle getTabButtonRightStyle() {
+		if (tabButtonRightStyle == null) {
+			tabButtonRightStyle = new GUIStyle("Button");
+			tabButtonRightStyle.normal.background = tabButtonRightStyle.hover.background = tabButtonRightStyle.active.background = Resources.Load<Texture>("UI/tab-button-right") as Texture2D;
+			tabButtonRightStyle.normal.textColor = tabButtonRightStyle.hover.textColor = tabButtonRightStyle.active.textColor = Color.black;
+		}
+		return tabButtonRightStyle;
 	}
 
 
