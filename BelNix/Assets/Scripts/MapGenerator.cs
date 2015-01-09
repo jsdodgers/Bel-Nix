@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using CharacterInfo;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
@@ -27,6 +28,8 @@ public class MapGenerator : MonoBehaviour {
 
 
 	public GameState gameState = GameState.Playing;
+    public int experienceReward;
+    public int copperReward;
 	public string tileMapName;
 	public int gridSize = 70;
 	
@@ -151,9 +154,34 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (!player) gameState = GameState.Lost;
-		else if (!enemy) gameState = GameState.Won;
-		else gameState = GameState.Playing;
+        else if (!enemy)
+        {
+            gameState = GameState.Won;
+             
+        }
+        else gameState = GameState.Playing;
 	}
+
+    public Purse rewardPlayer(Purse mainCharacterPurse)
+    {
+        // Count up the players, divide map reward by number of players, give that amount to every player
+        List<Unit> livingPlayers = new List<Unit>();
+        foreach (Unit u in players)
+        {
+            if (!u.isDead())
+                livingPlayers.Add(u);
+        }
+        int individualExpReward = Mathf.FloorToInt( experienceReward / livingPlayers.Count );
+        foreach (Unit u in livingPlayers)
+            u.characterSheet.characterProgress.addExperience(individualExpReward);
+
+        mainCharacterPurse.receiveMoney(copperReward, 0, 0);
+
+        return mainCharacterPurse;
+    }
+
+
+
 	// Use this for initialization
 	void Start () {
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
