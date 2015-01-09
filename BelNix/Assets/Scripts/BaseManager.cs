@@ -1,8 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using CharacterInfo;
 
 public class BaseManager : MonoBehaviour {
+
+    //Purse partyPurse = new Purse();
+        // This should be initialized at the beginning of a new game
+        // This has to be updated or added to each time a new character is created
+        // This has to be added to whenever a mission ends
+        // This has to be subtracted from whenever a purchase is made
+            // (or upkeep is charged)
 
 	string saveName = "";
 	string[] saves;
