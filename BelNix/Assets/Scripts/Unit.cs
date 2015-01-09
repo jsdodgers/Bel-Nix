@@ -771,16 +771,16 @@ public class Unit : MonoBehaviour {
 		}
 		return paperDollHeadStyle;
 	}*/
-	static Texture2D paperDollHealthBannerTexture = null;
-	static int lastWidth = 0;
+//	static Texture2D paperDollHealthBannerTexture = null;
+//	static int lastWidth = 0;
 
-	Texture2D getPaperDollHealthBannerTexture(int width, int height) {
-		if (paperDollHealthBannerTexture == null || width != lastWidth) {
-			paperDollHealthBannerTexture = makeTexBanner(width, height, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
-			lastWidth = width;
-		}
-		return paperDollHealthBannerTexture;
-	}
+//	Texture2D getPaperDollHealthBannerTexture(int width, int height) {
+//		if (paperDollHealthBannerTexture == null || width != lastWidth) {
+//			paperDollHealthBannerTexture = //makeTexBanner(width, height, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+//			lastWidth = width;
+//		}
+//		return paperDollHealthBannerTexture;
+//	}
 
 	static Texture2D paperDollFullBackgroundTexture = null;
 	static int lastWidthFull = 0;
@@ -1095,8 +1095,11 @@ public class Unit : MonoBehaviour {
 		return playerInfoStyle;
 	}
 	
-	const float paperDollHeadSize = 100.0f;
-	const float bannerWidth = 300.0f;
+	const float paperDollHeadSize = 90.0f;
+	const float bannerX = -100.0f;
+	const float bannerY = -100.0f;
+	const float bannerHeight = 317.0f;
+	const float bannerWidth = 500.0f;
 	const float paperDollFullWidth = 201.0f;
 	const float paperDollFullHeight = 400.0f;
 	const float tabButtonsWidth = 51.0f;
@@ -1441,7 +1444,16 @@ public class Unit : MonoBehaviour {
 		}
 		selectedItem = null;
 	}
-
+	static GUIStyle courierStyle;
+	static GUIStyle getCourierStyle() {
+		if (courierStyle == null) {
+			courierStyle = new GUIStyle("Label");
+			courierStyle.font = Resources.Load<Font>("Fonts/Courier New");
+			courierStyle.fontSize = 20;
+			courierStyle.normal.textColor = Color.black;
+		}
+		return courierStyle;
+	}
 	static float t = 0;
 	static int dir = 1;
 	public void drawGUI() {
@@ -1467,31 +1479,69 @@ public class Unit : MonoBehaviour {
 		float compY = 25.0f;*/
 		float tabButtonsY = 0.0f;
 	//	int healthFont = 0;
-		string healthText = "Health: " + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth();
-		GUIContent healthContent = new GUIContent(healthText);
-		string composureText = "Composure: " + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure();
-		GUIContent composureContent = new GUIContent(composureText);
+		string playerText = "N<size=13>AME</size>/A<size=13>LIAS</size>:\n";
+		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
+		char[] chars = playerName.ToCharArray();
+		bool inLowerCase = false;
+		foreach (char c in chars) {
+			if (c >= 'a' && c <= 'z') {
+				if (!inLowerCase) {
+					playerText += "<size=13>";
+					inLowerCase = true;
+				}
+				int i = (int)c;
+				i -= (int)'a';
+				i += (int)'A';
+				playerText += ((char)i);
+			}
+			else {
+				if (c == '\'' || c == '-') {
+					if (!inLowerCase) {
+						playerText += "<size=13>";
+						inLowerCase = true;
+					}
+				}
+				else if (inLowerCase) {
+					playerText += "</size>";
+					inLowerCase = false;
+				}
+				playerText += c;
+			}
+		}
+		if (inLowerCase) playerText += "</size>";
+		playerText += "\n";
+		playerText += "H<size=13>EALTH</size>:\n" + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth() + "\n";
+	//	GUIContent healthContent = new GUIContent(healthText);
+		playerText += "C<size=13>OMPOSURE</size>:\n" + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure() + "\n";
+	//	GUIContent composureContent = new GUIContent(composureText);
+		GUIContent playerContent = new GUIContent(playerText);
 		if (gui.openTab == Tab.None) {
 			Texture[] textures = getPaperDollTexturesHead();
-//			GUIStyle headStyle = getPaperDollHeadStyle();
+			//			GUIStyle headStyle = getPaperDollHeadStyle();
+			GUI.DrawTexture(new Rect(bannerX, bannerY, bannerWidth, bannerHeight), playerBannerTexture);
 			foreach (Texture2D texture in textures) {
 //			headStyle.normal.background = texture;
-				GUI.DrawTexture(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), texture);
+				GUI.DrawTexture(new Rect(10.0f, ((bannerHeight + bannerY) - paperDollHeadSize)/2.0f, paperDollHeadSize, paperDollHeadSize), texture);
 	//			GUI.Label(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), "", headStyle);
 			}
-			GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize + 1), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize + 1));
-			float healthX = 35.0f + paperDollHeadSize;
-			float healthCompY = paperDollHeadSize/2.0f;
-			tabButtonsY = paperDollHeadSize;
-			GUIStyle healthStyle = getHealthTextStyle(25);
-			GUIStyle compStyle = getComposureTextStyle(25);
-			Vector2 healthSize = healthStyle.CalcSize(healthContent);
-			Vector2 composureSize = compStyle.CalcSize(composureContent);
+//			GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize + 1), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize + 1));
+	//		float healthX = 35.0f + paperDollHeadSize;
+	//		float healthCompY = paperDollHeadSize/2.0f;
+			tabButtonsY = bannerHeight + bannerY;
+	//		GUIStyle healthStyle = getCourierStyle();
+	//		GUIStyle compStyle = getCourierStyle();
+	//		Vector2 healthSize = healthStyle.CalcSize(healthContent);
+	//		Vector2 composureSize = compStyle.CalcSize(composureContent);
 			//	float totalHeight = composureSize.y + healthSize.y;
-			float healthY = healthCompY - healthSize.y;
-			float compY = healthCompY;
-			GUI.Label(new Rect(healthX, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
-			GUI.Label(new Rect(healthX, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+	//		float healthY = healthCompY - healthSize.y;
+	//		float compY = healthCompY;
+	//		GUI.Label(new Rect(healthX, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
+	//		GUI.Label(new Rect(healthX, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+			GUIStyle cStyle = getCourierStyle();
+			Vector2 playerTextSize = cStyle.CalcSize(playerContent);
+			float playerTextY = ((bannerHeight + bannerY) - playerTextSize.y)/2.0f;
+			float playerTextX = 35.0f + paperDollHeadSize;
+			GUI.Label(new Rect(playerTextX, playerTextY, playerTextSize.x, playerTextSize.y), playerContent, cStyle);
 		}
 		else {
 			tabButtonsY = paperDollFullHeight - 1;
@@ -1513,6 +1563,7 @@ public class Unit : MonoBehaviour {
 				}
 				y += heights;
 			}
+	/*
 			float healthCenter = paperDollFullWidth/2.0f;
 //			healthCompY = y + 20.0f;
 			float healthY = y;
@@ -1522,11 +1573,12 @@ public class Unit : MonoBehaviour {
 			Vector2 composureSize = compStyle.CalcSize(composureContent);
 		//	float totalHeight = composureSize.y + healthSize.y;
 			//healthY = healthCompY - healthSize.y;
-			float mid = 8.0f;
 			float compY = healthY + healthSize.y - mid;
 			GUI.Label(new Rect(healthCenter - healthSize.x/2.0f, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
 			GUI.Label(new Rect(healthCenter - composureSize.x/2.0f, compY, composureSize.x, composureSize.y), composureContent, compStyle);
 			y = compY + composureSize.y - mid;
+*/
+			float mid = 8.0f;
 			GUIContent profession = new GUIContent(characterSheet.characterProgress.getCharacterClass().getClassName().ToString());
 			Vector2 professionSize = textStyle.CalcSize(profession);
 			GUI.Label(new Rect((paperDollFullWidth - professionSize.x)/2.0f, y, professionSize.x, professionSize.y), profession, textStyle);
@@ -2327,9 +2379,10 @@ public class Unit : MonoBehaviour {
 	public void addTurret(TurretUnit tu) {
 		turrets.Add(tu);
 	}
-
+	static Texture2D playerBannerTexture;
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
+		playerBannerTexture = Resources.Load<Texture>("UI/bottom-sheet") as Texture2D;
 		turrets = new List<TurretUnit>();
 		afflictions = new List<Affliction>();
 		loadCharacterSheet();
