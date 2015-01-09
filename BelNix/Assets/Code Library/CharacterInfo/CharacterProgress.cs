@@ -8,6 +8,7 @@ namespace CharacterInfo
 		private int cLevel;
 		private int cExperience;
 		private DamageType weaponFocus;
+        private const int LEVEL_COEFFICIENT = 100;
 		public CharacterProgress (CharacterClass characterClass)
 		{
 			cClass		= characterClass;
@@ -18,7 +19,16 @@ namespace CharacterInfo
 		public CharacterClass getCharacterClass()	 	{ return cClass; }
 		public int getCharacterLevel() 					{ return cLevel; }
 		public int getCharacterExperience() 			{ return cExperience; }
-		public int addExperience(int exp)				{ return cExperience += exp; }
+		public int addExperience(int exp)				
+        {
+            cExperience += exp;
+            if (cExperience > cLevel * LEVEL_COEFFICIENT)
+            {
+                cExperience -= LEVEL_COEFFICIENT * cLevel;
+                incrementLevel();
+            }
+            return cExperience; 
+        }
 		public int setExperience(int exp)				{ return cExperience = exp; }
 		public int incrementLevel()						{ return ++cLevel; }
 		public int setLevel(int level)					{ return cLevel = level; }
