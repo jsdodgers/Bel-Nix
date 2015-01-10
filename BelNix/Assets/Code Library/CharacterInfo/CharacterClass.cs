@@ -86,6 +86,12 @@ namespace CharacterInfo
 				features.Insert(0, ClassFeature.Intimidate);
 				goto case 1;
 			case 1:
+				features.Insert(0, ClassFeature.Dirty_Fighting);
+				features.Insert(0, ClassFeature.Dirty_Fighting);
+				features.Insert(0, ClassFeature.Dirty_Fighting);
+				features.Insert(0, ClassFeature.Dirty_Fighting);
+				features.Insert(0, ClassFeature.Dirty_Fighting);
+				features.Insert(0, ClassFeature.Dirty_Fighting);
 				features.Insert(0, ClassFeature.Throw);
 				features.Insert(0, ClassFeature.Decisive_Strike);
 				break;

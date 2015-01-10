@@ -72,7 +72,7 @@ public class GameGUI : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		Unit.doTabs(this);
 	}
 	
 	Texture2D makeTex( int width, int height, Color col )
