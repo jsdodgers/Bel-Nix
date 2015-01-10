@@ -29,6 +29,8 @@ public class Log : MonoBehaviour {
 
 	Texture logTexture;
 
+	public static Color greenColor = new Color(.1f, .5f, .1f);
+
 	// Use this for initialization
 	void Start () {
 		messages = new Queue<LogMessage>();
@@ -42,7 +44,7 @@ public class Log : MonoBehaviour {
 		addMessage("Another One.");
 		addMessage("This is a shorter one.");
 		addMessage("Another One.");*/
-		logTexture = Resources.Load<Texture>("UI/console");
+		logTexture = Resources.Load<Texture>("UI/console-paper");
 	}
 	
 	// Update is called once per frame
@@ -51,7 +53,7 @@ public class Log : MonoBehaviour {
 	}
 
 	public void addMessage(string message) {
-		addMessage(message, Color.white);
+		addMessage(message, Color.black);
 	}
 
 	public void addMessage(string message, Color c) {
@@ -93,7 +95,7 @@ public class Log : MonoBehaviour {
 	}
 
 	void OnGUI() {
-		doGUI(left, right);
+	//	doGUI(left, right);
 	}
 	public void doGUI(float left, float right) {
 		this.left = left;
@@ -113,9 +115,18 @@ public class Log : MonoBehaviour {
 		float y = Screen.height - consoleHeight;
 		Rect logRect = new Rect(consoleX, y, consoleWidth, consoleHeight);
 		y+=2.0f;
-		GUIStyle boxStyle = new GUIStyle("Box");
-		boxStyle.normal.background = boxStyle.active.background = boxStyle.hover.background = logTexture as Texture2D;
-		GUI.Box(logRect,"", boxStyle);
+	//	GUIStyle boxStyle = new GUIStyle("Box");
+	//	boxStyle.normal.background = boxStyle.active.background = boxStyle.hover.background = logTexture as Texture2D;
+	//	GUI.Box(logRect,"", boxStyle);
+		float lX = logRect.x;
+		float textWidth = 775;
+		int textHeight = 259;
+	//	Debug.Log(logRect.width + logRect.x);
+		while (lX < logRect.width + logRect.x) {
+			GUI.DrawTexture(new Rect(lX, logRect.y, textWidth, textHeight), logTexture as Texture2D);
+			lX += textWidth;
+		//	Debug.Log("logX: " + logX);
+		}
 		scrollPosition = GUI.BeginScrollView(new Rect(x, y, width, consoleHeight - 4.0f), scrollPosition, new Rect(x, y, width - 16.0f, height));
 		y+=logY;
 		x += logX;

@@ -2761,7 +2761,7 @@ public class Unit : MonoBehaviour {
 			gui.log.addMessage(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
 		}
 		else {
-			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.green);
+			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Log.greenColor);
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
@@ -2953,7 +2953,7 @@ public class Unit : MonoBehaviour {
 		int wapoon = rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		attackEnemy.showDamage(wapoon, didHit, crit);
-		gui.log.addMessage(getName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Color.green : Color.red));
+		gui.log.addMessage(getName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (!attackEnemy.moving) {
@@ -2986,7 +2986,7 @@ public class Unit : MonoBehaviour {
 
 	public void killedEnemy(Unit enemy, bool decisiveStrike) {
 		Debug.Log("Killed Enemy!!");
-		if (this.team==0) gui.log.addMessage(getName() + " " + enemy.deathString() + " " + enemy.getName() + "!",Color.green);
+		if (this.team==0) gui.log.addMessage(getName() + " " + enemy.deathString() + " " + enemy.getName() + "!", Log.greenColor);
 		else gui.log.addMessage(enemy.getName() + " was " + enemy.deathString() +" by " + getName() + "!",Color.red);
 		if (decisiveStrike) handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();

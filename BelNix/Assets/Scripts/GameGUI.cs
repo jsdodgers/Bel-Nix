@@ -1075,6 +1075,12 @@ public class GameGUI : MonoBehaviour {
 
 		// Game GUI
 		else {
+			float consoleRight = 160.0f;
+			if (!clipboardUp) consoleRight += 45.0f;
+			float consoleLeft = 200.0f;
+			if (!mapGenerator.selectedUnit) consoleLeft = 0.0f;
+			else if (mapGenerator.selectedUnit != mapGenerator.getCurrentUnit() || mapGenerator.selectedUnits.Count != 0) consoleLeft = 150.0f;
+			log.doGUI(consoleLeft, consoleRight);
 			Rect clipBoardRect = clipBoardBodyRect();
 			if (GUI.Button(getTabButtonRect(Tab.T), "T", getTabButtonStyle()) && interact) {
 				clipboardTab = Tab.T;

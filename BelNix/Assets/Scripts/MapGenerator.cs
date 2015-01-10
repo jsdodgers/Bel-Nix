@@ -1202,6 +1202,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleInput() {
+		handleKeys();
 		if (gui.escapeMenuOpen) return;
 		if (currentUnitIsAI()) {
 			getCurrentUnit().performAI();
@@ -1209,7 +1210,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		handleGUIPos();
 		handleMouseScrollWheel();
-		handleKeys();
+
 		handleMouseButtons();
 		handleKeyPan();
 		handleMouseClicks();
@@ -1405,6 +1406,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void openEscapeMenu() {
 		gui.escapeMenuOpen = !gui.escapeMenuOpen;
+		Debug.Log(gui.escapeMenuOpen);
 	}
 
 	public void deleteCurrentTrap() {
