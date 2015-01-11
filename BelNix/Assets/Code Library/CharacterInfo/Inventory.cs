@@ -2,27 +2,49 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace CharacterInfo
-{
-    public struct Purse
-    {
-        private int copper;
-        private int silver;
-        private int gold;
+namespace CharacterInfo {
+
+    public class Purse {
+      //  private int copper;
+      //  private int silver;
+      //  private int gold;
+		public int money;
 
 		public void takeAllMoney(Purse p) {
-			copper += p.copper;
-			silver += p.silver;
-			gold += p.gold;
-			p.copper = 0;
-			p.silver = 0;
-			p.gold = 0;
+//			copper += p.copper;
+//			silver += p.silver;
+//			gold += p.gold;
+//			p.copper = 0;
+//			p.silver = 0;
+//			p.gold = 0;
+			if (p==this) return;
+			money += p.money;
+			p.money = 0;
 		}
 
-        public void receiveMoney(int c, int s, int g)
-        {
+		public int gold() {
+			return money/10000;
+		}
+
+		public int silver() {
+			return (money/100)%100;
+		}
+
+		public int copper() {
+			return money % 100;
+		}
+
+		public void receiveMoney(int c) {
+			if (c<0)
+				throw new InvalidOperationException("Invalid Parameter: Can't receive negative money");
+			money += c;
+		}
+
+        public void receiveMoney(int c, int s, int g) {
             if (c < 0 || s < 0 || g < 0)
                 throw new InvalidOperationException("Invalid Parameter: Can't receive negative money");
+			receiveMoney(c + s*100 + g*10000);
+			/*
             int silverRemainder = 0;
             int goldRemainder = 0;
             if (c + copper >= 100)
@@ -41,32 +63,30 @@ namespace CharacterInfo
             else
                 silver += s;
 
-            gold += (g + goldRemainder);
+            gold += (g + goldRemainder);*/
         }
 
 
-        public bool spendMoney(int c, int s, int g)
-        {
+        public bool spendMoney(int c, int s, int g) {
             // Check for invalid input
             if (c < 0 || s < 0 || g < 0)
                 throw new InvalidOperationException("Invalid Parameter: Can't spend negative money.");
             if (!enoughMoney(c, s, g))
                 return false;
-
-            gold -= g;
+			money -= c + s*100 + g*10000;
+			return true;
+/*            gold -= g;
             spendFromPools(s, ref silver, ref gold);
             spendFromPools(c, ref copper, ref silver);
-            return true;
+            return true;*/
         }
 
         // Compare the amount being spent against the money in the purse
-        public bool enoughMoney(int c, int s, int g)
-        {
-            int purseTotal = copper + (silver*100) + (gold*10000);
+        public bool enoughMoney(int c, int s, int g) {
             int spentTotal = c + (s*100) + (g*10000);
-            return purseTotal >= spentTotal;
+            return money >= spentTotal;
         }
-
+		/*
         private bool spendFromPools(int amount, ref int lowPool, ref int highPool)
         {
             if (amount == 0)
@@ -92,7 +112,7 @@ namespace CharacterInfo
                 lowPool -= amount;
                 return true;
             }
-        }
+        }*/
     }
 
 	public struct ItemReturn {

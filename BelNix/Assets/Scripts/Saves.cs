@@ -83,7 +83,7 @@ public class Saves {
 			File.Delete(getCharactersListFilePath());
 			string totes = "";
 			foreach (string st in characters) {
-				if (st == characterId) continue;
+				if (st == characterId || st == null || st == "") continue;
 //				totes += ";";
 				totes += st + ";";
 			}

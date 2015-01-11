@@ -143,6 +143,16 @@ public class MapGenerator : MonoBehaviour {
 	public int currentKeysSize;
 
 	public void setGameState() {
+		setGameState(GameState.None);
+	}
+
+	public void setGameState(GameState gs) {
+		if (gs != GameState.None) {
+			gameState = gs;
+			if (gs == GameState.Lost) playerLost();
+			if (gs == GameState.Won) playerWon();
+			return;
+		}
 		bool enemy = false;
 		bool player = false;
 		foreach (Unit u in priorityOrder) {
@@ -1297,6 +1307,14 @@ public class MapGenerator : MonoBehaviour {
 		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
+		if (shiftDown && altDown && controlDown) {
+			if (Input.GetKeyDown(KeyCode.W)) {
+				setGameState(GameState.Won);
+			}
+			else if (Input.GetKeyDown(KeyCode.L)) {
+				setGameState(GameState.Lost);
+			}
+		}
 		if (Input.GetKeyDown(KeyCode.M)) {
 //			gui.clickTab(Tab.M);
 			gui.clipboardTab = Tab.M;

@@ -174,7 +174,21 @@ public class Character : MonoBehaviour
 			level = int.Parse(components[curr++]);
 		if (curr < components.Length-1)
 			experience = int.Parse(components[curr++]);
-
+		int money = 0;
+		int health = 100000;
+		int composure = 100000;
+		int numItems = 0;
+		if (curr < components.Length-1)
+			money = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
+			health = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
+			composure = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
+			numItems = int.Parse(components[curr++]);
+		for (int n=0;n<numItems;n++) {
+			//Inventory stuff
+		}
 		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
 		                                       new CharacterWeight(weight), new CharacterHairStyle(hairStyle));
@@ -194,6 +208,9 @@ public class Character : MonoBehaviour
 		skillScores.incrementScore(Skill.Political,political);
 		characterProgress.setLevel(level);
 		characterProgress.setExperience(experience);
+		characterSheet.inventory.purse.receiveMoney(money);
+		combatScores.setHealth(health);
+		combatScores.setComposure(composure);
 	}
 
 

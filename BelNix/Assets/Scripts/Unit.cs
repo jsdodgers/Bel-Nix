@@ -3170,7 +3170,10 @@ public class Unit : MonoBehaviour {
 		characterStr += characterSheet.characterProgress.getCharacterLevel() + delimiter;
 		characterStr += characterSheet.characterProgress.getCharacterExperience() + delimiter;
 		//*********Hair*********\\
-
+		characterStr += characterSheet.characterSheet.inventory.purse.money;
+		characterStr += characterSheet.characterSheet.combatScores.getCurrentHealth();
+		characterStr += characterSheet.characterSheet.combatScores.getCurrentComposure();
+		characterStr += "0;";
 		return characterStr;
 	}
 	

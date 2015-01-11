@@ -24,13 +24,16 @@ namespace CharacterInfo
 		public int setExperience(int exp)				{ return cExperience = exp; }
 		public int incrementLevel()						
         {
-            if (cExperience > cLevel * LEVEL_COEFFICIENT)
+            if (canLevelUp())
             {
                 cExperience -= cLevel * LEVEL_COEFFICIENT;
                 cLevel++;
             }
             return cLevel; 
         }
+		public bool canLevelUp() {
+			return cExperience > cLevel * LEVEL_COEFFICIENT;
+		}
 		public int setLevel(int level)					{ return cLevel = level; }
 		public ClassFeature[] getClassFeatures() 		{ return getCharacterClass().getClassFeatures(cLevel); }
 		public bool hasFeature(ClassFeature feature)	{ return Array.IndexOf(getClassFeatures(),feature)>=0; }
