@@ -26,7 +26,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerSelectSelectedPlayerArmorOrder = 1310;
 	public const int mouseOverOrder = 10000;
 
-
+	public Unit mainUnit;
 	public GameState gameState = GameState.Playing;
     public int experienceReward;
     public int copperReward;
@@ -67,6 +67,7 @@ public class MapGenerator : MonoBehaviour {
 	public TrapUnit currentlySelectedTrap;
 	Unit hoveredCharacter;
 	ArrayList players;
+	List<Unit> deadUnits;
 	public ArrayList enemies;
 	public GameObject turrets;
 	public GameObject traps;
@@ -153,16 +154,48 @@ public class MapGenerator : MonoBehaviour {
 				return;
 			}
 		}
-		if (!player) gameState = GameState.Lost;
+		if (!player) {
+			gameState = GameState.Lost;
+			playerLost();
+		}
         else if (!enemy)
         {
             gameState = GameState.Won;
+			playerWon();
              
         }
         else gameState = GameState.Playing;
 	}
 
-    public Purse rewardPlayer(Purse mainCharacterPurse)
+	public void playerWon() {
+		rewardPlayer(mainUnit);
+		savePlayers();
+		deleteDeadPlayers();
+	}
+
+
+	public void savePlayers() {
+		foreach (Unit u in players) {
+			if (!u.isDead()) {
+				u.saveCharacter();
+			}
+			else {
+				u.deleteCharacter();
+			}
+		}
+	}
+
+	public void deleteDeadPlayers() {
+		foreach (Unit u in deadUnits) {
+			u.deleteCharacter();
+		}
+	}
+
+	public void playerLost() {
+
+	}
+
+    public void rewardPlayer(Unit mainCharacter)
     {
         // Count up the players, divide map reward by number of players, give that amount to every player
         List<Unit> livingPlayers = new List<Unit>();
@@ -172,12 +205,13 @@ public class MapGenerator : MonoBehaviour {
                 livingPlayers.Add(u);
         }
         int individualExpReward = Mathf.FloorToInt( experienceReward / livingPlayers.Count );
-        foreach (Unit u in livingPlayers)
+        foreach (Unit u in livingPlayers) {
             u.characterSheet.characterProgress.addExperience(individualExpReward);
+			if (u != mainCharacter)
+				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+		}
+        mainCharacter.characterSheet.characterSheet.inventory.purse.receiveMoney(copperReward, 0, 0);
 
-        mainCharacterPurse.receiveMoney(copperReward, 0, 0);
-
-        return mainCharacterPurse;
     }
 
 
@@ -223,6 +257,7 @@ public class MapGenerator : MonoBehaviour {
 
 		priorityOrder = new List<Unit>();
 		players = new ArrayList();
+		deadUnits = new List<Unit>();
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
 		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
@@ -370,7 +405,12 @@ public class MapGenerator : MonoBehaviour {
 		foreach (Unit u in selectionUnits) {
 			players.Remove(u);
 			priorityOrder.Remove(u);
-			Destroy(u.gameObject);
+			if (u == mainUnit) {
+				u.gameObject.SetActive(false);//.renderer.enabled = false;
+			}
+			else {
+				Destroy(u.gameObject);
+			}
 		}
 	}
 
@@ -466,6 +506,8 @@ public class MapGenerator : MonoBehaviour {
 			sr.sortingOrder = playerSelectPlayerOrder;
 			p.transform.parent = Camera.main.transform;
 			Unit pl = p.GetComponent<Unit>();
+			if (n==0) mainUnit = pl;
+			pl.characterId = chars[n];
 //			pl.mapGenerator = this;
 			pl.setMapGenerator(this);
 			pl.gui = gui;
@@ -755,7 +797,10 @@ public class MapGenerator : MonoBehaviour {
 		int index = priorityOrder.IndexOf(cs);
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
-		if (players.Contains(cs.gameObject)) players.Remove(cs.gameObject);
+		if (players.Contains(cs.gameObject)) {
+			players.Remove(cs.gameObject);
+			deadUnits.Add(cs);
+		}
 		if (index < currentUnit) currentUnit--;
 		else if (index == currentUnit) {
 			currentUnit--;

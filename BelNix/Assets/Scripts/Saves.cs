@@ -64,17 +64,38 @@ public class Saves {
 	}
 
 	public static string getCharacterPath(string characterId) {
-		return getCurrentSaveDirectory() + "/" + characterId;
+		return getCurrentSaveDirectory() + "/" + characterId + ".txt";
 	}
 
 	public static string getCharactersString(string characterId) {
-		return File.ReadAllText(getCharacterPath(characterId) + ".txt");
+		return File.ReadAllText(getCharacterPath(characterId));
 	}
 
 	public static string[] getCharacterList() {
 		string text = File.ReadAllText(getCharactersListFilePath());
 		return text.Split(new char[]{';'});
+	}
 
+	public static void deleteCharacter(string characterId) {
+		if (File.Exists(getCharacterPath(characterId))) {
+			File.Delete(getCharacterPath(characterId));
+			string[] characters = getCharacterList();
+			File.Delete(getCharactersListFilePath());
+			string totes = "";
+			foreach (string st in characters) {
+				if (st == characterId) continue;
+//				totes += ";";
+				totes += st + ";";
+			}
+			File.WriteAllText(getCharactersListFilePath(), totes);
+		}
+	}
+
+	public static void saveCharacter(string characterId, string characterStr) {
+		if (File.Exists(getCharacterPath(characterId))) {
+
+		}
+		File.WriteAllText(getCharacterPath(characterId), characterStr);
 	}
 
 	public static string addCharacter(string character) {

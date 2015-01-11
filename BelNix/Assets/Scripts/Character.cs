@@ -138,7 +138,7 @@ public class Character : MonoBehaviour
 		string firstName = components[curr++];
 		string lastName = components[curr++];
 		int sex = int.Parse(components[curr++]);
-		CharacterSex sexC = (sex==0 ? CharacterSex.Male : CharacterSex.Female);
+		CharacterSex sexC = (sex==0 ? CharacterSex.Male : (sex==1 ? CharacterSex.Female : CharacterSex.Other));
 		int race = int.Parse(components[curr++]);
 		CharacterRace raceC = CharacterRace.getRace(race == 0 ? RaceName.Berrind : (race == 1 ? RaceName.Ashpian : RaceName.Rorrul));
 		int background = int.Parse (components[curr++]);

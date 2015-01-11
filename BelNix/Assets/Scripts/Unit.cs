@@ -16,6 +16,7 @@ public class Unit : MonoBehaviour {
 	public Character characterSheet;
 	int initiative;
 	public string characterName;
+	public string characterId;
 	public int team = 0;
 
 	public static float cPerc = 0.0f;
@@ -3124,4 +3125,56 @@ public class Unit : MonoBehaviour {
 		kPerc = Mathf.Clamp01(kPerc);
 	}
 
+
+
+
+	public void deleteCharacter() {
+		Saves.deleteCharacter(characterId);
+	}
+
+	public void saveCharacter() {
+		Saves.saveCharacter(characterId, getCharacterString());
+	}
+	
+	const string delimiter = ";";
+	public string getCharacterString() {
+		string characterStr = "";
+		//********PERSONAL INFORMATION********\\
+		//Adding player first name.
+		characterStr += characterSheet.personalInfo.getCharacterName().firstName + delimiter;
+		characterStr += characterSheet.personalInfo.getCharacterName().lastName + delimiter;
+		CharacterSex sex = characterSheet.personalInfo.getCharacterSex();
+		characterStr += (sex==CharacterSex.Male ? 0 : (sex==CharacterSex.Female ? 1 : 2)) + delimiter;
+		RaceName race = characterSheet.personalInfo.getCharacterRace().raceName;
+		characterStr += (race == RaceName.Berrind ? 0 : (race == RaceName.Ashpian ? 1 : 2)) + delimiter;
+		CharacterBackground background = characterSheet.personalInfo.getCharacterBackground();
+		characterStr += (background == CharacterBackground.FallenNoble || background == CharacterBackground.Commoner || background == CharacterBackground.Servant ? 0 : 1) + delimiter;
+		characterStr += characterSheet.personalInfo.getCharacterAge().age + delimiter;
+		characterStr += (characterSheet.personalInfo.getCharacterHeight().feet * 12 + characterSheet.personalInfo.getCharacterHeight().inches) + delimiter;
+		characterStr += characterSheet.personalInfo.getCharacterWeight().weight + delimiter;
+		ClassName clas = characterSheet.characterProgress.getCharacterClass().getClassName();
+		characterStr += (clas == ClassName.ExSoldier ? 0 : (clas == ClassName.Engineer ? 1 : (clas == ClassName.Investigator ? 2 : (clas == ClassName.Researcher ? 3 : 4)))) + delimiter;
+		characterStr += characterSheet.abilityScores.getSturdy() + delimiter;
+		characterStr += characterSheet.abilityScores.getPerception() + delimiter;
+		characterStr += characterSheet.abilityScores.getTechnique() + delimiter;
+		characterStr += characterSheet.abilityScores.getWellVersed() + delimiter;
+		foreach (int score in characterSheet.skillScores.scores) {
+			characterStr += score + delimiter;
+		}
+		CharacterColors colors = characterSheet.characterSheet.characterColors;
+		characterStr += colorString(colors.characterColor);
+		characterStr += colorString(colors.headColor);
+		characterStr += colorString(colors.primaryColor);
+		characterStr += colorString(colors.secondaryColor);
+		characterStr += characterSheet.characterSheet.personalInformation.getCharacterHairStyle().hairStyle + delimiter;
+		characterStr += characterSheet.characterProgress.getCharacterLevel() + delimiter;
+		characterStr += characterSheet.characterProgress.getCharacterExperience() + delimiter;
+		//*********Hair*********\\
+
+		return characterStr;
+	}
+	
+	static string colorString(Color c) {
+		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
+	}
 }

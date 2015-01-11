@@ -10,6 +10,15 @@ namespace CharacterInfo
         private int silver;
         private int gold;
 
+		public void takeAllMoney(Purse p) {
+			copper += p.copper;
+			silver += p.silver;
+			gold += p.gold;
+			p.copper = 0;
+			p.silver = 0;
+			p.gold = 0;
+		}
+
         public void receiveMoney(int c, int s, int g)
         {
             if (c < 0 || s < 0 || g < 0)
@@ -109,10 +118,11 @@ namespace CharacterInfo
 
 	public class Inventory {
 		public Character character;
-		private Purse cPurse;
+		public Purse purse;
 		public InventoryItemSlot[] inventory;
 
 		public Inventory () {
+			purse = new Purse();
 			inventory = new InventoryItemSlot[16];
 			for (int n=0;n<16;n++) {
 				inventory[n] = new InventoryItemSlot(n);

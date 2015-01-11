@@ -6,6 +6,8 @@ namespace CharacterInfo
 	public enum CharacterBackground {FallenNoble, WhiteGem, Immigrant, Commoner, Servant, Unknown}
 	public abstract class CharacterRace
 	{
+
+		public RaceName raceName;
 		//racial modifiers
 		public abstract int 		getHealthModifier();
 		public abstract int 		getComposureModifier();
@@ -42,6 +44,7 @@ namespace CharacterInfo
 
 	public class Race_Berrind : CharacterRace
 	{
+		public Race_Berrind() {raceName = RaceName.Berrind;}
 		public override int 		getHealthModifier() 		{return -2;}
 		public override int 		getComposureModifier()  	{return  2;}
 		public override PrimalState getPrimalState()			{return PrimalState.Reckless;}
@@ -50,6 +53,7 @@ namespace CharacterInfo
 
 	public class Race_Ashpian : CharacterRace
 	{
+		public Race_Ashpian() {raceName = RaceName.Ashpian;}
 		public override int 		getHealthModifier() 		{return  0;}
 		public override int 		getComposureModifier()  	{return  0;}
 		public override PrimalState getPrimalState()			{return PrimalState.Passive;}
@@ -58,6 +62,7 @@ namespace CharacterInfo
 
 	public class Race_Rorrul : CharacterRace
 	{
+		public Race_Rorrul() {raceName = RaceName.Rorrul;}
 		public override int 		getHealthModifier() 		{return  2;}
 		public override int 		getComposureModifier()  	{return -2;}
 		public override PrimalState getPrimalState()			{return PrimalState.Threatened;}
