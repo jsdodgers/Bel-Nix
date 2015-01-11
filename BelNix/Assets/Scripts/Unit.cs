@@ -3043,6 +3043,7 @@ public class Unit : MonoBehaviour {
 			if (!d && deadOrDyingOrUnconscious() && u) {
 				u.killedEnemy(this, givesDecisiveStrike());
 			}
+			if (mapGenerator.getCurrentUnit()==this && deadOrDyingOrUnconscious()) mapGenerator.nextPlayer();
 		}
 		//	Debug.Log("EndDamage");
 	}

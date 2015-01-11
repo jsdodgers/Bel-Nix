@@ -7,7 +7,9 @@ using CharacterInfo;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
-
+	
+	public List<Unit> selectionUnits;
+	public List<Unit> outOfGameUnits;
 	public const int gridOrder = 2;
 	public const int trapOrder = 20;
 	public const int circleNormalOrder = 30;
@@ -178,11 +180,20 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void playerWon() {
+		restPlayers();
 		rewardPlayer(mainUnit);
 		savePlayers();
 		deleteDeadPlayers();
 	}
 
+	public void restPlayers() {
+		foreach (Unit u in outOfGameUnits) {
+			CombatScores cs = u.characterSheet.characterSheet.combatScores;
+			if (cs.getCurrentHealth() <= 0) cs.addHealth(1);
+			else cs.setHealth(cs.getMaxHealth());
+			cs.setComposure(cs.getMaxComposure());
+		}
+	}
 
 	public void savePlayers() {
 		foreach (Unit u in players) {
@@ -192,6 +203,9 @@ public class MapGenerator : MonoBehaviour {
 			else {
 				u.deleteCharacter();
 			}
+		}
+		foreach (Unit u in outOfGameUnits) {
+			u.saveCharacter();
 		}
 	}
 
@@ -217,6 +231,10 @@ public class MapGenerator : MonoBehaviour {
         int individualExpReward = Mathf.FloorToInt( experienceReward / livingPlayers.Count );
         foreach (Unit u in livingPlayers) {
             u.characterSheet.characterProgress.addExperience(individualExpReward);
+			if (u != mainCharacter)
+				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+		}
+		foreach (Unit u in outOfGameUnits) {
 			if (u != mainCharacter)
 				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
 		}
@@ -415,12 +433,14 @@ public class MapGenerator : MonoBehaviour {
 		foreach (Unit u in selectionUnits) {
 			players.Remove(u);
 			priorityOrder.Remove(u);
-			if (u == mainUnit) {
+//			if (u == mainUnit) {
 				u.gameObject.SetActive(false);//.renderer.enabled = false;
-			}
-			else {
-				Destroy(u.gameObject);
-			}
+				outOfGameUnits.Add(u);
+//			}
+//			else {
+//				outOfGameUnits.Add(u);
+//				Destroy(u.gameObject);
+//			}
 		}
 	}
 
@@ -499,7 +519,6 @@ public class MapGenerator : MonoBehaviour {
 //		go.transform.parent = 
 	}
 
-	public List<Unit> selectionUnits;
 	float selectionUnitsX;
 	public void createSelectionUnits() {
         if (!Directory.Exists(Saves.getCurrentSaveDirectory()) || !File.Exists(Saves.getCharactersListFilePath()))
@@ -508,13 +527,14 @@ public class MapGenerator : MonoBehaviour {
             return;
         }
 		selectionUnits = new List<Unit>();
+		outOfGameUnits = new List<Unit>();
 //		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
 		string[] chars = Saves.getCharacterList();
 		for (int n=0;n<chars.Length-1;n++) {
 			GameObject p = (GameObject)GameObject.Instantiate(playerPrefab);
 			SpriteRenderer sr = p.GetComponent<SpriteRenderer>();
 			sr.sortingOrder = playerSelectPlayerOrder;
-			p.transform.parent = Camera.main.transform;
+//			p.transform.parent = Camera.main.transform;
 			Unit pl = p.GetComponent<Unit>();
 			if (n==0) mainUnit = pl;
 			pl.characterId = chars[n];
@@ -524,6 +544,13 @@ public class MapGenerator : MonoBehaviour {
 			players.Add(pl);
 			priorityOrder.Add(pl);
 			pl.loadCharacterSheetFromTextFile(chars[n]);
+			if (pl.characterSheet.characterSheet.combatScores.getMaxHealth() > 0) {
+				p.transform.parent = Camera.main.transform;
+			}
+			else {
+				outOfGameUnits.Add(pl);
+				p.SetActive(false);
+			}
 			pl.addHair();
 			pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
 			sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
