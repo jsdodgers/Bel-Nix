@@ -1133,24 +1133,25 @@ public class Unit : MonoBehaviour {
 		Rect kRect = new Rect (kMin.x + (kMax.x - kMin.x) * kPerc, kMin.y + (kMax.y - kMin.y) * kPerc, kMin.width + (kMax.width - kMin.width) * kPerc, kMin.height + (kMax.height - kMin.height) * kPerc - 18.0f);
 		Rect cRect = new Rect (cMin.x + (cMax.x - cMin.x) * cPerc, cMin.y + (cMax.y - cMin.y) * cPerc, cMin.width + (cMax.width - cMin.width) * cPerc, cMin.height + (cMax.height - cMin.height) * cPerc - 18.0f);
 		if (kRect.Contains(mousePos) || cRect.Contains(mousePos)) return true;
+		if (gui.inventoryOpen && fullIRect().Contains(mousePos)) return true;
 		if (new Rect(bannerX, bannerY, bannerWidth, bannerHeight).Contains(mousePos)) return true;
-		if (gui.getTabButtonRect(Tab.C).Contains(mousePos) || gui.getTabButtonRect(Tab.K).Contains(mousePos)) return true;
+		if (gui.getTabButtonRect(Tab.C).Contains(mousePos) || gui.getTabButtonRect(Tab.V).Contains(mousePos)) return true;
 		if (gui.openTab == Tab.None || true) {
 //			if (mousePos.y <= paperDollHeadSize && paperDollHeadSize + bannerWidth - mousePos.x >= (mousePos.y)/2) return true;
 //			if (mousePos.y <= paperDollHeadSize + tabButtonsWidth && mousePos.x <= (tabButtonsWidth - 1.0f) * 3 + 1) return true;
 		}
 		else {
-			if (fullCharacterRect().Contains(mousePos) || fullTabsRect().Contains(mousePos)) return true;
+		//	if (fullCharacterRect().Contains(mousePos) || fullTabsRect().Contains(mousePos)) return true;
 			switch (gui.openTab) {
-			case Tab.M:
+			case Tab.R:
 				return fullMRect().Contains(mousePos);
 			case Tab.T:
 				return fullTRect().Contains(mousePos);
 			case Tab.C:
 				return fullCRect().Contains(mousePos);
-			case Tab.K:
+			case Tab.V:
 				return fullKRect().Contains(mousePos);
-			case Tab.I:
+			case Tab.B:
 				return fullIRect().Contains(mousePos);
 			default:
 				return false;
@@ -1527,8 +1528,8 @@ public class Unit : MonoBehaviour {
 		if (GUI.Button(gui.getTabButtonRect(Tab.C), "C", GameGUI.getTabButtonRightStyle())) {
 			gui.clickTab(Tab.C);
 		}
-		if (GUI.Button(gui.getTabButtonRect(Tab.K), "K", GameGUI.getTabButtonRightStyle())) {
-			gui.clickTab(Tab.K);
+		if (GUI.Button(gui.getTabButtonRect(Tab.V), "V", GameGUI.getTabButtonRightStyle())) {
+			gui.clickTab(Tab.V);
 		}
 		string sizeString = "<size=10>";
 		string sizeString12 = "<size=12>";
@@ -1632,10 +1633,14 @@ public class Unit : MonoBehaviour {
 		GUIContent skillNamesContent = new GUIContent(skillNamesString);
 		Vector2 skillNamesSize = statsStyle.CalcSize(skillNamesContent);
 		GUI.Label(new Rect(x, y, skillNamesSize.x, skillNamesSize.y), skillNamesContent, statsStyle);
-		string skillStatsString = characterSheet.skillScores.getScore(Skill.Athletics) + "<size=13> =(" + characterSheet.combatScores.getInitiative() + "+" + (characterSheet.skillScores.getScore(Skill.Athletics) - characterSheet.combatScores.getInitiative()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Melee) + "<size=13> =(" + characterSheet.combatScores.getInitiative() + "+" + (characterSheet.skillScores.getScore(Skill.Melee) - characterSheet.combatScores.getInitiative()) + ")</size>" + divString +
-			characterSheet.skillScores.getScore(Skill.Ranged) + "<size=13> =(" + characterSheet.combatScores.getCritical() + "+" + (characterSheet.skillScores.getScore(Skill.Ranged) - characterSheet.combatScores.getCritical()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Stealth) + "<size=13> =(" + characterSheet.combatScores.getCritical() + "+" + (characterSheet.skillScores.getScore(Skill.Stealth) - characterSheet.combatScores.getCritical()) + ")</size>" + divString +
-				characterSheet.skillScores.getScore(Skill.Mechanical)  + "<size=13> =(" + characterSheet.combatScores.getHandling() + "+" + (characterSheet.skillScores.getScore(Skill.Mechanical) - characterSheet.combatScores.getHandling()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + "<size=13> =(" + characterSheet.combatScores.getHandling() + "+" + (characterSheet.skillScores.getScore(Skill.Medicinal) - characterSheet.combatScores.getHandling()) + ")</size>" + divString +
-				characterSheet.skillScores.getScore(Skill.Historical)  + "<size=13> =(" + characterSheet.combatScores.getDominion() + "+" + (characterSheet.skillScores.getScore(Skill.Historical) - characterSheet.combatScores.getDominion()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Political) + "<size=13> =(" + characterSheet.combatScores.getDominion() + "+" + (characterSheet.skillScores.getScore(Skill.Political) - characterSheet.combatScores.getDominion()) + ")</size>";
+	//	string skillStatsString = characterSheet.skillScores.getScore(Skill.Athletics) + "<size=13> =(" + characterSheet.combatScores.getInitiative() + "+" + (characterSheet.skillScores.getScore(Skill.Athletics) - characterSheet.combatScores.getInitiative()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Melee) + "<size=13> =(" + characterSheet.combatScores.getInitiative() + "+" + (characterSheet.skillScores.getScore(Skill.Melee) - characterSheet.combatScores.getInitiative()) + ")</size>" + divString +
+	//		characterSheet.skillScores.getScore(Skill.Ranged) + "<size=13> =(" + characterSheet.combatScores.getCritical() + "+" + (characterSheet.skillScores.getScore(Skill.Ranged) - characterSheet.combatScores.getCritical()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Stealth) + "<size=13> =(" + characterSheet.combatScores.getCritical() + "+" + (characterSheet.skillScores.getScore(Skill.Stealth) - characterSheet.combatScores.getCritical()) + ")</size>" + divString +
+	//			characterSheet.skillScores.getScore(Skill.Mechanical)  + "<size=13> =(" + characterSheet.combatScores.getHandling() + "+" + (characterSheet.skillScores.getScore(Skill.Mechanical) - characterSheet.combatScores.getHandling()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + "<size=13> =(" + characterSheet.combatScores.getHandling() + "+" + (characterSheet.skillScores.getScore(Skill.Medicinal) - characterSheet.combatScores.getHandling()) + ")</size>" + divString +
+	//			characterSheet.skillScores.getScore(Skill.Historical)  + "<size=13> =(" + characterSheet.combatScores.getDominion() + "+" + (characterSheet.skillScores.getScore(Skill.Historical) - characterSheet.combatScores.getDominion()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Political) + "<size=13> =(" + characterSheet.combatScores.getDominion() + "+" + (characterSheet.skillScores.getScore(Skill.Political) - characterSheet.combatScores.getDominion()) + ")</size>";
+		string skillStatsString = characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.skillScores.getScore(Skill.Melee) + divString +
+			characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.skillScores.getScore(Skill.Stealth) + divString +
+				characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
+				characterSheet.skillScores.getScore(Skill.Historical)  + "\n" + characterSheet.skillScores.getScore(Skill.Political);
 		GUIContent skillStatsContent = new GUIContent(skillStatsString);
 		Vector2 skillStatsSize = statsStyle.CalcSize(skillStatsContent);
 		x += skillNamesSize.x + 10.0f;
@@ -1645,7 +1650,7 @@ public class Unit : MonoBehaviour {
 		GUIContent armorClassContent = new GUIContent(armorClass);
 		Vector2 armorClassSize = statsStyle.CalcSize(armorClassContent);
 		GUI.Label(new Rect((cMax.x + cMax.width - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClassContent, statsStyle);
-		if (gui.openTab == Tab.K) {
+		if (gui.openTab == Tab.V) {
 		//	GUI.DrawTexture(, bottomSheetTexture);
 			
 		}
@@ -1710,7 +1715,7 @@ public class Unit : MonoBehaviour {
 			float playerTextX = 45.0f + paperDollHeadSize;
 			GUI.Label(new Rect(playerTextX, playerTextY, playerTextSize.x, playerTextSize.y), playerContent, cStyle);
 			if (GUI.Button(new Rect(bannerX + bannerWidth - 25.0f - bagButtonSize, bannerY + bannerHeight - bagButtonSize - 15.0f, bagButtonSize, bagButtonSize), "", getBagButtonStyle())) {
-				gui.clickTab(Tab.I);
+				gui.clickTab(Tab.B);
 			}
 		}
 		else {
@@ -1769,7 +1774,7 @@ public class Unit : MonoBehaviour {
 			GUI.Label(new Rect(paperDollFullWidth - experienceSize.x - 5.0f, y, experienceSize.x, experienceSize.y), experience, textStyle);
 		}
 		/*
-		if (gui.openTab == Tab.M) {
+		if (gui.openTab == Tab.R) {
 			GUI.DrawTexture(new Rect(paperDollFullWidth - 1.0f, 0.0f, missionTabWidth + missionObjectivesWidth - 1.0f, missionTopHeight), getMissionTitleBackgroundTexture());
 			GUI.DrawTexture(new Rect(paperDollFullWidth + missionTabWidth - 2.0f, missionTopHeight - 1.0f, missionObjectivesWidth, missionObjectivesHeight), getMissionObjectivesBackgroundTexture());
 
@@ -1938,7 +1943,7 @@ public class Unit : MonoBehaviour {
 			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth/4.0f - healthSize.x/2.0f), y, healthSize.x, healthSize.y), healthAmount, st);
 			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth*2.0f/3.0f - composureSize.x/2.0f), y, composureSize.x, composureSize.y), composureAmount, st);
 		}
-		 if (gui.openTab == Tab.K || true) {
+		 if (gui.openTab == Tab.V || true) {
 			paperDollFullWidth += characterStatsWidth;
 			GUI.DrawTexture(fullKRect(), getSkillsBackgroundTexture());
 			GUIStyle titleStyle = getTitleTextStyle();
@@ -1981,7 +1986,7 @@ public class Unit : MonoBehaviour {
 
 			paperDollFullWidth -= characterStatsWidth;
 		}*/
-		if (gui.openTab == Tab.I) {
+		if (gui.inventoryOpen) {
 			Vector3 mousePos = Input.mousePosition;
 			mousePos.y = Screen.height - mousePos.y;
 			GUI.DrawTexture(fullIRect(), getInventoryBackgroundTexture());
@@ -2115,10 +2120,10 @@ public class Unit : MonoBehaviour {
 			}
 
 		}/*
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "M",(gui.openTab == Tab.M ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-		//	if (gui.openTab == Tab.M) gui.openTab = Tab.None;
-		//	else gui.openTab = Tab.M;
-			gui.clickTab(Tab.M);
+		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "R",(gui.openTab == Tab.R ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
+		//	if (gui.openTab == Tab.R) gui.openTab = Tab.None;
+		//	else gui.openTab = Tab.R;
+			gui.clickTab(Tab.R);
 		}*/
 //		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
 
@@ -3116,7 +3121,7 @@ public class Unit : MonoBehaviour {
 		else {
 			cPerc -= Time.deltaTime * Time.timeScale * tabSpeed;
 		}
-		if (gui.openTab == Tab.K) {
+		if (gui.openTab == Tab.V) {
 			kPerc += Time.deltaTime * Time.timeScale * tabSpeed;
 		}
 		else {

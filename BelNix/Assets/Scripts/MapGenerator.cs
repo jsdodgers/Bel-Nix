@@ -541,21 +541,21 @@ public class MapGenerator : MonoBehaviour {
 //			pl.mapGenerator = this;
 			pl.setMapGenerator(this);
 			pl.gui = gui;
-			players.Add(pl);
-			priorityOrder.Add(pl);
 			pl.loadCharacterSheetFromTextFile(chars[n]);
-			if (pl.characterSheet.characterSheet.combatScores.getMaxHealth() > 0) {
+			if (pl.characterSheet.characterSheet.combatScores.getCurrentHealth() > 0) {
 				p.transform.parent = Camera.main.transform;
+				players.Add(pl);
+				priorityOrder.Add(pl);
+				pl.addHair();
+				pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
+				sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
+				pl.rollInitiative();
+				selectionUnits.Add(pl);
 			}
 			else {
 				outOfGameUnits.Add(pl);
 				p.SetActive(false);
 			}
-			pl.addHair();
-			pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
-			sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
-			pl.rollInitiative();
-			selectionUnits.Add(pl);
             Debug.Log(pl.characterSheet.characterSheet.personalInformation.getCharacterName().fullName());
 		}
 		sortPriority();
@@ -1342,23 +1342,24 @@ public class MapGenerator : MonoBehaviour {
 				setGameState(GameState.Lost);
 			}
 		}
-		if (Input.GetKeyDown(KeyCode.M)) {
-//			gui.clickTab(Tab.M);
-			gui.clipboardTab = Tab.M;
+		if (Input.GetKeyDown(KeyCode.R)) {
+//			gui.clickTab(Tab.R);
+			gui.clipboardTab = Tab.R;
 		}
 		if (Input.GetKeyDown(KeyCode.C)) {
 			gui.clickTab(Tab.C);
 		}
-		if (Input.GetKeyDown(KeyCode.K)) {
-			gui.clickTab(Tab.K);
+		if (Input.GetKeyDown(KeyCode.V)) {
+			gui.clickTab(Tab.V);
 		}
 		if (Input.GetKeyDown(KeyCode.I)) {
-			gui.clickTab(Tab.I);
+			gui.clickTab(Tab.B);
 		}
+		/*
 		if (Input.GetKeyDown(KeyCode.R)) {
 			gui.clickStandard();
 	//		gui.openTab = (gui.openTab==Tab.T ? Tab.None : Tab.T);
-		}
+		}*/
 		if (Input.GetKeyDown(KeyCode.L)) {
 			gui.selectMinor(MinorType.Loot);
 		}
@@ -1375,9 +1376,11 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Q)) {
 			gui.clickWait();
 		}
+		/*
 		if (Input.GetKeyDown(KeyCode.B)) {
 			gui.selectMovement(MovementType.BackStep);
 		}
+		*/
 		if (Input.GetKeyDown(KeyCode.V)) {
 			gui.selectMovement(MovementType.Move);
 		}
@@ -2056,7 +2059,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (gui.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.selectItem();
 			}
 		}
@@ -2284,7 +2287,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
 		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (gui.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.deselectItem();
 			}
 		}

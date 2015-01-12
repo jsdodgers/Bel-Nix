@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public enum Tab {M, C, K, I, T, Cancel, None}
+public enum Tab {R, C, V, B, T, Cancel, None}
 public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
 
@@ -224,17 +224,17 @@ public class GameGUI : MonoBehaviour {
 	public Rect getTabButtonRect(Tab t) {
 		float x = 0.0f;
 		float y = 0.0f;
-		if (t == Tab.T || t == Tab.M) {
+		if (t == Tab.T || t == Tab.R) {
 			x = clipBoardBodyRect().x - tabButtonSize.x;
 			y = clipBoardBodyRect().y + 10.0f;
-			if (t == Tab.M) {
+			if (t == Tab.R) {
 				y += tabButtonSize.y + 5.0f;
 			}
 		}
-		else if (t == Tab.C || t == Tab.K) {
+		else if (t == Tab.C || t == Tab.V) {
 			x = Unit.bannerX + Unit.bannerWidth - 20.0f;
 			y = 0.0f;
-			if (t == Tab.K) {
+			if (t == Tab.V) {
 				y += tabButtonSize.y + 5.0f;
 			}
 		}
@@ -312,7 +312,7 @@ public class GameGUI : MonoBehaviour {
 			else {
 				if (clipBoardBodyRect().Contains(mousePos)) return true;
 				if (clipBoardClipRect().Contains(mousePos)) return true;
-				if (getTabButtonRect(Tab.T).Contains(mousePos) || getTabButtonRect(Tab.M).Contains(mousePos)) return true;
+				if (getTabButtonRect(Tab.T).Contains(mousePos) || getTabButtonRect(Tab.R).Contains(mousePos)) return true;
 			}
 			if (mapGenerator.selectedUnit != null) {
 				bool onPlayer = mapGenerator.selectedUnits.Count == 0 && mapGenerator.selectedUnit.guiContainsMouse(mousePos);
@@ -1085,14 +1085,14 @@ public class GameGUI : MonoBehaviour {
 			if (GUI.Button(getTabButtonRect(Tab.T), "T", getTabButtonStyle()) && interact) {
 				clipboardTab = Tab.T;
 			}
-			if (GUI.Button(getTabButtonRect(Tab.M), "M", getTabButtonStyle()) && interact) {
-				clipboardTab = Tab.M;
+			if (GUI.Button(getTabButtonRect(Tab.R), "R", getTabButtonStyle()) && interact) {
+				clipboardTab = Tab.R;
 			}
 			GUI.DrawTexture(clipBoardRect, clipBoardBodyTexture);
 			if (GUI.Button(clipBoardClipRect(), "", getClipBoardClipStyle()) && interact) {
 				clipboardUp = !clipboardUp;
 			}
-			if (clipboardTab == Tab.M) {
+			if (clipboardTab == Tab.R) {
 				float y = clipBoardRect.y + 10.0f;
 				GUIStyle titleStyle = getTitleTextStyle();
 				GUIContent turnOrder = new GUIContent("Missions");
@@ -1291,7 +1291,7 @@ public class GameGUI : MonoBehaviour {
 				}
 				enabled = p.minorsLeft > 0;//!p.usedMinor1 || !p.usedMinor2;
 				if (selectedMinor && p.minorsLeft==0) {
-					if (selectedMinorType == MinorType.Loot) previouslyOpenTab = Tab.I;
+		//			if (selectedMinorType == MinorType.Loot) previouslyOpenTab = Tab.B;
 					deselectMinor();//selectedMinor = false;
 				}
 				if (GUI.Button(minorButtonRect(), "", (p.minorsLeft <= 0 ? getDisabledButtonStyle("minor") : (selectedMinor ? getSelectedButtonStyle("minor") : getNonSelectedButtonStyle("minor")))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI() && interact) {
@@ -1661,7 +1661,8 @@ public class GameGUI : MonoBehaviour {
 	void deselectMinor() {
 		if (looting) {
 			looting = false;
-			openTab = previouslyOpenTab;
+			inventoryOpen = inventoryWasOpenLoot;
+//			openTab = previouslyOpenTab;
 		}
 		selectedMinor = false;
 	}
@@ -1684,34 +1685,37 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public void clickTab(Tab tab) {
-		if (looting) {
-			selectedMinorType = MinorType.None;
-			selectMinorType(MinorType.None);
-//			looting = false;
-			previouslyOpenTab = Tab.Cancel;
-
+		if (tab == Tab.B) {
+			if (looting) {
+				selectedMinorType = MinorType.None;
+				selectMinorType(MinorType.None);
+			}
+			else inventoryOpen = !inventoryOpen;
+			return;
 		}
 		if (openTab==tab) openTab = Tab.None;
 		else openTab = tab;
 	}
 
 	public bool looting = false;
-	public Tab previouslyOpenTab = Tab.None;
+	public bool inventoryOpen = false;
+	public bool inventoryWasOpenLoot = false;
+//	public Tab previouslyOpenTab = Tab.None;
 	public void selectMinorType(MinorType t) {
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case MinorType.Loot:
 			looting = true;
-			previouslyOpenTab = openTab;
-			openTab = Tab.I;
+			inventoryWasOpenLoot = inventoryOpen;
+			inventoryOpen = true;
 			break;
 		case MinorType.Cancel:
 		default:
-			if (previouslyOpenTab != Tab.Cancel)
-				openTab = previouslyOpenTab;
-			previouslyOpenTab = Tab.Cancel;
-			looting = false;
+			if (looting) {
+				inventoryOpen = inventoryWasOpenLoot;
+				looting = false;
+			}
 			break;
 		}
 	}
