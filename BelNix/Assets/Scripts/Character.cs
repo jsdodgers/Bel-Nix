@@ -12,7 +12,7 @@ public struct Hit {
 	public Hit(int h, bool c) {hit = h; crit = c;}
 }
 
-public class Character : MonoBehaviour
+public class Character
 {
 	public PersonalInformation personalInfo;
 	public CharacterProgress characterProgress;
@@ -22,6 +22,7 @@ public class Character : MonoBehaviour
 	public SkillScores skillScores;
 	public CharacterSheet characterSheet;
 	public Unit unit;
+	public string characterId;
 //	public ItemWeapon mainHand;
 
 

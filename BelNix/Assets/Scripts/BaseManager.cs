@@ -11,11 +11,15 @@ public class BaseManager : MonoBehaviour {
         // This has to be added to whenever a mission ends
         // This has to be subtracted from whenever a purchase is made
             // (or upkeep is charged)
-
+	public enum BaseState { Save, Mission, Barracks, None };
+	private BaseState baseState = BaseState.None;
+	Character displayedCharacter = null;
+	Character hoveredCharacter = null;
+	List<Character> units;
 	string saveName = "";
 	string[] saves;
-	bool saving = false;
-
+//	bool saving = false;
+	bool levelup = false;
 	bool middleDraggin = false;
 	bool rightDraggin = false;
 	
@@ -26,6 +30,7 @@ public class BaseManager : MonoBehaviour {
 	public string[] missions = new string[]{"Test Map 1", "Test Map 2"};
 	public int[] missionLevels = new int[]{4, 3};
 	Vector2 savesScrollPos = new Vector2();
+	Vector2 barracksScrollPos = new Vector2();
 
 	GameObject hoveredObject;
 
@@ -34,8 +39,18 @@ public class BaseManager : MonoBehaviour {
 
 	int oldTouchCount = 0;
 	Vector3 lastPos = new Vector3();
+	static Texture2D barracksTexture;
 	// Use this for initialization
 	void Start () {
+		units = new List<Character>();
+		string[] chars = Saves.getCharacterList();
+		for (int n=0;n<chars.Length-1;n++) {
+			Character ch = new Character();
+			ch.loadCharacterFromTextFile(chars[n]);
+			ch.characterId = chars[n];
+			units.Add(ch);
+		}
+		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		tooltips = new Dictionary<string, string>();
 		tooltips.Add("barracks", "Barracks");
 		tooltips.Add("engineering", "Create Traps and Turrets");
@@ -43,16 +58,17 @@ public class BaseManager : MonoBehaviour {
 		tooltips.Add("map", "Open Map");
 		tooltips.Add("infirmary", "Infirmary");
 		tooltips.Add("newcharacter", "Create a new Character");
-		int n=0;
+		int nn=0;
 		do {
-			n++;
-			saveName = "Save " + n;
+			nn++;
+			saveName = "Save " + nn;
 		} while (Saves.hasSaveFileNamed(saveName));
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		handleInput();
+		UnitGUI.doTabs();
 	}
 
 	void handleInput() {
@@ -70,11 +86,19 @@ public class BaseManager : MonoBehaviour {
 					Application.LoadLevel(0);
 				else if (hoveredObject.tag=="map") {
 					loadMapScrollPos = new Vector2();
-					choosingMap = true;
+					baseState = BaseState.Mission;
+				}
+				else if (hoveredObject.tag=="barracks") {
+					barracksScrollPos = new Vector2();
+					baseState = BaseState.Barracks;
 				}
 				else if (hoveredObject.tag=="newcharacter") {
 					Application.LoadLevel(1);
 				}
+			}
+			if (!levelup) {
+				if (hoveredCharacter == displayedCharacter) displayedCharacter = null;
+				else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
 			}
 		}
 	}
@@ -142,7 +166,7 @@ public class BaseManager : MonoBehaviour {
 		//		Physics2D.Ray
 		GameObject go = null;
 		if (hit.collider != null) go = hit.collider.gameObject;
-		if (saving || choosingMap) go = null;
+		if (baseState != BaseState.None) go = null;
 		if (go != hoveredObject) {
 			if (hoveredObject != null) {
 				hoveredObject.transform.localScale = new Vector3(1, 1, 1);
@@ -169,13 +193,14 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	string oldSaveName;
-	bool choosingMap = false;
+//	bool choosingMap = false;
 	Vector2 loadMapScrollPos = new Vector2();
 	void OnGUI() {
-		if (!saving && !choosingMap) {
+		hoveredCharacter = null;
+		if (baseState == BaseState.None) {
 			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game")) {
 				saves = Saves.getSaveFiles();
-				saving = true;
+				baseState = BaseState.Save;
 				oldSaveName = saveName;
 				savesScrollPos = new Vector2();
 				string savesSt = "";
@@ -195,7 +220,7 @@ public class BaseManager : MonoBehaviour {
 			float y = 0.0f;	
 			GUI.Label(new Rect(x, y, size.x, size.y), toolContent, st);
 		}
-		else if (choosingMap) {
+		else if (baseState == BaseState.Mission) {
 			float boxHeight = 250.0f;
 			float boxWidth = 200.0f;
 			float boxX = (Screen.width - boxWidth)/2.0f;
@@ -211,10 +236,10 @@ public class BaseManager : MonoBehaviour {
 			}
 			GUI.EndScrollView();
 			if (GUI.Button(new Rect(buttX, boxY + 25.0f + 40.0f * 4 + 10.0f, buttWidth, 40.0f), "Cancel")) {
-				choosingMap = false;
+				baseState = BaseState.None;
 			}
 		}
-		else {
+		else if (baseState == BaseState.Save) {
 			float width = 250.0f;
 			float height = Screen.height * .8f;
 			float x = (Screen.width - width)/2.0f;
@@ -227,12 +252,12 @@ public class BaseManager : MonoBehaviour {
 			float buttonX1 = x + 15.0f;
 			float buttonX2 = buttonX1 + buttonWidth + 20.0f;
 			if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel")) {
-				saving = false;
+				baseState = BaseState.None;
 				saveName = oldSaveName;
 			}
 			if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Save")) {
 				Saves.saveAs(saveName);
-				saving = false;
+				baseState = BaseState.None;
 			}
 			float textFieldHeight = 25.0f;
 			saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
@@ -256,6 +281,80 @@ public class BaseManager : MonoBehaviour {
 			}
 			GUI.EndScrollView();
 		}
+		else if (baseState == BaseState.Barracks) {
+			int numHeight = 8;
+			float topHeight = 20.0f;
+			float buttonHeight = 40.0f;
+			float buttonWidth = 200.0f;
+			float bottomHeight = buttonHeight + 5.0f*2;
+			Vector2 eachSize = new Vector2(476, 79);
+			Vector2 totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
+			while (totalSize.y > Screen.height - 50.0f && numHeight > 1) {
+				numHeight--;
+				totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
+			}
+			Vector2 boxOrigin = new Vector2((Screen.width - totalSize.x)/2.0f, (Screen.height - totalSize.y)/2.0f);
+			GUI.Box(new Rect(boxOrigin.x, boxOrigin.y, totalSize.x, totalSize.y), "Barracks");
+			barracksScrollPos = GUI.BeginScrollView(new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight, eachSize.x + 16.0f, eachSize.y * numHeight), barracksScrollPos, new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight, eachSize.x, eachSize.y * units.Count));
+			for (int n=0;n<units.Count;n++) {
+				Character u = units[n];
+				Rect totalRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + n*eachSize.y, eachSize.x, eachSize.y);
+				GUI.DrawTexture(totalRect, barracksTexture);
+				int largeSize = 16;
+				int smallSize = 12;
+				string startSize = "<size=" + smallSize + ">";
+				string endSize = "</size>";
+				GUIStyle st = getUnitInfoStyle(largeSize);
+				string info = UnitGUI.getSmallCapsString(u.characterSheet.personalInformation.getCharacterName().fullName(), smallSize) + "\n" +
+					UnitGUI.getSmallCapsString(u.characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), smallSize) + " \n" +
+						UnitGUI.getSmallCapsString(u.characterSheet.personalInformation.getCharacterRace().getRaceString(), smallSize) + "\n" +
+						UnitGUI.getSmallCapsString(u.characterSheet.personalInformation.getCharacterBackground().ToString(), smallSize);
+				GUIContent infoCont = new GUIContent(info);
+				Vector2 infoSize = st.CalcSize(infoCont);
+				GUI.Label(new Rect(boxOrigin.x + 25.0f, boxOrigin.y + topHeight + n*eachSize.y, eachSize.x - 5.0f, eachSize.y), infoCont, st);
+				string exp = UnitGUI.getSmallCapsString("Level", smallSize) + ":" + startSize + u.characterSheet.characterProgress.getCharacterLevel() + endSize + "\n" +
+					UnitGUI.getSmallCapsString("Experience", smallSize) + ":" + startSize + u.characterSheet.characterProgress.getCharacterExperience() + "/" + (u.characterSheet.characterProgress.getCharacterLevel()*100) + endSize + "\n" +
+						UnitGUI.getSmallCapsString("Health", smallSize) + ":" + startSize + u.characterSheet.combatScores.getCurrentHealth() + "/" + u.characterSheet.combatScores.getMaxHealth() + endSize + "\n" +
+						UnitGUI.getSmallCapsString("Composure", smallSize) + ":" + startSize + u.characterSheet.combatScores.getCurrentComposure() + "/" + u.characterSheet.combatScores.getMaxComposure() + endSize;
+				GUIContent expCont = new GUIContent(exp);
+				Vector2 expSize = st.CalcSize(expCont);
+				float expWidth = 150.0f;
+				float expX = boxOrigin.x + 20.0f + eachSize.x - expWidth;
+				float y = boxOrigin.y + topHeight + n*eachSize.y;
+				GUI.Label(new Rect(expX, y, expWidth, eachSize.y), expCont, st);
+				Vector2 levelUpSize = new Vector2(70.0f, expSize.y/2.0f - 15.0f);
+				Rect levelUpRect = new Rect(expX - levelUpSize.x - 5.0f, y + 10.0f, levelUpSize.x, levelUpSize.y);
+				bool haslevelup = false;
+				if (u.characterSheet.characterProgress.canLevelUp()) {
+					if (GUI.Button(levelUpRect, "Level Up!")) {
+						Debug.Log("Level Up!!");
+					}
+					if (levelUpRect.Contains(Event.current.mousePosition)) haslevelup = true;
+				}
+				if (!haslevelup) {
+					if (totalRect.Contains(Event.current.mousePosition)) hoveredCharacter = u;
+				}
+			}
+			GUI.EndScrollView();
+			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel")) {
+				baseState = BaseState.None;
+				displayedCharacter = null;
+			}
+			if (displayedCharacter != null) {
+				UnitGUI.drawGUI(displayedCharacter, null, null);
+			}
+		}
+	}
+
+	static GUIStyle unitInfoStyle;
+	static GUIStyle getUnitInfoStyle(int fontSize) {
+		if (unitInfoStyle==null) {
+			unitInfoStyle = new GUIStyle("Label");
+			unitInfoStyle.font = Resources.Load<Font>("Fonts/Courier New");
+			unitInfoStyle.active.textColor = unitInfoStyle.normal.textColor = unitInfoStyle.hover.textColor = Color.black;
+		}
+		unitInfoStyle.fontSize = fontSize;
+		return unitInfoStyle;
 	}
 
 }

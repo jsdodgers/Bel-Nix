@@ -105,7 +105,7 @@ public class Log : MonoBehaviour {
 			needsScrollSet = false;
 			hasScroller = getHeight(left, right) > consoleHeight;
 		}
-		if (gui.mapGenerator.isInCharacterPlacement()) return;
+		if (GameGUI.mapGenerator.isInCharacterPlacement()) return;
 		GUIStyle st = getLogMessageStyle(Color.white);
 		float consoleWidth = Screen.width;
 		float height = getHeight(left, right);
