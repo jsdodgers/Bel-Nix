@@ -629,7 +629,7 @@ public class Unit : MonoBehaviour {
 		Unit enemy = closestEnemy();
 		if (!usedMovement) {
 			if (closestDist > 1) {
-				
+				currentMoveDist = 5;
 				List<Unit> units = new List<Unit>();
 				foreach (Unit u in mapGenerator.priorityOrder) {
 					if (team != u.team && !u.deadOrDyingOrUnconscious()) {

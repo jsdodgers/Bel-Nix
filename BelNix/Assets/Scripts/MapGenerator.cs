@@ -1331,6 +1331,9 @@ public class MapGenerator : MonoBehaviour {
 			else if (Input.GetKeyDown(KeyCode.L)) {
 				setGameState(GameState.Lost);
 			}
+			else if (Input.GetKeyDown(KeyCode.K)) {
+				getCurrentUnit().damage(1000,null);
+			}
 		}
 		if (Input.GetKeyDown(KeyCode.R)) {
 //			gui.clickTab(Tab.R);
