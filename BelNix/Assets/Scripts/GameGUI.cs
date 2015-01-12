@@ -6,8 +6,9 @@ using System.Linq;
 public enum Tab {R, C, V, B, T, Cancel, None}
 public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
-
-	public MapGenerator mapGenerator;
+	
+	static Unit hovering = null;
+	public static MapGenerator mapGenerator;
 	public Log log;
 	GUIStyle playerNormalStyle;
 	GUIStyle playerBoldStyle;
@@ -39,10 +40,9 @@ public class GameGUI : MonoBehaviour {
 	public bool turretDirection = false;
 	public MovementType selectedMovementType = MovementType.None;
 	public StandardType selectedStandardType = StandardType.None;
-	public MinorType selectedMinorType = MinorType.None;
+	public static MinorType selectedMinorType = MinorType.None;
 
 
-	public Tab openTab = Tab.None;
 	public Tab clipboardTab = Tab.T;
 	public Mission openMission = Mission.Primary;
 
@@ -72,7 +72,7 @@ public class GameGUI : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		UnitGUI.doTabs(this);
+		UnitGUI.doTabs();
 	}
 	
 	Texture2D makeTex( int width, int height, Color col )
@@ -220,8 +220,8 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
-	Vector2 tabButtonSize = new Vector2(45.0f, 60.0f);
-	public Rect getTabButtonRect(Tab t) {
+	static Vector2 tabButtonSize = new Vector2(45.0f, 60.0f);
+	public static Rect getTabButtonRect(Tab t) {
 		float x = 0.0f;
 		float y = 0.0f;
 		if (t == Tab.T || t == Tab.R) {
@@ -240,18 +240,18 @@ public class GameGUI : MonoBehaviour {
 		}
 		return new Rect(x, y, tabButtonSize.x, tabButtonSize.y);
 	}
-	public bool clipboardUp = true;
+	public static bool clipboardUp = true;
 	public const float clipboardBodyWidth = 158.0f;
-	public Vector2 clipboardBodySize() {
+	public static Vector2 clipboardBodySize() {
 		return new Vector2(clipboardBodyWidth, (clipboardUp ? 250.0f : 160.0f));
 	}
-	public Vector2 clipboardClipSize() {
+	public static Vector2 clipboardClipSize() {
 		return new Vector2(150.0f, 50.0f);
 	}
-	public Rect clipBoardBodyRect() {
+	public static Rect clipBoardBodyRect() {
 		return new Rect(Screen.width - clipboardBodySize().x, Screen.height - clipboardBodySize().y, clipboardBodySize().x, clipboardBodySize().y);
 	}
-	public Rect clipBoardClipRect() {
+	public static Rect clipBoardClipRect() {
 		return new Rect(clipBoardBodyRect().x + (clipboardBodySize().x - clipboardClipSize().x)/2.0f, clipBoardBodyRect().y + 10.0f - clipboardClipSize().y, clipboardClipSize().x, clipboardClipSize().y);
 	}
 
@@ -1587,6 +1587,17 @@ public class GameGUI : MonoBehaviour {
 			}
 		}
 	//	Debug.Log("OnGUIEnd");
+		
+		string tt = GUI.tooltip;
+		if (tt != null && tt!="") {
+			int num = int.Parse(tt);
+			if (hovering != null) hovering.removeHovering();
+			hovering = mapGenerator.priorityOrder[num];
+			hovering.setHovering();
+		}
+		else if (hovering != null) {
+			hovering.removeHovering();
+		}
 	}
 
 	public Rect getMenuRect(int num, bool escape=false) {
@@ -1661,7 +1672,7 @@ public class GameGUI : MonoBehaviour {
 	void deselectMinor() {
 		if (looting) {
 			looting = false;
-			inventoryOpen = inventoryWasOpenLoot;
+			UnitGUI.inventoryOpen = inventoryWasOpenLoot;
 //			openTab = previouslyOpenTab;
 		}
 		selectedMinor = false;
@@ -1684,36 +1695,23 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.resetRanges();
 	}
 
-	public void clickTab(Tab tab) {
-		if (tab == Tab.B) {
-			if (looting) {
-				selectedMinorType = MinorType.None;
-				selectMinorType(MinorType.None);
-			}
-			else inventoryOpen = !inventoryOpen;
-			return;
-		}
-		if (openTab==tab) openTab = Tab.None;
-		else openTab = tab;
-	}
 
-	public bool looting = false;
-	public bool inventoryOpen = false;
-	public bool inventoryWasOpenLoot = false;
+	public static bool looting = false;
+	public static bool inventoryWasOpenLoot = false;
 //	public Tab previouslyOpenTab = Tab.None;
-	public void selectMinorType(MinorType t) {
+	public static void selectMinorType(MinorType t) {
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case MinorType.Loot:
 			looting = true;
-			inventoryWasOpenLoot = inventoryOpen;
-			inventoryOpen = true;
+			inventoryWasOpenLoot = UnitGUI.inventoryOpen;
+			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Cancel:
 		default:
 			if (looting) {
-				inventoryOpen = inventoryWasOpenLoot;
+				UnitGUI.inventoryOpen = inventoryWasOpenLoot;
 				looting = false;
 			}
 			break;

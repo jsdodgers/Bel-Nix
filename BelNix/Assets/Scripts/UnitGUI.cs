@@ -5,7 +5,6 @@ using CharacterInfo;
 using CombatSystem;
 
 public class UnitGUI {
-	static Unit hovering = null;
 	static Texture2D playerBannerTexture;
 	static Texture2D bottomSheetTexture;
 	static Texture2D portraitBorderTexture;
@@ -42,7 +41,22 @@ public class UnitGUI {
 	public static float groundX = baseX + armorWidth;
 	public static float groundWidth = inventoryWidth + (Screen.width - inventoryWidth)/2.0f - groundX - 3.0f;
 
-
+	
+	public static Tab openTab = Tab.None;
+	public static bool inventoryOpen = false;
+	
+	public static void clickTab(Tab tab) {
+		if (tab == Tab.B) {
+			if (GameGUI.looting) {
+				GameGUI.selectedMinorType = MinorType.None;
+				GameGUI.selectMinorType(MinorType.None);
+			}
+			else inventoryOpen = !inventoryOpen;
+			return;
+		}
+		if (openTab==tab) openTab = Tab.None;
+		else openTab = tab;
+	}
 	
 	static GUIStyle courierStyle;
 	static GUIStyle getCourierStyle(int size) {
@@ -303,17 +317,17 @@ public class UnitGUI {
 	public static Rect fullIRect() {
 		return new Rect((Screen.width - inventoryWidth)/2.0f, 0.0f, inventoryWidth, inventoryHeight);
 	}
-	public static bool containsMouse(Vector2 mousePos, GameGUI gui) {
+	public static bool containsMouse(Vector2 mousePos) {
 		Rect kRect = new Rect (kMin.x + (kMax.x - kMin.x) * kPerc, kMin.y + (kMax.y - kMin.y) * kPerc, kMin.width + (kMax.width - kMin.width) * kPerc, kMin.height + (kMax.height - kMin.height) * kPerc - 18.0f);
 		Rect cRect = new Rect (cMin.x + (cMax.x - cMin.x) * cPerc, cMin.y + (cMax.y - cMin.y) * cPerc, cMin.width + (cMax.width - cMin.width) * cPerc, cMin.height + (cMax.height - cMin.height) * cPerc - 18.0f);
 		if (kRect.Contains(mousePos) || cRect.Contains(mousePos)) return true;
-		if (gui.inventoryOpen && fullIRect().Contains(mousePos)) return true;
+		if (inventoryOpen && fullIRect().Contains(mousePos)) return true;
 		if (new Rect(UnitGUI.bannerX, UnitGUI.bannerY, UnitGUI.bannerWidth, UnitGUI.bannerHeight).Contains(mousePos)) return true;
-		if (gui.getTabButtonRect(Tab.C).Contains(mousePos) || gui.getTabButtonRect(Tab.V).Contains(mousePos)) return true;
+		if (GameGUI.getTabButtonRect(Tab.C).Contains(mousePos) || GameGUI.getTabButtonRect(Tab.V).Contains(mousePos)) return true;
 		return false;
 	}
 
-	public static void drawGUI(Character characterSheet, GameGUI gui, MapGenerator mapGenerator, Unit u) {
+	public static void drawGUI(Character characterSheet, MapGenerator mapGenerator, Unit u) {
 		Item selectedItem = null;
 		Vector2 selectedCell = new Vector2();
 		Vector2 selectedItemPos = new Vector2();
@@ -331,11 +345,13 @@ public class UnitGUI {
 			bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 			portraitBorderTexture = Resources.Load<Texture>("UI/portrait-border") as Texture2D;
 		}
-		if (GUI.Button(gui.getTabButtonRect(Tab.C), "C", GameGUI.getTabButtonRightStyle())) {
-			gui.clickTab(Tab.C);
+		if (GUI.Button(GameGUI.getTabButtonRect(Tab.C), "C", GameGUI.getTabButtonRightStyle())) {
+			Debug.Log("Click C - " + openTab);
+			clickTab(Tab.C);
 		}
-		if (GUI.Button(gui.getTabButtonRect(Tab.V), "V", GameGUI.getTabButtonRightStyle())) {
-			gui.clickTab(Tab.V);
+		if (GUI.Button(GameGUI.getTabButtonRect(Tab.V), "V", GameGUI.getTabButtonRightStyle())) {
+			Debug.Log("Click V");
+			clickTab(Tab.V);
 		}
 		string sizeString = "<size=10>";
 		string sizeString12 = "<size=12>";
@@ -463,10 +479,10 @@ public class UnitGUI {
 		float playerTextX = 45.0f + paperDollHeadSize;
 		GUI.Label(new Rect(playerTextX, playerTextY, playerTextSize.x, playerTextSize.y), playerContent, cStyle);
 		if (GUI.Button(new Rect(bannerX + bannerWidth - 25.0f - bagButtonSize, bannerY + bannerHeight - bagButtonSize - 15.0f, bagButtonSize, bagButtonSize), "", getBagButtonStyle())) {
-			gui.clickTab(Tab.B);
+			clickTab(Tab.B);
 		}
 
-		if (gui.inventoryOpen) {
+		if (inventoryOpen) {
 			Vector3 mousePos = Input.mousePosition;
 			mousePos.y = Screen.height - mousePos.y;
 			GUI.DrawTexture(fullIRect(), getInventoryBackgroundTexture());
@@ -600,28 +616,18 @@ public class UnitGUI {
 			}
 			
 		}
-		string tt = GUI.tooltip;
-		if (tt != null && tt!="") {
-			int num = int.Parse(tt);
-			if (hovering != null) hovering.removeHovering();
-			hovering = mapGenerator.priorityOrder[num];
-			hovering.setHovering();
-		}
-		else if (hovering != null) {
-			hovering.removeHovering();
-		}
 	}
 
 	
 	const float tabSpeed = 4.0f;
-	public static void doTabs(GameGUI gui) {
-		if (gui.openTab==Tab.C) {
+	public static void doTabs() {
+		if (openTab==Tab.C) {
 			cPerc += Time.deltaTime * Time.timeScale * tabSpeed;
 		}
 		else {
 			cPerc -= Time.deltaTime * Time.timeScale * tabSpeed;
 		}
-		if (gui.openTab == Tab.V) {
+		if (openTab == Tab.V) {
 			kPerc += Time.deltaTime * Time.timeScale * tabSpeed;
 		}
 		else {

@@ -13,11 +13,13 @@ public class BaseManager : MonoBehaviour {
             // (or upkeep is charged)
 	public enum BaseState { Save, Mission, Barracks, None };
 	private BaseState baseState = BaseState.None;
+	Character displayedCharacter = null;
+	Character hoveredCharacter = null;
 	List<Character> units;
 	string saveName = "";
 	string[] saves;
 //	bool saving = false;
-
+	bool levelup = false;
 	bool middleDraggin = false;
 	bool rightDraggin = false;
 	
@@ -66,6 +68,7 @@ public class BaseManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		handleInput();
+		UnitGUI.doTabs();
 	}
 
 	void handleInput() {
@@ -92,6 +95,10 @@ public class BaseManager : MonoBehaviour {
 				else if (hoveredObject.tag=="newcharacter") {
 					Application.LoadLevel(1);
 				}
+			}
+			if (!levelup) {
+				if (hoveredCharacter == displayedCharacter) displayedCharacter = null;
+				else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
 			}
 		}
 	}
@@ -189,6 +196,7 @@ public class BaseManager : MonoBehaviour {
 //	bool choosingMap = false;
 	Vector2 loadMapScrollPos = new Vector2();
 	void OnGUI() {
+		hoveredCharacter = null;
 		if (baseState == BaseState.None) {
 			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game")) {
 				saves = Saves.getSaveFiles();
@@ -290,7 +298,8 @@ public class BaseManager : MonoBehaviour {
 			barracksScrollPos = GUI.BeginScrollView(new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight, eachSize.x + 16.0f, eachSize.y * numHeight), barracksScrollPos, new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight, eachSize.x, eachSize.y * units.Count));
 			for (int n=0;n<units.Count;n++) {
 				Character u = units[n];
-				GUI.DrawTexture(new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + n*eachSize.y, eachSize.x, eachSize.y), barracksTexture);
+				Rect totalRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + n*eachSize.y, eachSize.x, eachSize.y);
+				GUI.DrawTexture(totalRect, barracksTexture);
 				int largeSize = 16;
 				int smallSize = 12;
 				string startSize = "<size=" + smallSize + ">";
@@ -308,12 +317,31 @@ public class BaseManager : MonoBehaviour {
 						UnitGUI.getSmallCapsString("Health", smallSize) + ":" + startSize + u.characterSheet.combatScores.getCurrentHealth() + "/" + u.characterSheet.combatScores.getMaxHealth() + endSize + "\n" +
 						UnitGUI.getSmallCapsString("Composure", smallSize) + ":" + startSize + u.characterSheet.combatScores.getCurrentComposure() + "/" + u.characterSheet.combatScores.getMaxComposure() + endSize;
 				GUIContent expCont = new GUIContent(exp);
+				Vector2 expSize = st.CalcSize(expCont);
 				float expWidth = 150.0f;
-				GUI.Label(new Rect(boxOrigin.x + 20.0f + eachSize.x - expWidth, boxOrigin.y + topHeight + n*eachSize.y, expWidth, eachSize.y), expCont, st);
+				float expX = boxOrigin.x + 20.0f + eachSize.x - expWidth;
+				float y = boxOrigin.y + topHeight + n*eachSize.y;
+				GUI.Label(new Rect(expX, y, expWidth, eachSize.y), expCont, st);
+				Vector2 levelUpSize = new Vector2(70.0f, expSize.y/2.0f - 15.0f);
+				Rect levelUpRect = new Rect(expX - levelUpSize.x - 5.0f, y + 10.0f, levelUpSize.x, levelUpSize.y);
+				bool haslevelup = false;
+				if (u.characterSheet.characterProgress.canLevelUp()) {
+					if (GUI.Button(levelUpRect, "Level Up!")) {
+						Debug.Log("Level Up!!");
+					}
+					if (levelUpRect.Contains(Event.current.mousePosition)) haslevelup = true;
+				}
+				if (!haslevelup) {
+					if (totalRect.Contains(Event.current.mousePosition)) hoveredCharacter = u;
+				}
 			}
 			GUI.EndScrollView();
 			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel")) {
 				baseState = BaseState.None;
+				displayedCharacter = null;
+			}
+			if (displayedCharacter != null) {
+				UnitGUI.drawGUI(displayedCharacter, null, null);
 			}
 		}
 	}

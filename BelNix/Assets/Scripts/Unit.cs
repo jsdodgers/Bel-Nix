@@ -1043,7 +1043,7 @@ public class Unit : MonoBehaviour {
 	const float skillsHeight = paperDollFullHeight;
 
 	public bool guiContainsMouse(Vector2 mousePos) {
-		if (UnitGUI.containsMouse(mousePos, gui)) return true;
+		if (UnitGUI.containsMouse(mousePos)) return true;
 		return false;
 	}
 	public Rect fullCharacterRect() {
@@ -1151,7 +1151,7 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (!gui.looting || mousePos.x < UnitGUI.groundX || mousePos.y < UnitGUI.groundY || mousePos.x > UnitGUI.groundX + UnitGUI.groundWidth || mousePos.y > UnitGUI.groundY + UnitGUI.groundHeight) return;
+		if (!GameGUI.looting || mousePos.x < UnitGUI.groundX || mousePos.y < UnitGUI.groundY || mousePos.x > UnitGUI.groundX + UnitGUI.groundWidth || mousePos.y > UnitGUI.groundY + UnitGUI.groundHeight) return;
 		Vector2 scrollOff = UnitGUI.groundScrollPosition;
 		float div = 20.0f;
 		float y = div + UnitGUI.groundY - scrollOff.y;
@@ -1219,7 +1219,7 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
-		if (gui.looting && !(mousePos.x < UnitGUI.groundX || mousePos.y < UnitGUI.groundY || mousePos.x > UnitGUI.groundX + UnitGUI.groundWidth || mousePos.y > UnitGUI.groundY + UnitGUI.groundHeight)) {
+		if (GameGUI.looting && !(mousePos.x < UnitGUI.groundX || mousePos.y < UnitGUI.groundY || mousePos.x > UnitGUI.groundX + UnitGUI.groundWidth || mousePos.y > UnitGUI.groundY + UnitGUI.groundHeight)) {
 			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
@@ -1242,7 +1242,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void drawGUI() {
-		UnitGUI.drawGUI(characterSheet, gui, mapGenerator, this);
+		UnitGUI.drawGUI(characterSheet, mapGenerator, this);
 	}
 
 	void selectUnit(Unit player) {

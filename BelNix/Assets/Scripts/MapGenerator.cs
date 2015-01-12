@@ -266,7 +266,7 @@ public class MapGenerator : MonoBehaviour {
 		targetObject = GameObject.Find("Target");
 		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
 		gui = guiObj.GetComponent<GameGUI>();
-		gui.mapGenerator = this;
+		GameGUI.mapGenerator = this;
 
 		turrets = mapTransform.FindChild("Turrets").gameObject;
 		traps = mapTransform.FindChild("Traps").gameObject;
@@ -1340,13 +1340,13 @@ public class MapGenerator : MonoBehaviour {
 			gui.clipboardTab = Tab.R;
 		}
 		if (Input.GetKeyDown(KeyCode.C)) {
-			gui.clickTab(Tab.C);
+			UnitGUI.clickTab(Tab.C);
 		}
 		if (Input.GetKeyDown(KeyCode.V)) {
-			gui.clickTab(Tab.V);
+			UnitGUI.clickTab(Tab.V);
 		}
 		if (Input.GetKeyDown(KeyCode.I)) {
-			gui.clickTab(Tab.B);
+			UnitGUI.clickTab(Tab.B);
 		}
 		/*
 		if (Input.GetKeyDown(KeyCode.R)) {
@@ -1411,7 +1411,7 @@ public class MapGenerator : MonoBehaviour {
 			deleteCurrentTrap();
 		}
 		if (Input.GetKeyDown(KeyCode.Escape) && !normalDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.None) {
+			if (UnitGUI.openTab == Tab.None && !UnitGUI.inventoryOpen) {
 				if (gui.selectedStandard && gui.selectedStandardType != StandardType.None) {
 					if (gui.selectedStandardType==StandardType.Lay_Trap && gui.selectedTrap != null) {
 						gui.selectedTrap = null;
@@ -1422,8 +1422,8 @@ public class MapGenerator : MonoBehaviour {
 				else if (gui.selectedMovement && gui.selectedMovementType!=MovementType.None) {
 					gui.selectMovement(gui.selectedMovementType);
 				}
-				else if (gui.selectedMinor && gui.selectedMinorType != MinorType.None) {
-					gui.selectMinor(gui.selectedMinorType);
+				else if (gui.selectedMinor && GameGUI.selectedMinorType != MinorType.None) {
+					gui.selectMinor(GameGUI.selectedMinorType);
 				}
 		//		else if (selectedUnit == null) {
 		//			openEscapeMenu();
@@ -1434,10 +1434,13 @@ public class MapGenerator : MonoBehaviour {
 					openEscapeMenu();
 				}
 			}
-			else if (gui.selectedMinor && gui.selectedMinorType==MinorType.Loot) {
+			else if (gui.selectedMinor && GameGUI.selectedMinorType==MinorType.Loot) {
 				gui.selectMinor(MinorType.Loot);
 			}
-			else gui.openTab = Tab.None;
+			else if (UnitGUI.inventoryOpen) {
+				UnitGUI.inventoryOpen = false;
+			}
+			else UnitGUI.openTab = Tab.None;
 		}
 		if (leftClickIsMakingSelection() && !shiftDown) {
 			if (Input.GetKeyDown(KeyCode.W)) {
@@ -2052,7 +2055,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (UnitGUI.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.selectItem();
 			}
 		}
@@ -2280,7 +2283,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
 		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (UnitGUI.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.deselectItem();
 			}
 		}
