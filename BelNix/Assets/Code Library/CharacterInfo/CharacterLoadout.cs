@@ -161,6 +161,7 @@ public class CharacterLoadoutActual {
 	public CharacterLoadoutActual(CharacterLoadout loadout, Character character, CharacterColors colors) {
 		sprites = new List<SpriteOrder>();
 		this.character = character;
+		if (loadout==null) return;
 		if (loadout.headSlot) setItemInSlot(InventorySlot.Head, loadout.headSlot.getArmor(), colors);
 		if (loadout.chestSlot) setItemInSlot(InventorySlot.Chest, loadout.chestSlot.getArmor(), colors);
 		if (loadout.gloveSlot) setItemInSlot(InventorySlot.Glove, loadout.gloveSlot.getArmor(), colors);

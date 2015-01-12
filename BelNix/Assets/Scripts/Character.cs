@@ -22,6 +22,7 @@ public class Character : MonoBehaviour
 	public SkillScores skillScores;
 	public CharacterSheet characterSheet;
 	public Unit unit;
+	public string characterId;
 //	public ItemWeapon mainHand;
 
 

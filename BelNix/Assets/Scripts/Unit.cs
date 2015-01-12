@@ -1470,7 +1470,7 @@ public class Unit : MonoBehaviour {
 		return courierStyle;
 	}
 
-	public string getSmallCapsString(string original, int size) {
+	public static string getSmallCapsString(string original, int size) {
 		string newS = "";
 		char[] chars = original.ToCharArray();
 		bool inLowerCase = false;
