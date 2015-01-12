@@ -14,6 +14,7 @@ public class Unit : MonoBehaviour {
 	public bool playerControlled = true;
 	public AStarEnemyMap aiMap = null;
 	public Character characterSheet;
+	public CharacterTemplate characterTemplate;
 	int initiative;
 	public string characterName;
 	public string characterId;
@@ -1579,24 +1580,8 @@ public class Unit : MonoBehaviour {
 		classFeaturesScrollPos = GUI.BeginScrollView(new Rect(x, y, (kRect.x + kRect.width - x - 11), kRect.y + kRect.height - y - 30), classFeaturesScrollPos, new Rect(x, y, (kRect.x + kRect.width - x - 11) - 16.0f, featuresSize.y));
 		GUI.Label(new Rect(x, y, featuresSize.x, featuresSize.y), featuresContent, statsStyle);
 		GUI.EndScrollView();
-		/*
-		float featureX = paperDollFullWidth + 10.0f;
-		GUIStyle featuresStyle = st;
-		GUIContent c = new GUIContent("Feature");
-		float featuresHeight = featuresStyle.CalcSize(c).y;
-		float scrollHeight = featuresHeight * classFeatures.Length;
-		float remainingHeight = skillsHeight - y;
-		classFeaturesScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth - 1.0f, y, skillsWidth, remainingHeight), classFeaturesScrollPos, new Rect(paperDollFullWidth - 1.0f, y, skillsWidth - (scrollHeight > remainingHeight ? 16.0f : 0.0f), scrollHeight));
-		foreach (ClassFeature classFeature in classFeatures) {
-			//	GUIContent feat = new GUIContent(classFeature.ToString());
-			GUIContent feat = new GUIContent(ClassFeatures.getName(classFeature));
-			Vector2 featSize = featuresStyle.CalcSize(feat);
-			GUI.Label(new Rect(featureX, y, featSize.x, featSize.y), feat, featuresStyle);
-			y += featuresHeight;
-		}
-		GUI.EndScrollView();
 
-*/
+
 		GUI.DrawTexture(cRect, bottomSheetTexture);
 
 		y = cRect.y + 265.0f;
@@ -1633,10 +1618,6 @@ public class Unit : MonoBehaviour {
 		GUIContent skillNamesContent = new GUIContent(skillNamesString);
 		Vector2 skillNamesSize = statsStyle.CalcSize(skillNamesContent);
 		GUI.Label(new Rect(x, y, skillNamesSize.x, skillNamesSize.y), skillNamesContent, statsStyle);
-	//	string skillStatsString = characterSheet.skillScores.getScore(Skill.Athletics) + "<size=13> =(" + characterSheet.combatScores.getInitiative() + "+" + (characterSheet.skillScores.getScore(Skill.Athletics) - characterSheet.combatScores.getInitiative()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Melee) + "<size=13> =(" + characterSheet.combatScores.getInitiative() + "+" + (characterSheet.skillScores.getScore(Skill.Melee) - characterSheet.combatScores.getInitiative()) + ")</size>" + divString +
-	//		characterSheet.skillScores.getScore(Skill.Ranged) + "<size=13> =(" + characterSheet.combatScores.getCritical() + "+" + (characterSheet.skillScores.getScore(Skill.Ranged) - characterSheet.combatScores.getCritical()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Stealth) + "<size=13> =(" + characterSheet.combatScores.getCritical() + "+" + (characterSheet.skillScores.getScore(Skill.Stealth) - characterSheet.combatScores.getCritical()) + ")</size>" + divString +
-	//			characterSheet.skillScores.getScore(Skill.Mechanical)  + "<size=13> =(" + characterSheet.combatScores.getHandling() + "+" + (characterSheet.skillScores.getScore(Skill.Mechanical) - characterSheet.combatScores.getHandling()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + "<size=13> =(" + characterSheet.combatScores.getHandling() + "+" + (characterSheet.skillScores.getScore(Skill.Medicinal) - characterSheet.combatScores.getHandling()) + ")</size>" + divString +
-	//			characterSheet.skillScores.getScore(Skill.Historical)  + "<size=13> =(" + characterSheet.combatScores.getDominion() + "+" + (characterSheet.skillScores.getScore(Skill.Historical) - characterSheet.combatScores.getDominion()) + ")</size>\n" + characterSheet.skillScores.getScore(Skill.Political) + "<size=13> =(" + characterSheet.combatScores.getDominion() + "+" + (characterSheet.skillScores.getScore(Skill.Political) - characterSheet.combatScores.getDominion()) + ")</size>";
 		string skillStatsString = characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.skillScores.getScore(Skill.Melee) + divString +
 			characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.skillScores.getScore(Skill.Stealth) + divString +
 				characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
@@ -1650,65 +1631,28 @@ public class Unit : MonoBehaviour {
 		GUIContent armorClassContent = new GUIContent(armorClass);
 		Vector2 armorClassSize = statsStyle.CalcSize(armorClassContent);
 		GUI.Label(new Rect((cMax.x + cMax.width - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClassContent, statsStyle);
-		if (gui.openTab == Tab.V) {
-		//	GUI.DrawTexture(, bottomSheetTexture);
-			
-		}
-		else {
-		//	GUI.DrawTexture(, bottomSheetTexture);
-			
-		}
-		if (gui.openTab == Tab.C) {
-		//	GUI.DrawTexture(, bottomSheetTexture);
-			
-		}
-		else {
-		//	GUI.DrawTexture(, bottomSheetTexture);
-			
-		}
+	
 
-
-	//	while (t > 1) t--;
-	/*	float healthX = -1.0f;
-		float healthY = 0.0f;
-		float healthCenter = -1.0f;
-		float healthCompY = 0.0f;
-		float compY = 25.0f;*/
 		float tabButtonsY = 0.0f;
-	//	int healthFont = 0;
 		string playerText = "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
 		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
 		playerText += getSmallCapsString(playerName, 13);
 
 		playerText += "\"\n";
 		playerText += "H<size=13>EALTH</size>:\n" + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth() + "\n";
-	//	GUIContent healthContent = new GUIContent(healthText);
 		playerText += "C<size=13>OMPOSURE</size>:\n" + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure() + "\n";
-	//	GUIContent composureContent = new GUIContent(composureText);
+
 		GUIContent playerContent = new GUIContent(playerText);
 		if (gui.openTab == Tab.None || true) {
 			Texture[] textures = getPaperDollTexturesHead();
-			//			GUIStyle headStyle = getPaperDollHeadStyle();
 			GUI.DrawTexture(new Rect(bannerX, bannerY, bannerWidth, bannerHeight), playerBannerTexture);
 			foreach (Texture2D texture in textures) {
-//			headStyle.normal.background = texture;
 				GUI.DrawTexture(new Rect(24.0f, ((bannerHeight + bannerY) - paperDollHeadSize)/2.0f - 1.0f, paperDollHeadSize, paperDollHeadSize), texture);
-	//			GUI.Label(new Rect(0.0f, 0.0f, paperDollHeadSize, paperDollHeadSize), "", headStyle);
 			}
 			GUI.DrawTexture(new Rect(15.0f, ((bannerHeight + bannerY) - portraitBorderSize)/2.0f, portraitBorderSize, portraitBorderSize), portraitBorderTexture);
-//			GUI.DrawTexture(new Rect(paperDollHeadSize, 0.0f, bannerWidth, paperDollHeadSize + 1), getPaperDollHealthBannerTexture((int)bannerWidth, (int)paperDollHeadSize + 1));
-	//		float healthX = 35.0f + paperDollHeadSize;
-	//		float healthCompY = paperDollHeadSize/2.0f;
+
 			tabButtonsY = bannerHeight + bannerY;
-	//		GUIStyle healthStyle = getCourierStyle();
-	//		GUIStyle compStyle = getCourierStyle();
-	//		Vector2 healthSize = healthStyle.CalcSize(healthContent);
-	//		Vector2 composureSize = compStyle.CalcSize(composureContent);
-			//	float totalHeight = composureSize.y + healthSize.y;
-	//		float healthY = healthCompY - healthSize.y;
-	//		float compY = healthCompY;
-	//		GUI.Label(new Rect(healthX, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
-	//		GUI.Label(new Rect(healthX, compY, composureSize.x, composureSize.y), composureContent, compStyle);
+
 			GUIStyle cStyle = getCourierStyle(20);
 			Vector2 playerTextSize = cStyle.CalcSize(playerContent);
 			float playerTextY = ((bannerHeight + bannerY) - playerTextSize.y)/2.0f;
@@ -1738,21 +1682,7 @@ public class Unit : MonoBehaviour {
 				}
 				y += heights;
 			}
-	/*
-			float healthCenter = paperDollFullWidth/2.0f;
-//			healthCompY = y + 20.0f;
-			float healthY = y;
-			GUIStyle healthStyle = getHealthTextStyle(12);
-			GUIStyle compStyle = getComposureTextStyle(12);
-			Vector2 healthSize = healthStyle.CalcSize(healthContent);
-			Vector2 composureSize = compStyle.CalcSize(composureContent);
-		//	float totalHeight = composureSize.y + healthSize.y;
-			//healthY = healthCompY - healthSize.y;
-			float compY = healthY + healthSize.y - mid;
-			GUI.Label(new Rect(healthCenter - healthSize.x/2.0f, healthY, healthSize.x, healthSize.y), healthContent, healthStyle);
-			GUI.Label(new Rect(healthCenter - composureSize.x/2.0f, compY, composureSize.x, composureSize.y), composureContent, compStyle);
-			y = compY + composureSize.y - mid;
-*/
+	
 			float mid = 8.0f;
 			GUIContent profession = new GUIContent(characterSheet.characterProgress.getCharacterClass().getClassName().ToString());
 			Vector2 professionSize = textStyle.CalcSize(profession);
@@ -1773,219 +1703,7 @@ public class Unit : MonoBehaviour {
 			Vector2 experienceSize = textStyle.CalcSize(experience);
 			GUI.Label(new Rect(paperDollFullWidth - experienceSize.x - 5.0f, y, experienceSize.x, experienceSize.y), experience, textStyle);
 		}
-		/*
-		if (gui.openTab == Tab.R) {
-			GUI.DrawTexture(new Rect(paperDollFullWidth - 1.0f, 0.0f, missionTabWidth + missionObjectivesWidth - 1.0f, missionTopHeight), getMissionTitleBackgroundTexture());
-			GUI.DrawTexture(new Rect(paperDollFullWidth + missionTabWidth - 2.0f, missionTopHeight - 1.0f, missionObjectivesWidth, missionObjectivesHeight), getMissionObjectivesBackgroundTexture());
 
-			GUIStyle titleStyle = getTitleTextStyle();
-			GUIContent missions = new GUIContent("Missions");
-			GUIContent objectives = new GUIContent("Objectives");
-			Vector2 missionsSize = titleStyle.CalcSize(missions);
-			Vector2 objectivesSize = titleStyle.CalcSize(objectives);
-			GUI.Label(new Rect(paperDollFullWidth + (missionTabWidth + missionObjectivesWidth - 1.0f - missionsSize.x)/2.0f, (missionTopHeight - missionsSize.y)/2.0f, missionsSize.x, missionsSize.y), missions, titleStyle);
-
-		//	GUI.BeginScrollView(new Rect()
-
-			GUI.Label(new Rect(paperDollFullWidth + missionTabWidth + (missionObjectivesWidth - 1.0f - objectivesSize.x)/2.0f, missionTopHeight, objectivesSize.x, objectivesSize.y), objectives, titleStyle);
-
-
-			float y = missionTopHeight + objectivesSize.y + 20.0f;
-			float x = paperDollFullWidth + missionTabWidth + 10.0f;
-			float toggleHeight = 20.0f;
-			float toggleWidth = 200.0f;
-//			GUI.enabled = false;
-			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (gui.openMission == Mission.Optional ? true : false), "Main Objective");
-			x += 20.0f;
-			y += toggleHeight;
-			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), true, (gui.openMission == Mission.Primary ? "How you do it" : (gui.openMission == Mission.Secondary ? "Destroy Enemy" : "Enjoy the view")));
-			y += toggleHeight;
-			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (gui.openMission != Mission.Secondary ? true : false), (gui.openMission == Mission.Primary ? "This too" : (gui.openMission == Mission.Secondary ? "Reinforcements" : "Daydream")));
-			y += toggleHeight;
-			GUI.Toggle(new Rect(x, y, toggleWidth, toggleHeight), (gui.openMission != Mission.Primary ? true : false), (gui.openMission == Mission.Primary ? "And this as well" : (gui.openMission == Mission.Secondary ? "Conquer" : "Eat Snacks")));
-			y += toggleHeight;
-			if (gui.openMission == Mission.Optional) {
-				GUI.Toggle (new Rect(x, y, toggleWidth, toggleHeight), true, "Nap Time!");
-				y += toggleHeight;
-			}
-
-			
-			
-			if (GUI.Button(new Rect(paperDollFullWidth - 1, missionTopHeight - 1.0f + (missionTabHeight - 1.0f) * 0, missionTabWidth, missionTabHeight), "Primary", (gui.openMission==Mission.Primary ? getselectedMissionButtonStyle() : getNonSelectedMissionButtonStyle()))) {
-				gui.openMission = Mission.Primary;
-			}
-			if (GUI.Button(new Rect(paperDollFullWidth - 1, missionTopHeight - 1.0f + (missionTabHeight - 1.0f) * 1, missionTabWidth, missionTabHeight), "Secondary", (gui.openMission==Mission.Secondary ? getselectedMissionButtonStyle() : getNonSelectedMissionButtonStyle()))) {
-				gui.openMission = Mission.Secondary;
-			}
-			if (GUI.Button(new Rect(paperDollFullWidth - 1, missionTopHeight - 1.0f + (missionTabHeight - 1.0f) * 2, missionTabWidth, missionTabHeight), "Optional", (gui.openMission==Mission.Optional ? getselectedMissionButtonStyle() : getNonSelectedMissionButtonStyle()))) {
-				gui.openMission = Mission.Optional;
-			}
-
-		}
-		else if (gui.openTab == Tab.T) {
-			GUI.DrawTexture(fullTRect(), getTurnOrderBackgroundTexture());
-			GUIStyle titleStyle = getTitleTextStyle();
-			GUIContent turnOrder = new GUIContent("Turn Order");
-			Vector2 turnOrderSize = titleStyle.CalcSize(turnOrder);
-			GUI.Label(new Rect(paperDollFullWidth + (turnOrderWidth - 1.0f - turnOrderSize.x)/2.0f, 0.0f, turnOrderSize.x, turnOrderSize.y), turnOrder, titleStyle);
-			float y = turnOrderSize.y;
-			int numPlayers = mapGenerator.priorityOrder.Count;
-			int currentPlayer = mapGenerator.currentUnit;
-			if (currentPlayer < 0) currentPlayer = 0;
-			turnOrderScrollPos = GUI.BeginScrollView(new Rect(paperDollFullWidth, y, turnOrderWidth - 4.0f, paperDollFullHeight - y - 1.0f), turnOrderScrollPos, new Rect(paperDollFullWidth, y, turnOrderWidth - 16.0f - 4.0f, (numPlayers + 1) * (turnOrderSectionHeight - 1.0f) + 1.0f + 5.0f));
-
-			GUIStyle st = getPlayerInfoStyle();
-			st.wordWrap = false;
-			float x = paperDollFullWidth + turnOrderTableX - 5.0f;
-			GUIContent num = new GUIContent("Pos");
-			Vector2 numSize = st.CalcSize(num);
-			GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
-			x += turnOrderSectionHeight - 1.0f;
-			GUIContent name = new GUIContent("Name");
-			Vector2 nameSize = st.CalcSize(name);
-			GUI.Label(new Rect(x + (turnOrderNameWidth - nameSize.x)/2.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, nameSize.x, nameSize.y), name, getPlayerInfoStyle());
-			x += turnOrderNameWidth - 1.0f;
-			GUIContent initiative = new GUIContent("Roll");
-			Vector2 initiativeSize = st.CalcSize(initiative);
-			GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
-			y+=turnOrderSectionHeight;
-			for (int n=0;n<numPlayers;n++) {
-				int playerNum = (n + currentPlayer) % numPlayers;
-				Unit player = mapGenerator.priorityOrder[playerNum];
-				if (player == this) {
-					st.normal.textColor = Color.Lerp (start, end, t);
-					st.fontStyle = FontStyle.Bold;
-				}
-				x = paperDollFullWidth + turnOrderTableX - 5.0f;
-				Rect r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
-			//	Rect r2 = new Rect(x + (turnOrderSectionHeight
-			//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
-				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
-					selectUnit(player);
-				}
-				num = new GUIContent("" + (playerNum + 1));
-				numSize = st.CalcSize(num);
-				GUI.Label(new Rect(x + (turnOrderSectionHeight - numSize.x)/2.0f, y + (turnOrderSectionHeight - numSize.y)/2.0f, numSize.x, numSize.y), num, getPlayerInfoStyle());
-				x += turnOrderSectionHeight - 1.0f;
-				r = new Rect(x, y, turnOrderNameWidth, turnOrderSectionHeight);
-			//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderNameBackgroundTexture() : getTurnOrderNameBackgroundTextureEnemy()));
-				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderNameStyle(player))) {
-					selectUnit(player);
-				}
-				name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
-				nameSize = st.CalcSize(name);
-				GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
-				x += turnOrderNameWidth - 1.0f;
-				r = new Rect(x, y, turnOrderSectionHeight, turnOrderSectionHeight);
-			//	GUI.DrawTexture(r, (player.team == 0 ? getTurnOrderSectionBackgroundTexture() : getTurnOrderSectionBackgroundTextureEnemy()));
-				if (GUI.Button(r, new GUIContent("","" + playerNum), getTurnOrderSectionStyle(player))) {
-					selectUnit(player);
-				}
-				initiative = new GUIContent(player.getInitiative() + "");
-				initiativeSize = st.CalcSize(initiative);
-				GUI.Label (new Rect(x + (turnOrderSectionHeight - initiativeSize.x)/2.0f, y + (turnOrderSectionHeight - initiativeSize.y)/2.0f, initiativeSize.x, initiativeSize.y), initiative, getPlayerInfoStyle());
-				y += turnOrderSectionHeight - 1.0f;
-				if (player == this) {
-					st.normal.textColor = Color.white;
-					st.fontStyle = FontStyle.Normal;
-				}
-			}
-
-			GUI.EndScrollView();
-		}*/
-		/*
-		if (gui.openTab == Tab.C || true) {
-			GUI.DrawTexture(fullCRect(), getCharacterStatsBackgroundTexture());
-			GUIStyle titleStyle = getTitleTextStyle();
-			GUIContent characterStats = new GUIContent("Character Stats");
-			characterStatsSize = titleStyle.CalcSize(characterStats);
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - 1.0f - characterStatsSize.x)/2.0f, 0.0f, characterStatsSize.x, characterStatsSize.y), characterStats, titleStyle);
-		//	float y = turnOrderSize.y;
-			float statX = paperDollFullWidth + 10.0f;
-			float statWidth = 40.0f;
-			float baseX = statX + statWidth;
-			float baseWidth = 40.0f;
-			float modX = baseX + baseWidth;
-			float modWidth = baseWidth;
-			y = characterStatsSize.y + 5.0f;
-			GUIStyle st = getPlayerInfoStyle();
-			string[] stats = new string[]{"", "STR", "PER", "TEC", "W-VER"};
-			string[] bases = new string[]{"Base", "" + characterSheet.abilityScores.getSturdy(), "" + characterSheet.abilityScores.getPerception(), "" + characterSheet.abilityScores.getTechnique(), "" + characterSheet.abilityScores.getWellVersed()};
-			string[] mods = new string[]{"Mod", "" + characterSheet.combatScores.getInitiative(), "" + characterSheet.combatScores.getCritical(), "" + characterSheet.combatScores.getHandling(), "" + characterSheet.combatScores.getDominion()};
-			for (int n=0;n<stats.Length;n++) {
-				GUIContent stat = new GUIContent(stats[n]);
-				Vector2 statSize = st.CalcSize(stat);
-				GUI.Label(new Rect(statX + (statWidth - statSize.x)/2.0f, y, statSize.x, statSize.y), stat, st);
-				GUIContent baseContent = new GUIContent(bases[n]);
-				Vector2 baseSize = st.CalcSize(baseContent);
-				GUI.Label(new Rect(baseX + (baseWidth - baseSize.x)/2.0f, y, baseSize.x, baseSize.y), baseContent, st);
-				GUIContent mod = new GUIContent(mods[n]);
-				Vector2 modSize = st.CalcSize(mod);
-				GUI.Label(new Rect(modX + (modWidth - modSize.x)/2.0f, y, modSize.x, modSize.y), mod, st);
-				y += Mathf.Max(new float[]{statSize.y, modSize.y, baseSize.y});
-			}
-			y += 10.0f;
-			GUIContent armorClass = new GUIContent("Armor Class: " + characterSheet.characterSheet.characterLoadout.getAC());
-			Vector2 armorClassSize = st.CalcSize(armorClass);
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth - armorClassSize.x)/2.0f, y, armorClassSize.x, armorClassSize.y), armorClass, st);
-			y += armorClassSize.y + 10.0f;
-			GUIContent healthTitle = new GUIContent("Health");
-			GUIContent healthAmount = new GUIContent(characterSheet.combatScores.getMaxHealth() + "");
-			GUIContent composureTitle = new GUIContent("Composure");
-			GUIContent composureAmount = new GUIContent(characterSheet.combatScores.getMaxComposure() + "");
-			Vector2 healthTitleSize = st.CalcSize(healthTitle);
-			Vector2 healthSize = st.CalcSize(healthAmount);
-			Vector2 composureTitleSize = st.CalcSize(composureTitle);
-			Vector2 composureSize = st.CalcSize(composureAmount);
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth/4.0f - healthTitleSize.x/2.0f), y, healthTitleSize.x, healthTitleSize.y), healthTitle, st);
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth*2.0f/3.0f - composureTitleSize.x/2.0f), y, composureTitleSize.x, composureTitleSize.y), composureTitle, st);
-			y += healthTitleSize.y;
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth/4.0f - healthSize.x/2.0f), y, healthSize.x, healthSize.y), healthAmount, st);
-			GUI.Label(new Rect(paperDollFullWidth + (characterStatsWidth*2.0f/3.0f - composureSize.x/2.0f), y, composureSize.x, composureSize.y), composureAmount, st);
-		}
-		 if (gui.openTab == Tab.V || true) {
-			paperDollFullWidth += characterStatsWidth;
-			GUI.DrawTexture(fullKRect(), getSkillsBackgroundTexture());
-			GUIStyle titleStyle = getTitleTextStyle();
-			GUIContent skills = new GUIContent("Skills");
-			Vector2 skillSize = titleStyle.CalcSize(skills);
-			GUI.Label(new Rect(paperDollFullWidth + (skillsWidth - 1.0f - skillSize.x)/2.0f, 0.0f, skillSize.x, skillSize.y), skills, titleStyle);
-			string[] skillCategories = new string[]{"Physique", "Prowess", "Mastery", "Knowledge"};
-			string[] skillNames = new string[]{"Athletics","Melee","Ranged","Stealth","Mechanical","Medicinal","Historical","Political"};
-			string[] skillScores = new string[]{"" + characterSheet.skillScores.getScore(Skill.Athletics),"" + characterSheet.skillScores.getScore(Skill.Melee),"" + characterSheet.skillScores.getScore(Skill.Ranged),"" + characterSheet.skillScores.getScore(Skill.Stealth),"" + characterSheet.skillScores.getScore(Skill.Mechanical),"" + characterSheet.skillScores.getScore(Skill.Medicinal),"" + characterSheet.skillScores.getScore(Skill.Historical),"" + characterSheet.skillScores.getScore(Skill.Political)};
-			float skillCategoryX = paperDollFullWidth + 5.0f;
-			float skillCategoryWidth = 80.0f;
-			float skillNameX = skillCategoryX + skillCategoryWidth;
-			float skillNameWidth = 100.0f;
-			float skillScoreX = skillNameX + skillNameWidth;
-			float skillScoreWidth = 30.0f;
-			GUIStyle st = getPlayerInfoStyle();
-			y = skillSize.y + 5.0f;
-			for (int n=0;n<skillCategories.Length;n++) {
-				GUIContent skillCategory = new GUIContent(skillCategories[n]);
-				Vector2 skillCategorySize = st.CalcSize(skillCategory);
-				GUIContent skillName1 = new GUIContent(skillNames[n * 2]);
-				Vector2 skillNameSize1 = st.CalcSize(skillName1);
-				GUIContent skillName2 = new GUIContent(skillNames[n * 2 + 1]);
-				Vector2 skillNameSize2 = st.CalcSize(skillName2);
-				GUIContent skillScore1 = new GUIContent(skillScores[n * 2]);
-				Vector2 skillScoreSize1 = st.CalcSize(skillScore1);
-				GUIContent skillScore2 = new GUIContent(skillScores[n * 2 + 1]);
-				Vector2 skillScoreSize2 = st.CalcSize(skillScore2);
-				float namesHeight = skillNameSize1.y + skillNameSize2.y;
-				GUI.Label(new Rect(skillCategoryX, y + (namesHeight - skillCategorySize.y)/2.0f, skillCategorySize.x, skillCategorySize.y), skillCategory, st);
-				GUI.Label(new Rect(skillNameX + (skillNameWidth - skillNameSize1.x)/2.0f, y, skillNameSize1.x, skillNameSize1.y), skillName1, st);
-				GUI.Label(new Rect(skillScoreX + (skillScoreWidth - skillScoreSize1.x)/2.0f, y, skillScoreSize1.x, skillScoreSize1.y), skillScore1, st);
-				y += skillNameSize1.y;
-				GUI.Label(new Rect(skillNameX + (skillNameWidth - skillNameSize2.x)/2.0f, y, skillNameSize2.x, skillNameSize2.y), skillName2, st);
-				GUI.Label(new Rect(skillScoreX + (skillScoreWidth - skillScoreSize2.x)/2.0f, y, skillScoreSize2.x, skillScoreSize2.y), skillScore2, st);
-				y += skillNameSize2.y + 10.0f;
-			}
-			GUI.DrawTexture(new Rect(paperDollFullWidth - 1.0f, y, skillsWidth, 2.0f), getSkillsMidSectionTexture());
-			y += 2.0f;
-
-			paperDollFullWidth -= characterStatsWidth;
-		}*/
 		if (gui.inventoryOpen) {
 			Vector3 mousePos = Input.mousePosition;
 			mousePos.y = Screen.height - mousePos.y;
@@ -2119,21 +1837,7 @@ public class Unit : MonoBehaviour {
 				}
 			}
 
-		}/*
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "R",(gui.openTab == Tab.R ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-		//	if (gui.openTab == Tab.R) gui.openTab = Tab.None;
-		//	else gui.openTab = Tab.R;
-			gui.clickTab(Tab.R);
-		}*/
-//		if (GUI.Button(new Rect((tabButtonsWidth-1)*0, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "C",(gui.openTab == Tab.C ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-
-/*		if (GUI.Button(new Rect((tabButtonsWidth-1)*2, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "I",(gui.openTab == Tab.I ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			gui.clickTab(Tab.I);
-		}*/
-		/*
-		if (GUI.Button(new Rect((tabButtonsWidth-1)*4, tabButtonsY, tabButtonsWidth, tabButtonsWidth), "T",(gui.openTab == Tab.T ? getSelectedButtonStyle(tabButtonsWidth) : getNonSelectedButtonStyle(tabButtonsWidth)))) {
-			gui.clickTab(Tab.T);
-		}*/
+		}
 		string tt = GUI.tooltip;
 		if (tt != null && tt!="") {
 			int num = int.Parse(tt);
@@ -2509,14 +2213,17 @@ public class Unit : MonoBehaviour {
 	public void loadCharacterSheet() {
 		if (characterSheetLoaded) return;
 		characterSheetLoaded = true;
-		characterSheet.unit = this;
-		characterSheet.loadData();
+		characterSheet = characterTemplate.loadData(this);
+//		characterSheet.unit = this;
+//		characterSheet.loadData();
 	}
 
 	public void loadCharacterSheetFromTextFile(string textFile) {
 		if (characterSheetLoaded) return;
-		characterSheet.unit = this;
-		characterSheet.loadCharacterFromTextFile(textFile);
+//		characterSheet = new Character();
+//		characterSheet.unit = this;
+//		characterSheet.loadCharacterFromTextFile(textFile);
+		characterSheet = characterTemplate.loadData(textFile, this);
 		characterSheetLoaded = true;
 	}
 
