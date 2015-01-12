@@ -1083,6 +1083,12 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += hairStyle + delimiter;
 		//*********Hair*********\\
 		characterStr += "1;0;";
+		characterStr += (backgroundSelect == 1 ? 0 : (raceSelect == 0 ? 50 : (raceSelect == 1 ? 10 : 30))) + delimiter; 
+		CharacterClass charClass = CharacterClass.getClass((classSelect == 0 ? ClassName.ExSoldier : (classSelect == 1 ? ClassName.Engineer : (classSelect == 2 ? ClassName.Investigator : (classSelect == 3 ? ClassName.Researcher : ClassName.Orator)))));
+		CharacterRace charRace = CharacterRace.getRace((raceSelect == 0 ? RaceName.Berrind : (raceSelect == 1 ? RaceName.Ashpian : RaceName.Rorrul)));
+		characterStr += (sturdyScore + perceptionScore + charClass.getClassModifiers().getHealthModifier() + charRace.getHealthModifier()) + delimiter;
+		characterStr += (techniqueScore + wellVersedScore + charClass.getClassModifiers().getComposureModifier() + charRace.getComposureModifier()) + delimiter;
+		characterStr += "0;";
 		Saves.addCharacter(characterStr);
 
 

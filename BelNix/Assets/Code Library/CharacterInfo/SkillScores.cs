@@ -7,7 +7,7 @@ namespace CharacterInfo
 		private CombatScores cScores;
 		private CharacterProgress cProgress;
 
-		private int[] scores = new int[8];
+		public int[] scores = new int[8];
 
 		public SkillScores (CombatScores combatScores, CharacterProgress characterProgress)
 		{

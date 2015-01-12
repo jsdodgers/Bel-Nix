@@ -7,7 +7,9 @@ using CharacterInfo;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
-
+	
+	public List<Unit> selectionUnits;
+	public List<Unit> outOfGameUnits;
 	public const int gridOrder = 2;
 	public const int trapOrder = 20;
 	public const int circleNormalOrder = 30;
@@ -26,7 +28,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerSelectSelectedPlayerArmorOrder = 1310;
 	public const int mouseOverOrder = 10000;
 
-
+	public Unit mainUnit;
 	public GameState gameState = GameState.Playing;
     public int experienceReward;
     public int copperReward;
@@ -67,6 +69,7 @@ public class MapGenerator : MonoBehaviour {
 	public TrapUnit currentlySelectedTrap;
 	Unit hoveredCharacter;
 	ArrayList players;
+	List<Unit> deadUnits;
 	public ArrayList enemies;
 	public GameObject turrets;
 	public GameObject traps;
@@ -142,6 +145,16 @@ public class MapGenerator : MonoBehaviour {
 	public int currentKeysSize;
 
 	public void setGameState() {
+		setGameState(GameState.None);
+	}
+
+	public void setGameState(GameState gs) {
+		if (gs != GameState.None) {
+			gameState = gs;
+			if (gs == GameState.Lost) playerLost();
+			if (gs == GameState.Won) playerWon();
+			return;
+		}
 		bool enemy = false;
 		bool player = false;
 		foreach (Unit u in priorityOrder) {
@@ -153,16 +166,60 @@ public class MapGenerator : MonoBehaviour {
 				return;
 			}
 		}
-		if (!player) gameState = GameState.Lost;
+		if (!player) {
+			gameState = GameState.Lost;
+			playerLost();
+		}
         else if (!enemy)
         {
             gameState = GameState.Won;
+			playerWon();
              
         }
         else gameState = GameState.Playing;
 	}
 
-    public Purse rewardPlayer(Purse mainCharacterPurse)
+	public void playerWon() {
+		restPlayers();
+		rewardPlayer(mainUnit);
+		savePlayers();
+		deleteDeadPlayers();
+	}
+
+	public void restPlayers() {
+		foreach (Unit u in outOfGameUnits) {
+			CombatScores cs = u.characterSheet.characterSheet.combatScores;
+			if (cs.getCurrentHealth() <= 0) cs.addHealth(1);
+			else cs.setHealth(cs.getMaxHealth());
+			cs.setComposure(cs.getMaxComposure());
+		}
+	}
+
+	public void savePlayers() {
+		foreach (Unit u in players) {
+			if (!u.isDead()) {
+				u.saveCharacter();
+			}
+			else {
+				u.deleteCharacter();
+			}
+		}
+		foreach (Unit u in outOfGameUnits) {
+			u.saveCharacter();
+		}
+	}
+
+	public void deleteDeadPlayers() {
+		foreach (Unit u in deadUnits) {
+			u.deleteCharacter();
+		}
+	}
+
+	public void playerLost() {
+
+	}
+
+    public void rewardPlayer(Unit mainCharacter)
     {
         // Count up the players, divide map reward by number of players, give that amount to every player
         List<Unit> livingPlayers = new List<Unit>();
@@ -172,12 +229,17 @@ public class MapGenerator : MonoBehaviour {
                 livingPlayers.Add(u);
         }
         int individualExpReward = Mathf.FloorToInt( experienceReward / livingPlayers.Count );
-        foreach (Unit u in livingPlayers)
+        foreach (Unit u in livingPlayers) {
             u.characterSheet.characterProgress.addExperience(individualExpReward);
+			if (u != mainCharacter)
+				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+		}
+		foreach (Unit u in outOfGameUnits) {
+			if (u != mainCharacter)
+				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+		}
+        mainCharacter.characterSheet.characterSheet.inventory.purse.receiveMoney(copperReward, 0, 0);
 
-        mainCharacterPurse.receiveMoney(copperReward, 0, 0);
-
-        return mainCharacterPurse;
     }
 
 
@@ -223,6 +285,7 @@ public class MapGenerator : MonoBehaviour {
 
 		priorityOrder = new List<Unit>();
 		players = new ArrayList();
+		deadUnits = new List<Unit>();
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
 		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
@@ -370,7 +433,14 @@ public class MapGenerator : MonoBehaviour {
 		foreach (Unit u in selectionUnits) {
 			players.Remove(u);
 			priorityOrder.Remove(u);
-			Destroy(u.gameObject);
+//			if (u == mainUnit) {
+				u.gameObject.SetActive(false);//.renderer.enabled = false;
+				outOfGameUnits.Add(u);
+//			}
+//			else {
+//				outOfGameUnits.Add(u);
+//				Destroy(u.gameObject);
+//			}
 		}
 	}
 
@@ -449,7 +519,6 @@ public class MapGenerator : MonoBehaviour {
 //		go.transform.parent = 
 	}
 
-	public List<Unit> selectionUnits;
 	float selectionUnitsX;
 	public void createSelectionUnits() {
         if (!Directory.Exists(Saves.getCurrentSaveDirectory()) || !File.Exists(Saves.getCharactersListFilePath()))
@@ -458,25 +527,35 @@ public class MapGenerator : MonoBehaviour {
             return;
         }
 		selectionUnits = new List<Unit>();
+		outOfGameUnits = new List<Unit>();
 //		TextAsset t = Resources.Load<TextAsset>("Saves/Characters");
 		string[] chars = Saves.getCharacterList();
 		for (int n=0;n<chars.Length-1;n++) {
 			GameObject p = (GameObject)GameObject.Instantiate(playerPrefab);
 			SpriteRenderer sr = p.GetComponent<SpriteRenderer>();
 			sr.sortingOrder = playerSelectPlayerOrder;
-			p.transform.parent = Camera.main.transform;
+//			p.transform.parent = Camera.main.transform;
 			Unit pl = p.GetComponent<Unit>();
+			if (n==0) mainUnit = pl;
+			pl.characterId = chars[n];
 //			pl.mapGenerator = this;
 			pl.setMapGenerator(this);
 			pl.gui = gui;
-			players.Add(pl);
-			priorityOrder.Add(pl);
 			pl.loadCharacterSheetFromTextFile(chars[n]);
-			pl.addHair();
-			pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
-			sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
-			pl.rollInitiative();
-			selectionUnits.Add(pl);
+			if (pl.characterSheet.characterSheet.combatScores.getCurrentHealth() > 0) {
+				p.transform.parent = Camera.main.transform;
+				players.Add(pl);
+				priorityOrder.Add(pl);
+				pl.addHair();
+				pl.setAllSpritesToRenderingOrder(playerSelectPlayerArmorOrder);
+				sr.color = pl.characterSheet.characterSheet.characterColors.characterColor;
+				pl.rollInitiative();
+				selectionUnits.Add(pl);
+			}
+			else {
+				outOfGameUnits.Add(pl);
+				p.SetActive(false);
+			}
             Debug.Log(pl.characterSheet.characterSheet.personalInformation.getCharacterName().fullName());
 		}
 		sortPriority();
@@ -755,7 +834,10 @@ public class MapGenerator : MonoBehaviour {
 		int index = priorityOrder.IndexOf(cs);
 		priorityOrder.Remove(cs);
 		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
-		if (players.Contains(cs.gameObject)) players.Remove(cs.gameObject);
+		if (players.Contains(cs.gameObject)) {
+			players.Remove(cs.gameObject);
+			deadUnits.Add(cs);
+		}
 		if (index < currentUnit) currentUnit--;
 		else if (index == currentUnit) {
 			currentUnit--;
@@ -1202,6 +1284,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleInput() {
+		handleKeys();
 		if (gui.escapeMenuOpen) return;
 		if (currentUnitIsAI()) {
 			getCurrentUnit().performAI();
@@ -1209,7 +1292,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		handleGUIPos();
 		handleMouseScrollWheel();
-		handleKeys();
+
 		handleMouseButtons();
 		handleKeyPan();
 		handleMouseClicks();
@@ -1251,23 +1334,32 @@ public class MapGenerator : MonoBehaviour {
 		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 		escapeDown = Input.GetKey(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
-		if (Input.GetKeyDown(KeyCode.M)) {
-//			gui.clickTab(Tab.M);
-			gui.clipboardTab = Tab.M;
+		if (shiftDown && altDown && controlDown) {
+			if (Input.GetKeyDown(KeyCode.W)) {
+				setGameState(GameState.Won);
+			}
+			else if (Input.GetKeyDown(KeyCode.L)) {
+				setGameState(GameState.Lost);
+			}
+		}
+		if (Input.GetKeyDown(KeyCode.R)) {
+//			gui.clickTab(Tab.R);
+			gui.clipboardTab = Tab.R;
 		}
 		if (Input.GetKeyDown(KeyCode.C)) {
 			gui.clickTab(Tab.C);
 		}
-		if (Input.GetKeyDown(KeyCode.K)) {
-			gui.clickTab(Tab.K);
+		if (Input.GetKeyDown(KeyCode.V)) {
+			gui.clickTab(Tab.V);
 		}
 		if (Input.GetKeyDown(KeyCode.I)) {
-			gui.clickTab(Tab.I);
+			gui.clickTab(Tab.B);
 		}
+		/*
 		if (Input.GetKeyDown(KeyCode.R)) {
 			gui.clickStandard();
 	//		gui.openTab = (gui.openTab==Tab.T ? Tab.None : Tab.T);
-		}
+		}*/
 		if (Input.GetKeyDown(KeyCode.L)) {
 			gui.selectMinor(MinorType.Loot);
 		}
@@ -1284,9 +1376,11 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Q)) {
 			gui.clickWait();
 		}
+		/*
 		if (Input.GetKeyDown(KeyCode.B)) {
 			gui.selectMovement(MovementType.BackStep);
 		}
+		*/
 		if (Input.GetKeyDown(KeyCode.V)) {
 			gui.selectMovement(MovementType.Move);
 		}
@@ -1405,6 +1499,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void openEscapeMenu() {
 		gui.escapeMenuOpen = !gui.escapeMenuOpen;
+		Debug.Log(gui.escapeMenuOpen);
 	}
 
 	public void deleteCurrentTrap() {
@@ -1964,7 +2059,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (gui.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.selectItem();
 			}
 		}
@@ -2192,7 +2287,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
 		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (gui.openTab == Tab.I && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (gui.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.deselectItem();
 			}
 		}

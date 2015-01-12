@@ -40,7 +40,14 @@ namespace CharacterInfo
 
 		public int getCurrentHealth() 	{ return currentHealth; }
 		public int getCurrentComposure()  { return currentComposure; }
-
+		public int setHealth(int health) {
+			if (health <= getMaxHealth()) currentHealth = health;
+			return currentHealth;
+		}
+		public int setComposure(int composure) {
+			if (composure <= getMaxComposure()) currentComposure = composure;
+			return currentComposure;
+		}
 		public int addHealth(int addedHealth)
 		{
 			currentHealth += addedHealth;
