@@ -72,7 +72,7 @@ public class GameGUI : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		Unit.doTabs(this);
+		UnitGUI.doTabs(this);
 	}
 	
 	Texture2D makeTex( int width, int height, Color col )
@@ -232,7 +232,7 @@ public class GameGUI : MonoBehaviour {
 			}
 		}
 		else if (t == Tab.C || t == Tab.V) {
-			x = Unit.bannerX + Unit.bannerWidth - 20.0f;
+			x = UnitGUI.bannerX + UnitGUI.bannerWidth - 20.0f;
 			y = 0.0f;
 			if (t == Tab.V) {
 				y += tabButtonSize.y + 5.0f;
@@ -1429,8 +1429,8 @@ public class GameGUI : MonoBehaviour {
 					}
 					float x = 5.0f + r.x;
 					Vector2 size = turrets[n].getSize();
-					size.x *= Unit.inventoryCellSize;
-					size.y *= Unit.inventoryCellSize;
+					size.x *= UnitGUI.inventoryCellSize;
+					size.y *= UnitGUI.inventoryCellSize;
 					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), turret.inventoryTexture);
 					x += size.x + 5.0f;
 					GUIContent frameContent = new GUIContent("Frame: " + turret.frame.itemName);
@@ -1473,8 +1473,8 @@ public class GameGUI : MonoBehaviour {
 					}
 					float x = 5.0f + r.x;
 					Vector2 size = turrets[n].getSize();
-					size.x *= Unit.inventoryCellSize;
-					size.y *= Unit.inventoryCellSize;
+					size.x *= UnitGUI.inventoryCellSize;
+					size.y *= UnitGUI.inventoryCellSize;
 					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), turret.inventoryTexture);
 					x += size.x + 5.0f;
 					GUIContent frameContent = new GUIContent("Frame: " + turret.frame.itemName);
@@ -1517,8 +1517,8 @@ public class GameGUI : MonoBehaviour {
 					}
 					float x = 5.0f + r.x;
 					Vector2 size = trap.getSize();
-					size.x *= Unit.inventoryCellSize;
-					size.y *= Unit.inventoryCellSize;
+					size.x *= UnitGUI.inventoryCellSize;
+					size.y *= UnitGUI.inventoryCellSize;
 					GUI.DrawTexture(new Rect(x, r.y + (r.height - size.y)/2.0f, size.x, size.y), trap.inventoryTexture);
 					x += size.x + 5.0f;
 					GUIContent frameContent = new GUIContent("Frame: " + trap.frame.itemName);

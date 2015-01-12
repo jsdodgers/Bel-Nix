@@ -343,7 +343,6 @@ public class MapGenerator : MonoBehaviour {
 			tiles[x,-y].setCharacter(p);
 			p.loadCharacterSheet();
 			p.rollInitiative();
-			p.characterName = "Player" + bbb;
 			priorityOrder.Add(p);
 			p.renderer.sortingOrder = playerNormalOrder;
 			p.setAllSpritesToRenderingOrder(playerArmorOrder);
@@ -366,7 +365,6 @@ public class MapGenerator : MonoBehaviour {
 			tiles[x,-y].setCharacter(e);
 			e.loadCharacterSheet();
 			e.rollInitiative();
-			e.characterName = "Enemy" + aaa;
 			priorityOrder.Add(e);
 			e.renderer.sortingOrder = playerNormalOrder;
 			enemy.GetComponent<SpriteRenderer>().color = e.characterSheet.characterSheet.characterColors.characterColor;
@@ -375,18 +373,10 @@ public class MapGenerator : MonoBehaviour {
 	//		e.deselect();
 			aaa++;
 		}
-		string b4 = "";
-		for (int n=0;n<priorityOrder.Count;n++) {
-			if (n!=0) b4 += "\n";
-			b4 += priorityOrder[n].characterName + "  " + priorityOrder[n].getInitiative();
-		}
+
 		sortPriority();
 
-		string after = "";
-		for (int n=0;n<priorityOrder.Count;n++) {
-			if (n!=0) after += "\n";
-			after += priorityOrder[n].characterName + "  " + priorityOrder[n].getInitiative();
-		}
+	
 		importGrid();
 		createSelectionArea();
 		createSelectionUnits();
