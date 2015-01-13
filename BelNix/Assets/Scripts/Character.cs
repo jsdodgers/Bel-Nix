@@ -180,6 +180,7 @@ public class Character
 		int composure = 100000;
 		int numFeatures = 0;
 		int numItems = 0;
+		int focus = 0;
 		if (curr < components.Length-1)
 			money = int.Parse(components[curr++]);
 		if (curr < components.Length-1)
@@ -194,10 +195,9 @@ public class Character
 				features[n] = int.Parse(components[curr++]);
 		}
 		if (curr < components.Length-1)
+			focus = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
 			numItems = int.Parse(components[curr++]);
-		for (int n=0;n<numItems;n++) {
-			//Inventory stuff
-		}
 		personalInfo = new PersonalInformation(new CharacterName(firstName,lastName), sexC,
 		                                       raceC, backgroundC, new CharacterAge(age), new CharacterHeight(height),
 		                                       new CharacterWeight(weight), new CharacterHairStyle(hairStyle));
@@ -221,6 +221,25 @@ public class Character
 		combatScores.setHealth(health);
 		combatScores.setComposure(composure);
 		characterProgress.getCharacterClass().chosenFeatures = features;
+		characterProgress.setWeaponFocus(focus);
+		for (int n=0;n<numItems;n++) {
+			int slot = int.Parse(components[curr++]);
+			ItemCode code = (ItemCode)int.Parse(components[curr++]);
+			string itemData = components[curr++];
+			Debug.Log(slot + ": " + code + "\n" + itemData);
+			Item i = Item.deserializeItem(code, itemData);
+			Inventory inv = characterSheet.inventory;
+			if (inv.inventory[slot].item!=null) {
+				if(inv.itemCanStackWith(inv.inventory[slot].item, i)) {
+					inv.inventory[slot].item.addToStack(i);
+				}
+			}
+			else if (inv.canInsertItemInSlot(i, inv.getSlotForIndex(slot))) {
+				inv.insertItemInSlot(i, inv.getSlotForIndex(slot));
+			}
+				//Inventory stuff
+		}
+
 	}
 
 	
@@ -274,7 +293,26 @@ public class Character
 		foreach (int feature in features) {
 			characterStr += feature + delimiter;
 		}
-		characterStr += "0;";
+		characterStr += characterSheet.characterProgress.getWeaponFocusAsNumber() + delimiter;
+		string inventoryString = "";
+		int inventorySize = 0;
+		foreach (InventoryItemSlot slot in characterSheet.inventory.inventory) {
+			if (slot.item != null) {
+				inventorySize++;
+				inventoryString += slot.index + delimiter;
+				inventoryString += (int)slot.item.getItemCode() + delimiter;
+				inventoryString += slot.item.getItemData() + delimiter;
+				if (slot.item.stackSize() > 0) {
+					foreach (Item i in slot.item.stack) {
+						inventorySize++;
+						inventoryString += slot.index + delimiter;
+						inventoryString += (int)i.getItemCode() + delimiter;
+						inventoryString += i.getItemData() + delimiter;
+					}
+				}
+			}
+		}
+		characterStr += inventorySize + delimiter + inventoryString;
 		return characterStr;
 	}
 	

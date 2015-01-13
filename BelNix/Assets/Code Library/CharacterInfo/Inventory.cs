@@ -149,7 +149,7 @@ namespace CharacterInfo {
 			//	inventory[n].itemSlot = inventory[n];
 			//	inventory[n].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 			}
-			inventory[0].itemSlot = inventory[0];
+		/*	inventory[0].itemSlot = inventory[0];
 			inventory[0].item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 			inventory[1].itemSlot = inventory[0];
 			inventory[4].itemSlot = inventory[0];
@@ -167,7 +167,7 @@ namespace CharacterInfo {
 			inventory[0].addOtherSlot(inventory[5]);
 			inventory[2].addOtherSlot(inventory[3]);
 			inventory[2].addOtherSlot(inventory[6]);
-			inventory[2].addOtherSlot(inventory[7]);
+			inventory[2].addOtherSlot(inventory[7]);*/
 		}
 
 		public bool removeItem(Item i) {

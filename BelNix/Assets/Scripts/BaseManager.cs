@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
+using System.IO;
 using CharacterInfo;
 
 public class BaseManager : MonoBehaviour {
@@ -45,6 +48,16 @@ public class BaseManager : MonoBehaviour {
 	static Texture2D bottomSheetTexture;
 	// Use this for initialization
 	void Start () {
+	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+		Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
+		Debug.Log(item.getItemCode() + "   " + (int)item.getItemCode() + "   \n" + item.getItemData());
+	//	BinaryFormatter bf = new BinaryFormatter();
+	/*	XmlSerializer bf = new XmlSerializer(item.GetType());
+		using (StringWriter textWriter = new StringWriter()) {
+			bf.Serialize(textWriter, item);
+			Debug.Log(textWriter.ToString());
+		}*/
+	
 		units = new List<Character>();
 		string[] chars = Saves.getCharacterList();
 		for (int n=0;n<chars.Length-1;n++) {
@@ -427,6 +440,7 @@ public class BaseManager : MonoBehaviour {
 	float cellHeight = 20.0f;
 	int page = 0;
 	int selectedFeature = -1;
+	int selectedWeaponFocus = -1;
 	ClassFeature[] possibleFeatures;
 	public bool canGoNextPage() {
 		switch (page) {
@@ -435,12 +449,27 @@ public class BaseManager : MonoBehaviour {
 		case 1:
 			return skillPointsAvailable == 0;
 		case 2:
-			return possibleFeatures.Length<=1 || selectedFeature >=0;
+			return (possibleFeatures.Length<=1 || selectedFeature >=0) && hasFinishedAllSelections();
 		default:
 			return false;
 		}
 	}
 
+	public ClassFeature getSelectedFeature() {
+		return (possibleFeatures.Length==1 ? possibleFeatures[0] : possibleFeatures[selectedFeature]);
+	}
+
+	public bool hasFinishedAllSelections() {
+		if (possibleFeatures.Length == 0) return true;
+		if (possibleFeatures.Length > 1 && selectedFeature < 0) return false;
+		ClassFeature feature = getSelectedFeature();
+		switch (feature) {
+		case ClassFeature.Weapon_Focus:
+			return selectedWeaponFocus >= 0;
+		default:
+			return true;
+		}
+	}
 	
 	int setSkillDecreaseButton(int skill, Rect r, int skillLowerBound)
 	{
@@ -520,6 +549,17 @@ public class BaseManager : MonoBehaviour {
 					newFeatures[newFeatures.Length-1] = selectedFeature;
 					levelingUpCharacter.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
 				}
+				if (possibleFeatures.Length>=1) {
+					ClassFeature feature = getSelectedFeature();
+					switch (feature) {
+					case ClassFeature.Weapon_Focus:
+						Debug.Log("Weapon Focus");
+						levelingUpCharacter.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
+						break;
+					default:
+						break;
+					}
+				}
 				levelingUpCharacter.characterProgress.incrementLevel();
 				levelingUpCharacter.saveCharacter();
 				levelingUpCharacter = null;
@@ -538,6 +578,7 @@ public class BaseManager : MonoBehaviour {
 		float x = xOrig + 30.0f;
 		GUI.Label(new Rect(xOrig + (backgroundSize.x - titleSize.x)/2.0f, y, titleSize.x, titleSize.y), titleContent, st);
 		y += titleSize.y + 30.0f;
+		Vector2 buttonSize = new Vector2(150.0f, 30.0f);
 		if (possibleFeatures.Length>1) {
 			st.fontSize = 20;
 			string featureSelectTitle = UnitGUI.getSmallCapsString("Select a Feature:", 14);
@@ -546,7 +587,6 @@ public class BaseManager : MonoBehaviour {
 			GUI.Label(new Rect(x, y, featureSelectTitleSize.x, featureSelectTitleSize.y), featureSelectTitleContent, st);
 			y += featureSelectTitleSize.y;
 			for (int n=0;n<possibleFeatures.Length;n++) {
-				Vector2 buttonSize = new Vector2(150.0f, 30.0f);
 				if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), ClassFeatures.getName(possibleFeatures[n]))) {
 					if (selectedFeature == n) selectedFeature = -1;
 					else selectedFeature = n;
@@ -556,7 +596,7 @@ public class BaseManager : MonoBehaviour {
 			y += 10.0f;
 		}
 		if (possibleFeatures.Length==1 || selectedFeature >=0) {
-			ClassFeature feature = (possibleFeatures.Length==1 ? possibleFeatures[0] : possibleFeatures[selectedFeature]);
+			ClassFeature feature = getSelectedFeature();
 			st.fontSize = 20;
 			string featureName = ClassFeatures.getName(feature);
 			GUIContent featureNameContent = new GUIContent(UnitGUI.getSmallCapsString(featureName, 14));
@@ -568,7 +608,25 @@ public class BaseManager : MonoBehaviour {
 			GUIContent featureDiscContent = new GUIContent(UnitGUI.getSmallCapsString(featureDisc, 10));
 			float featureDiscHeight = st.CalcHeight(featureDiscContent, backgroundSize.x - 60.0f);
 			GUI.Label(new Rect(x, y, backgroundSize.x - 60.0f, featureDiscHeight), featureDiscContent, st);
-			y += featureDiscHeight;
+			y += featureDiscHeight + 25.0f;
+			if (feature == ClassFeature.Weapon_Focus) {
+				st.fontSize = 20;
+				GUIContent selectTitleString = new GUIContent(UnitGUI.getSmallCapsString("Select a Weapon Focus:", 14));
+				Vector2 selectTitleSize = st.CalcSize(selectTitleString);
+				GUI.Label(new Rect(x, y, selectTitleSize.x, selectTitleSize.y), selectTitleString, st);
+				y += selectTitleSize.y + 5.0f;
+				GUIContent selectedString = new GUIContent(UnitGUI.getSmallCapsString("Selected", 14));
+				Vector2 selectedSize = st.CalcSize(selectedString);
+				string[] focuses = new string[]{"Piercing","Slashing","Crushing"};
+				for (int n=0;n<focuses.Length;n++) {
+					if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), focuses[n])) {
+						if (selectedWeaponFocus == n) selectedWeaponFocus = -1;
+						else selectedWeaponFocus = n;
+					}
+					if (selectedWeaponFocus == n) GUI.Label(new Rect(x + buttonSize.x + 5.0f, y + (buttonSize.y - selectedSize.y)/2.0f, selectedSize.x, selectedSize.y), selectedString, st);
+					y += buttonSize.y;
+				}
+			}
 		}
 	}
 

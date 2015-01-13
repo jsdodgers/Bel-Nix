@@ -1122,6 +1122,7 @@ public class Unit : MonoBehaviour {
 	public Vector2 selectedItemPos = new Vector2();
 	public Vector2 selectedCell = new Vector2();
 	public void selectItem() {
+		Debug.Log("Select Item");
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		foreach (InventorySlot slot in inventorySlots) {
@@ -1151,6 +1152,7 @@ public class Unit : MonoBehaviour {
 				break;
 			}
 		}
+		Debug.Log(GameGUI.looting);
 		if (!GameGUI.looting || mousePos.x < UnitGUI.groundX || mousePos.y < UnitGUI.groundY || mousePos.x > UnitGUI.groundX + UnitGUI.groundWidth || mousePos.y > UnitGUI.groundY + UnitGUI.groundHeight) return;
 		Vector2 scrollOff = UnitGUI.groundScrollPosition;
 		float div = 20.0f;
@@ -1980,7 +1982,6 @@ public class Unit : MonoBehaviour {
 	}
 
 	void setAllSpritesBool(string boolName, bool b) {
-		Debug.Log(boolName + "  " + b);
 		List<SpriteOrder> sprites = getSprites();
 		foreach (SpriteOrder sprite in sprites) {
 			sprite.sprite.GetComponent<Animator>().SetBool(boolName, b);

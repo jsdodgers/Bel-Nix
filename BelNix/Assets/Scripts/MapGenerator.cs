@@ -2055,7 +2055,7 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (UnitGUI.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (UnitGUI.inventoryOpen && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.selectItem();
 			}
 		}
@@ -2283,7 +2283,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 selectionStartingPos;
 	void handleMouseUp() {
 		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin) {
-			if (UnitGUI.openTab == Tab.B && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
+			if (UnitGUI.inventoryOpen && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
 				selectedUnit.deselectItem();
 			}
 		}

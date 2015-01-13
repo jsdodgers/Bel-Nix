@@ -1091,6 +1091,8 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += (techniqueScore + wellVersedScore + charClass.getClassModifiers().getComposureModifier() + charRace.getComposureModifier()) + delimiter;
 		//number of chosen features followed by each one.
 		characterStr += "0;";
+		//Weapon Focus:
+		characterStr += "0;";
 		//Number of inventory items followed by that many items.
 		characterStr += "0;";
 		Saves.addCharacter(characterStr);

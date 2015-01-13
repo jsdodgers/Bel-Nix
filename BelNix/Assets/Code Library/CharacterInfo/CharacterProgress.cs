@@ -39,6 +39,34 @@ namespace CharacterInfo
 		public bool hasFeature(ClassFeature feature)	{ return Array.IndexOf(getClassFeatures(),feature)>=0; }
 		public DamageType getWeaponFocus()				{ return weaponFocus; }
 		public void setWeaponFocus(DamageType type)		{ weaponFocus = type; }
+		public void setWeaponFocus(int focus) {
+			switch (focus) {
+			case 1:
+				weaponFocus = DamageType.Piercing;
+				break;
+			case 2:
+				weaponFocus = DamageType.Slashing;
+				break;
+			case 3:
+				weaponFocus = DamageType.Crushing;
+				break;
+			default:
+				weaponFocus = DamageType.None;
+				break;
+			}
+		}
+		public int getWeaponFocusAsNumber() {
+			switch (weaponFocus) {
+			case DamageType.Piercing:
+				return 1;
+			case DamageType.Slashing:
+				return 2;
+			case DamageType.Crushing:
+				return 3;
+			default:
+				return 0;
+			}
+		}
 	}
 }
 
