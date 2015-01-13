@@ -26,7 +26,7 @@ public class BaseManager : MonoBehaviour {
 	bool levelup = false;
 	bool middleDraggin = false;
 	bool rightDraggin = false;
-	const int perUnitInfirmaryCost = 26;
+	const int perUnitInfirmaryCost = 2;
 
 	bool mouseLeftDown;
 	bool mouseRightDown;
