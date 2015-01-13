@@ -5,18 +5,20 @@ using System.Collections.Generic;
 namespace CharacterInfo {
 
     public class Purse {
-      //  private int copper;
-      //  private int silver;
-      //  private int gold;
+		
 		public int money;
 
+		public static string moneyString(int c) {
+			return moneyString(c%100, (c/100)%100, c/10000);
+		}
+		public static string moneyString(int c, int s, int g) {
+			return (g > 0 ? g + "g " : "") + (s > 0 ? s + "s " : "") + c + "c";
+		}
+		public string moneyString() {
+			return moneyString(money);
+		}
+
 		public void takeAllMoney(Purse p) {
-//			copper += p.copper;
-//			silver += p.silver;
-//			gold += p.gold;
-//			p.copper = 0;
-//			p.silver = 0;
-//			p.gold = 0;
 			if (p==this) return;
 			money += p.money;
 			p.money = 0;
@@ -44,75 +46,30 @@ namespace CharacterInfo {
             if (c < 0 || s < 0 || g < 0)
                 throw new InvalidOperationException("Invalid Parameter: Can't receive negative money");
 			receiveMoney(c + s*100 + g*10000);
-			/*
-            int silverRemainder = 0;
-            int goldRemainder = 0;
-            if (c + copper >= 100)
-            {
-                silverRemainder = Mathf.FloorToInt((c + copper) / 100);
-                copper = (c + copper) % 100;
-            }
-            else
-                copper += c;
-
-            if (s + silver + silverRemainder >= 100)
-            {
-                goldRemainder = Mathf.FloorToInt((s + silver + silverRemainder) / 100);
-                silver = (s + silver + silverRemainder) % 100;
-            }
-            else
-                silver += s;
-
-            gold += (g + goldRemainder);*/
         }
 
+		public bool spendMoney(int c) {
+			if (c < 0)
+				throw new InvalidOperationException("Invalid Parameter: Can't spend negative money.");
+			if (!enoughMoney(c)) return false;
+			money -= c;
+			return true;
+		}
 
         public bool spendMoney(int c, int s, int g) {
             // Check for invalid input
             if (c < 0 || s < 0 || g < 0)
                 throw new InvalidOperationException("Invalid Parameter: Can't spend negative money.");
-            if (!enoughMoney(c, s, g))
-                return false;
-			money -= c + s*100 + g*10000;
-			return true;
-/*            gold -= g;
-            spendFromPools(s, ref silver, ref gold);
-            spendFromPools(c, ref copper, ref silver);
-            return true;*/
+			return spendMoney(c + s*100 + g*10000);
         }
 
         // Compare the amount being spent against the money in the purse
         public bool enoughMoney(int c, int s, int g) {
-            int spentTotal = c + (s*100) + (g*10000);
-            return money >= spentTotal;
+			return enoughMoney(c + s*100 + g*10000);
+		}
+		public bool enoughMoney(int c) {
+            return money >= c;
         }
-		/*
-        private bool spendFromPools(int amount, ref int lowPool, ref int highPool)
-        {
-            if (amount == 0)
-                return true;
-            if (lowPool - amount < 0)    // Pull from the higher pool
-            {
-                int lowAmountNeeded = amount % 100;
-                int highAmountNeeded = 0;
-                if (lowPool < lowAmountNeeded)
-                    highAmountNeeded = Mathf.CeilToInt(amount / 100);
-                else
-                    highAmountNeeded = Mathf.FloorToInt(amount / 100);
-                if (highPool >= highAmountNeeded)        // if there's enough in the higher pool to pull from
-                {
-                    highPool -= highAmountNeeded;
-                    lowPool = (lowPool + (highAmountNeeded * 100)) - amount;
-                    return true;
-                }
-                else return false;
-            }
-            else
-            {
-                lowPool -= amount;
-                return true;
-            }
-        }*/
     }
 
 	public struct ItemReturn {

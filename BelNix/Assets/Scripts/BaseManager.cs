@@ -14,7 +14,7 @@ public class BaseManager : MonoBehaviour {
         // This has to be added to whenever a mission ends
         // This has to be subtracted from whenever a purchase is made
             // (or upkeep is charged)
-	public enum BaseState { Save, Mission, Barracks, None };
+	public enum BaseState { Save, Mission, Barracks, Infirmary, None };
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
@@ -26,7 +26,7 @@ public class BaseManager : MonoBehaviour {
 	bool levelup = false;
 	bool middleDraggin = false;
 	bool rightDraggin = false;
-
+	const int perUnitInfirmaryCost = 26;
 
 	bool mouseLeftDown;
 	bool mouseRightDown;
@@ -115,6 +115,9 @@ public class BaseManager : MonoBehaviour {
 				else if (hoveredObject.tag=="newcharacter") {
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
 					Application.LoadLevel(1);
+				}
+				else if (hoveredObject.tag=="infirmary") {
+					baseState = BaseState.Infirmary;
 				}
 			}
 		
@@ -355,6 +358,58 @@ public class BaseManager : MonoBehaviour {
 				y += h;
 			}
 			GUI.EndScrollView();
+		}
+		else if (baseState == BaseState.Infirmary) {
+			Vector2 boxSize = new Vector2(200.0f, 300.0f);
+			Vector2 boxOrigin = new Vector2((Screen.width - boxSize.x)/2.0f, (Screen.height - boxSize.y)/2.0f);
+			float y = boxOrigin.y;
+			GUI.Box(new Rect(boxOrigin.x, boxOrigin.y, boxSize.x, boxSize.y), "Infirmary");
+			y += 30.0f;
+			float x = boxOrigin.x + 5.0f;
+			int cost = perUnitInfirmaryCost * units.Count;
+			bool enabled = units[0].characterSheet.inventory.purse.enoughMoney(cost);
+			bool enabled2 = false;
+			foreach (Character c in units) {
+				CombatScores cs = c.characterSheet.combatScores;
+				if (cs.getCurrentHealth() < cs.getMaxHealth() || cs.getCurrentComposure() < cs.getMaxComposure()) {
+					enabled2 = true;
+					break;
+				}
+			}
+			Purse p = units[0].characterSheet.inventory.purse;
+			GUIContent infContent = new GUIContent((enabled2 ? (enabled ? "Rest for the day.\nIt will cost " + Purse.moneyString(cost) + " to rest.\n\n" : "You do not have enough money to rest. \nIt will cost " + cost + "c to rest.\n\n") : "All of your units are fully rested.\n\n") + "Purse: " + p.moneyString());
+			float infSize = GUI.skin.label.CalcHeight(infContent, boxSize.x - 10.0f);
+			GUI.Label(new Rect(x, y, boxSize.x - 10.0f, infSize), infContent);
+			y += infSize + 5.0f;
+			Vector2 buttonSize = new Vector2(90.0f, 40.0f);
+			if (GUI.Button(new Rect(Screen.width/2.0f - buttonSize.x - 5.0f, boxOrigin.y + boxSize.y - buttonSize.y - 20.0f, buttonSize.x, buttonSize.y), "Cancel")) {
+				baseState = BaseState.None;
+			}
+			GUI.enabled = enabled && enabled2;
+			if (GUI.Button(new Rect((Screen.width)/2.0f + 5.0f, boxOrigin.y + boxSize.y - buttonSize.y - 20.0f, buttonSize.x, buttonSize.y), "Rest")) {
+				for (int n=0;n<units.Count;n++) {
+					Character c = units[n];
+					int health = c.characterSheet.combatScores.getCurrentHealth();
+					int maxHealth = c.characterSheet.combatScores.getMaxHealth();
+					bool changed = false;
+					if (n==0) {
+						c.characterSheet.inventory.purse.spendMoney(cost);
+						changed = true;
+					}
+					if (health < maxHealth) {
+						if (health < 0) c.characterSheet.combatScores.addHealth(1);
+						else c.characterSheet.combatScores.setHealth(maxHealth);
+						changed = true;
+					}
+					if (c.characterSheet.combatScores.getCurrentComposure() < c.characterSheet.combatScores.getMaxComposure()) {
+						c.characterSheet.combatScores.setComposure(c.characterSheet.combatScores.getMaxComposure());
+						changed = true;
+					}
+					if (changed) {
+						c.saveCharacter();
+					}
+				}
+			}
 		}
 		else if (baseState == BaseState.Barracks) {
 			int numHeight = 8;
