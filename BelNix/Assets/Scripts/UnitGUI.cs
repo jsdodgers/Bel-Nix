@@ -59,7 +59,7 @@ public class UnitGUI {
 	}
 	
 	static GUIStyle courierStyle;
-	static GUIStyle getCourierStyle(int size) {
+	public static GUIStyle getCourierStyle(int size) {
 		if (courierStyle == null) {
 			courierStyle = new GUIStyle("Label");
 			courierStyle.font = Resources.Load<Font>("Fonts/Courier New");
@@ -85,7 +85,7 @@ public class UnitGUI {
 				newS += ((char)i);
 			}
 			else {
-				if (c == '\'' || c == '-') {
+				if (c == '\'' || c == '-' || c=='.' || c==',' || c=='+' || (c>='0' && c<='9')) {
 					if (!inLowerCase) {
 						newS += "<size=" + size + ">";
 						inLowerCase = true;

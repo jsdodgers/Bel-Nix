@@ -411,6 +411,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				{
 					Saves.removeFilesFromCurrentSaveFile();
 					//Load into Character Creation
+					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
 					Application.LoadLevel(1);
 				}
 				if(GUI.Button(new Rect(buttX, Screen.height/2 + 60, buttWidth, 40), "Load Game"))
@@ -715,7 +716,7 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				if(GUI.Button(new Rect(0, Screen.height - 40, 200, 40), "Cancel"))
 				{
-					Application.LoadLevel(0);
+					Application.LoadLevel(PlayerPrefs.GetInt("playercreatefrom"));
 				}
 
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
@@ -1088,6 +1089,9 @@ public class GraphicalUserInterface : MonoBehaviour
 		CharacterRace charRace = CharacterRace.getRace((raceSelect == 0 ? RaceName.Berrind : (raceSelect == 1 ? RaceName.Ashpian : RaceName.Rorrul)));
 		characterStr += (sturdyScore + perceptionScore + charClass.getClassModifiers().getHealthModifier() + charRace.getHealthModifier()) + delimiter;
 		characterStr += (techniqueScore + wellVersedScore + charClass.getClassModifiers().getComposureModifier() + charRace.getComposureModifier()) + delimiter;
+		//number of chosen features followed by each one.
+		characterStr += "0;";
+		//Number of inventory items followed by that many items.
 		characterStr += "0;";
 		Saves.addCharacter(characterStr);
 

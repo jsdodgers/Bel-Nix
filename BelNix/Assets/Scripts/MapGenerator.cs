@@ -527,7 +527,7 @@ public class MapGenerator : MonoBehaviour {
 //			p.transform.parent = Camera.main.transform;
 			Unit pl = p.GetComponent<Unit>();
 			if (n==0) mainUnit = pl;
-			pl.characterId = chars[n];
+		//	pl.characterId = chars[n];
 //			pl.mapGenerator = this;
 			pl.setMapGenerator(this);
 			pl.gui = gui;

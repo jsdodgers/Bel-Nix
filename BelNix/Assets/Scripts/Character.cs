@@ -178,6 +178,7 @@ public class Character
 		int money = 0;
 		int health = 100000;
 		int composure = 100000;
+		int numFeatures = 0;
 		int numItems = 0;
 		if (curr < components.Length-1)
 			money = int.Parse(components[curr++]);
@@ -185,6 +186,13 @@ public class Character
 			health = int.Parse(components[curr++]);
 		if (curr < components.Length-1)
 			composure = int.Parse(components[curr++]);
+		if (curr < components.Length-1)
+			numFeatures = int.Parse(components[curr++]);
+		int[] features = new int[numFeatures];
+		for (int n=0;n<numFeatures;n++) {
+			if (curr<components.Length-1)
+				features[n] = int.Parse(components[curr++]);
+		}
 		if (curr < components.Length-1)
 			numItems = int.Parse(components[curr++]);
 		for (int n=0;n<numItems;n++) {
@@ -212,10 +220,68 @@ public class Character
 		characterSheet.inventory.purse.receiveMoney(money);
 		combatScores.setHealth(health);
 		combatScores.setComposure(composure);
+		characterProgress.getCharacterClass().chosenFeatures = features;
 	}
 
-
-
+	
+	public void deleteCharacter() {
+		Saves.deleteCharacter(characterId);
+	}
+	
+	public void saveCharacter() {
+		Saves.saveCharacter(characterId, getCharacterString());
+	}
+	
+	const string delimiter = ";";
+	public string getCharacterString() {
+		string characterStr = "";
+		//********PERSONAL INFORMATION********\\
+		//Adding player first name.
+		characterStr += personalInfo.getCharacterName().firstName + delimiter;
+		characterStr += personalInfo.getCharacterName().lastName + delimiter;
+		CharacterSex sex = personalInfo.getCharacterSex();
+		characterStr += (sex==CharacterSex.Male ? 0 : (sex==CharacterSex.Female ? 1 : 2)) + delimiter;
+		RaceName race = personalInfo.getCharacterRace().raceName;
+		characterStr += (race == RaceName.Berrind ? 0 : (race == RaceName.Ashpian ? 1 : 2)) + delimiter;
+		CharacterBackground background = personalInfo.getCharacterBackground();
+		characterStr += (background == CharacterBackground.FallenNoble || background == CharacterBackground.Commoner || background == CharacterBackground.Servant ? 0 : 1) + delimiter;
+		characterStr += personalInfo.getCharacterAge().age + delimiter;
+		characterStr += (personalInfo.getCharacterHeight().feet * 12 + personalInfo.getCharacterHeight().inches) + delimiter;
+		characterStr += personalInfo.getCharacterWeight().weight + delimiter;
+		ClassName clas = characterProgress.getCharacterClass().getClassName();
+		characterStr += (clas == ClassName.ExSoldier ? 0 : (clas == ClassName.Engineer ? 1 : (clas == ClassName.Investigator ? 2 : (clas == ClassName.Researcher ? 3 : 4)))) + delimiter;
+		characterStr += abilityScores.getSturdy() + delimiter;
+		characterStr += abilityScores.getPerception() + delimiter;
+		characterStr += abilityScores.getTechnique() + delimiter;
+		characterStr += abilityScores.getWellVersed() + delimiter;
+		foreach (int score in skillScores.scores) {
+			characterStr += score + delimiter;
+		}
+		CharacterColors colors = characterSheet.characterColors;
+		characterStr += colorString(colors.characterColor);
+		characterStr += colorString(colors.headColor);
+		characterStr += colorString(colors.primaryColor);
+		characterStr += colorString(colors.secondaryColor);
+		characterStr += characterSheet.personalInformation.getCharacterHairStyle().hairStyle + delimiter;
+		characterStr += characterProgress.getCharacterLevel() + delimiter;
+		characterStr += characterProgress.getCharacterExperience() + delimiter;
+		//*********Hair*********\\
+		characterStr += characterSheet.inventory.purse.money + delimiter;
+		characterStr += characterSheet.combatScores.getCurrentHealth() + delimiter;
+		characterStr += characterSheet.combatScores.getCurrentComposure() + delimiter;
+		int[] features = characterSheet.characterProgress.getCharacterClass().chosenFeatures;
+		characterStr += features.Length + delimiter;
+		foreach (int feature in features) {
+			characterStr += feature + delimiter;
+		}
+		characterStr += "0;";
+		return characterStr;
+	}
+	
+	
+	static string colorString(Color c) {
+		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
+	}
 
 	// Class Features (Skills)
 
