@@ -32,7 +32,7 @@ namespace CharacterInfo
             return cLevel; 
         }
 		public bool canLevelUp() {
-			return cExperience > cLevel * LEVEL_COEFFICIENT;
+			return cExperience >= cLevel * LEVEL_COEFFICIENT;
 		}
 		public int setLevel(int level)					{ return cLevel = level; }
 		public ClassFeature[] getClassFeatures() 		{ return getCharacterClass().getClassFeatures(cLevel); }

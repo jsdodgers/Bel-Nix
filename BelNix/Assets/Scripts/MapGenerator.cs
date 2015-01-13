@@ -2056,7 +2056,8 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin) {
 			if (UnitGUI.inventoryOpen && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
-				selectedUnit.selectItem();
+				UnitGUI.selectItem(selectedUnit.characterSheet, this, selectedUnit);
+		//		selectedUnit.selectItem();
 			}
 		}
 		if ((isInCharacterPlacement() && (mouseDown && !leftClickIsMakingSelection()) && !rightDraggin && !middleDraggin)) {
@@ -2284,7 +2285,8 @@ public class MapGenerator : MonoBehaviour {
 	void handleMouseUp() {
 		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin) {
 			if (UnitGUI.inventoryOpen && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit()) {
-				selectedUnit.deselectItem();
+//				selectedUnit.deselectItem();
+				UnitGUI.deselectItem(selectedUnit.characterSheet, this, selectedUnit);
 			}
 		}
 		if (mouseUp && isInCharacterPlacement() && !rightDraggin && !middleDraggin) {

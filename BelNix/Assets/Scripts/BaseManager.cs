@@ -98,6 +98,8 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	void handleMouseClick() {
+		Vector2 mouse = Input.mousePosition;
+		mouse.y = Screen.height - mouse.y;
 		if (Input.GetMouseButtonDown(0)) {
 			if (hoveredObject != null) {
 				if (hoveredObject.tag == "exit")
@@ -115,11 +117,22 @@ public class BaseManager : MonoBehaviour {
 					Application.LoadLevel(1);
 				}
 			}
-			Vector2 mouse = Input.mousePosition;
-			mouse.y = Screen.height - mouse.y;
+		
 			if (!levelup && !(UnitGUI.containsMouse(mouse) && displayedCharacter!=null) && levelingUpCharacter == null) {
 				if (hoveredCharacter == displayedCharacter) displayedCharacter = null;
 				else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
+			}
+		}
+		if (UnitGUI.containsMouse(mouse) && Input.GetMouseButtonDown(0) && !rightDraggin && !middleDraggin) {
+			if (UnitGUI.inventoryOpen && displayedCharacter != null) {
+				UnitGUI.selectItem(displayedCharacter);
+				//		selectedUnit.selectItem();
+			}
+		}
+		if (Input.GetMouseButtonUp(0) && !rightDraggin && !middleDraggin) {
+			if (UnitGUI.inventoryOpen && displayedCharacter != null) {
+				//				selectedUnit.deselectItem();
+				UnitGUI.deselectItem(displayedCharacter);
 			}
 		}
 	}
@@ -147,7 +160,16 @@ public class BaseManager : MonoBehaviour {
 		lastPos.y -= yDiff;
 	}
 
+	bool shiftDown = false;
+	bool altDown = false;
+	bool controlDown = false;
+	bool commandDown = false;
+	Character expChanged = null;
 	void handleKeys() {
+		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+		altDown = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+		commandDown = Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
 		mouseLeftDown = Input.GetMouseButton(0);
 		mouseRightDown = Input.GetMouseButton(1);
 		mouseMiddleDown = Input.GetMouseButton(2);
@@ -162,6 +184,28 @@ public class BaseManager : MonoBehaviour {
 			}
 			if (Input.GetKeyDown(KeyCode.B)) {
 				UnitGUI.clickTab(Tab.B);
+			}
+		}
+		if (shiftDown && controlDown && (altDown || commandDown)) {
+			if (displayedCharacter != null) {
+				if ((commandDown && Input.GetKey(KeyCode.Minus)) || Input.GetKeyDown(KeyCode.Minus)) {
+					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
+					expChanged = displayedCharacter;
+					displayedCharacter.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterProgress.getCharacterExperience()-100));
+					displayedCharacter.saveCharacter();
+				}
+				if ((commandDown && Input.GetKey(KeyCode.Equals)) || Input.GetKeyDown(KeyCode.Equals)) {
+					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
+					expChanged = displayedCharacter;
+					displayedCharacter.characterProgress.addExperience(100);
+					displayedCharacter.saveCharacter();
+				}
+			}
+		}
+		if (expChanged!=null) {
+			if (Input.GetKeyUp(KeyCode.Equals) || Input.GetKeyUp(KeyCode.Plus)) {
+				expChanged.saveCharacter();
+				expChanged = null;
 			}
 		}
 	}
