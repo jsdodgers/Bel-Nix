@@ -14,7 +14,7 @@ public class BaseManager : MonoBehaviour {
         // This has to be added to whenever a mission ends
         // This has to be subtracted from whenever a purchase is made
             // (or upkeep is charged)
-	public enum BaseState { Save, Mission, Barracks, Infirmary, None };
+	public enum BaseState { Save, Mission, Barracks, Infirmary, Engineering, None };
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
@@ -110,6 +110,7 @@ public class BaseManager : MonoBehaviour {
 				}
 				else if (hoveredObject.tag=="barracks") {
 					barracksScrollPos = new Vector2();
+					displayedCharacter = null;
 					baseState = BaseState.Barracks;
 				}
 				else if (hoveredObject.tag=="newcharacter") {
@@ -118,6 +119,11 @@ public class BaseManager : MonoBehaviour {
 				}
 				else if (hoveredObject.tag=="infirmary") {
 					baseState = BaseState.Infirmary;
+				}
+				else if (hoveredObject.tag=="engineering") {
+					barracksScrollPos = new Vector2();
+					displayedCharacter = null;
+					baseState = BaseState.Engineering;
 				}
 			}
 		
@@ -410,6 +416,93 @@ public class BaseManager : MonoBehaviour {
 					}
 				}
 			}
+		}
+		else if (baseState == BaseState.Engineering) {
+			int numHeight = 8;
+			float topHeight = 20.0f;
+			float buttonHeight = 40.0f;
+			float buttonWidth = 200.0f;
+			float bottomHeight = buttonHeight + 5.0f*2;
+			Vector2 eachSize = new Vector2(476, 79);
+			Vector2 totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
+			while (totalSize.y > Screen.height - 50.0f && numHeight > 2) {
+				numHeight--;
+				totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
+			}
+			Vector2 boxOrigin = new Vector2((Screen.width - totalSize.x)/2.0f, (Screen.height - totalSize.y)/2.0f);
+			GUI.Box(new Rect(boxOrigin.x, boxOrigin.y, totalSize.x, totalSize.y), "Workbench");
+
+
+			List<Character> engineerUnits = new List<Character>();
+			foreach (Character c in units) {
+				if (c.characterProgress.getCharacterClass().getClassName()==ClassName.Engineer) {
+					engineerUnits.Add(c);
+				}
+			}
+			GUI.Label(new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + 25.0f, eachSize.x, eachSize.y), "Select a unit to create traps and turrets:");
+
+
+			Rect scrollRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + eachSize.y, eachSize.x + 16.0f, eachSize.y * (numHeight - 1));
+			bool inScroll = scrollRect.Contains(Event.current.mousePosition);
+		/*	if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null) {
+				GUI.enabled = false;
+			}*/
+			barracksScrollPos = GUI.BeginScrollView(scrollRect, barracksScrollPos, new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + eachSize.y, eachSize.x, eachSize.y * engineerUnits.Count));
+			GUI.enabled = true;
+			for (int n=0;n<engineerUnits.Count;n++) {
+				Character u = engineerUnits[n];
+				Rect totalRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + (n+1)*eachSize.y, eachSize.x, eachSize.y);
+				GUI.DrawTexture(totalRect, barracksTexture);
+				int largeSize = 16;
+				int smallSize = 12;
+				string startSize = "<size=" + smallSize + ">";
+				string endSize = "</size>";
+				GUIStyle st = getUnitInfoStyle(largeSize);
+				string info = UnitGUI.getSmallCapsString(u.characterSheet.personalInformation.getCharacterName().fullName(), smallSize) + "\n" +
+					UnitGUI.getSmallCapsString(u.characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), smallSize) + " \n" +
+						UnitGUI.getSmallCapsString(u.characterSheet.personalInformation.getCharacterRace().getRaceString(), smallSize) + "\n" +
+						UnitGUI.getSmallCapsString(u.characterSheet.personalInformation.getCharacterBackground().ToString(), smallSize);
+				GUIContent infoCont = new GUIContent(info);
+				Vector2 infoSize = st.CalcSize(infoCont);
+				GUI.Label(new Rect(boxOrigin.x + 25.0f, boxOrigin.y + topHeight + (n+1)*eachSize.y, eachSize.x - 5.0f, eachSize.y), infoCont, st);
+				string exp = UnitGUI.getSmallCapsString("Level", smallSize) + ":" + startSize + u.characterSheet.characterProgress.getCharacterLevel() + endSize + "\n" +
+					UnitGUI.getSmallCapsString("Experience", smallSize) + ":" + startSize + u.characterSheet.characterProgress.getCharacterExperience() + "/" + (u.characterSheet.characterProgress.getCharacterLevel()*100) + endSize + "\n" +
+						UnitGUI.getSmallCapsString("Health", smallSize) + ":" + startSize + u.characterSheet.combatScores.getCurrentHealth() + "/" + u.characterSheet.combatScores.getMaxHealth() + endSize + "\n" +
+						UnitGUI.getSmallCapsString("Composure", smallSize) + ":" + startSize + u.characterSheet.combatScores.getCurrentComposure() + "/" + u.characterSheet.combatScores.getMaxComposure() + endSize;
+				GUIContent expCont = new GUIContent(exp);
+				Vector2 expSize = st.CalcSize(expCont);
+				float expWidth = 150.0f;
+				float expX = boxOrigin.x + 20.0f + eachSize.x - expWidth;
+				float y = boxOrigin.y + topHeight + (n+1)*eachSize.y;
+				GUI.Label(new Rect(expX, y, expWidth, eachSize.y), expCont, st);
+				Vector2 levelUpSize = new Vector2(70.0f, expSize.y/2.0f - 15.0f);
+				Rect levelUpRect = new Rect(expX - levelUpSize.x - 5.0f, y + 10.0f, levelUpSize.x, levelUpSize.y);
+
+				if (inScroll) {
+					if (totalRect.Contains(Event.current.mousePosition)) hoveredCharacter = u;
+				}
+			}
+			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null) {
+				GUI.enabled = false;
+			}
+			GUI.EndScrollView();
+			GUI.enabled = true;
+			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel")) {
+				baseState = BaseState.None;
+				displayedCharacter = null;
+			}
+			if (displayedCharacter != null) {
+				UnitGUI.drawGUI(displayedCharacter, null, null);
+			}
+			if (levelingUpCharacter != null) {
+				drawLevelUpGUI();
+			}
+
+
+
+
+
+
 		}
 		else if (baseState == BaseState.Barracks) {
 			int numHeight = 8;
