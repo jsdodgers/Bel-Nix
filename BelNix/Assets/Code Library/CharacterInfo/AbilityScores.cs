@@ -7,6 +7,9 @@ namespace CharacterInfo
 
 		public AbilityScores (int stu, int per, int tec, int wVer)
 		{
+			setScores(stu, per, tec, wVer);
+		}
+		public void setScores(int stu, int per, int tec, int wVer) {
 			// Initialize default scores
 			sturdy		= (stu  > 0)  ? stu   : 1;
 			perception	= (per  > 0)  ? per   : 1;

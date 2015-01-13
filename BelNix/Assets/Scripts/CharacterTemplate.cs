@@ -3,7 +3,7 @@ using System.Collections;
 using CharacterInfo;
 
 
-public class CharacterTemplate : Character
+public class CharacterTemplate : MonoBehaviour
 {
 
 	public string textFile;
@@ -23,6 +23,7 @@ public class CharacterTemplate : Character
 	public Color headColor;
 	public Color primaryColor;
 	public Color secondaryColor;
+	public CharacterLoadout characterLoadout;
 
 	// Use this for initialization
 	void Start ()
@@ -31,14 +32,17 @@ public class CharacterTemplate : Character
 
 	}
 
-	public override void loadData() {
-		loadData(null);
+	public Character loadData(Unit u) {
+		return loadData(null, u);
 	}
 
-	public override void loadData(string textFile2) {
+	public Character loadData(string textFile2, Unit u) {
+		Character ch = new Character();
+		ch.characterLoadout = characterLoadout;
+		ch.unit = u;
 		if (textFile2 != null && textFile2 != "") textFile = textFile2;
 		if (textFile != null && textFile != "") {
-			loadCharacterFromTextFile(textFile);
+			ch.loadCharacterFromTextFile(textFile);
 		}
 		else {
 			CharacterRace mCRace = CharacterRace.getRace(mCRaceName);
@@ -49,12 +53,13 @@ public class CharacterTemplate : Character
 				hairSt = new CharacterHairStyle(hairPrefab);
 			else hairSt = new CharacterHairStyle((hairStyle >=0 && hairStyle < PersonalInformation.hairTypes.Length ? hairStyle : 0));
 			
-			loadCharacter(firstName, lastName, mCSex, mCRace, age,
+			ch.loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
 			              mCSturdy, mCPerception, mCTechnique, mCWellVersed, characterColor, headColor, primaryColor, secondaryColor, hairSt);
-			int level = characterProgress.setLevel(mClevel);
-			int experience = characterProgress.setExperience(mCexperience);
+			int level = ch.characterProgress.setLevel(mClevel);
+			int experience = ch.characterProgress.setExperience(mCexperience);
 		}
+		return ch;
 	}
 	
 	// Update is called once per frame
