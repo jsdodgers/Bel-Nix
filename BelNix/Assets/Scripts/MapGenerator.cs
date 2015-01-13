@@ -1061,6 +1061,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void setAroundCharacter(Unit cs, int radius, int view, int attackRange) {
+        Debug.Log(radius);
 		setCharacterCanStand((int)cs.position.x, (int)-cs.position.y, radius, 0, attackRange, cs, 0);
 		int type = 4;
 		/*
@@ -1074,11 +1075,15 @@ public class MapGenerator : MonoBehaviour {
 		}*/
 	}
 
-	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs, int minorsUsed = 0, Direction dirFrom = Direction.None) {
+	public void setCharacterCanStand(int x, int y, int radiusLeft, int currRadius, int attackRange, Unit cs, int minorsUsed = 0, Direction dirFrom = Direction.None, HashSet<Tile> tileSet = null) {
 	//	if (currRadius == 0) //Debug.Log(attackRange);
 		if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		if (minorsUsed > cs.minorsLeft) return;
 		Tile t = tiles[x,y];
+        //if (tileSet == null)                //
+        //    tileSet = new HashSet<Tile>();  //
+        //if (tileSet.Contains(t)) return;    //
+        //tileSet.Add(t);                     //
 		if (t.canStandCurr && t.minDistCurr <= currRadius && t.minDistUsedMinors <= minorsUsed) return;
 		if (t.minDistCurr > currRadius) {
 			t.canStandCurr = true;
@@ -1087,15 +1092,16 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if ((selectedUnits.Count != 0 || selectedUnit != getCurrentUnit()) && gui.showAttack)
 			setCharacterCanAttack(x, y, attackRange, 0, cs);
-		if (radiusLeft == 0) return;
+		if (radiusLeft <= 0) return;
+        //Debug.Log(x +" "+ y +" "+ radiusLeft +" "+ currRadius +" "+ minorsUsed +" "+ dirFrom);
 		if (canPass(Direction.Left, x, y, cs, dirFrom))
-			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Left) > 1 ? 1 : 0), Direction.Left);
-		if (canPass(Direction.Right, x, y, cs, dirFrom))
-			setCharacterCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Right) > 1 ? 1 : 0), Direction.Right);
-		if (canPass(Direction.Up, x, y, cs, dirFrom))
-			setCharacterCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Up) > 1 ? 1 : 0), Direction.Up);
-		if (canPass(Direction.Down, x, y, cs, dirFrom))
-			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Down) > 1 ? 1 : 0), Direction.Down);
+			setCharacterCanStand(x-1, y, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Left) > 1 ? 1 : 0), Direction.Left);//, tileSet);    //
+        if (canPass(Direction.Right, x, y, cs, dirFrom))
+			setCharacterCanStand(x+1, y, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Right) > 1 ? 1 : 0), Direction.Right);//, tileSet);  //
+        if (canPass(Direction.Up, x, y, cs, dirFrom))   
+			setCharacterCanStand(x, y-1, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Up) > 1 ? 1 : 0), Direction.Up);//, tileSet);        //
+        if (canPass(Direction.Down, x, y, cs, dirFrom))
+			setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs, minorsUsed + (t.passabilityInDirection(Direction.Down) > 1 ? 1 : 0), Direction.Down);//, tileSet);    //
 	}
 
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs) {
