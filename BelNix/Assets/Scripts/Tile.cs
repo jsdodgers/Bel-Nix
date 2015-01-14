@@ -195,12 +195,16 @@ public class Tile {
 	}
 
 	public bool hasAliveEnemy(Unit cs) {
-		return hasEnemy(cs) && !getEnemy(cs).deadOrDyingOrUnconscious();
+		return hasEnemy(cs) && !getCharacter().deadOrDyingOrUnconscious();
 	}
 
 	public bool hasEnemy(Unit cs) {
 		return hasCharacter() && cs.isEnemyOf(character);
 //		return enemy != null;
+	}
+
+	public bool hasAliveAlly(Unit cs) {
+		return hasAlly(cs) && !getAlly(cs).deadOrDyingOrUnconscious();
 	}
 
 	public bool hasAlly(Unit cs) {
@@ -226,7 +230,6 @@ public class Tile {
 	}
 
 	public Unit getCharacter() {
-		if (character == null) return null;
 		return character;
 	}
 
