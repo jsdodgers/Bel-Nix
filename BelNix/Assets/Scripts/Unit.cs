@@ -1267,8 +1267,8 @@ public class Unit : MonoBehaviour {
 		if (characterSheet == null) return false;
 		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
 		if (w == null) return false;
-		if (w is ItemMechanical) {
-			if (w.overClocked) return false;
+		if (w is WeaponMechanical) {
+			if (((WeaponMechanical)w).overClocked) return false;
 		}
 		return true;
 	}
@@ -1895,7 +1895,7 @@ public class Unit : MonoBehaviour {
 			Debug.Log("Over Clocked Attack!!!");
 			Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
 			if (w is ItemMechanical) {
-				w.overClocked = true;
+				((WeaponMechanical)w).overClocked = true;
 				gui.selectedStandardType = StandardType.None;
 			}
 		}

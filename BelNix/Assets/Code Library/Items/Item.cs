@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public enum ItemType {Weapon = 0, Armor, Useable, Ammunition, Mechanical, Misc}
 public enum ItemStackType {Applicator = 0, Gear, Frame, EnergySource, Trigger, Turret, None}
-public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear};
+public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical};
 
 
 public class EditorItem : MonoBehaviour {
@@ -44,6 +44,8 @@ public class Item {
 			return new Item(itemData, delim);
 		case ItemCode.Weapon:
 			return new Weapon(itemData, delim);
+		case ItemCode.WeaponMechanical:
+			return new WeaponMechanical(itemData, delim);
 		case ItemCode.Armor:
 			return new Armor(itemData, delim);
 		case ItemCode.Turret:
@@ -168,8 +170,21 @@ public class Item {
 	
 }
 
-public class Weapon : Item, ItemMechanical {
-	public bool overClocked;
+public class WeaponMechanical : Weapon, ItemMechanical {
+	public bool overClocked = false;
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.WeaponMechanical;
+	}
+	public WeaponMechanical(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape)
+	: base(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape) {
+	}
+	public WeaponMechanical(string itemData, string delim) : base(itemData, delim) {
+
+	}
+}
+
+public class Weapon : Item {
 	public int hit;
 	public int range;
 	public int numberOfDamageDice;
