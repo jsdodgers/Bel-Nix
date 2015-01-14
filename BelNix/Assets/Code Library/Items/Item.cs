@@ -168,7 +168,8 @@ public class Item {
 	
 }
 
-public class Weapon : Item {
+public class Weapon : Item, ItemMechanical {
+	public bool overClocked;
 	public int hit;
 	public int range;
 	public int numberOfDamageDice;

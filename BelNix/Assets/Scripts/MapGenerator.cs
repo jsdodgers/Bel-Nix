@@ -462,7 +462,7 @@ public class MapGenerator : MonoBehaviour {
 			currentKeysSize = 5;
 		else if (gui.selectedMovement && gui.selectedMovementType == MovementType.Move)
 			currentKeysSize = getCurrentUnit().maxMoveDist;
-		else if (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack) currentKeysSize = getCurrentUnit().getAttackRange();
+		else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock)) currentKeysSize = getCurrentUnit().getAttackRange();
 		else currentKeysSize = 1;
 	}
 
@@ -648,7 +648,9 @@ public class MapGenerator : MonoBehaviour {
 //		if (hoveredCharacter) {
 //			resetAroundCharacter(hoveredCharacter);
 //		}
-		gui.selectedStandardType = StandardType.Attack;
+		if (getCurrentUnit().hasWeapon())
+			gui.selectedStandardType = StandardType.Attack;
+		else gui.selectedStandardType = StandardType.None;
 		gui.selectedMovementType = MovementType.Move;
 		selectedUnit = getCurrentUnit();
 	//	selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
@@ -1599,9 +1601,12 @@ public class MapGenerator : MonoBehaviour {
 		}
 
 		
-		if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
+		if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
 			if (gui.selectedStandardType == StandardType.Attack) {
 				p.startAttacking();
+			}
+			else if (gui.selectedStandardType == StandardType.OverClock) {
+				p.startAttacking(true);
 			}
 			else if (gui.selectedStandardType == StandardType.Throw) {
 				p.startThrowing();
@@ -1820,7 +1825,7 @@ public class MapGenerator : MonoBehaviour {
 					selectedUnit.attackEnemy = null;
 				}
 				if (t!=null && t.canAttackCurr && t!=currentUnitTile) {
-					if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
+					if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate)
 						selectedUnit.attackEnemy = t.getEnemy(selectedUnit);
 					else if (gui.selectedStandardType == StandardType.Throw)
 						selectedUnit.attackEnemy = t.getCharacter();
@@ -1948,7 +1953,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
-		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || (gui.selectedStandardType==StandardType.Lay_Trap && (gui.selectedTrap!=null || true)) || gui.selectedStandardType==StandardType.Place_Turret)) ||
+		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || (gui.selectedStandardType==StandardType.Lay_Trap && (gui.selectedTrap!=null || true)) || gui.selectedStandardType==StandardType.Place_Turret)) ||
 			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep))
 				|| performingAction();
 	}
@@ -2105,7 +2110,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap)) {
+			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap)) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -2189,7 +2194,7 @@ public class MapGenerator : MonoBehaviour {
 							selectedUnit.attackEnemy = null;
 						}
 						if (tiles[posX,posY].canAttackCurr) {
-							if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate)
+							if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate)
 								selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 							else if (gui.selectedStandardType == StandardType.Throw)
 								selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
@@ -2365,7 +2370,7 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
+				if ((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						Debug.Log("performAction()");
 						performAction();
@@ -2416,7 +2421,7 @@ public class MapGenerator : MonoBehaviour {
 					currentKeysTile = lastClickTile;
 					if (!currentKeysTile.canStandCurr) currentKeysTile = currentUnitTile;
 				}
-				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret)) {
+				else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret)) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 					currentKeysTile = lastClickTile;
@@ -2572,7 +2577,7 @@ public class MapGenerator : MonoBehaviour {
 		bool isOther = selectedUnit != getCurrentUnit() || selectedUnits.Count > 0;
 		if ((gui.showMovement && isOther) || ((gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) && !isOther))
 			setAroundCharacter(u);
-		else if ((gui.showAttack && isOther) || (gui.selectedStandard && gui.selectedStandardType == StandardType.Attack && !isOther))
+		else if ((gui.showAttack && isOther) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
 		else if ((gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
