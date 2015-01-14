@@ -11,6 +11,7 @@ public class Turret : Item, ItemMechanical {
 	public Applicator applicator;
 	public Gear gear;
 	public EnergySource energySource;
+	public string creatorId = "";
 	const int range = 5;
 	public override string getItemData (string delim)
 	{
@@ -23,7 +24,8 @@ public class Turret : Item, ItemMechanical {
 				(int)gear.getItemCode() + delim +
 				gear.getItemData(otherDelimiter) + delim +
 				(int)energySource.getItemCode() + delim +
-				energySource.getItemData(otherDelimiter);
+				energySource.getItemData(otherDelimiter) + delim +
+				creatorId;
 	}
 	public Turret(string itemData, string delim) : base(itemData, delim) {
 		string[] split = itemData.Split(delim.ToCharArray());
@@ -34,6 +36,8 @@ public class Turret : Item, ItemMechanical {
 		applicator = (Applicator)Item.deserializeItem((ItemCode)int.Parse(split[curr++]), split[curr++], otherDelimiter);
 		gear = (Gear)Item.deserializeItem((ItemCode)int.Parse(split[curr++]), split[curr++], otherDelimiter);
 		energySource = (EnergySource)Item.deserializeItem((ItemCode)int.Parse(split[curr++]), split[curr++], otherDelimiter);
+		if (curr < split.Length)
+			creatorId = split[curr++];
 	}
 	public override ItemCode getItemCode ()
 	{
@@ -57,7 +61,7 @@ public class Turret : Item, ItemMechanical {
 	public bool isDestroyed() {
 		return frame.isDestroyed();
 	}
-	public Turret(Frame fr, Applicator app, Gear g, EnergySource es) {
+	public Turret(string creator, Frame fr, Applicator app, Gear g, EnergySource es) {
 		itemStackType = ItemStackType.Turret;
 		frame = fr;
 		applicator = app;
@@ -65,6 +69,7 @@ public class Turret : Item, ItemMechanical {
 		energySource = es;
 		inventoryTextureName = "Units/Turrets/TurretPlaceholder";
 		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		creatorId = creator;
 	}
 	public Turret() {
 	}
@@ -78,6 +83,7 @@ public class Trap : Item, ItemMechanical {
 	public Gear gear;
 	public Applicator applicator;
 	public Trigger trigger;
+	string creatorId = "";
 	public override string getItemData (string delim)
 	{
 		return base.getItemData(delim) + delim +
@@ -89,7 +95,8 @@ public class Trap : Item, ItemMechanical {
 				(int)gear.getItemCode() + delim +
 				gear.getItemData(otherDelimiter) + delim +
 				(int)trigger.getItemCode() + delim +
-				trigger.getItemData(otherDelimiter);
+				trigger.getItemData(otherDelimiter) + delim +
+				creatorId;
 	}
 	public Trap(string itemData, string delim) : base(itemData, delim) {
 		string[] split = itemData.Split(delim.ToCharArray());
@@ -100,6 +107,8 @@ public class Trap : Item, ItemMechanical {
 		applicator = (Applicator)Item.deserializeItem((ItemCode)int.Parse(split[curr++]), split[curr++], otherDelimiter);
 		gear = (Gear)Item.deserializeItem((ItemCode)int.Parse(split[curr++]), split[curr++], otherDelimiter);
 		trigger = (Trigger)Item.deserializeItem((ItemCode)int.Parse(split[curr++]), split[curr++], otherDelimiter);
+		if (curr < split.Length)
+			creatorId = split[curr++];
 	}
 	public override ItemCode getItemCode ()
 	{
@@ -118,13 +127,14 @@ public class Trap : Item, ItemMechanical {
 	public int rollDamage() {
 		return applicator.rollDamage() + gear.additionalDamage();
 	}
-	public Trap(Frame fr, Applicator app, Gear g, Trigger tr) {
+	public Trap(string creator, Frame fr, Applicator app, Gear g, Trigger tr) {
 		frame = fr;
 		applicator = app;
 		gear = g;
 		trigger = tr;
 		inventoryTextureName = "Units/Turrets/Trap";
 		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		creatorId = creator;
 	}
 	public override Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};

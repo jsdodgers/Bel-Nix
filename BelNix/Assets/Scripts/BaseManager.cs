@@ -128,9 +128,18 @@ public class BaseManager : MonoBehaviour {
 			}
 		
 			if (!levelup && !(UnitGUI.containsMouse(mouse) && displayedCharacter!=null) && levelingUpCharacter == null) {
-				if (hoveredCharacter == displayedCharacter) displayedCharacter = null;
-				else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
+				if (baseState==BaseState.Barracks) {
+					if (hoveredCharacter == displayedCharacter) displayedCharacter = null;
+					else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
+				}
+				else if (baseState == BaseState.Engineering) {
+					if (displayedCharacter == null) displayedCharacter = hoveredCharacter;
+				}
 			}
+			selectItem(displayedCharacter);
+		}
+		if (Input.GetMouseButtonUp(0)) {
+			deselectItem(displayedCharacter);
 		}
 		if (UnitGUI.containsMouse(mouse) && Input.GetMouseButtonDown(0) && !rightDraggin && !middleDraggin) {
 			if (UnitGUI.inventoryOpen && displayedCharacter != null) {
@@ -209,6 +218,14 @@ public class BaseManager : MonoBehaviour {
 					displayedCharacter.characterProgress.addExperience(100);
 					displayedCharacter.saveCharacter();
 				}
+			}
+			if ((commandDown && Input.GetKey (KeyCode.RightBracket)) || Input.GetKeyDown(KeyCode.RightBracket)) {
+				units[0].characterSheet.inventory.purse.receiveMoney(10);
+				units[0].saveCharacter();
+			}
+			if ((commandDown && Input.GetKey (KeyCode.LeftBracket)) || Input.GetKeyDown(KeyCode.LeftBracket)) {
+				units[0].characterSheet.inventory.purse.spendMoney(10);
+				units[0].saveCharacter();
 			}
 		}
 		if (expChanged!=null) {
@@ -491,11 +508,16 @@ public class BaseManager : MonoBehaviour {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
+
 			if (displayedCharacter != null) {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
 			}
-			if (levelingUpCharacter != null) {
-				drawLevelUpGUI();
+			else if (hoveredCharacter != null) {
+				UnitGUI.drawGUI(hoveredCharacter, null, null);
+			}
+			if (displayedCharacter != null) {
+			//	UnitGUI.drawGUI(displayedCharacter, null, null);
+				drawWorkbenchGUI();
 			}
 
 
@@ -555,6 +577,10 @@ public class BaseManager : MonoBehaviour {
 				Rect levelUpRect = new Rect(expX - levelUpSize.x - 5.0f, y + 10.0f, levelUpSize.x, levelUpSize.y);
 				bool haslevelup = false;
 				if (u.characterSheet.characterProgress.canLevelUp()) {
+					//if ((UnitGUI.containsMouse(Event.current.mousePosition) || guiContainsMouse()) && displayedCharacter!=null) {
+					if (levelingUpCharacter != null) {
+						GUI.enabled = false;
+					}
 					if (GUI.Button(levelUpRect, "Level Up!") && levelingUpCharacter == null) {
 						levelingUpCharacter = u;
 						abilityScorePointsAvailable = 1;
@@ -576,6 +602,7 @@ public class BaseManager : MonoBehaviour {
 						selectedFeature = -1;
 						Debug.Log("Level Up!!");
 					}
+					GUI.enabled = true;
 					if (levelUpRect.Contains(Event.current.mousePosition)) haslevelup = true;
 				}
 				if (!haslevelup && inScroll) {
@@ -599,6 +626,687 @@ public class BaseManager : MonoBehaviour {
 			}
 		}
 	}
+	
+	public const float inventoryCellSize = 24.0f;
+	const float inventoryLineThickness = 2.0f;
+	public const float change = inventoryCellSize - inventoryLineThickness;
+	public const float change2 = inventoryCellSize - inventoryLineThickness/2.0f;
+
+	public static Vector2 getInventorySlotPos(InventorySlot slot, float baseX, float baseY) {
+		switch (slot) {
+		case InventorySlot.Frame:
+			return new Vector2(baseX, baseY);
+		case InventorySlot.Applicator:
+			return new Vector2(baseX + change2*2 + 10.0f, baseY);
+		case InventorySlot.Gear:
+			return new Vector2(baseX + change2*4 + 20.0f, baseY);
+		case InventorySlot.TriggerEnergySource:
+			return new Vector2(baseX + change2*6 + 30.0f, baseY);
+		case InventorySlot.TrapTurret:
+			return new Vector2(baseX + change2*6 + 30.0f, baseY + change2*2 + 10.0f);
+		case InventorySlot.Zero:
+			return new Vector2(baseX, baseY);
+		case InventorySlot.One:
+			return new Vector2(baseX + change, baseY);
+		case InventorySlot.Two:
+			return new Vector2(baseX + change*2, baseY);
+		case InventorySlot.Three:
+			return new Vector2(baseX + change*3, baseY);
+		case InventorySlot.Four:
+			return new Vector2(baseX, baseY + change);
+		case InventorySlot.Five:
+			return new Vector2(baseX + change, baseY + change);
+		case InventorySlot.Six:
+			return new Vector2(baseX + change*2, baseY + change);
+		case InventorySlot.Seven:
+			return new Vector2(baseX + change*3, baseY + change);
+		case InventorySlot.Eight:
+			return new Vector2(baseX, baseY + change*2);
+		case InventorySlot.Nine:
+			return new Vector2(baseX + change, baseY + change*2);
+		case InventorySlot.Ten:
+			return new Vector2(baseX + change*2, baseY + change*2);
+		case InventorySlot.Eleven:
+			return new Vector2(baseX + change*3, baseY + change*2);
+		case InventorySlot.Twelve:
+			return new Vector2(baseX, baseY + change*3);
+		case InventorySlot.Thirteen:
+			return new Vector2(baseX + change, baseY + change*3);
+		case InventorySlot.Fourteen:
+			return new Vector2(baseX + change*2, baseY + change*3);
+		case InventorySlot.Fifteen:
+			return new Vector2(baseX + change*3, baseY + change*3);	
+		default:
+			return new Vector2();
+		}
+	}
+
+	
+	public static Rect getInventorySlotRect(InventorySlot slot, float baseX, float baseY) {
+		Vector2 v = getInventorySlotPos(slot, baseX, baseY);
+		switch (slot) {
+		case InventorySlot.Head:
+		case InventorySlot.Shoulder:
+		case InventorySlot.Back:
+		case InventorySlot.Chest:
+		case InventorySlot.Glove:
+		case InventorySlot.RightHand:
+		case InventorySlot.LeftHand:
+		case InventorySlot.Pants:
+		case InventorySlot.Boots:
+		case InventorySlot.Frame:
+		case InventorySlot.Applicator:
+		case InventorySlot.Gear:
+		case InventorySlot.TriggerEnergySource:
+		case InventorySlot.TrapTurret:
+			return new Rect(v.x, v.y, inventoryCellSize*2, inventoryCellSize*2);
+		case InventorySlot.Zero:
+		case InventorySlot.One:
+		case InventorySlot.Two:
+		case InventorySlot.Three:
+		case InventorySlot.Four:
+		case InventorySlot.Five:
+		case InventorySlot.Six:
+		case InventorySlot.Seven:
+		case InventorySlot.Eight:
+		case InventorySlot.Nine:
+		case InventorySlot.Ten:
+		case InventorySlot.Eleven:
+		case InventorySlot.Twelve:
+		case InventorySlot.Thirteen:
+		case InventorySlot.Fourteen:
+		case InventorySlot.Fifteen:
+			return new Rect(v.x, v.y, inventoryCellSize, inventoryCellSize);
+		default:
+			return new Rect();
+		}
+	}
+
+
+
+
+	
+	public float inventX = 0.0f;
+	public float inventY = 0.0f;
+	public float trapsTurretsX = 0.0f;
+	public float trapsTurretsY = 0.0f;
+	public Frame frame;
+	public Applicator applicator;
+	public Gear gear;
+	public Item energySourceOrTrigger;
+	public Item selectedItem;
+	public Turret turret;
+	public Trap trap;
+	public InventorySlot selectedItemWasInSlot;
+	public Vector3 selectedMousePos = new Vector3();
+	public Vector2 selectedItemPos = new Vector2();
+	public Vector2 selectedCell = new Vector2();
+	public void selectItem(Character characterSheet) {
+		selectItem(characterSheet, null, null);
+	}
+	public void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u) {
+		Debug.Log("Select Item");
+		Vector3 mousePos = Input.mousePosition;
+		mousePos.y = Screen.height - mousePos.y;
+		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+			Rect r = getInventorySlotRect(slot, inventX, inventY);
+			if (r.Contains(mousePos)) {
+				Vector2 v = UnitGUI.getIndexOfSlot(slot);
+				//				Debug.Log(v);
+				int ind = UnitGUI.getLinearIndexFromIndex(v);
+				InventoryItemSlot sl = displayedCharacter.characterSheet.inventory.inventory[ind];
+				InventoryItemSlot slR = sl.itemSlot;
+				if (slR==null) break;
+				//	Item i = slR.item;
+				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
+				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
+				selectedItem = ir.item;
+				if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
+					if (selectedItem.stackSize()>1) {
+						characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
+						selectedItem = selectedItem.popStack();
+					}
+				}
+				selectedCell = ir.slot;
+				selectedMousePos = mousePos;
+				//				selectedItemPos = getInventorySlotPos();
+				selectedItemPos = getInventorySlotPos(UnitGUI.inventorySlots[slR.index], inventX, inventY);
+				selectedItemWasInSlot = UnitGUI.inventorySlots[slR.index];
+				break;
+			}
+		}
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
+			if (r.Contains(mousePos)) {
+				Item i = null;
+				switch (slot) {
+				case InventorySlot.Frame:
+					i = frame;
+					break;
+				case InventorySlot.Applicator:
+					i = applicator;
+					break;
+				case InventorySlot.Gear:
+					i = gear;
+					break;
+				case InventorySlot.TriggerEnergySource:
+					i = energySourceOrTrigger;
+					break;
+				default:
+					break;
+				}
+				if (i==null)break;
+				Vector2 size = i.getSize();
+				float x = r.x + (r.width - size.x*inventoryCellSize)/2.0f;
+				float y = r.y + (r.height - size.y*inventoryCellSize)/2.0f;
+				float width = size.x*inventoryCellSize;
+				float height = size.y*inventoryCellSize;
+				Rect r2 = new Rect(x, y, width, height);
+				float inventW = inventoryCellSize;
+				float inventH = inventoryCellSize;
+				if (!r2.Contains(mousePos)) {
+					inventW = inventW * r.width/r2.width;
+					inventH = inventH * r.height/r2.height;
+					r2 = r;
+				}
+				selectedCell = new Vector2((int)((mousePos.x - r2.x)/inventW), (int)((mousePos.y - r2.y)/inventH));
+				foreach (Vector2 cell in i.getShape()) {
+					if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+						selectedItemPos = new Vector2(mousePos.x - (mousePos.x - r2.x)/(inventW/inventoryCellSize), mousePos.y - (mousePos.y - r2.y)/(inventH/inventoryCellSize));
+						selectedMousePos = mousePos;
+						selectedItem = i;
+						selectedItemWasInSlot = slot;
+						switch (slot) {
+						case InventorySlot.Frame:
+							frame = null;
+							break;
+						case InventorySlot.Applicator:
+							applicator = null;
+							break;
+						case InventorySlot.Gear:
+							gear = null;
+							break;
+						case InventorySlot.TriggerEnergySource:
+							energySourceOrTrigger = null;
+							break;
+						default:
+							break;
+						}
+						trap = null;
+						turret = null;
+						break;
+					}
+				}
+				if (selectedItem != null) {
+					break;
+				}
+			}
+		}
+		bool doTrapsTurrets = true;
+		while (doTrapsTurrets) {
+			doTrapsTurrets = false;
+			InventorySlot slot = InventorySlot.TrapTurret;
+			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
+			if (r.Contains(mousePos)) {
+				Item i = (trapOrTurret==0 ? (Item)turret : (Item)trap);
+				if (i==null)break;
+				Vector2 size = i.getSize();
+				float x = r.x + (r.width - size.x*inventoryCellSize)/2.0f;
+				float y = r.y + (r.height - size.y*inventoryCellSize)/2.0f;
+				float width = size.x*inventoryCellSize;
+				float height = size.y*inventoryCellSize;
+				Rect r2 = new Rect(x, y, width, height);
+				float inventW = inventoryCellSize;
+				float inventH = inventoryCellSize;
+				if (!r2.Contains(mousePos)) {
+					inventW = inventW * r.width/r2.width;
+					inventH = inventH * r.height/r2.height;
+					r2 = r;
+				}
+				selectedCell = new Vector2((int)((mousePos.x - r2.x)/inventW), (int)((mousePos.y - r2.y)/inventH));
+				foreach (Vector2 cell in i.getShape()) {
+					if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+						selectedItemPos = new Vector2(mousePos.x - (mousePos.x - r2.x)/(inventW/inventoryCellSize), mousePos.y - (mousePos.y - r2.y)/(inventH/inventoryCellSize));
+						selectedMousePos = mousePos;
+						selectedItem = i;
+						selectedItemWasInSlot = slot;
+						trap = null;
+						turret = null;
+						break;
+					}
+				}
+				if (selectedItem != null) {
+					break;
+				}
+			}
+		}
+		/*
+		if (!GameGUI.looting || mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
+		Vector2 scrollOff = UnitGUI.groundScrollPosition;
+		float div = 20.0f;
+		float y = div + UnitGUI.groundY - scrollOff.y;
+		float mid = UnitGUI.groundX + UnitGUI.groundWidth/2.0f + scrollOff.x;
+		//	mousePos.y += groundScrollPosition.y;
+		selectedItem = null;
+		if (mapGenerator != null) {
+			List<Item> groundItems = mapGenerator.tiles[(int)u.position.x,(int)-u.position.y].getReachableItems();
+			foreach (Item i in groundItems) {
+				if (i.inventoryTexture==null) continue;
+				//	Debug.Log(mousePos.x + "  " + mousePos.y + "       " + mid + "  " + y);
+				Vector2 size = i.getSize();
+				float x = mid - size.x*inventoryCellSize/2.0f;
+				Rect r = new Rect(x, y, size.x*inventoryCellSize, size.y*UnitGUI.inventoryCellSize);
+				if (r.Contains(mousePos)) {
+					//	Debug.Log(i);
+					selectedCell = new Vector2((int)((mousePos.x - x)/inventoryCellSize), (int)((mousePos.y - y)/inventoryCellSize));
+					foreach (Vector2 cell in i.getShape()) {
+						if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+							selectedItemPos = new Vector2(x, y);
+							selectedMousePos = mousePos;
+							selectedItem = i;
+							selectedItemWasInSlot = InventorySlot.None;
+						}
+					}
+					Debug.Log(selectedCell);
+					if (selectedItem!=null) {
+						break;
+					}
+				}
+				y += size.y*UnitGUI.inventoryCellSize + div;
+			}
+		}*/
+	}
+	public void deselectItem(Character characterSheet) {
+		deselectItem(characterSheet, null, null);
+	}
+	public void removeTurretTrapItemsPossibly() {
+		if (selectedItemWasInSlot==InventorySlot.TrapTurret) {
+			frame = null;
+			applicator = null;
+			gear = null;
+			energySourceOrTrigger = null;
+			displayedCharacter.saveCharacter();
+		}
+	}
+	public void deselectItem(Character characterSheet, MapGenerator mapGenerator, Unit u) {
+		if (selectedItem == null) return;
+		Vector3 mousePos = Input.mousePosition;
+		mousePos.y = Screen.height - mousePos.y;
+		Tile t = (mapGenerator != null && u!=null ? mapGenerator.tiles[(int)u.position.x,(int)-u.position.y] : null);
+		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+			Rect r = getInventorySlotRect(slot, inventX, inventY);
+			if (r.Contains(mousePos)) {
+				Vector2 v2 = UnitGUI.getIndexOfSlot(slot);
+				Vector2 v = v2 - selectedCell;
+				Debug.Log(v);
+				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
+					if (selectedItemWasInSlot == InventorySlot.None) {
+						t.removeItem(selectedItem,1);
+						u.minorsLeft--;
+					}
+					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
+					selectedItem = null;
+					removeTurretTrapItemsPossibly();
+					return;
+				}
+				else {
+					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[characterSheet.characterSheet.inventory.getIndexForSlot(v2)];
+					Item invSlotItem = invSlot.getItem();
+					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
+						if (selectedItemWasInSlot == InventorySlot.None) {
+							t.removeItem(selectedItem,1);
+							u.minorsLeft--;
+						}
+						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
+						selectedItem = null;
+						removeTurretTrapItemsPossibly();
+						return;
+					}
+				}
+				break;
+			}
+		}
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
+			if (r.Contains(mousePos)) {
+			//	Vector2 v2 = UnitGUI.getIndexOfSlot(slot);
+				bool removed = false;
+				switch (slot) {
+				case InventorySlot.Frame:
+					if (selectedItem is Frame && frame==null) {
+						frame = (Frame)selectedItem;
+						removed = true;
+					}
+					break;
+				case InventorySlot.Applicator:
+					if (selectedItem is Applicator && applicator == null) {
+						applicator = (Applicator)selectedItem;
+						removed = true;
+					}
+					break;
+				case InventorySlot.Gear:
+					if (selectedItem is Gear && gear == null) {
+						gear = (Gear)selectedItem;
+						removed = true;
+					}
+					break;
+				case InventorySlot.TriggerEnergySource:
+					if ((trapOrTurret==1 ? selectedItem is Trigger : selectedItem is EnergySource) && energySourceOrTrigger == null) {
+						energySourceOrTrigger = selectedItem;
+						removed = true;
+					}
+					break;
+				default:
+					break;
+				}
+				if (removed) {
+					selectedItem = null;
+					if (frame!=null && applicator!=null && gear!=null && (energySourceOrTrigger!=null && (trapOrTurret==1 ? (energySourceOrTrigger is Trigger) : (energySourceOrTrigger is EnergySource)))) {
+						if (trapOrTurret==0) {
+							turret = new Turret(displayedCharacter.characterId, frame, applicator, gear, (EnergySource)energySourceOrTrigger);
+						}
+						else {
+							trap = new Trap(displayedCharacter.characterId, frame, applicator, gear, (Trigger)energySourceOrTrigger);
+						}
+					}
+					return;
+				}
+			}
+		}
+/*		if (GameGUI.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
+			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
+				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
+				t.addItem(selectedItem);
+				u.minorsLeft--;
+				//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
+			}
+		}
+		else*/ 
+		if (selectedItemWasInSlot!=InventorySlot.None) {
+			switch (selectedItemWasInSlot) {
+			case InventorySlot.Frame:
+				frame = (Frame)selectedItem;
+				break;
+			case InventorySlot.Applicator:
+				applicator = (Applicator)selectedItem;
+				break;
+			case InventorySlot.Gear:
+				gear = (Gear)selectedItem;
+				break;
+			case InventorySlot.TriggerEnergySource:
+				energySourceOrTrigger = selectedItem;
+				break;
+			case InventorySlot.TrapTurret:
+				if (selectedItem is Turret) {
+					turret = (Turret)selectedItem;
+				}
+				else if (selectedItem is Trap) {
+					trap = (Trap)selectedItem;
+				}
+				break;
+			default:
+				if (displayedCharacter.characterSheet.inventory.canInsertItemInSlot(selectedItem, UnitGUI.getIndexOfSlot(selectedItemWasInSlot))) {
+					displayedCharacter.characterSheet.inventory.insertItemInSlot(selectedItem, UnitGUI.getIndexOfSlot(selectedItemWasInSlot));
+				}
+				else {
+					int slot1 = UnitGUI.getLinearIndexFromIndex(UnitGUI.getIndexOfSlot(selectedItemWasInSlot));
+					if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(displayedCharacter.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
+						displayedCharacter.characterSheet.inventory.stackItemWith(displayedCharacter.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
+					}
+				}
+				break;
+			}
+		}
+		selectedItem = null;
+	}
+
+
+
+
+	int trapOrTurret = 0;
+	public void drawWorkbenchGUI() {
+		float xOrig = (Screen.width - backgroundSize.x)/2.0f;
+		float yOrig = (Screen.height - backgroundSize.y)/2.0f;
+		float boxX = xOrig;
+		float boxY = yOrig;
+		GUI.DrawTexture(new Rect(xOrig, yOrig, backgroundSize.x, backgroundSize.y), bottomSheetTexture);
+		yOrig +=30.0f;
+
+		GUIStyle st = UnitGUI.getCourierStyle(24);
+		string title = UnitGUI.getSmallCapsString(displayedCharacter.personalInfo.getCharacterName().fullName() + ":", 17);
+		GUIContent titleContent = new GUIContent(title);
+		Vector2 titleSize = st.CalcSize(titleContent);
+		float y = yOrig;
+		float x = xOrig + 30.0f;
+		GUI.Label(new Rect(boxX + (backgroundSize.x - titleSize.x)/2.0f, y, titleSize.x, titleSize.y), titleContent, st);
+		y += titleSize.y + 5.0f;
+		int oldTr = trapOrTurret;
+		trapOrTurret = GUI.SelectionGrid(new Rect(x, y, 218.0f, 25.0f), trapOrTurret, new string[]{"Turret","Trap"}, 2);
+		if (oldTr != trapOrTurret && frame!=null) {
+			if ((trapOrTurret == 0 && turret == null) || (trapOrTurret==1 && trap==null)) {
+				if (frame!=null && applicator!=null && gear!=null && (energySourceOrTrigger!=null && (trapOrTurret==1 ? (energySourceOrTrigger is Trigger) : (energySourceOrTrigger is EnergySource)))) {
+					if (trapOrTurret==0) {
+						turret = new Turret(displayedCharacter.characterId, frame, applicator, gear, (EnergySource)energySourceOrTrigger);
+					}
+					else {
+						trap = new Trap(displayedCharacter.characterId, frame, applicator, gear, (Trigger)energySourceOrTrigger);
+					}
+				}
+			}
+		}
+
+
+		y += 80.0f;
+		trapsTurretsX = x;
+		trapsTurretsY = y;
+		y += 100.0f;
+		inventX = x;
+		inventY = y;
+		
+		Vector3 mousePos = Input.mousePosition;
+		mousePos.y = Screen.height - mousePos.y;
+
+		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+			Rect r = getInventorySlotRect(slot, inventX, inventY);
+			if (r.Contains(mousePos)) {
+				GUI.DrawTexture(r, UnitGUI.getInventoryHoverBackground());
+				if (selectedItem!=null) {
+					Vector2 startPos = UnitGUI.getIndexOfSlot(slot);
+					foreach(Vector2 cell in selectedItem.getShape()) {
+						Vector2 pos = startPos;
+						pos.x += cell.x - selectedCell.x;
+						pos.y += cell.y - selectedCell.y;
+						if (pos.x == startPos.x && pos.y == startPos.y) continue;
+						//	Debug.Log(startPos + "   " + pos);
+						InventorySlot newSlot = UnitGUI.getInventorySlotFromIndex(pos);
+						if (newSlot != InventorySlot.None) {
+							Rect r2 = getInventorySlotRect(newSlot, inventX, inventY);
+							GUI.DrawTexture(r2, UnitGUI.getInventoryHoverBackground());
+						}
+					}
+				}
+				break;
+			}
+		}
+		bool doTrapTurret = true;
+		if (doTrapTurret) {
+			InventorySlot slot = InventorySlot.TrapTurret;
+			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
+			if (r.Contains(mousePos)) {
+				GUI.DrawTexture(r, UnitGUI.getArmorHoverBackground());
+			}
+			GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y+ inventoryCellSize,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			
+			GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			Item i = (trapOrTurret==0 ? (Item)turret : (Item)trap);
+			if (i != null && i.inventoryTexture != null) {
+				float w = i.getSize().x*inventoryCellSize;
+				float h = i.getSize().y*inventoryCellSize;
+				x = r.x;
+				y = r.y;
+				if (h > r.height) y = r.y + r.height - h;
+				else y = r.y + (r.height - h)/2.0f;
+				x = r.x + (r.width - w)/2.0f;
+				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
+			}
+		}
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
+			if (r.Contains(mousePos)) {
+				GUI.DrawTexture(r, UnitGUI.getArmorHoverBackground());
+				break;
+			}
+
+		}
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
+			if (slot==InventorySlot.TriggerEnergySource && energySourceOrTrigger != null && (trapOrTurret==1 ? (energySourceOrTrigger is EnergySource) : (energySourceOrTrigger is Trigger))) {
+				GUI.DrawTexture(r, UnitGUI.getArmorRedBackground());
+			}
+			GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize*2 - inventoryLineThickness,r.y+ inventoryCellSize,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			
+			GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			Item i = null;
+			string s = "";
+			int largeSize = 14;
+			int smallSize = 10;
+			switch (slot) {
+			case InventorySlot.Frame:
+				i = frame;
+				s = UnitGUI.getSmallCapsString("Frame", smallSize);
+				break;
+			case InventorySlot.Applicator:
+				i = applicator;
+				s = UnitGUI.getSmallCapsString("Applicator", smallSize);
+				break;
+			case InventorySlot.Gear:
+				i = gear;
+				s = UnitGUI.getSmallCapsString("Gear", smallSize);
+				break;
+			case InventorySlot.TriggerEnergySource:
+				i = energySourceOrTrigger;
+				s = UnitGUI.getSmallCapsString((trapOrTurret==0 ? "Energy\nSource" : "Trigger"), smallSize);
+				break;
+			default:
+				break;
+			}
+			GUIContent cont = new GUIContent(s);
+			GUIStyle sty = UnitGUI.getCourierStyle(largeSize);
+			Vector2 size = sty.CalcSize(cont);
+			GUI.Label(new Rect(r.x + (r.width - size.x)/2.0f, r.y - size.y, size.x, size.y), cont, sty);
+			//displayedCharacter.characterSheet.characterLoadout.getItemInSlot(slot);
+			if (i != null && i.inventoryTexture != null) {
+				float w = i.getSize().x*inventoryCellSize;
+				float h = i.getSize().y*inventoryCellSize;
+				x = r.x;
+				y = r.y;
+				if (h > r.height) y = r.y + r.height - h;
+				else y = r.y + (r.height - h)/2.0f;
+				x = r.x + (r.width - w)/2.0f;
+				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
+			}
+		}
+		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+			Rect r = getInventorySlotRect(slot, inventX, inventY);
+			GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			GUI.DrawTexture(new Rect(r.x + inventoryCellSize - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
+			
+			GUI.DrawTexture(new Rect(r.x,r.y,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
+		}
+		GUIStyle stackSt = UnitGUI.getStackStyle();
+		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+			Vector2 vec = UnitGUI.getIndexOfSlot(slot);
+			int ind = UnitGUI.getLinearIndexFromIndex(vec);
+			InventoryItemSlot isl = displayedCharacter.characterSheet.inventory.inventory[ind];
+			Item i = isl.item;
+			if (i == null) continue;
+			Vector2 origin = getInventorySlotPos(slot, inventX, inventY);
+			Vector2 size = i.getSize();
+			GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+			if (i.stackSize()>1) {
+				Vector2 bottomRight = i.getBottomRightCell();
+				bottomRight.x *= inventoryCellSize - inventoryLineThickness;
+				bottomRight.y *= inventoryCellSize - inventoryLineThickness;
+				Vector2 stackPos = origin + bottomRight;
+				GUIContent content = new GUIContent("" + i.stackSize());
+				GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
+			}
+		}/*
+		if (mapGenerator != null) {
+			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
+			//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
+			float div = 20.0f;
+			float height = div;
+			foreach (Item i in groundItems) {
+				if (i.inventoryTexture==null) continue;
+				height += i.getSize().y*inventoryCellSize + div;
+			}
+			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
+			y = div + groundY;
+			float mid = groundX + groundWidth/2.0f;
+			foreach (Item i in groundItems) {
+				if (i.inventoryTexture==null) continue;
+				Vector2 size = i.getSize();
+				if (i!=selectedItem) {
+					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+				}
+				y += size.y*inventoryCellSize + div;
+			}
+			GUI.EndScrollView();
+		}*/
+		if (selectedItem != null) {
+			Vector2 size = selectedItem.getSize();
+			Vector2 pos = selectedItemPos;
+			pos.y += (mousePos.y - selectedMousePos.y);
+			pos.x += (mousePos.x - selectedMousePos.x);
+			GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
+			if (selectedItem.stackSize()>1) {
+				Vector2 bottomRight = selectedItem.getBottomRightCell();
+				bottomRight.x *= inventoryCellSize - inventoryLineThickness;
+				bottomRight.y *= inventoryCellSize - inventoryLineThickness;
+				Vector2 stackPos = pos + bottomRight;
+				GUIContent content = new GUIContent("" + selectedItem.stackSize());
+				GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
+			}
+		}
+
+
+
+
+
+
+		Vector2 cancelButtonSize = new Vector2(100.0f, 40.0f);
+		float buttonY = boxY + backgroundSize.y - cancelButtonSize.y - 40.0f;
+		if (GUI.Button(new Rect((Screen.width - cancelButtonSize.x)/2.0f, buttonY, cancelButtonSize.x, cancelButtonSize.y), "Done")) {
+			displayedCharacter = null;
+		}
+
+	}
+
+					
+	public bool guiContainsMouse() {
+		Vector3 mousePos = Input.mousePosition;
+		mousePos.y = Screen.height - mousePos.y;
+		if (baseState == BaseState.Barracks && levelingUpCharacter != null) {
+			Rect levelingUpRect = new Rect((Screen.width - backgroundSize.x)/2.0f, (Screen.height - backgroundSize.y)/2.0f, backgroundSize.x, backgroundSize.y);
+			if (levelingUpRect.Contains(mousePos)) return true;
+		}
+		return false;
+	}
+
 	
 	int calculateBoxHeight(int n)
 	{
@@ -694,10 +1402,10 @@ public class BaseManager : MonoBehaviour {
 		
 		return skill;
 	}
-
+		
+	static Vector2 backgroundSize = new Vector2(500.0f, 500.0f);
 
 	public void drawLevelUpGUI() {
-		Vector2 backgroundSize = new Vector2(500.0f, 500.0f);
 		float xOrig = (Screen.width - backgroundSize.x)/2.0f;
 		float yOrig = (Screen.height - backgroundSize.y)/2.0f;
 		float boxX = xOrig;

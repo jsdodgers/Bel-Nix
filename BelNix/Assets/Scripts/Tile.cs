@@ -114,10 +114,10 @@ public class Tile {
 					i = new TestTrigger();
 					break;
 				case 4:
-					i = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+					i = new Turret("", new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 					break;
 				case 5:
-					i = new Trap(new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
+					i = new Trap("", new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
 					break;
 				default:
 					i = new TestEnergySource();

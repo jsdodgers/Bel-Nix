@@ -8,7 +8,7 @@ public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
 public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
-public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, None}
+public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
 public class Unit : MonoBehaviour {
 	public bool playerControlled = true;
