@@ -1870,7 +1870,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool hasWeaponFocus() {
-		return getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
+		return getWeapon() != null && getWeapon().damageType != DamageType.None && getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
 	}
 
 	public void showDamage(int wapoon, bool didHit, bool crit) {
