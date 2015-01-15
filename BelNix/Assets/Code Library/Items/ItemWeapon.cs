@@ -17,7 +17,7 @@ public class ItemWeapon : EditorItem {
 	public bool isRanged = false;
 	public Vector2[] shape;
 //	Weapon weapon;
-	public Weapon getWeapon() {
+	public virtual Weapon getWeapon() {
 //		if (weapon == null)
 			return new Weapon(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
 //		return weapon;
@@ -28,3 +28,4 @@ public class ItemWeapon : EditorItem {
 	}*/
 
 }
+

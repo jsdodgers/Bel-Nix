@@ -292,7 +292,7 @@ public class GameGUI : MonoBehaviour {
 
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
-			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
+			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0);
 	}
@@ -826,22 +826,33 @@ public class GameGUI : MonoBehaviour {
 		selectMinorType((selectedMinor ? selectedMinorType : MinorType.None));
 
 	}
-	
+
+	public bool standardEnabled(StandardType type) {
+		return ((type != StandardType.Attack && type != StandardType.OverClock) || mapGenerator.getCurrentUnit().hasWeapon());
+	}
+
+	public bool movementEnabled(MovementType type) {
+		return type != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+	}
+
+	public bool minorEnabled(MinorType type) {
+		return true;
+	}
 
 	public void selectTypeAt(int index) {
 		if (selectedStandard) {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
-			if (index >= standards.Length) return;
+			if (index >= standards.Length || !standardEnabled(standards[index])) return;
 			selectStandard(standards[index]);
 		}
 		else if (selectedMovement) {
 			MovementType[] movements = mapGenerator.getCurrentUnit().getMovementTypes();
-			if (index >= movements.Length) return;
+			if (index >= movements.Length || !movementEnabled(movements[index])) return;
 			selectMovement(movements[index]);
 		}
 		else if (selectedMinor) {
 			MinorType[] minors = mapGenerator.getCurrentUnit().getMinorTypes();
-			if (index >= minors.Length) return;
+			if (index >= minors.Length || !minorEnabled(minors[index])) return;
 			selectMinor(minors[index]);
 		}
 	}
@@ -1320,7 +1331,7 @@ public class GameGUI : MonoBehaviour {
 					MovementType[] types = mapGenerator.getCurrentUnit().getMovementTypes();
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfMovementType(types[n]);
-						GUI.enabled = types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+						GUI.enabled = movementEnabled(types[n]);
 						if (GUI.Button(actionIconRect(n), (n < 9 ? (n+1) + "" : (n==9?"0":"")), (selectedMovementType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI() && interact) {
 						//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMovement(types[n]);
@@ -1340,8 +1351,9 @@ public class GameGUI : MonoBehaviour {
 				else if (selectedStandard) {
 					StandardType[] types = mapGenerator.getCurrentUnit().getStandardTypes();
 					for (int n=0;n<types.Length;n++) {
-						string typeName = Unit.getNameOfStandardType(types[n]);
-						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+						StandardType type = types[n];
+						string typeName = Unit.getNameOfStandardType(type);
+						GUI.enabled = standardEnabled(type);//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
 						if (GUI.Button(actionIconRect(n), (n < 9 ? (n+1) + "" : (n==9?"0":"")), (selectedStandardType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI() && interact) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectStandard(types[n]);
@@ -1349,7 +1361,7 @@ public class GameGUI : MonoBehaviour {
 						GUI.enabled = true;
 					}
 
-					if (((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedStandardType==StandardType.Place_Turret && mapGenerator.turretBeingPlaced != null) || (selectedStandardType==StandardType.Lay_Trap && mapGenerator.currentTrap.Count>0) && interact) {
+					if (((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedStandardType==StandardType.Place_Turret && mapGenerator.turretBeingPlaced != null) || (selectedStandardType==StandardType.Lay_Trap && mapGenerator.currentTrap.Count>0) && interact) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							Debug.Log("Confirm: " + StandardType.Throw);
 							mapGenerator.performAction();
@@ -1369,7 +1381,7 @@ public class GameGUI : MonoBehaviour {
 					MinorType[] types = mapGenerator.getCurrentUnit().getMinorTypes();
 					for (int n=0;n<types.Length;n++) {
 						string typeName = Unit.getNameOfMinorType(types[n]);
-						GUI.enabled = true;//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
+						GUI.enabled = minorEnabled(types[n]);//types[n] != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
 						if (GUI.Button(actionIconRect(n), (n < 9 ? (n+1) + "" : (n==9?"0":"")), (selectedMinorType == types[n] ? getSelectedActionStyle("Temp " + typeName) : getNonSelectedActionStyle("Temp " + typeName))) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI() && interact) {//(selectedMovementType == types[n] ? getSelectedSubMenuTurnStyle() : getNonSelectedSubMenuTurnStyle()))) {
 							//	if (types[n] != MovementType.Cancel) selectedMovementType = types[n];
 							selectMinor(types[n]);
@@ -1732,6 +1744,9 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Attack:
+			mapGenerator.resetRanges();
+			break;
+		case StandardType.OverClock:
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Throw:

@@ -30,7 +30,7 @@ namespace CombatSystem
         {
             int diceRoll = rollD20();
 			int criticalHitChance = attacker.getCritChance();//attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
-            return new Hit(attacker.getMeleeScore() + diceRoll + ((flanking(attacker)) ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+            return new Hit(attacker.getMeleeScore() + diceRoll + (flanking(attacker) ? 2 : 0) + (attacker.characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge) ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
         }
 
 
@@ -57,7 +57,8 @@ namespace CombatSystem
                                                  (processedAttackerPosition.y == processedDefenderPosition.y) ? processedAttackerPosition.y : processedDefenderPosition.y - (processedAttackerPosition.y - processedDefenderPosition.y));
 
             // return whether or not a teammate is there, which determines whether the defender is flanked or not
-            return attacker.mapGenerator.tiles[(int)teammateCoords.x, (int)teammateCoords.y].hasAlly(attacker);
+			Tile t = attacker.mapGenerator.tiles[(int)teammateCoords.x, (int)teammateCoords.y];
+            return t.hasAliveAlly(attacker);
         }
 
         // Simulate a single 20-sided die being rolled
