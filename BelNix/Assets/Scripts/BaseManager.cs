@@ -1839,6 +1839,7 @@ public class BaseManager : MonoBehaviour {
 			unitInfoStyle = new GUIStyle("Label");
 			unitInfoStyle.font = Resources.Load<Font>("Fonts/Courier New");
 			unitInfoStyle.active.textColor = unitInfoStyle.normal.textColor = unitInfoStyle.hover.textColor = Color.black;
+			unitInfoStyle.hover.textColor = Color.red;
 		}
 		unitInfoStyle.fontSize = fontSize;
 		return unitInfoStyle;
