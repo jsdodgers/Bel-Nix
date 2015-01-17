@@ -353,7 +353,21 @@ public class Tile {
 		}
 	}
 
-	
+	public bool isVisibleFrom(Direction dir) {
+	//	return false;
+		switch (dir) {
+		case Direction.Up:
+			return visibleUp != 0;
+		case Direction.Down:
+			return visibleDown != 0;
+		case Direction.Left:
+			return visibleLeft != 0;
+		case  Direction.Right:
+			return visibleRight != 0;
+		default:
+			return false;
+		}
+	}
 	
 	
 	public void parseTile(string tile) {

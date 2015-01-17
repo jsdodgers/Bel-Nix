@@ -64,7 +64,6 @@ public class UnitGUI {
 			courierStyle = new GUIStyle("Label");
 			courierStyle.font = Resources.Load<Font>("Fonts/Courier New");
 			courierStyle.normal.textColor = Color.black;
-			courierStyle.active.textColor = Color.red;
 		}
 		courierStyle.fontSize = size;
 		return courierStyle;

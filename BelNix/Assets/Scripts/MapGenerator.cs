@@ -4,10 +4,15 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using CharacterInfo;
+using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
 	
+	public bool doOverlay = false;
+	public bool withLineOfSight = true;
+	public GameObject overlayObject;
+	Texture2D mapOverlay;
 	public List<Unit> selectionUnits;
 	public List<Unit> outOfGameUnits;
 	public const int gridOrder = 2;
@@ -21,6 +26,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerArmorOrder = 310;
 	public const int playerMovingOrder = 400;
 	public const int playerMovingArmorOrder = 410;
+	public const int mapOverlayOrder = 950;
 	public const int playerSelectOrder = 1000;
 	public const int playerSelectPlayerOrder = 1200;
 	public const int playerSelectPlayerArmorOrder = 1210;
@@ -47,6 +53,11 @@ public class MapGenerator : MonoBehaviour {
 	float tapTime = 0.0f;
 
 	GameObject targetObject;
+
+	public GameObject upWallPrefab;
+	public GameObject downWallPrefab;
+	public GameObject leftWallPrefab;
+	public GameObject rightWallPrefab;
 
 	bool isOnGUI;
 	public Transform playerTransform;
@@ -78,6 +89,7 @@ public class MapGenerator : MonoBehaviour {
 	GameObject path;
 	GameObject enemiesObj;
 	GameObject[,] gridArray;
+	public bool[,] canSee;
 	public Tile[,] tiles;
 	public ArrayList lastPlayerPath;
 	GameObject mouseOver;
@@ -143,6 +155,170 @@ public class MapGenerator : MonoBehaviour {
 	public Tile currentUnitTile;
 	public Tile currentKeysTile;
 	public int currentKeysSize;
+
+
+	public void resetCanSee() {
+		for (int n=0;n<actualWidth * gridSize;n++) {
+			for (int m=0;m<actualHeight * gridSize; m++) {
+				canSee[n,m] = false;
+			}
+		}
+	}
+	Color blockedColor = Color.black;
+	Color clearColor = Color.clear;
+	public void setOverlay() {
+		if (!doOverlay) return;
+	/*	Color c = new Color(0, 0, 0, .0f);
+		for (int n=0;n<mapOverlay.width;n++) {
+			for (int m=0;m<mapOverlay.height;m++) {
+			//	if (n%2 == m%2) continue;
+				mapOverlay.SetPixel(n, m, Color.black);
+			}
+		}*/
+		resetCanSee();
+		foreach (Unit u in players) {
+			int x = (int)(u.transform.position.x * (float)gridSize);
+			int y = (int)(-u.transform.position.y * (float)gridSize);
+			Vector2 originalPosition = new Vector2(u.transform.position.x * gridSize, u.transform.position.y * gridSize);
+			int dist = (int)(10.5f * (float)gridSize);
+			Debug.Log(x + " " + y + "  " + dist + "  " + mapOverlay.width);
+
+		//	hasLineOfSight(new Vector2(u.transform.position.x*gridSize, u.transform.position.y*gridSize), new Vector2());
+			for (int n= Mathf.Max(0, x - dist);n<Mathf.Min(mapOverlay.width,x + dist);n++) {
+				for (int m=Mathf.Max(0,y-dist);m<Mathf.Min(mapOverlay.height, y + dist);m++) {
+					if (canSee[n,mapOverlay.height - m - 1]) continue;
+					if ((n - x) * (n - x) + (m - y) * (m - y) <= dist * dist && (!withLineOfSight || hasLineOfSight(originalPosition, new Vector2(n, -m)))) {
+					//	Debug.Log(n + " " + m + " " + x + "  " + y);
+	//					mapOverlay.SetPixel(n,  mapOverlay.height - m, c);
+						canSee[n,mapOverlay.height - m - 1] = true;
+					}
+				}
+			}
+		}
+
+
+		string s = "";
+		for (int n=0;n<actualWidth * gridSize;n+=gridSize) {
+			for (int m=0;m<actualHeight*gridSize;m+=gridSize) {
+				s += canSee[n,m] + "  ";
+			}
+			s += "\n\n";
+		}
+		Debug.Log(s);
+		Debug.Log(canSee);
+	//	Color[] pixels = new Color[actualWidth * actualHeight * gridSize * gridSize];//mapOverlay.GetPixels();
+		for (int n=0;n<actualWidth*gridSize;n++) {
+			Color[] pixels = new Color[actualHeight * gridSize];
+			for (int m=0;m<actualHeight*gridSize;m++) {
+				Color c = (canSee[n,m]?clearColor:blockedColor);
+//				if (pixels[n + m*actualWidth]!=c) {
+			//	c = Color.black;
+					pixels[m] = c;
+//					mapOverlay.SetPixel(n, m, c);
+//				}
+			}
+			mapOverlay.SetPixels(n, 0, 1, actualHeight * gridSize, pixels);
+		}
+//		mapOverlay.SetPixels(pixels);
+//		Thread t = new Thread(new ThreadStart(setOverlayThread));
+//		t.Start();
+//	}
+	
+//	public void setOverlayThread() {
+		mapOverlay.Apply();
+	}
+	bool logged = false;
+/*	public bool hasLineOfSight(Tile from, Tile to) {
+		int fromX = from.x;
+		int fromY = from.y;
+		float x = (float)from.x + 0.5f;
+		float y = (float)from.y + 0.5f;
+		Direction lrDir = Direction.Left;
+		if (x < to.x) lrDir = Direction.Right;
+		Direction udDir = Direction.Up;
+		if (y < to.y) udDir = Direction.Down;
+		float slope = (to.y - from.y)/(to.x - from.x);
+		do {
+
+			float newX = x + (lrDir == Direction.Left ? -1 : 1);
+			float newY = y + slope * (newX - x);
+			while ((udDir==Direction.Down ? newY > (t.y + 1) * gridSize : newY < t.y * gridSize)) {
+				if (!logged) Debug.Log(!t.isVisibleFrom(udDir));
+				if (!t.isVisibleFrom(udDir)) return false;
+				t = t.getTile(udDir);
+				if (t==null) return false;
+			}
+			if (!t.isVisibleFrom(lrDir)) {
+				return false;
+			}
+			t = t.getTile(lrDir);
+			if (t==null) return false;
+			x = newX;
+			y = newY;
+		} while ((lrDir == Direction.Left ? x > to.x + .5f : x < to.x + .5f));
+	}*/
+	public bool hasLineOfSight(Vector2 from, Vector2 to) {
+		int layerMask = 0;
+		Direction lrDir = Direction.Left;
+		if (from.x < to.x) lrDir = Direction.Right;
+		Direction udDir = Direction.Up;
+		if (from.y > to.y) udDir = Direction.Down;
+		if (lrDir == Direction.Left) layerMask += 1 << 17;
+		else if (lrDir == Direction.Right) layerMask += 1 << 18;
+		if (udDir == Direction.Up) layerMask += 1 << 15;
+		else if (udDir == Direction.Down) layerMask += 1 << 16;
+	//	layerMask = (1 << 15) + (1 << 16) + (1 << 17) + (1 << 18);
+		Vector3 dir = new Vector3(to.x - from.x, to.y - from.y, 0.0f);
+		float dist = Mathf.Sqrt((from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y));
+		Ray ray = new Ray(new Vector3(from.x, from.y, 0.0f), dir);
+		Vector2 fr = new Vector2(from.x / gridSize, from.y/gridSize);
+		Vector2 tt = new Vector2(to.x/gridSize, to.y/gridSize);
+		if (!logged && Mathf.Abs(from.x - to.x) > gridSize && Mathf.Abs(from.y - to.y) > gridSize) {
+			Debug.Log(fr + "   " + tt + "  : " + from.x + " " + from.y + "      " + to.x + "  " + to.y + "     " + lrDir + "   " + udDir + "  "  + dir + " " + dist + "    " + layerMask);
+			logged = true;
+			Debug.DrawLine(new Vector3(from.x, from.y, 0.01f), new Vector3(to.x, to.y, 0.01f), Color.red);
+			RaycastHit2D hit = Physics2D.Linecast(new Vector2(10.0f, -36.0f), new Vector2(100.0f, -36.0f), layerMask);
+			Debug.Log(hit.collider + "  " + hit.transform + "  " + hit.distance + "  " + hit.normal);
+		}
+//		return !Physics.Linecast(new Vector3(from.x, from.y, 0.0f), new Vector3(to.x, to.y, 0.0f));
+		return !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), layerMask);
+		RaycastHit2D hit2 = Physics2D.Linecast(fr, tt);
+		return hit2.collider == null;
+		return !Physics2D.Linecast(from, to, layerMask);
+//		return !Physics.Raycast(ray, dist, layerMask);
+
+		int fromX = ((int)from.x)/gridSize;
+		int fromY = ((int)-from.y)/gridSize;
+		Tile t = tiles[fromX, fromY];
+		float x = from.x;
+		float y = from.y;
+		int xCoord = (int)(x / gridSize);
+		float slope = (to.y - from.y)/(to.x - from.x);
+		if (lrDir == Direction.Left) xCoord++;
+		while ((lrDir == Direction.Left ? x > to.x : x < to.x)) {
+			if (!logged) {
+				Debug.Log(x + "  " + y + "  " + to.x + "  " + to.y + "  " + xCoord + "  " + t.x + "  " + t.y);
+			}
+			xCoord += (lrDir == Direction.Left ? -1 : 1);
+			float newX = xCoord * gridSize;
+			float newY = y + slope * (newX - x);
+			while ((udDir==Direction.Down ? newY > (t.y + 1) * gridSize : newY < t.y * gridSize)) {
+				if (!logged) Debug.Log(!t.isVisibleFrom(udDir));
+				if (!t.isVisibleFrom(udDir)) return false;
+				t = t.getTile(udDir);
+				if (t==null) return false;
+			}
+			if (!t.isVisibleFrom(lrDir)) {
+				return false;
+			}
+			t = t.getTile(lrDir);
+			if (t==null) return false;
+			x = newX;
+			y = newY;
+		}
+		logged = true;
+		return true;
+	}
 
 	public void setGameState() {
 		setGameState(GameState.None);
@@ -393,6 +569,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		sortPriority();
 		nextPlayer();
+		setOverlay();
 	}
 
 	public void sortPriority() {
@@ -729,12 +906,33 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void parseTiles(string[] tilesArr) {
+		Transform walls = map.transform.FindChild("Walls");
 		List<Vector2> positions = new List<Vector2>();
 		for (int n=3;n<tilesArr.Length;n++) {
 			int x = Tile.xForTile(tilesArr[n]);
 			int y = Tile.yForTile(tilesArr[n]);
 			Tile t = tiles[x,y];
 			t.parseTile(tilesArr[n]);
+			if (!t.isVisibleFrom(Direction.Right)) {
+				GameObject wall = GameObject.Instantiate(rightWallPrefab) as GameObject;
+				wall.transform.parent = walls;
+				wall.transform.position = new Vector3(x + 1.0f, -y - .5f, 0.0f);
+			}
+			if (!t.isVisibleFrom(Direction.Left)) {
+				GameObject wall = GameObject.Instantiate(leftWallPrefab) as GameObject;
+				wall.transform.parent = walls;
+				wall.transform.position = new Vector3(x, -y - .5f, 0.0f);
+			}
+			if (!t.isVisibleFrom(Direction.Up)) {
+				GameObject wall = GameObject.Instantiate(upWallPrefab) as GameObject;
+				wall.transform.parent = walls;
+				wall.transform.position = new Vector3(x + 0.5f, -y, 0.0f);
+			}
+			if (!t.isVisibleFrom(Direction.Down)) {
+				GameObject wall = GameObject.Instantiate(downWallPrefab) as GameObject;
+				wall.transform.parent = walls;
+				wall.transform.position = new Vector3(x + 0.5f, -y - 1.0f, 0.0f);
+			}
 			if (t.startingPoint) {
 				GameObject go = gridArray[x,y];
 				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
@@ -767,6 +965,22 @@ public class MapGenerator : MonoBehaviour {
 		//Debug.Log("Start()");
 		int width = spr.texture.width;
 		int height = spr.texture.height;
+		mapOverlay = new Texture2D(width, height, TextureFormat.ARGB32, false);
+		canSee = new bool[width, height];
+		resetCanSee();
+		for (int n=0;n<width;n++) {
+		//	if (n%2==0) {
+			for (int m=0;m<height;m++) {
+				mapOverlay.SetPixel(n, m, Color.clear);
+		//		}
+			}
+		}
+		mapOverlay.Apply();
+//		mapOverlay.SetPixels(new Color[]{Color.red});
+		overlayObject = map.transform.FindChild("Overlay").gameObject;
+		SpriteRenderer overlaySprite = overlayObject.GetComponent<SpriteRenderer>();
+		overlaySprite.sprite = Sprite.Create(mapOverlay, new Rect(0, 0, width, height), new Vector2(0, 1.0f), gridSize);
+		overlaySprite.renderer.sortingOrder = mapOverlayOrder;
 //		if (spr.texture.width % 64 == 0) gridSize = 64;
 		actualWidth = width / gridSize;
 		actualHeight = height / gridSize;
@@ -1342,6 +1556,9 @@ public class MapGenerator : MonoBehaviour {
 			else if (Input.GetKeyDown(KeyCode.K)) {
 				getCurrentUnit().damage(1000,null);
 			}
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha7)) {
+			setOverlay();
 		}
 		if (Input.GetKeyDown(KeyCode.R)) {
 //			gui.clickTab(Tab.R);
