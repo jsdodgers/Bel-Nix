@@ -1370,8 +1370,11 @@ public class Unit : MonoBehaviour {
 					//					setRotationFrom(position, attackEnemy.position)
 					setRotationToAttackEnemy();
 				}
+				if (team == 0) mapGenerator.setOverlay();
+
 			}
 			redrawGrid();
+		//	if (team == 0) mapGenerator.setOverlay();
 			//	if (currentPath.Count >= 2 && moving) 
 			//		moveBy(moveDist);
 		}
@@ -1559,6 +1562,8 @@ public class Unit : MonoBehaviour {
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
 							usedMovement = true;
+							if (team == 0) mapGenerator.setOverlay();
+
 						}
 						minorsLeft--;
 					}
