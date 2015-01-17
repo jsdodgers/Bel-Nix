@@ -64,6 +64,7 @@ public class UnitGUI {
 			courierStyle = new GUIStyle("Label");
 			courierStyle.font = Resources.Load<Font>("Fonts/Courier New");
 			courierStyle.normal.textColor = Color.black;
+			courierStyle.active.textColor = Color.red;
 		}
 		courierStyle.fontSize = size;
 		return courierStyle;
@@ -199,6 +200,7 @@ public class UnitGUI {
 	
 	public static InventorySlot[] armorSlots = new InventorySlot[]{InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
 	public static InventorySlot[] inventorySlots = new InventorySlot[]{InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
+	public static InventorySlot[] trapTurretSlots = new InventorySlot[]{InventorySlot.Frame, InventorySlot.Applicator, InventorySlot.Gear, InventorySlot.TriggerEnergySource};
 	public static InventorySlot  getInventorySlotFromIndex(Vector2 index) {
 		//		if (index.x <0 || index.y < 0 || index.x >3 || index.y >3) return InventorySlot.None;
 		//		int ind = (int)index.x + ((int)index.y)*4;
@@ -439,7 +441,7 @@ public class UnitGUI {
 	static Color inventoryLineColor = Color.white;
 	
 	static Texture2D inventoryLineTall = null;
-	static Texture2D getInventoryLineTall() {
+	public static Texture2D getInventoryLineTall() {
 		if (inventoryLineTall == null) {
 			inventoryLineTall = makeTex((int)inventoryLineThickness, (int)inventoryCellSize, inventoryLineColor);//new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
 		}
@@ -447,7 +449,7 @@ public class UnitGUI {
 	}
 	
 	static Texture2D inventoryLineWide = null;
-	static Texture2D getInventoryLineWide() {
+	public static Texture2D getInventoryLineWide() {
 		if (inventoryLineWide == null) {
 			inventoryLineWide = makeTex((int)inventoryCellSize, (int)inventoryLineThickness, inventoryLineColor);//new Color(22.0f/255.0f, 44.0f/255.0f, 116.0f/255.0f));
 		}
@@ -455,19 +457,27 @@ public class UnitGUI {
 	}
 	
 	static Texture2D inventoryHoverBackground = null;
-	static Texture2D getInventoryHoverBackground() {
+	public static Texture2D getInventoryHoverBackground() {
 		if (inventoryHoverBackground == null) {
 			inventoryHoverBackground = makeTex((int)inventoryCellSize,(int)inventoryCellSize, new Color(80.0f/255.0f, 44.0f/255.0f, 120.0f/255.0f, 0.4f));
 		}
 		return inventoryHoverBackground;
 	}
-	
+
 	static Texture2D armorHoverBackground = null;
-	static Texture2D getArmorHoverBackground() {
+	public static Texture2D getArmorHoverBackground() {
 		if (armorHoverBackground==null) {
 			armorHoverBackground = makeTex((int)inventoryCellSize*2,(int)inventoryCellSize*2, new Color(80.0f/255.0f, 44.0f/255.0f, 120.0f/255.0f, 0.4f));
 		}
 		return armorHoverBackground;
+	}
+
+	static Texture2D armorRedBackground = null;
+	public static Texture2D getArmorRedBackground() {
+		if (armorRedBackground==null) {
+			armorRedBackground = makeTex((int)inventoryCellSize*2, (int)inventoryCellSize*2, new Color(200.0f/255.0f, 20.0f/255.0f, 20.0f/255.0f, 0.4f));
+		}
+		return armorRedBackground;
 	}
 	
 	static GUIStyle bagButtonStyle;

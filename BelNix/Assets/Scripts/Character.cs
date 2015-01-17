@@ -54,6 +54,10 @@ public class Character
 		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
 	}
 
+	public int overloadDamage() {
+		return characterSheet.characterLoadout.rightHand.numberOfDamageDice * characterSheet.characterLoadout.rightHand.diceType + characterSheet.combatScores.getHandling();
+	}
+
 	//public Hit rollHit() {
     //    return Combat.rollHit(this.unit);
 		//int rand = Random.Range(1,21);

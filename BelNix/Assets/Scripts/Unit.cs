@@ -5,10 +5,10 @@ using CharacterInfo;
 using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
-public enum StandardType {Attack, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
+public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
 public enum MinorType {Loot, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
-public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, None}
+public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
 public class Unit : MonoBehaviour {
 	public bool playerControlled = true;
@@ -18,7 +18,8 @@ public class Unit : MonoBehaviour {
 	int initiative;
 //	public string characterId;
 	public int team = 0;
-	
+	public bool overClockedAttack = false;
+
 	public Vector3 position;
 	public int maxHitPoints = 10;
 	public int hitPoints;
@@ -105,6 +106,8 @@ public class Unit : MonoBehaviour {
 
 	public static string getNameOfStandardType(StandardType standard) {
 		switch (standard) {
+		case StandardType.OverClock:
+			return "Over Clock";
 		case StandardType.Place_Turret:
 			return "Place Turret";
 		case StandardType.Lay_Trap:
@@ -150,6 +153,8 @@ public class Unit : MonoBehaviour {
 
 	public StandardType getStandardType(ClassFeature feature) {
 		switch (feature) {
+		case ClassFeature.Over_Clock:
+			return StandardType.OverClock;
 		case ClassFeature.Throw:
 			return StandardType.Throw;
 		case ClassFeature.Intimidate:
@@ -1258,7 +1263,22 @@ public class Unit : MonoBehaviour {
 		return attackAnimating || attacking || throwing || moving || intimidating;
 	}
 
+	public bool hasWeapon() {
+		if (characterSheet == null) return false;
+		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		if (w == null) return false;
+		if (w is WeaponMechanical) {
+			if (((WeaponMechanical)w).overClocked) return false;
+		}
+		return true;
+	}
+
 	public void startAttacking() {
+		startAttacking(false);
+	}
+
+	public void startAttacking(bool overClocked) {
+		overClockedAttack = overClocked;
 		if (attackEnemy!=null && !moving) {
 			attacking = true;
 			if (mapGenerator.getCurrentUnit()==this)
@@ -1832,6 +1852,10 @@ public class Unit : MonoBehaviour {
 		return characterSheet.rollDamage(crit);
 	}
 
+	public virtual int overClockDamage() {
+		return characterSheet.overloadDamage();
+	}
+
 	public virtual Weapon getWeapon() {
 		return characterSheet.characterSheet.characterLoadout.rightHand;
 	}
@@ -1846,7 +1870,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool hasWeaponFocus() {
-		return getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
+		return getWeapon() != null && getWeapon().damageType != DamageType.None && getWeapon().damageType == characterSheet.characterSheet.characterProgress.getWeaponFocus();
 	}
 
 	public void showDamage(int wapoon, bool didHit, bool crit) {
@@ -1861,12 +1885,20 @@ public class Unit : MonoBehaviour {
 		int enemyAC = attackEnemy.getAC();
 		Hit critHit = Combat.rollHit(this);
 		bool crit = hit.crit && critHit.hit  >= enemyAC;
-		int wapoon = rollDamage(crit);//.characterLoadout.rightHand.rollDamage();
+		int wapoon = (overClockedAttack ?  overClockDamage() : rollDamage(crit));//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		attackEnemy.showDamage(wapoon, didHit, crit);
-		gui.log.addMessage(getName() + (didHit ? (crit ? " critted " : " hit ") : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
+		gui.log.addMessage(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
+		if (overClockedAttack) {
+			Debug.Log("Over Clocked Attack!!!");
+			Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+			if (w is ItemMechanical) {
+				((WeaponMechanical)w).overClocked = true;
+				gui.selectedStandardType = StandardType.None;
+			}
+		}
 		if (!attackEnemy.moving) {
 			attackEnemy.attackedByCharacter = this;
 			attackEnemy.setRotationToAttackedByCharacter();
