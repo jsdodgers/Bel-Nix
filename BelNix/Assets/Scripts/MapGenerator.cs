@@ -8,7 +8,9 @@ using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
-
+	
+	public bool doOverlay = false;
+	public bool withLineOfSight = true;
 	public GameObject overlayObject;
 	Texture2D mapOverlay;
 	public List<Unit> selectionUnits;
@@ -154,6 +156,7 @@ public class MapGenerator : MonoBehaviour {
 	public Tile currentKeysTile;
 	public int currentKeysSize;
 
+
 	public void resetCanSee() {
 		for (int n=0;n<actualWidth * gridSize;n++) {
 			for (int m=0;m<actualHeight * gridSize; m++) {
@@ -164,7 +167,7 @@ public class MapGenerator : MonoBehaviour {
 	Color blockedColor = Color.black;
 	Color clearColor = Color.clear;
 	public void setOverlay() {
-		return;
+		if (!doOverlay) return;
 	/*	Color c = new Color(0, 0, 0, .0f);
 		for (int n=0;n<mapOverlay.width;n++) {
 			for (int m=0;m<mapOverlay.height;m++) {
@@ -177,17 +180,17 @@ public class MapGenerator : MonoBehaviour {
 			int x = (int)(u.transform.position.x * (float)gridSize);
 			int y = (int)(-u.transform.position.y * (float)gridSize);
 			Vector2 originalPosition = new Vector2(u.transform.position.x * gridSize, u.transform.position.y * gridSize);
-			int dist = (int)(7.5f * (float)gridSize);
+			int dist = (int)(10.5f * (float)gridSize);
 			Debug.Log(x + " " + y + "  " + dist + "  " + mapOverlay.width);
 
 		//	hasLineOfSight(new Vector2(u.transform.position.x*gridSize, u.transform.position.y*gridSize), new Vector2());
 			for (int n= Mathf.Max(0, x - dist);n<Mathf.Min(mapOverlay.width,x + dist);n++) {
 				for (int m=Mathf.Max(0,y-dist);m<Mathf.Min(mapOverlay.height, y + dist);m++) {
-					if (canSee[n,mapOverlay.height - m]) continue;
-					if ((n - x) * (n - x) + (m - y) * (m - y) <= dist * dist && hasLineOfSight(originalPosition, new Vector2(n, -m))) {
+					if (canSee[n,mapOverlay.height - m - 1]) continue;
+					if ((n - x) * (n - x) + (m - y) * (m - y) <= dist * dist && (!withLineOfSight || hasLineOfSight(originalPosition, new Vector2(n, -m)))) {
 					//	Debug.Log(n + " " + m + " " + x + "  " + y);
 	//					mapOverlay.SetPixel(n,  mapOverlay.height - m, c);
-						canSee[n,mapOverlay.height - m] = true;
+						canSee[n,mapOverlay.height - m - 1] = true;
 					}
 				}
 			}
