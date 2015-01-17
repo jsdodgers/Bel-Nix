@@ -1264,7 +1264,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void setAroundCharacter(Unit cs, int radius, int view, int attackRange) {
-        Debug.Log(radius);
+        //Debug.Log(radius);
 		setCharacterCanStand((int)cs.position.x, (int)-cs.position.y, radius, 0, attackRange, cs, 0);
 		int type = 4;
 		/*
