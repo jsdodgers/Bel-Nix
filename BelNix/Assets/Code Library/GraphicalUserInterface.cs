@@ -364,6 +364,7 @@ public class GraphicalUserInterface : MonoBehaviour
 			float buttWidth = boxWidth - 20.0f*2.0f;
 			GUI.Box(new Rect(boxX, boxY, boxWidth, boxHeight), loading ? (loadingName == "" ? "Choose a file to load" : "Load: " + loadingName) : "Main Menu");
 			if (loading) {
+				/*
 			//	float width = 250.0f;
 			//	float height = Screen.height * .8f;
 			//	float x = (Screen.width - width)/2.0f;
@@ -405,8 +406,10 @@ public class GraphicalUserInterface : MonoBehaviour
 					y += h;
 				}
 				GUI.EndScrollView();
+				*/
 			}
 			else {
+				/*
 				if(GUI.Button(new Rect(buttX, Screen.height/2 + 20, buttWidth, 40), "New Game"))
 				{
 					Saves.removeFilesFromCurrentSaveFile();
@@ -430,6 +433,7 @@ public class GraphicalUserInterface : MonoBehaviour
 					//Quit the Application
 					Application.Quit();
 				}
+				*/
 			}
 		}
 		else if(Application.loadedLevel == 1)
