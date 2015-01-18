@@ -1704,6 +1704,10 @@ public class GameGUI : MonoBehaviour {
 //			openTab = previouslyOpenTab;
 		}
 		selectedMinor = false;
+		if (mapGenerator.selectedUnit.attackEnemy) {
+			mapGenerator.selectedUnit.attackEnemy.deselect();
+			mapGenerator.resetAttack();
+		}
 	}
 
 	void deselectMovement() {

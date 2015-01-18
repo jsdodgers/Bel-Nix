@@ -18,7 +18,7 @@ namespace CharacterInfo
 		}
 
 		public int getSturdy()			{return sturdy;}
-		public int getPerception()		{return perception;}
+		public int getPerception(int additional)		{return perception + additional;}
 		public int getTechnique()		{return technique;}
 		public int getWellVersed()		{return well_versed;}
 	}

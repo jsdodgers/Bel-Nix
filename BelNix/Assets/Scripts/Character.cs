@@ -46,12 +46,12 @@ public class Character
 		return characterSheet.skillScores.getScore(skill) + roll;
 	}
 
-	public int rollDamage() {
-		return rollDamage(false);
+	public int rollDamage(Unit enemy) {
+		return rollDamage(enemy, false);
 	}
 
-	public int rollDamage(bool critical) {
-		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
+	public int rollDamage(Unit enemy, bool critical) {
+		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : 0);
 	}
 
 	public int overloadDamage() {
@@ -274,7 +274,7 @@ public class Character
 		ClassName clas = characterProgress.getCharacterClass().getClassName();
 		characterStr += (clas == ClassName.ExSoldier ? 0 : (clas == ClassName.Engineer ? 1 : (clas == ClassName.Investigator ? 2 : (clas == ClassName.Researcher ? 3 : 4)))) + delimiter;
 		characterStr += abilityScores.getSturdy() + delimiter;
-		characterStr += abilityScores.getPerception() + delimiter;
+		characterStr += abilityScores.getPerception(0) + delimiter;
 		characterStr += abilityScores.getTechnique() + delimiter;
 		characterStr += abilityScores.getWellVersed() + delimiter;
 		foreach (int score in skillScores.scores) {

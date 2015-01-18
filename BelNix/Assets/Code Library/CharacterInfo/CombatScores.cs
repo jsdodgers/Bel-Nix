@@ -27,7 +27,7 @@ namespace CharacterInfo
 
 
 		public int getMaxHealth() {
-			return 	abilityScores.getSturdy() + abilityScores.getPerception() + 
+			return 	abilityScores.getSturdy() + abilityScores.getPerception(0) + 
 					personalInformation.getCharacterRace().getHealthModifier() +
 					characterProgress.getCharacterClass().getClassModifiers().getHealthModifier();
 		}
@@ -117,7 +117,7 @@ namespace CharacterInfo
 		}
 
 		public int getInitiative() 	{return calculateMod(abilityScores.getSturdy());}		// Initiative is based on Sturdy
-		public int getCritical()	{return calculateMod(abilityScores.getPerception());} // Critical is based on Perception
+		public int getCritical(bool marked)	{return calculateMod(abilityScores.getPerception((marked?2:0)));} // Critical is based on Perception
 		public int getHandling()	{return calculateMod(abilityScores.getTechnique());}	// Handling is based on Technique
 		public int getDominion()	{return calculateMod(abilityScores.getWellVersed());}// Dominion is based on Well-Versed
 

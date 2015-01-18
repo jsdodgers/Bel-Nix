@@ -74,6 +74,22 @@ public class Unit : MonoBehaviour {
 	public GameObject damagePrefab;
 
 
+	public void beginTurn() {
+		foreach (Unit u in markedUnits) {
+			u.setMarked(true);
+		}
+	}
+
+	public void endTurn() {
+		Unit[] copiedMarkedUnits = new Unit[markedUnits.Count];
+		markedUnits.CopyTo(copiedMarkedUnits);
+		foreach (Unit u in copiedMarkedUnits) {
+			u.setMarked(false);
+			if (!hasLineOfSightToUnit(u)) markedUnits.Remove(u);
+		}
+		doTurrets();
+	}
+
 	public float getViewRadius() {
 		return mapGenerator.viewRadius;
 	}
@@ -1333,6 +1349,20 @@ public class Unit : MonoBehaviour {
 		return true;
 	}
 
+	public void markUnit() {
+		if (attackEnemy != null) {
+			markedUnits.Add(attackEnemy);
+			attackEnemy.deselect();
+			attackEnemy.setMarked(true);
+			attackEnemy = null;
+			minorsLeft--;
+		}
+	}
+
+	public bool hasMarkOn(Unit u) {
+		return markedUnits.Contains(u);
+	}
+
 	public void startAttacking() {
 		startAttacking(false);
 	}
@@ -1945,7 +1975,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual int rollDamage(bool crit) {
-		return characterSheet.rollDamage(crit);
+		return characterSheet.rollDamage(attackEnemy, crit);
 	}
 
 	public virtual int overClockDamage() {

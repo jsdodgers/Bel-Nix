@@ -586,7 +586,7 @@ public class BaseManager : MonoBehaviour {
 						abilityScorePointsAvailable = 1;
 						skillPointsAvailable = 1;
 						sturdyScore = u.abilityScores.getSturdy();
-						perceptionScore = u.abilityScores.getPerception();
+						perceptionScore = u.abilityScores.getPerception(0);
 						techniqueScore = u.abilityScores.getTechnique();
 						wellVersedScore = u.abilityScores.getWellVersed();
 						athleticsSkill = u.skillScores.scores[0];
@@ -1716,7 +1716,7 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Perception:");
 		x += cellWidth*5;
-		if(perceptionScore == levelingUpCharacter.abilityScores.getPerception())
+		if(perceptionScore == levelingUpCharacter.abilityScores.getPerception(0))
 		{
 			GUI.enabled = false;
 		}

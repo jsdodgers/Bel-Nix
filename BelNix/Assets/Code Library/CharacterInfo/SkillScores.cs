@@ -42,7 +42,7 @@ namespace CharacterInfo
 				break;
 			case Skill.Ranged:
 			case Skill.Stealth:
-				modifier = cScores.getCritical();
+				modifier = cScores.getCritical(false);
 				break;
 			case Skill.Mechanical:
 			case Skill.Medicinal:
