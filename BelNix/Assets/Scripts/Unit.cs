@@ -6,11 +6,12 @@ using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
-public enum MinorType {Loot, Cancel, None}
+public enum MinorType {Loot, Mark, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
 public class Unit : MonoBehaviour {
+	public List<Unit> markedUnits;
 	public bool playerControlled = true;
 	public AStarEnemyMap aiMap = null;
 	public Character characterSheet;
@@ -57,9 +58,11 @@ public class Unit : MonoBehaviour {
 //	public bool usedMinor1;
 //	public bool usedMinor2;
 
+	public bool isMarked;
 	public bool isCurrent;
 	public bool isSelected;
 	public bool isTarget;
+	SpriteRenderer markSprite;
 	SpriteRenderer targetSprite;
 	SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
@@ -70,6 +73,27 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+
+	public float getViewRadius() {
+		return mapGenerator.viewRadius;
+	}
+
+	public float getViewRadiusToUnit(Unit u) {
+		return getViewRadius();
+	}
+
+	public bool hasLineOfSightToUnit(Unit u) {
+		return mapGenerator.hasLineOfSight(this, u);
+	}
+
+	public List<Unit> lineOfSightUnits() {
+		List<Unit> units = new List<Unit>();
+		foreach (GameObject go in mapGenerator.enemies) {
+			Unit u = go.GetComponent<Unit>();
+			if (hasLineOfSightToUnit(u)) units.Add(u);
+		}
+		return units;
+	}
 
 	public void addHair() {
 		GameObject go = Instantiate(characterSheet.personalInfo.getCharacterHairStyle().getHairPrefab()) as GameObject;
@@ -164,6 +188,15 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public MinorType getMinorType(ClassFeature feature) {
+		switch (feature) {
+		case ClassFeature.Mark:
+			return MinorType.Mark;
+		default:
+			return MinorType.None;
+		}
+	}
+
 
 	public MovementType[] getMovementTypes() {
 		List<MovementType> movementTypes = new List<MovementType>();
@@ -196,6 +229,15 @@ public class Unit : MonoBehaviour {
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
 	public MinorType[] getMinorTypes() {
+		List<MinorType> minorTypes = new List<MinorType>();
+		minorTypes.Add(MinorType.Loot);
+		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
+		foreach (ClassFeature feature in features) {
+			MinorType mt = getMinorType(feature);
+			if (mt != MinorType.None)
+				minorTypes.Add(mt);
+		}
+		return minorTypes.ToArray();
 		return new MinorType[] {MinorType.Loot};
 	}
 
@@ -238,6 +280,12 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		return false;
+	}
+
+	public void setMarked(bool marked) {
+		isMarked = marked;
+		getMarkSprite().enabled = marked;
+		setMarkPosition();
 	}
 
 	public void setSelected() {
@@ -305,6 +353,18 @@ public class Unit : MonoBehaviour {
 			float x = Mathf.Sin(Time.time * speed) * factor;
 			float y = Mathf.Cos(Time.time * speed) * factor;
 			trail.localPosition = new Vector3(x, y, trail.localPosition.z);
+		}
+	}
+
+	public void setMarkPosition() {
+		if (isMarked || true) {
+			float factor = 1.0f/10.0f;
+			float speed = 3.0f;
+			float addedScale = Mathf.Sin(Time.time * speed) * factor;
+			float posY = transform.position.y + 1.0f + addedScale;
+		//	getMarkSprite().transform.localScale = new Vector3(scale, scale, 1.0f);
+			getMark().transform.eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+			getMark().transform.position = new Vector3(transform.position.x, posY, transform.position.z);
 		}
 	}
 
@@ -1350,6 +1410,8 @@ public class Unit : MonoBehaviour {
 			unDrawGrid();
 			setNewTilePosition(new Vector3(one.x,-one.y,0.0f));
 			position = new Vector3(one.x, -one.y, 0.0f);
+			Tile newTile = mapGenerator.tiles[(int)one.x,(int)-one.y];
+			if (newTile.standable) vaultAnimation(false);
 			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, 0.0f);
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
@@ -1428,6 +1490,20 @@ public class Unit : MonoBehaviour {
 		return target;
 	}
 
+	Transform markTrans = null;
+	public Transform getMark() {
+		if (markTrans == null) {
+			markTrans = transform.FindChild("Mark");
+		}
+		return markTrans;
+	}
+	public SpriteRenderer getMarkSprite() {
+		if (markSprite == null) {
+			markSprite = getMark().GetComponent<SpriteRenderer>();
+		}
+		return markSprite;
+	}
+
 	public SpriteRenderer getTargetSprite() {
 		if (targetSprite == null) {
 			targetSprite = getTarget().GetComponent<SpriteRenderer>();
@@ -1479,7 +1555,11 @@ public class Unit : MonoBehaviour {
 
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
-
+		if (getMarkSprite()) {
+			getMarkSprite().sortingOrder = MapGenerator.markOrder;
+		}
+		setMarked(false);
+		markedUnits = new List<Unit>();
 		turrets = new List<TurretUnit>();
 		afflictions = new List<Affliction>();
 		loadCharacterSheet();
@@ -1515,6 +1595,7 @@ public class Unit : MonoBehaviour {
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
+		setMarkPosition();
 		setTrailRendererPosition();
 		setCircleScale();
 	}
@@ -1554,6 +1635,7 @@ public class Unit : MonoBehaviour {
 						int check = characterSheet.rollForSkill(Skill.Athletics);
 						if (check >= passability) {
 							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
+							vaultAnimation(true);
 						}
 						else {
 							gui.log.addMessage(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
@@ -1793,6 +1875,11 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	void vaultAnimation(bool vaulting) {
+		anim.SetBool("Vault", vaulting);
+		vaultAnimationAllSprites(vaulting);
+	}
+
 	void moveAnimation(bool moving) {
 		anim.SetBool("Move",moving);
 		movementAnimationAllSprites(moving);
@@ -1819,6 +1906,10 @@ public class Unit : MonoBehaviour {
 
 	void deathAnimationAllSprites() {
 		setAllSpritesTrigger("Death");
+	}
+
+	void vaultAnimationAllSprites(bool vaulting) {
+		setAllSpritesBool("Vault", vaulting);
 	}
 
 	void setAllSpritesBool(string boolName, bool b) {
