@@ -1410,7 +1410,7 @@ public class Unit : MonoBehaviour {
 			unDrawGrid();
 			setNewTilePosition(new Vector3(one.x,-one.y,0.0f));
 			position = new Vector3(one.x, -one.y, 0.0f);
-			Tile newTile = mapGenerator.tiles[(int)one.x,(int)-one.y];
+			Tile newTile = mapGenerator.tiles[(int)one.x,(int)one.y];
 			if (newTile.standable) vaultAnimation(false);
 			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, 0.0f);
 			currentPath.RemoveAt(0);
@@ -1877,7 +1877,7 @@ public class Unit : MonoBehaviour {
 
 	void vaultAnimation(bool vaulting) {
 		anim.SetBool("Vault", vaulting);
-		vaultAnimationAllSprites(vaulting);
+	//	vaultAnimationAllSprites(vaulting);
 	}
 
 	void moveAnimation(bool moving) {
