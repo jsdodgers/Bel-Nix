@@ -294,7 +294,8 @@ public class GameGUI : MonoBehaviour {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
-				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0);
+				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
+				((selectedMinor && (selectedMinorType == MinorType.Mark)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -1388,6 +1389,21 @@ public class GameGUI : MonoBehaviour {
 						}
 						GUI.enabled = true;
 					}
+					
+					if (((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null)  && interact) {
+						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
+							mapGenerator.performAction();
+							/*							if (selectedStandardType == StandardType.Attack) {
+								p.startAttacking();
+							}
+							else if (selectedStandardType == StandardType.Throw) {
+								p.startThrowing();
+							}
+							else if (selectedStandardType == StandardType.Intimidate) {
+								p.startIntimidating();
+							}*/
+						}
+					}
 					/*
 					if ((selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate) && mapGenerator.getCurrentUnit().attackEnemy != null) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getNonSelectedSubMenuTurnStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
@@ -1719,6 +1735,13 @@ public class GameGUI : MonoBehaviour {
 			looting = true;
 			inventoryWasOpenLoot = UnitGUI.inventoryOpen;
 			UnitGUI.inventoryOpen = true;
+			mapGenerator.resetRanges();
+			break;
+		case MinorType.Mark:
+			if (mapGenerator.selectedUnit.attackEnemy)
+				mapGenerator.selectedUnit.attackEnemy.deselect();
+			Debug.Log("Mark!!");
+			mapGenerator.resetRanges();
 			break;
 		case MinorType.Cancel:
 		default:
@@ -1726,6 +1749,9 @@ public class GameGUI : MonoBehaviour {
 				UnitGUI.inventoryOpen = inventoryWasOpenLoot;
 				looting = false;
 			}
+			if (mapGenerator.selectedUnit.attackEnemy)
+				mapGenerator.selectedUnit.attackEnemy.deselect();
+			mapGenerator.resetRanges();
 			break;
 		}
 	}

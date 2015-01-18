@@ -26,6 +26,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerArmorOrder = 310;
 	public const int playerMovingOrder = 400;
 	public const int playerMovingArmorOrder = 410;
+	public const int markOrder = 600;
 	public const int mapOverlayOrder = 950;
 	public const int playerSelectOrder = 1000;
 	public const int playerSelectPlayerOrder = 1200;
@@ -34,6 +35,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerSelectSelectedPlayerArmorOrder = 1310;
 	public const int mouseOverOrder = 10000;
 
+	public float viewRadius;
 	public Unit mainUnit;
 	public GameState gameState = GameState.Playing;
     public int experienceReward;
@@ -180,7 +182,7 @@ public class MapGenerator : MonoBehaviour {
 			int x = (int)(u.transform.position.x * (float)gridSize);
 			int y = (int)(-u.transform.position.y * (float)gridSize);
 			Vector2 originalPosition = new Vector2(u.transform.position.x * gridSize, u.transform.position.y * gridSize);
-			int dist = (int)(10.5f * (float)gridSize);
+			int dist = (int)((viewRadius) * (float)gridSize);
 			Debug.Log(x + " " + y + "  " + dist + "  " + mapOverlay.width);
 
 		//	hasLineOfSight(new Vector2(u.transform.position.x*gridSize, u.transform.position.y*gridSize), new Vector2());
@@ -257,6 +259,34 @@ public class MapGenerator : MonoBehaviour {
 			y = newY;
 		} while ((lrDir == Direction.Left ? x > to.x + .5f : x < to.x + .5f));
 	}*/
+
+	public bool isWithinDistance(float distance, Vector2 from, Vector2 to) {
+		bool isWithin = (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
+		Debug.Log(isWithin);
+		return isWithin;
+	}
+
+	public bool hasLineOfSight(Unit fromUnit, Unit toUnit) {
+		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
+		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
+		float dist = fromUnit.getViewRadiusToUnit(toUnit);
+		return hasLineOfSight(from, to, dist);
+	}
+
+	public bool hasLineOfSight(Tile from, Tile to, float dist) {
+		Vector2 fromVec = new Vector2((int)((from.x + 0.5f)*gridSize), -(int)((from.y + 0.5f)*gridSize));
+		Vector2 toCenter = new Vector2((int)((to.x + 0.5f)*gridSize), -(int)((to.y + 0.5f)*gridSize));
+		Debug.Log("May Have Line of Sight: " + from.x + ", " + from.y + "   to   " + to.x + ", " + to.y + "   dist: " + dist);
+		if (isWithinDistance(dist*gridSize, fromVec, toCenter) && hasLineOfSight(fromVec, toCenter)) return true;
+		for (int n=-1;n<=1;n+=2) {
+			for (int m=-1;m<=1;m+=2) {
+				Vector2 next = new Vector2(toCenter.x + ((gridSize/2.0f) - 1)*n, toCenter.y + ((gridSize/2.0f) - 1) * m);
+				if (isWithinDistance(dist*gridSize, fromVec, next) && hasLineOfSight(fromVec, next)) return true;
+			}
+		}
+		return false;
+	}
+
 	public bool hasLineOfSight(Vector2 from, Vector2 to) {
 		int layerMask = 0;
 		Direction lrDir = Direction.Left;
@@ -267,57 +297,9 @@ public class MapGenerator : MonoBehaviour {
 		else if (lrDir == Direction.Right) layerMask += 1 << 18;
 		if (udDir == Direction.Up) layerMask += 1 << 15;
 		else if (udDir == Direction.Down) layerMask += 1 << 16;
-	//	layerMask = (1 << 15) + (1 << 16) + (1 << 17) + (1 << 18);
-		Vector3 dir = new Vector3(to.x - from.x, to.y - from.y, 0.0f);
-		float dist = Mathf.Sqrt((from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y));
-		Ray ray = new Ray(new Vector3(from.x, from.y, 0.0f), dir);
-		Vector2 fr = new Vector2(from.x / gridSize, from.y/gridSize);
-		Vector2 tt = new Vector2(to.x/gridSize, to.y/gridSize);
-		if (!logged && Mathf.Abs(from.x - to.x) > gridSize && Mathf.Abs(from.y - to.y) > gridSize) {
-			Debug.Log(fr + "   " + tt + "  : " + from.x + " " + from.y + "      " + to.x + "  " + to.y + "     " + lrDir + "   " + udDir + "  "  + dir + " " + dist + "    " + layerMask);
-			logged = true;
-			Debug.DrawLine(new Vector3(from.x, from.y, 0.01f), new Vector3(to.x, to.y, 0.01f), Color.red);
-			RaycastHit2D hit = Physics2D.Linecast(new Vector2(10.0f, -36.0f), new Vector2(100.0f, -36.0f), layerMask);
-			Debug.Log(hit.collider + "  " + hit.transform + "  " + hit.distance + "  " + hit.normal);
-		}
-//		return !Physics.Linecast(new Vector3(from.x, from.y, 0.0f), new Vector3(to.x, to.y, 0.0f));
+		Debug.Log((from.x/gridSize) + ", " + (from.y/gridSize) + "   " + (to.x/gridSize) + ", " + (to.y/gridSize));
 		return !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), layerMask);
-		RaycastHit2D hit2 = Physics2D.Linecast(fr, tt);
-		return hit2.collider == null;
-		return !Physics2D.Linecast(from, to, layerMask);
-//		return !Physics.Raycast(ray, dist, layerMask);
 
-		int fromX = ((int)from.x)/gridSize;
-		int fromY = ((int)-from.y)/gridSize;
-		Tile t = tiles[fromX, fromY];
-		float x = from.x;
-		float y = from.y;
-		int xCoord = (int)(x / gridSize);
-		float slope = (to.y - from.y)/(to.x - from.x);
-		if (lrDir == Direction.Left) xCoord++;
-		while ((lrDir == Direction.Left ? x > to.x : x < to.x)) {
-			if (!logged) {
-				Debug.Log(x + "  " + y + "  " + to.x + "  " + to.y + "  " + xCoord + "  " + t.x + "  " + t.y);
-			}
-			xCoord += (lrDir == Direction.Left ? -1 : 1);
-			float newX = xCoord * gridSize;
-			float newY = y + slope * (newX - x);
-			while ((udDir==Direction.Down ? newY > (t.y + 1) * gridSize : newY < t.y * gridSize)) {
-				if (!logged) Debug.Log(!t.isVisibleFrom(udDir));
-				if (!t.isVisibleFrom(udDir)) return false;
-				t = t.getTile(udDir);
-				if (t==null) return false;
-			}
-			if (!t.isVisibleFrom(lrDir)) {
-				return false;
-			}
-			t = t.getTile(lrDir);
-			if (t==null) return false;
-			x = newX;
-			y = newY;
-		}
-		logged = true;
-		return true;
 	}
 
 	public void setGameState() {
@@ -2327,7 +2309,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap)) {
+			if ((gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -2411,7 +2393,7 @@ public class MapGenerator : MonoBehaviour {
 							selectedUnit.attackEnemy = null;
 						}
 						if (tiles[posX,posY].canAttackCurr) {
-							if (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate)
+							if ((gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate)))
 								selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 							else if (gui.selectedStandardType == StandardType.Throw)
 								selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
@@ -2766,6 +2748,10 @@ public class MapGenerator : MonoBehaviour {
 		if (!isInCharacterPlacement() && gui.selectedStandard && gui.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0 && gui.selectedTrap!=null) {
 			setTrapPlacementRange((int)currentTrap[0].position.x, (int)-currentTrap[0].position.y, 1);
 		}
+		else if (!isInCharacterPlacement() && gui.selectedMinor && GameGUI.selectedMinorType==MinorType.Mark) {
+			Debug.Log("Also Mark!!");
+			setMarkRange(getCurrentUnit(), false);
+		}
 		else if (selectedUnit) {
 			addCharacterRange(selectedUnit, false);
 			foreach (Unit u in selectedUnits) {
@@ -2788,6 +2774,15 @@ public class MapGenerator : MonoBehaviour {
 	}
 	public void addCharacterRange(Unit u) {
 		addCharacterRange(u, true);
+	}
+
+	public void setMarkRange(Unit u, bool draw) {
+		List<Unit> units = u.lineOfSightUnits();
+		foreach (Unit e in units) {
+			Tile t = tiles[(int)e.position.x,(int)-e.position.y];
+			t.canAttackCurr = true;
+		}
+		if (draw) drawAllRanges();
 	}
 
 	public void addCharacterRange(Unit u, bool draw) {
