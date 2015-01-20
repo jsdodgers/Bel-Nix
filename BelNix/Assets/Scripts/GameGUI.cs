@@ -20,6 +20,7 @@ public class GameGUI : MonoBehaviour {
 	Rect scrollRect;
 	bool scrollShowing;
 	bool first = true;
+	static int temperedHandsMod = 0;
 	public bool escapeMenuOpen = false;
 
 	public bool showAttack = false;
@@ -290,6 +291,13 @@ public class GameGUI : MonoBehaviour {
 		return new Rect((Screen.width - mapGenerator.selectionWidth - beginButtonWidth)/2.0f, Screen.height - beginButtonHeight, beginButtonWidth, beginButtonHeight);
 	}
 
+	float temperedHandsWidth = 400.0f;
+	float temperedHandsHeight = 150.0f;
+	public Rect temperedHandsRect() {
+		return new Rect((Screen.width - temperedHandsWidth)/2.0f, (Screen.height - temperedHandsHeight)/2.0f, temperedHandsWidth, temperedHandsHeight);
+	}
+
+
 	public bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
@@ -333,6 +341,9 @@ public class GameGUI : MonoBehaviour {
 			}
 			if (mapGenerator.getCurrentUnit()==null) {
 				if (mousePos.x >= Screen.width - 100.0f) return true;
+			}
+			else {
+				if (mapGenerator.getCurrentUnit().doingTemperedHands && temperedHandsRect().Contains(mousePos)) return true;
 			}
 		}
 		return false;
@@ -837,7 +848,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public bool minorEnabled(MinorType type) {
-		return true;
+		return (type != MinorType.TemperedHands || mapGenerator.getCurrentUnit().temperedHandsUsesLeft > 0) && (type != MinorType.Escape || !mapGenerator.getCurrentUnit().escapeUsed);
 	}
 
 	public void selectTypeAt(int index) {
@@ -1005,7 +1016,7 @@ public class GameGUI : MonoBehaviour {
 	static float t = 0;
 	static int dir = 1;
 	public void OnGUI() {
-		bool interact = !escapeMenuOpen;
+		bool interact = !escapeMenuOpen && !(mapGenerator != null && mapGenerator.getCurrentUnit()!= null && mapGenerator.getCurrentUnit().doingTemperedHands);
 		float speed = 1.0f/3.0f;
 		t += Time.deltaTime * speed * dir;
 		Color start = Color.cyan;
@@ -1236,6 +1247,36 @@ public class GameGUI : MonoBehaviour {
 				}
 
 				GUI.EndScrollView();
+			}
+			if (mapGenerator.getCurrentUnit().doingTemperedHands) {
+				Rect r = temperedHandsRect();
+				Vector2 buttSize = new Vector2(150.0f, 50.0f);
+				Vector2 arrowSize = new Vector2(20.0f, 20.0f);
+				float ins = 20.0f;
+				float arrowsY = r.y + 30.0f;
+				GUI.enabled = temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+				if (GUI.Button(new Rect(r.x + ins, arrowsY, arrowSize.x, arrowSize.y), "<")) temperedHandsMod--;
+				GUI.enabled = temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+				if (GUI.Button(new Rect(r.x + r.width - arrowSize.x - ins, arrowsY, arrowSize.x, arrowSize.y), ">")) temperedHandsMod++;
+				GUI.enabled = true;
+				float eachWidth = r.width/2.0f - arrowSize.x - ins;
+				GUIStyle st = getCenteredTextStyle();
+				GUIContent hitContent = new GUIContent("Hit:\n" + (-temperedHandsMod));
+				GUIContent damageContent = new GUIContent("Damage:\n" + temperedHandsMod);
+				float hitHeight = st.CalcHeight(hitContent, eachWidth);
+				float damageHeight = st.CalcHeight(damageContent, eachWidth);
+				GUI.Label(new Rect(r.x + ins + arrowSize.x, arrowsY + (arrowSize.y - hitHeight)/2.0f, eachWidth, hitHeight), hitContent, st);
+				GUI.Label(new Rect(r.x + ins + arrowSize.x + eachWidth, arrowsY + (arrowSize.y - damageHeight)/2.0f, eachWidth, damageHeight), damageContent, st);
+
+				GUI.Box(r,"");
+				if (GUI.Button(new Rect(r.x + ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Cancel")) {
+					mapGenerator.getCurrentUnit().doingTemperedHands = false;
+					temperedHandsMod = 0;
+				}
+				if (GUI.Button(new Rect(r.x + r.width - buttSize.x - ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Confirm")) {
+					mapGenerator.getCurrentUnit().useTemperedHands(temperedHandsMod);
+					temperedHandsMod = 0;
+				}
 			}
 		}
 		if (mapGenerator.currentUnit >= 0) {
@@ -1636,6 +1677,15 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, y + num * (height + 10.0f), width, height);
 	}
 
+	GUIStyle centeredTextStyle = null;
+	public GUIStyle getCenteredTextStyle() {
+		if (centeredTextStyle == null) {
+			centeredTextStyle = new GUIStyle("Label");
+			centeredTextStyle.alignment = TextAnchor.MiddleCenter;
+		}
+		return centeredTextStyle;
+	}
+
 	GUIStyle turretPartStyle = null;
 	public GUIStyle getTurretPartStyle() {
 		if (turretPartStyle == null) {
@@ -1733,29 +1783,28 @@ public class GameGUI : MonoBehaviour {
 //	public Tab previouslyOpenTab = Tab.None;
 	public static void selectMinorType(MinorType t) {
 		mapGenerator.resetCurrentKeysTile();
+		if (mapGenerator.selectedUnit.attackEnemy)
+			mapGenerator.selectedUnit.attackEnemy.deselect();
+		if (looting && t != MinorType.Loot) {
+			UnitGUI.inventoryOpen = inventoryWasOpenLoot;
+			looting = false;
+		}
+		mapGenerator.resetRanges();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
+		case MinorType.TemperedHands:
+			p.doingTemperedHands = true;
+			temperedHandsMod = 0;
+			break;
 		case MinorType.Loot:
 			looting = true;
 			inventoryWasOpenLoot = UnitGUI.inventoryOpen;
 			UnitGUI.inventoryOpen = true;
-			mapGenerator.resetRanges();
 			break;
 		case MinorType.Mark:
-			if (mapGenerator.selectedUnit.attackEnemy)
-				mapGenerator.selectedUnit.attackEnemy.deselect();
-			Debug.Log("Mark!!");
-			mapGenerator.resetRanges();
 			break;
 		case MinorType.Cancel:
 		default:
-			if (looting) {
-				UnitGUI.inventoryOpen = inventoryWasOpenLoot;
-				looting = false;
-			}
-			if (mapGenerator.selectedUnit.attackEnemy)
-				mapGenerator.selectedUnit.attackEnemy.deselect();
-			mapGenerator.resetRanges();
 			break;
 		}
 	}

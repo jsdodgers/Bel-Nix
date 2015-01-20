@@ -121,6 +121,11 @@ namespace CharacterInfo
 		public int getHandling()	{return calculateMod(abilityScores.getTechnique());}	// Handling is based on Technique
 		public int getDominion()	{return calculateMod(abilityScores.getWellVersed());}// Dominion is based on Well-Versed
 
+		public int getSturdyMod() { return getInitiative(); }
+		public int getPerceptionMod(bool marked) { return getCritical(marked); }
+		public int getTechniqueMod() { return getHandling(); }
+		public int getWellVersedMod() { return getDominion(); }
+
 		// Helper for calculating modifiers from base stats
 		private int calculateMod(int baseStat)
 		{

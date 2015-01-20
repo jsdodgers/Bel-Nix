@@ -6,7 +6,7 @@ using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
-public enum MinorType {Loot, Mark, Cancel, None}
+public enum MinorType {Loot, Mark, TemperedHands, Escape, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
@@ -21,6 +21,9 @@ public class Unit : MonoBehaviour {
 	public int team = 0;
 	public bool overClockedAttack = false;
 
+	public int temperedHandsUsesLeft = 2;
+	public bool escapeUsed = false;
+
 	public Vector3 position;
 	public int maxHitPoints = 10;
 	public int hitPoints;
@@ -30,6 +33,8 @@ public class Unit : MonoBehaviour {
 
 	public Unit attackedByCharacter = null;
 
+	public bool doingTemperedHands = false;
+	public int temperedHandsMod = 0;
 	public Transform trail;
 	public MapGenerator mapGenerator;
 	public int moveDistLeft = 5;
@@ -73,11 +78,31 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+	public int sneakAttackBonus(Unit u) {
+		if (!hasCombatAdvantageOver(u) || !characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Sneak_Attack)) return 0;
+		int perception = characterSheet.abilityScores.getPerception((hasMarkOn(u) ? 2 : 0));
+		if (distanceFromUnit(u) <= 1.5f) return perception;
+		return perception/2;
+	}
+
+	public bool hasCombatAdvantageOver(Unit u) {
+		return isFlanking(u);
+	}
+
+	public bool isFlanking(Unit u) {
+		return Combat.flanking(this, u);
+	}
 
 	public void beginTurn() {
 		foreach (Unit u in markedUnits) {
 			u.setMarked(true);
 		}
+	}
+
+	public void useTemperedHands(int mod) {
+		temperedHandsUsesLeft--;
+		minorsLeft--;
+		temperedHandsMod = mod;
 	}
 
 	public void endTurn() {
@@ -88,6 +113,7 @@ public class Unit : MonoBehaviour {
 			if (!hasLineOfSightToUnit(u)) markedUnits.Remove(u);
 		}
 		doTurrets();
+		temperedHandsMod = 0;
 	}
 
 	public float getViewRadius() {
@@ -166,6 +192,8 @@ public class Unit : MonoBehaviour {
 
 	public static string getNameOfMinorType(MinorType minor) {
 		switch (minor) {
+		case MinorType.TemperedHands:
+			return "Tempered Hands";
 		default:
 			return minor.ToString();
 		}
@@ -208,6 +236,8 @@ public class Unit : MonoBehaviour {
 		switch (feature) {
 		case ClassFeature.Mark:
 			return MinorType.Mark;
+		case ClassFeature.Tempered_Hands:
+			return MinorType.TemperedHands;
 		default:
 			return MinorType.None;
 		}
@@ -1360,6 +1390,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public bool hasMarkOn(Unit u) {
+		if (!characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Mark)) return false;
 		return markedUnits.Contains(u);
 	}
 

@@ -41,11 +41,14 @@ namespace CombatSystem
         }
 
         // Returns true if the attacker and a teammate are flanking the defender (they are on opposite sides of the defender)
-        public static bool flanking(Unit attacker)
-        {
+        public static bool flanking(Unit attacker) {
+			return flanking(attacker, attacker.attackEnemy);
+		}
+
+		public static bool flanking(Unit attacker, Unit enemy) {
             // Get the positions on the grid for the attacker and defender
             Vector3 attackerPosition = attacker.position;
-            Vector3 defenderPosition = attacker.attackEnemy.position;
+            Vector3 defenderPosition = enemy.position;
 
             // Store the XY coordinates only, flip the Y coordinate
             Vector2 processedAttackerPosition = new Vector2(attackerPosition.x,-attackerPosition.y);
