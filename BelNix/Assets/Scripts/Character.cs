@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
 using System.Linq;
-using CombatSystem;
 using System.IO;
 
 public struct Hit {
@@ -41,9 +39,9 @@ public class Character
 		return characterSheet.characterLoadout.sprites;
 	}
 
-	public int rollForSkill(Skill skill, int dieType = 10) {
-		int roll = Random.Range(1, dieType + 1);
-		return characterSheet.skillScores.getScore(skill) + roll;
+	public int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+		if (dieRoll == -1) dieRoll = Random.Range(1, dieType + 1);
+		return characterSheet.skillScores.getScore(skill) + (favoredRace?1:0) + dieRoll;
 	}
 
 	public int rollDamage(Unit enemy) {
@@ -243,6 +241,8 @@ public class Character
 			}
 				//Inventory stuff
 		}
+		if (curr < components.Length-1)
+			characterProgress.setFavoredRace(int.Parse(components[curr++]));
 
 	}
 
@@ -317,6 +317,7 @@ public class Character
 			}
 		}
 		characterStr += inventorySize + delimiter + inventoryString;
+		characterStr += characterSheet.characterProgress.getFavoredRaceAsNumber() + delimiter;
 		return characterStr;
 	}
 	

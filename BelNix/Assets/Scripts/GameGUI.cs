@@ -833,7 +833,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public bool minorEnabled(MinorType type) {
-		return (type != MinorType.TemperedHands || mapGenerator.getCurrentUnit().temperedHandsUsesLeft > 0) && (type != MinorType.Escape || !mapGenerator.getCurrentUnit().escapeUsed);
+		return (type != MinorType.TemperedHands || mapGenerator.getCurrentUnit().temperedHandsUsesLeft > 0) && (type != MinorType.Escape || !mapGenerator.getCurrentUnit().escapeUsed) && (type != MinorType.Invoke || mapGenerator.getCurrentUnit().invokeUsesLeft > 0);
 	}
 
 	public void selectTypeAt(int index) {

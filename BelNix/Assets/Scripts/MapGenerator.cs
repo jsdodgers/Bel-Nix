@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 using System.Linq;
-using CharacterInfo;
 using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 
@@ -1851,6 +1850,10 @@ public class MapGenerator : MonoBehaviour {
 			p.markUnit();
 			resetRanges();
 		}
+		else if (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Invoke) {
+			p.startInvoking();
+			resetRanges();
+		}
 	}
 
 	public bool directionsAreOpposite(Direction dir, Direction dir2) {
@@ -2162,7 +2165,7 @@ public class MapGenerator : MonoBehaviour {
 		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || (gui.selectedStandardType==StandardType.Lay_Trap && (gui.selectedTrap!=null || true)) || gui.selectedStandardType==StandardType.Place_Turret)) ||
 			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) || 
 				performingAction() ||
-				(gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Escape));
+				(gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape));
 	}
 
 
@@ -2317,7 +2320,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !shiftDown && !isOnGUI && !rightDraggin && leftClickIsMakingSelection()) {
-			if ((gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
+			if ((gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -2401,7 +2404,7 @@ public class MapGenerator : MonoBehaviour {
 							selectedUnit.attackEnemy = null;
 						}
 						if (tiles[posX,posY].canAttackCurr) {
-							if ((gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate)))
+							if ((gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate)))
 								selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 							else if (gui.selectedStandardType == StandardType.Throw)
 								selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
@@ -2577,7 +2580,7 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Escape)) ||(gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
+				if ((gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape)) ||(gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						Debug.Log("performAction()");
 						performAction();
@@ -2608,7 +2611,7 @@ public class MapGenerator : MonoBehaviour {
 					currentKeysTile = lastClickTile;
 					if (!currentKeysTile.canStandCurr) currentKeysTile = currentUnitTile;
 				}
-				else if ((gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret))) {
+				else if ((gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret))) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 					currentKeysTile = lastClickTile;
@@ -2785,7 +2788,7 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap && gui.selectedTrap!=null) && !isOther)
 			setCharacterCanLayTrap((int)u.position.x, (int)-u.position.y, 1, 0, u);
-		else if (gui.selectedMinor && GameGUI.selectedMinorType==MinorType.Mark && !isOther)
+		else if (gui.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke) && !isOther)
 			setMarkRange(getCurrentUnit(), false);
 		if (draw) drawAllRanges();
 	}

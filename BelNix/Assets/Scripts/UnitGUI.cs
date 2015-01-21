@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
-using CombatSystem;
 
 public class UnitGUI {
 	static Texture2D playerBannerTexture;

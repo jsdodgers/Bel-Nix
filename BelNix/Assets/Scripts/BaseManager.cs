@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 using System.IO;
-using CharacterInfo;
 
 public class BaseManager : MonoBehaviour {
 
@@ -216,6 +215,13 @@ public class BaseManager : MonoBehaviour {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
 					displayedCharacter.characterProgress.addExperience(100);
+					displayedCharacter.saveCharacter();
+				}
+				if ((commandDown && Input.GetKey(KeyCode.Alpha9)) || Input.GetKeyDown(KeyCode.Alpha9)) {
+					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
+					expChanged = displayedCharacter;
+					//displayedCharacter.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterProgress.getCharacterExperience()-100));
+					displayedCharacter.characterProgress.setLevel(displayedCharacter.characterProgress.getCharacterLevel()-1);
 					displayedCharacter.saveCharacter();
 				}
 			}
@@ -600,6 +606,8 @@ public class BaseManager : MonoBehaviour {
 						possibleFeatures = u.characterProgress.getCharacterClass().getPossibleFeatures(u.characterProgress.getCharacterLevel()+1);
 						page = 0;
 						selectedFeature = -1;
+						selectedWeaponFocus = -1;
+						selectedRace = -1;
 						Debug.Log("Level Up!!");
 					}
 					GUI.enabled = true;
@@ -1341,6 +1349,7 @@ public class BaseManager : MonoBehaviour {
 	int page = 0;
 	int selectedFeature = -1;
 	int selectedWeaponFocus = -1;
+	int selectedRace = -1;
 	ClassFeature[] possibleFeatures;
 	public bool canGoNextPage() {
 		switch (page) {
@@ -1356,6 +1365,7 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	public ClassFeature getSelectedFeature() {
+		if (possibleFeatures.Length==0) return ClassFeature.None;
 		return (possibleFeatures.Length==1 ? possibleFeatures[0] : possibleFeatures[selectedFeature]);
 	}
 
@@ -1366,6 +1376,8 @@ public class BaseManager : MonoBehaviour {
 		switch (feature) {
 		case ClassFeature.Weapon_Focus:
 			return selectedWeaponFocus >= 0;
+		case ClassFeature.Favored_Race:
+			return selectedRace >= 0;
 		default:
 			return true;
 		}
@@ -1449,17 +1461,19 @@ public class BaseManager : MonoBehaviour {
 					newFeatures[newFeatures.Length-1] = selectedFeature;
 					levelingUpCharacter.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
 				}
-				if (possibleFeatures.Length>=1) {
-					ClassFeature feature = getSelectedFeature();
-					switch (feature) {
-					case ClassFeature.Weapon_Focus:
-						Debug.Log("Weapon Focus");
-						levelingUpCharacter.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
-						break;
-					default:
-						break;
-					}
+			//	if (possibleFeatures.Length>=1) {
+				ClassFeature feature = getSelectedFeature();
+				switch (feature) {
+				case ClassFeature.Weapon_Focus:
+					levelingUpCharacter.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
+					break;
+				case ClassFeature.Favored_Race:
+					levelingUpCharacter.characterProgress.setFavoredRace(selectedRace + 1);
+					break;
+				default:
+					break;
 				}
+			//	}
 				levelingUpCharacter.characterProgress.incrementLevel();
 				levelingUpCharacter.saveCharacter();
 				levelingUpCharacter = null;
@@ -1524,6 +1538,24 @@ public class BaseManager : MonoBehaviour {
 						else selectedWeaponFocus = n;
 					}
 					if (selectedWeaponFocus == n) GUI.Label(new Rect(x + buttonSize.x + 5.0f, y + (buttonSize.y - selectedSize.y)/2.0f, selectedSize.x, selectedSize.y), selectedString, st);
+					y += buttonSize.y;
+				}
+			}
+			else if (feature == ClassFeature.Favored_Race) {
+				st.fontSize = 20;
+				GUIContent selectTitleString = new GUIContent(UnitGUI.getSmallCapsString("Select a Favored Race:", 14));
+				Vector2 selectTitleSize = st.CalcSize(selectTitleString);
+				GUI.Label(new Rect(x, y, selectTitleSize.x, selectTitleSize.y), selectTitleString, st);
+				y += selectTitleSize.y + 5.0f;
+				GUIContent selectedString = new GUIContent(UnitGUI.getSmallCapsString("Selected", 14));
+				Vector2 selectedSize = st.CalcSize(selectedString);
+				string[] focuses = new string[]{"Berrid","Ashpian","Rorrul"};
+				for (int n=0;n<focuses.Length;n++) {
+					if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), focuses[n])) {
+						if (selectedRace == n) selectedRace = -1;
+						else selectedRace = n;
+					}
+					if (selectedRace == n) GUI.Label(new Rect(x + buttonSize.x + 5.0f, y + (buttonSize.y - selectedSize.y)/2.0f, selectedSize.x, selectedSize.y), selectedString, st);
 					y += buttonSize.y;
 				}
 			}

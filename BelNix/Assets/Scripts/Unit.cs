@@ -1,12 +1,10 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
-using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
-public enum MinorType {Loot, Mark, TemperedHands, Escape, Cancel, None}
+public enum MinorType {Loot, Mark, TemperedHands, Escape, Invoke, OneOfMany, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
@@ -23,6 +21,7 @@ public class Unit : MonoBehaviour {
 
 	public int temperedHandsUsesLeft = 2;
 	public bool escapeUsed = false;
+	public int invokeUsesLeft = 2;
 
 	public Vector3 position;
 	public int maxHitPoints = 10;
@@ -255,6 +254,8 @@ public class Unit : MonoBehaviour {
 			return MinorType.TemperedHands;
 		case ClassFeature.Escape:
 			return MinorType.Escape;
+		case ClassFeature.Invoke:
+			return MinorType.Invoke;
 		default:
 			return MinorType.None;
 		}
@@ -1411,6 +1412,15 @@ public class Unit : MonoBehaviour {
 		return markedUnits.Contains(u);
 	}
 
+	public bool invoking = false;
+	public void startInvoking() {
+		if (attackEnemy != null && !invoking) {
+			invoking = true;
+			if (mapGenerator.getCurrentUnit()==this)
+				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+		}
+	}
+
 	public void startAttacking() {
 		startAttacking(false);
 	}
@@ -1670,6 +1680,7 @@ public class Unit : MonoBehaviour {
 		doThrow();
 		doGetThrown();
 		doIntimidate();
+		doInvoke();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
@@ -1710,7 +1721,7 @@ public class Unit : MonoBehaviour {
 					int passability = t.passabilityInDirection(dir);
 					if (passability > 1) {
 						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
-						int check = characterSheet.rollForSkill(Skill.Athletics);
+						int check = rollForSkill(Skill.Athletics);
 						if (check >= passability) {
 							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
 							vaultAnimation(true);
@@ -1851,7 +1862,7 @@ public class Unit : MonoBehaviour {
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u) {
-					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
+					if (u.rollForSkill(Skill.Athletics) < 15) {
 //					u.affliction = Affliction.Prone;
 						u.becomeProne();
 						alsoProne = u;
@@ -1899,6 +1910,29 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public bool invokeAnimating = false;
+	void doInvoke() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
+		if (invoking && !moving && !rotating) {
+			invokeAnimation();
+			invokeAnimating = true;
+			invoking = false;
+			minorsLeft--;
+			invokeUsesLeft--;
+			useMovementIfStarted();
+		}
+	}
+	
+	void invokeAnimation() {
+		dealInvokeDamage();
+		GameGUI.selectedMinorType = MinorType.None;
+		if (attackEnemy != null) {
+			if (attackEnemy.isTarget) attackEnemy.deselect();
+			attackEnemy = null;
+		}
+		mapGenerator.resetRanges();
+	}
+
 	public bool intimidateAnimating = false;
 	void doIntimidate() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
@@ -1918,12 +1952,52 @@ public class Unit : MonoBehaviour {
 			mapGenerator.resetRanges();
 	}
 
+	public virtual RaceName getRaceName() {
+		return characterSheet.characterSheet.personalInformation.getCharacterRace().raceName;
+	}
+
+	public virtual bool attackEnemyIsFavoredRace() {
+		return unitIsFavoredRace(attackEnemy);
+	}
+
+	public virtual bool unitIsFavoredRace(Unit u) {
+		return raceIsFavoredRace(u.getRaceName());
+	}
+
+	public virtual bool raceIsFavoredRace(RaceName race) {
+		return race == characterSheet.characterSheet.characterProgress.getFavoredRace() && race != RaceName.None;
+	}
+
+	public virtual int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+		return characterSheet.rollForSkill(skill, favoredRace, dieType, dieRoll);
+	}
+
+	public virtual int getSkill(Skill skill) {
+		return characterSheet.characterSheet.skillScores.getScore(skill);
+	}
+
+
 	void dealIntimidationDamage() {
 		if (attackEnemy != null) {
-			int sturdy = characterSheet.rollForSkill(Skill.Melee, 20);
-			int wellV = attackEnemy.characterSheet.rollForSkill(Skill.Political, 10);
+			int sturdy = rollForSkill(Skill.Melee, attackEnemyIsFavoredRace(), 20);
+			int wellV = 10 + attackEnemy.characterSheet.characterSheet.combatScores.getWellVersedMod();
 			bool didHit = sturdy >= wellV;
-			int wapoon = Mathf.Max(1, characterSheet.combatScores.getInitiative());
+			int wapoon = Mathf.Max(1, characterSheet.combatScores.getSturdyMod());
+			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			if (didHit) {
+				attackEnemy.damageComposure(wapoon, this);
+				attackEnemy.setRotationToCharacter(this);
+			}
+		}
+	}
+
+	void dealInvokeDamage() {
+		if (attackEnemy != null) {
+			int political = rollForSkill(Skill.Political, attackEnemyIsFavoredRace(), 20);
+			int wellV = 10 + attackEnemy.characterSheet.characterSheet.combatScores.getWellVersedMod();
+			bool didHit = political >= wellV;
+			int wapoon = Mathf.Max(1, characterSheet.combatScores.getWellVersedMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
