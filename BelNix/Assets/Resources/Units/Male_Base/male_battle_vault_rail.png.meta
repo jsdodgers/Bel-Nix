@@ -65,7 +65,7 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .25}
+      pivot: {x: .5, y: .449999988}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: male_battle_vault_rail_2
       rect:
@@ -75,7 +75,7 @@ TextureImporter:
         width: 64
         height: 128
       alignment: 9
-      pivot: {x: .5, y: .5}
+      pivot: {x: .5, y: .550000012}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: male_battle_vault_rail_3
       rect:
