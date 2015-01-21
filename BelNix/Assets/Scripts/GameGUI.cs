@@ -303,7 +303,7 @@ public class GameGUI : MonoBehaviour {
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
-				((selectedMinor && (selectedMinorType == MinorType.Mark)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -790,22 +790,7 @@ public class GameGUI : MonoBehaviour {
 			//		selectedStandardType = StandardType.None;
 			deselectStandard();
 		}
-		/*
-		if (selectedMovement == false) {// && selectedMovementType == MovementType.None) {
-			selectedMovement = true;
-			if (p.getMovementTypes()[0] == MovementType.Move) {
-				selectedMovementType = MovementType.Move;
-				selectMovementType(selectedMovementType);
-			}
-			else {
-				selectedMovementType = MovementType.None;
-			}
-		}
-		else {
-			selectedMovement = false;
-			selectedMovementType = MovementType.None;
-			selectMovementType(selectedMovementType);
-		}*/
+
 		selectedMovement = !selectedMovement;
 		if (selectedMovement && !p.getMovementTypes().Contains(selectedMovementType)) selectedMovementType = MovementType.None;
 		selectMovementType(selectedMovementType);
@@ -1431,7 +1416,7 @@ public class GameGUI : MonoBehaviour {
 						GUI.enabled = true;
 					}
 					
-					if (((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null)  && interact) {
+					if ((((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedMinorType == MinorType.Escape && mapGenerator.getCurrentUnit().currentPath.Count > 1))  && interact) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							mapGenerator.performAction();
 							/*							if (selectedStandardType == StandardType.Attack) {
@@ -1802,6 +1787,9 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+			break;
+		case MinorType.Escape:
+			p.selectMinorType(t);
 			break;
 		case MinorType.Cancel:
 		default:

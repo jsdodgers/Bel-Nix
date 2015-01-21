@@ -30,7 +30,7 @@ namespace CombatSystem
         {
             int diceRoll = rollD20();
 			int criticalHitChance = attacker.getCritChance();//attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
-            return new Hit(attacker.getMeleeScore() + diceRoll + (flanking(attacker) ? 2 : 0) + (attacker.characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge) ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0), (diceRoll * 5) > (100 - criticalHitChance));
+            return new Hit(attacker.getMeleeScore() + diceRoll + (flanking(attacker) ? 2 : 0) + (attacker.characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge) ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0) - attacker.temperedHandsMod, (diceRoll * 5) > (100 - criticalHitChance));
         }
 
 

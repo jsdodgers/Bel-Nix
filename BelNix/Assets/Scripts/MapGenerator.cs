@@ -619,7 +619,7 @@ public class MapGenerator : MonoBehaviour {
 		currentKeysTile = currentUnitTile;
 		if (gui.selectedStandard && gui.selectedStandardType == StandardType.Lay_Trap)
 			currentKeysSize = 5;
-		else if (gui.selectedMovement && gui.selectedMovementType == MovementType.Move)
+		else if ((gui.selectedMovement && gui.selectedMovementType == MovementType.Move) || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape))
 			currentKeysSize = getCurrentUnit().maxMoveDist;
 		else if (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock)) currentKeysSize = getCurrentUnit().getAttackRange();
 		else currentKeysSize = 1;
@@ -1177,7 +1177,7 @@ public class MapGenerator : MonoBehaviour {
 			if (v0.y < v.y) direction = Direction.Down;
 			if (v0.y > v.y) direction = Direction.Up;
 			bool isDifficult = t.isDifficultTerrain(direction);
-			bool provokes = (gui.selectedMovementType == MovementType.Move && t.provokesOpportunity(direction, selectedUnit));
+			bool provokes = (gui.selectedMovement && gui.selectedMovementType == MovementType.Move && t.provokesOpportunity(direction, selectedUnit));
 			if (isDifficult || provokes) {
 				GameObject warning;
 				if (isDifficult && provokes) warning = GameObject.Instantiate(warningBothPrefab) as GameObject;
@@ -1582,9 +1582,9 @@ public class MapGenerator : MonoBehaviour {
 			gui.selectMovement(MovementType.BackStep);
 		}
 		*/
-		if (Input.GetKeyDown(KeyCode.V)) {
-			gui.selectMovement(MovementType.Move);
-		}
+	//	if (Input.GetKeyDown(KeyCode.V)) {
+	//		gui.selectMovement(MovementType.Move);
+	//	}
 		if (Input.GetKeyDown(KeyCode.Alpha1)) {
 			gui.selectTypeAt(0);
 		}
@@ -1773,7 +1773,7 @@ public class MapGenerator : MonoBehaviour {
 	public void performAction() {
 		if (performingAction() || currentUnitIsAI() || !leftClickIsMakingSelection()) return;
 		Unit p = selectedUnit;
-		if ((gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move) && getCurrentUnit().currentPath.Count > 1) {
+		if (((gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && getCurrentUnit().currentPath.Count > 1) {
 			if (lastPlayerPath.Count > 1 && !p.moving) {
 				bool changed = false;
 				for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
@@ -1795,7 +1795,7 @@ public class MapGenerator : MonoBehaviour {
 					currentKeysTile = tiles[(int)v.x,(int)v.y];
 					return;
 				}
-				p.startMoving(gui.selectedMovementType == MovementType.BackStep);
+				p.startMoving((gui.selectedMovement && gui.selectedMovementType == MovementType.BackStep) || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape));
 					//		p.attacking = true;
 			}
 		}
@@ -1916,9 +1916,9 @@ public class MapGenerator : MonoBehaviour {
 			Direction oldDirection = getDirectionOfTile(currentUnitTile, currentKeysTile);
 			Tile oldTile = currentKeysTile;
 			t = currentUnitTile.getTile(dir);
-			if (gui.selectedMovement && !t.canStandCurr) t = null;
+			if ((gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && !t.canStandCurr) t = null;
 			if (gui.selectedStandard && !t.canAttackCurr && !t.canUseSpecialCurr) t = null;
-			if (gui.selectedMovement && currentKeysTile.getTile(dir)==currentUnitTile) t = currentUnitTile;
+			if ((gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && currentKeysTile.getTile(dir)==currentUnitTile) t = currentUnitTile;
 			if (t==null) {
 	//			Debug.Log("null");
 				if (directionsAreOpposite(dir,oldDirection)) {
@@ -1956,8 +1956,8 @@ public class MapGenerator : MonoBehaviour {
 			t = currentKeysTile;
 			do {
 				t = t.getTile(dir);
-			} while (t != null && (gui.selectedMovement ? !t.standable : false));
-			if (t==null || (gui.selectedMovement ? !t.canStandCurr : !t.canUseSpecialCurr && !t.canAttackCurr)) return;
+			} while (t != null && ((gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) ? !t.standable : false));
+			if (t==null || ((gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) ? !t.canStandCurr : !t.canUseSpecialCurr && !t.canAttackCurr)) return;
 			currentKeysTile = t;
 			handleKeyAction(t, dir);
 		}
@@ -2041,7 +2041,7 @@ public class MapGenerator : MonoBehaviour {
 				else currentKeysTile = currentUnitTile;
 			}
 		}
-		else if (gui.selectedMovement) {
+		else if (gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) {
 			resetPlayerPath();
 			if (t==null) return;
 			Vector2 v = t.getPosition();
@@ -2158,10 +2158,11 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
+		Debug.Log(GameGUI.selectedMinorType);
 		return (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType == StandardType.Intimidate || (gui.selectedStandardType==StandardType.Lay_Trap && (gui.selectedTrap!=null || true)) || gui.selectedStandardType==StandardType.Place_Turret)) ||
-			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep))
-				|| performingAction() ||
-				(gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark));
+			(gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) || 
+				performingAction() ||
+				(gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Escape));
 	}
 
 
@@ -2426,7 +2427,7 @@ public class MapGenerator : MonoBehaviour {
 			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0) {
 				//	Player p = selectedPlayer.GetComponent<Player>();
 				//Debug.Log(p.currentMoveDist + "     aaa!!");
-				if (gui.selectedMovement) {
+				if (gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) {
 					resetPlayerPath();
 					if (!lastPlayerPathContains(v)) {
 						lastPlayerPath = selectedUnit.addPathTo(v);
@@ -2576,34 +2577,14 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark)) ||(gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
+				if ((gui.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Escape)) ||(gui.selectedMovement && (gui.selectedMovementType == MovementType.BackStep || gui.selectedMovementType == MovementType.Move)) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Throw || gui.selectedStandardType==StandardType.Attack || gui.selectedStandardType == StandardType.OverClock || gui.selectedStandardType == StandardType.Intimidate || gui.selectedStandardType == StandardType.Place_Turret || gui.selectedStandardType == StandardType.Lay_Trap))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						Debug.Log("performAction()");
 						performAction();
-						/*
-						if (gui.selectedMovement) {
-							if (tiles[posX, posY].getCharacter() != selectedUnit) {
-								selectedUnit.startMoving(gui.selectedMovementType==MovementType.BackStep);
-							}
-						}
-						else if (gui.selectedStandardType == StandardType.Attack) {
-							if (selectedUnit.attackEnemy) {
-								selectedUnit.startAttacking();
-							}
-						}
-						else if (gui.selectedStandardType == StandardType.Throw) {
-							if (selectedUnit.attackEnemy) {
-								selectedUnit.startThrowing();
-							}
-						}
-						else if (gui.selectedStandardType == StandardType.Intimidate) {
-							if (selectedUnit.attackEnemy) {
-								selectedUnit.startIntimidating();
-							}
-						}*/
+
 					}
 				}
-				if (gui.selectedMovement) {
+				if (gui.selectedMovement || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) {
 					bool changed = false;
 					for (int n=selectedUnit.currentPath.Count-1;n>=1;n--) {
 						Vector2 v = (Vector2)selectedUnit.currentPath[n];
@@ -2794,7 +2775,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void addCharacterRange(Unit u, bool draw) {
 		bool isOther = selectedUnit != getCurrentUnit() || selectedUnits.Count > 0;
-		if ((gui.showMovement && isOther) || ((gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) && !isOther))
+		if ((gui.showMovement && isOther) || (((gui.selectedMovement && (gui.selectedMovementType == MovementType.Move || gui.selectedMovementType == MovementType.BackStep)) || (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && !isOther))
 			setAroundCharacter(u);
 		else if ((gui.showAttack && isOther) || (gui.selectedStandard && (gui.selectedStandardType == StandardType.Attack || gui.selectedStandardType == StandardType.OverClock) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);

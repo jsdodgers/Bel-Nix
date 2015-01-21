@@ -33,6 +33,7 @@ public class Unit : MonoBehaviour {
 
 	public Unit attackedByCharacter = null;
 
+	public bool isBackStepping = false;
 	public bool doingTemperedHands = false;
 	public int temperedHandsMod = 0;
 	public Transform trail;
@@ -199,6 +200,20 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void selectMinorType(MinorType t) {
+		switch(t) {
+		case MinorType.Escape:
+			currentMoveDist = 2;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
+			break;
+		default:
+			currentMoveDist = 0;
+			mapGenerator.removePlayerPath();
+			mapGenerator.resetRanges();
+			break;
+		}
+	}
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -238,6 +253,8 @@ public class Unit : MonoBehaviour {
 			return MinorType.Mark;
 		case ClassFeature.Tempered_Hands:
 			return MinorType.TemperedHands;
+		case ClassFeature.Escape:
+			return MinorType.Escape;
 		default:
 			return MinorType.None;
 		}
@@ -1428,7 +1445,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void startMoving(bool backStepping) {
-	
+		isBackStepping = backStepping;
 		if (currentPath.Count <= 1) return;
 		shouldDoAthleticsCheck = true;
 		shouldCancelMovement = false;
@@ -1460,7 +1477,7 @@ public class Unit : MonoBehaviour {
 		float directionY = -sign(one.y - zero.y);
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
-		if (dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
+		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
 			attackOfOpp(one);
 			doAttOpp = false;
 		}
@@ -1734,6 +1751,11 @@ public class Unit : MonoBehaviour {
 				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
 					gui.selectAttack();
 				}
+				if (gui.selectedMinor) {
+					minorsLeft--;
+					gui.selectMinor(MinorType.None);
+					escapeUsed = true;
+				}
 			}
 		}
 	}
@@ -2006,7 +2028,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual int rollDamage(bool crit) {
-		return characterSheet.rollDamage(attackEnemy, crit);
+		return characterSheet.rollDamage(attackEnemy, crit) + temperedHandsMod;
 	}
 
 	public virtual int overClockDamage() {
