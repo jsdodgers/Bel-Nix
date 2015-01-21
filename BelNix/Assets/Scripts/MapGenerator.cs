@@ -10,6 +10,8 @@ public class MapGenerator : MonoBehaviour {
 	
 	public bool doOverlay = false;
 	public bool withLineOfSight = true;
+	public bool testAnimations = false;
+	public float timeScale = 0.05f;
 	public GameObject overlayObject;
 	Texture2D mapOverlay;
 	public List<Unit> selectionUnits;
@@ -402,7 +404,9 @@ public class MapGenerator : MonoBehaviour {
 
 
 	// Use this for initialization
-	void Start () {
+	void Start() {
+		Time.timeScale = 1;
+		if (testAnimations) Time.timeScale = timeScale;
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
 		cameraTransform = mainCameraObj.transform;
 		mainCamera = mainCameraObj.GetComponent<Camera>();
