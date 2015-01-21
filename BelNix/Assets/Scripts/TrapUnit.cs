@@ -48,7 +48,21 @@ public class TrapUnit : MechanicalUnit {
 		doAttack();
 	}
 
+	public override RaceName getRaceName() {
+		return RaceName.None;
+	}
 
+	public override bool attackEnemyIsFavoredRace() {
+		return unitIsFavoredRace(attackEnemy);
+	}
+	
+	public override bool unitIsFavoredRace(Unit u) {
+		return raceIsFavoredRace(u.getRaceName());
+	}
+	
+	public override bool raceIsFavoredRace(RaceName race) {
+		return false;
+	}
 	
 	
 	public override bool givesDecisiveStrike() {
@@ -77,6 +91,11 @@ public class TrapUnit : MechanicalUnit {
 	}
 
 
+	
+	public override int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+		int roll = Random.Range(1, dieType + 1);
+		return (skill==Skill.Melee ? getMeleeScore() : 0) + (favoredRace?1:0) + roll;
+	}
 	
 	void doAttack() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;

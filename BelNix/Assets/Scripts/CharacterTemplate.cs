@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using CharacterInfo;
 
 
 public class CharacterTemplate : MonoBehaviour

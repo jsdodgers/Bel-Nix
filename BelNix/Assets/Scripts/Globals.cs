@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
 
 public class Globals : MonoBehaviour {
 	public List<GameObject> squadMembers = new List<GameObject>();
