@@ -44,6 +44,7 @@ public class CombatScores
 	}
 	public int setComposure(int composure) {
 		if (composure <= getMaxComposure()) currentComposure = composure;
+		if (currentComposure < 0) currentComposure = 0;
 		return currentComposure;
 	}
 	public int addHealth(int addedHealth)
@@ -74,6 +75,7 @@ public class CombatScores
 	public int loseComposure(int lostComposure)
 	{
 		currentComposure -= lostComposure;
+		if (currentComposure < 0) currentComposure = 0;
 		return currentComposure;
 	}
 
@@ -112,6 +114,10 @@ public class CombatScores
 
 	public bool isDying() {
 		return lifeStatus == LifeStatus.Dying;
+	}
+
+	public bool isInPrimalState() {
+		return currentComposure <= 0;
 	}
 
 	public int getInitiative() 	{return calculateMod(abilityScores.getSturdy());}		// Initiative is based on Sturdy

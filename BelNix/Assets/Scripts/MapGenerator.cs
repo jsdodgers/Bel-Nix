@@ -776,6 +776,7 @@ public class MapGenerator : MonoBehaviour {
 			getCurrentUnit().removeCurrent();
 			getCurrentUnit().endTurn();
 		}
+		Unit.actionTime = Time.time;
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
@@ -1481,9 +1482,21 @@ public class MapGenerator : MonoBehaviour {
 		return !u.playerControlled;
 	}
 
+	public bool currentUnitIsPrimal() {
+		return getCurrentUnit() != null && unitIsPrimal(getCurrentUnit()) && !isInCharacterPlacement();
+	}
+
+	public bool unitIsPrimal(Unit u) {
+		return u.inPrimal;
+	}
+
 	void handleInput() {
 		handleKeys();
 		if (gui.escapeMenuOpen) return;
+		if (currentUnitIsPrimal()) {
+			getCurrentUnit().performPrimal();
+			return;
+		}
 		if (currentUnitIsAI()) {
 			getCurrentUnit().performAI();
 			return;

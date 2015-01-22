@@ -63,6 +63,10 @@ public class Unit : MonoBehaviour {
 //	public bool usedMinor1;
 //	public bool usedMinor2;
 
+	public bool inPrimal = false;
+	public Unit primalInstigator = null;
+	public int primalTurnsLeft = 0;
+
 	public bool isMarked;
 	public bool isCurrent;
 	public bool isSelected;
@@ -752,8 +756,20 @@ public class Unit : MonoBehaviour {
 		return Mathf.Abs(u.position.x - position.x) + Mathf.Abs(u.position.y - position.y);
 	}
 
+	public static float actionTime;
+	public const float actionDelay = .25f;
+
+	public void performPrimal() {
+
+	}
+
+
 	public void performAI() {
-		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+		if (isPerformingAnAction() || mapGenerator.movingCamera) {
+			actionTime = Time.time;
+			return;
+		}
+		if (Time.time - actionTime < actionDelay) return;
 		float closestDist = closestEnemyDist();
 		Unit enemy = closestEnemy();
 		if (!usedMovement) {
@@ -1628,9 +1644,9 @@ public class Unit : MonoBehaviour {
 
 	public void setMapGenerator(MapGenerator mg) {
 		mapGenerator = mg;
-		if (!playerControlled) {
+	//	if (!playerControlled) {
 			aiMap = new AStarEnemyMap(this, mapGenerator);
-		}
+	//	}
 	}
 
 	public void removeTurret(TurretUnit tu) {
@@ -2008,10 +2024,16 @@ public class Unit : MonoBehaviour {
 	}
 
 	
+
 	public void damageComposure(int damage, Unit u) {
-		if (damage > 0) {
+		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState()) {
 			crushingHitSFX();
 			characterSheet.combatScores.loseComposure(damage);
+			if (characterSheet.characterSheet.combatScores.isInPrimalState()) {
+				inPrimal = true;
+				primalInstigator = u;
+				primalTurnsLeft = u.characterSheet.characterSheet.combatScores.getDominion();
+			}
 		}
 	}
 
