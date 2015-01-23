@@ -9,7 +9,7 @@ class Combat {
 	public static Hit rollHit(Unit attacker) {
 		int dieRoll = rollD20();
 		int criticalHitChance = attacker.getCritChance();//attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
-		return new Hit(attacker.rollForSkill(Skill.Melee, attacker.attackEnemyIsFavoredRace(), 20, dieRoll) + (flanking(attacker) ? 2 : 0) + (attacker.characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge) ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0) - attacker.temperedHandsMod, (dieRoll * 5) > (100 - criticalHitChance));
+		return new Hit(attacker.rollForSkill(Skill.Melee, attacker.attackEnemyIsFavoredRace(), 20, dieRoll) + (flanking(attacker) ? 2 : 0) + (attacker.hasUncannyKnowledge() ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0) - attacker.temperedHandsMod, (dieRoll * 5) > (100 - criticalHitChance));
 	}
 	
 	

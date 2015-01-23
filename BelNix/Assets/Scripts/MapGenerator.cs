@@ -16,6 +16,8 @@ public class MapGenerator : MonoBehaviour {
 	Texture2D mapOverlay;
 	public List<Unit> selectionUnits;
 	public List<Unit> outOfGameUnits;
+	public List<Vector2> itemPositions = new List<Vector2>();
+	public List<EditorItem> items = new List<EditorItem>();
 	public const int gridOrder = 2;
 	public const int trapOrder = 20;
 	public const int circleNormalOrder = 30;
@@ -539,12 +541,24 @@ public class MapGenerator : MonoBehaviour {
 
 	
 		importGrid();
+		addItemsToMap();
 		createSelectionArea();
 		createSelectionUnits();
 //		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
+	}
+
+	public void addItemsToMap() {
+		if (itemPositions == null || items == null) return;
+		for (int n=0;n<Mathf.Min(itemPositions.Count, items.Count);n++) {
+			Vector2 pos = itemPositions[n];
+			Debug.Log("Map Item");
+			Item i = items[n].getItem();
+			Debug.Log("End Map Item");
+			tiles[(int)pos.x,(int)pos.y].addItem(i);
+		}
 	}
 
 	public void enterPriority() {
@@ -708,7 +722,6 @@ public class MapGenerator : MonoBehaviour {
 				outOfGameUnits.Add(pl);
 				p.SetActive(false);
 			}
-            Debug.Log(pl.characterSheet.characterSheet.personalInformation.getCharacterName().fullName());
 		}
 		sortPriority();
 		repositionSelectionUnits();

@@ -97,7 +97,7 @@ public class Tile {
 
 	public Tile() {
 		items = new List<Item>();
-		for (int n=0;n<14;n++) {
+	/*	for (int n=0;n<14;n++) {
 			if (Random.Range(0, 3)==1) {
 				Item i;
 				switch (n%7) {
@@ -125,7 +125,7 @@ public class Tile {
 				}
 				addItem(i);
 			}
-		}
+		}*/
 	//	player = null;
 	//	enemy = null;
 		character = null;

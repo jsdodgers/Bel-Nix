@@ -702,11 +702,23 @@ public class Unit : MonoBehaviour {
 		return currentPath;
 	}
 
-	public Unit closestEnemy() {
+	public Unit closestEnemy(bool attackUnconscious = false) {
+		return closestUnit(true, false, attackUnconscious);
+	}
+
+	public Unit closestFriendly(bool attackUnconscious = false) {
+		return closestUnit(false, true, attackUnconscious);
+	}
+
+	public Unit closestUnit(bool attackUnconscious = false) {
+		return closestUnit(true, true, attackUnconscious);
+	}
+
+	public Unit closestUnit(bool enemies, bool friendlies, bool attackUnconscious = false) {
 		Unit closest = null;
 		float dist = float.MaxValue;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team && !u.deadOrDyingOrUnconscious()) {
+			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if (d < dist) {
 					dist = d;
@@ -718,7 +730,7 @@ public class Unit : MonoBehaviour {
 		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
 			Transform tr = mapGenerator.turrets.transform.GetChild(n);
 			TurretUnit tur = tr.GetComponent<TurretUnit>();
-			if (tur != null && tur.team != team) {
+			if (tur != null && ((enemies && tur.team != team) || (friendlies && tur.team == team))) {
 				float d = distanceFromUnit(tur);
 				if (d < dist) {
 					dist = d;
@@ -728,11 +740,24 @@ public class Unit : MonoBehaviour {
 		}
 		return closest;
 	}
+	
 
-	public float closestEnemyDist() {
+	public float closestEnemyDist(bool attackUnconscious = false) {
+		return closestUnitDist(true, false, attackUnconscious);
+	}
+	
+	public float closestFriendlyDist(bool attackUnconscious = false) {
+		return closestUnitDist(false, true, attackUnconscious);
+	}
+	
+	public float closestUnitDist(bool attackUnconscious = false) {
+		return closestUnitDist(true, true, attackUnconscious);
+	}
+
+	public float closestUnitDist(bool enemies, bool friendlies, bool attackUnconscious = false) {
 		float dist = 0;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team && !u.deadOrDyingOrUnconscious()) {
+			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if (d < dist || dist == 0) {
 					dist = d;
@@ -742,7 +767,7 @@ public class Unit : MonoBehaviour {
 		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
 			Transform tr = mapGenerator.turrets.transform.GetChild(n);
 			TurretUnit tur = tr.GetComponent<TurretUnit>();
-			if (tur != null && tur.team != team) {
+			if (tur != null && ((enemies && tur.team != team) || (friendlies && tur.team == team))) {
 				float d = distanceFromUnit(tur);
 				if (d < dist || dist == 0) {
 					dist = d;
@@ -759,11 +784,169 @@ public class Unit : MonoBehaviour {
 	public static float actionTime;
 	public const float actionDelay = .25f;
 
-	public void performPrimal() {
-
+	public PrimalState getPrimalState() {
+		return characterSheet.characterSheet.personalInformation.getCharacterRace().getPrimalState();
 	}
 
-
+	public void performPrimal() {
+		if (isPerformingAnAction() || mapGenerator.movingCamera) {
+			actionTime = Time.time;
+			return;
+		}
+		PrimalState ps = getPrimalState();
+		if (ps == PrimalState.Threatened) {
+			if (Time.time - actionTime < actionDelay) return;
+		//	float closestDist = closestEnemyDist();
+			Unit enemy = primalInstigator;
+			float enemyDist = distanceFromUnit(enemy);
+			if (enemy==null || enemy.isDead()) {
+				enemy = closestUnit(true);
+				enemyDist = closestUnitDist(true);
+				Debug.Log(enemy.getName() + "  " + enemyDist);
+			}
+			if (!usedMovement) {
+				if (enemyDist > 1) {
+					currentMoveDist = 5;
+					List<Unit> units = new List<Unit>();
+					units.Add(enemy);
+					aiMap.setGoalsAndHeuristics(units);
+					AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
+					AStarNode node = ret.finalNode;
+					node = AStarAlgorithm.reversePath(node);
+					//				currentPath = new ArrayList();
+					resetPath();
+					int d = 0;
+					while (node != null) {
+						if (d != 0) {
+							AStarEnemyParameters param = (AStarEnemyParameters)node.parameters;
+							Vector2 v = new Vector2(param.x, param.y);
+							currentPath.Add(v);
+						}
+						node = node.prev;
+						d++;
+						if (d>5) break;
+					}
+					for (int n=currentPath.Count-1;n>=1;n--) {
+						Vector2 v = (Vector2)currentPath[n];
+						if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
+							currentPath.RemoveAt(n);
+							setPathCount();
+						}
+						else {
+							break;
+						}
+					}
+					mapGenerator.resetPlayerPath();
+					mapGenerator.setPlayerPath(currentPath);
+					startMoving(false);
+					usedMovement = true;
+					return;
+				}
+			}
+			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+			//	usedStandard = true;
+			if (!usedStandard) {
+				if (enemyDist <= 1.0f) {
+					usedStandard = true;
+					attackEnemy = enemy;
+					setRotationToAttackEnemy();
+					if (enemy != null) enemy.setTarget();
+					startAttacking();
+					return;
+				}
+			}
+			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+			if ((usedStandard || enemyDist > 1.0f) && (usedMovement || enemyDist <= 1.0f)) {
+				primalTurnsLeft--;
+				if (primalTurnsLeft==0) {
+					inPrimal = false;
+					primalInstigator = null;
+					characterSheet.characterSheet.combatScores.addComposure(1);
+				}
+				mapGenerator.nextPlayer();
+			}
+		}
+		else if (ps == PrimalState.Passive) {
+			primalTurnsLeft--;
+			if (primalTurnsLeft==0) {
+				inPrimal = false;
+				primalInstigator = null;
+				characterSheet.characterSheet.combatScores.addComposure(1);
+			}
+			mapGenerator.nextPlayer();
+		}
+		else if (ps == PrimalState.Reckless) {
+			if (primalInstigator == null) {
+				primalTurnsLeft--;
+				if (primalTurnsLeft==0) {
+					inPrimal = false;
+					primalInstigator = null;
+					characterSheet.characterSheet.combatScores.addComposure(1);
+				}
+				mapGenerator.nextPlayer();
+			}
+			if (!usedMovement) {
+				if (isProne()) {
+					recover();
+					return;
+				}
+				int moveLeft = 5;
+				bool first = true;
+				List<Direction> availableDirections = new List<Direction>();
+				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
+				Direction lastDirection = Direction.None;
+				while (moveLeft > 0 && (availableDirections.Count > 0 || first)) {
+					if (first) first = false;
+					else {
+						Direction nextDirection = availableDirections[Random.Range(0,availableDirections.Count)];
+						while (moveLeft > 0 && t.canPass(nextDirection, this, lastDirection)) {
+							t = t.getTile(nextDirection);
+							moveLeft--;
+							currentPath.Add(new Vector2(t.x,t.y));
+							lastDirection = nextDirection;
+						}
+					}
+					if (t.x <= primalInstigator.position.x && t.canPass(Direction.Left, this, lastDirection)) {
+						availableDirections.Add(Direction.Left);
+					}
+					if (t.x >= primalInstigator.position.x && t.canPass(Direction.Right, this, lastDirection)) {
+						availableDirections.Add(Direction.Right);
+					}
+					if (t.y <= -primalInstigator.position.y && t.canPass(Direction.Up, this, lastDirection)) {
+						availableDirections.Add(Direction.Up);
+					}
+					if (t.y >= -primalInstigator.position.y && t.canPass(Direction.Down, this, lastDirection)) {
+						availableDirections.Add(Direction.Down);
+					}
+				}
+				for (int n=currentPath.Count-1;n>=1;n--) {
+					Vector2 v = (Vector2)currentPath[n];
+					if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
+						currentPath.RemoveAt(n);
+						setPathCount();
+					}
+					else {
+						break;
+					}
+				}
+				mapGenerator.resetPlayerPath();
+				mapGenerator.setPlayerPath(currentPath);
+				startMoving(false);
+				usedMovement = true;
+			}
+			else {
+				primalTurnsLeft--;
+				if (primalTurnsLeft==0) {
+					inPrimal = false;
+					primalInstigator = null;
+					characterSheet.characterSheet.combatScores.addComposure(1);
+				}
+				mapGenerator.nextPlayer();
+			}
+		}
+	}
+	
+	
 	public void performAI() {
 		if (isPerformingAnAction() || mapGenerator.movingCamera) {
 			actionTime = Time.time;
@@ -1354,7 +1537,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious();
+		return !deadOrDyingOrUnconscious() && !inPrimal;
 	}
 
 	public int attackOfOpp(Vector2 one) {
@@ -1972,7 +2155,12 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.personalInformation.getCharacterRace().raceName;
 	}
 
+	public virtual bool hasUncannyKnowledge() {
+		return characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge);
+	}
+
 	public virtual bool attackEnemyIsFavoredRace() {
+		if (attackEnemy==null) return false;
 		return unitIsFavoredRace(attackEnemy);
 	}
 
@@ -2032,7 +2220,7 @@ public class Unit : MonoBehaviour {
 			if (characterSheet.characterSheet.combatScores.isInPrimalState()) {
 				inPrimal = true;
 				primalInstigator = u;
-				primalTurnsLeft = u.characterSheet.characterSheet.combatScores.getDominion();
+				primalTurnsLeft = u.characterSheet.characterSheet.combatScores.getDominion() + 1;
 			}
 		}
 	}
