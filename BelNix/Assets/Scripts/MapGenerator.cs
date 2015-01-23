@@ -554,7 +554,9 @@ public class MapGenerator : MonoBehaviour {
 		if (itemPositions == null || items == null) return;
 		for (int n=0;n<Mathf.Min(itemPositions.Count, items.Count);n++) {
 			Vector2 pos = itemPositions[n];
+			Debug.Log("Map Item");
 			Item i = items[n].getItem();
+			Debug.Log("End Map Item");
 			tiles[(int)pos.x,(int)pos.y].addItem(i);
 		}
 	}
@@ -720,7 +722,6 @@ public class MapGenerator : MonoBehaviour {
 				outOfGameUnits.Add(pl);
 				p.SetActive(false);
 			}
-            Debug.Log(pl.characterSheet.characterSheet.personalInformation.getCharacterName().fullName());
 		}
 		sortPriority();
 		repositionSelectionUnits();

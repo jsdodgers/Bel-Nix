@@ -2155,6 +2155,10 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.personalInformation.getCharacterRace().raceName;
 	}
 
+	public virtual bool hasUncannyKnowledge() {
+		return characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge);
+	}
+
 	public virtual bool attackEnemyIsFavoredRace() {
 		if (attackEnemy==null) return false;
 		return unitIsFavoredRace(attackEnemy);

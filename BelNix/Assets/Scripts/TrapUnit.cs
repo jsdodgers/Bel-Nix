@@ -52,6 +52,10 @@ public class TrapUnit : MechanicalUnit {
 		return RaceName.None;
 	}
 
+	public override bool hasUncannyKnowledge() {
+		return false;
+	}
+	
 	public override bool attackEnemyIsFavoredRace() {
 		return unitIsFavoredRace(attackEnemy);
 	}
