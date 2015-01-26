@@ -75,7 +75,8 @@ public class GameGUI : MonoBehaviour {
 	void Update () {
 		UnitGUI.doTabs();
 	}
-	
+
+	// Make the black-bordered solid color texture used throughout the programmer-art UI
 	Texture2D makeTex( int width, int height, Color col )
 	{
 		Color[] pix = new Color[width * height];
@@ -92,9 +93,11 @@ public class GameGUI : MonoBehaviour {
 		return result;
 	}
 
+	// Return the size of an action icon  (couldn't this be stored as a field instead?)
 	public Vector2 actionIconSize() {
 		return new Vector2(40.0f, 40.0f);
 	}
+
 
 	public Rect actionIconRect(int n) {
 		float y = actionBarTotalRect().y + (actionBarTotalSize().y - actionIconSize().y)/2.0f;
@@ -221,6 +224,8 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
+
+	//------------------------------------------------------------ Clipboard Stuff
 	static Vector2 tabButtonSize = new Vector2(45.0f, 60.0f);
 	public static Rect getTabButtonRect(Tab t) {
 		float x = 0.0f;
@@ -256,6 +261,7 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(clipBoardBodyRect().x + (clipboardBodySize().x - clipboardClipSize().x)/2.0f, clipBoardBodyRect().y + 10.0f - clipboardClipSize().y, clipboardClipSize().x, clipboardClipSize().y);
 	}
 
+	//----------------------------------------------------------- Menus/Confirmation Stuff?
 	public Rect subMenuButtonsRect() {
 //		System.Enum[] values = null;
 		int values = 0;
@@ -303,7 +309,7 @@ public class GameGUI : MonoBehaviour {
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
-				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Stealth || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -359,6 +365,8 @@ public class GameGUI : MonoBehaviour {
 		return false;
 	}
 
+
+	//---------------------------------------------------------- Style Stuff
 	GUIStyle getNormalStyle() {
 		if (playerNormalStyle == null) {
 			playerNormalStyle = new GUIStyle(GUI.skin.label);
@@ -745,6 +753,8 @@ public class GameGUI : MonoBehaviour {
 		return backStyle;
 	}
 
+
+	//------------------------------------------------------------ Button Behavior stuff
 	public void clickWait() {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
@@ -997,7 +1007,8 @@ public class GameGUI : MonoBehaviour {
 	const float turnOrderTableX = 15.0f;
 	const float turnOrderNameWidth = clipboardBodyWidth - turnOrderTableX * 2 - turnOrderSectionHeight * 2;
 
-		
+
+	//------------------------------------------------------------ onGUI stuff
 	static float t = 0;
 	static int dir = 1;
 	public void OnGUI() {
@@ -1416,7 +1427,7 @@ public class GameGUI : MonoBehaviour {
 						GUI.enabled = true;
 					}
 					
-					if ((((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedMinorType == MinorType.Escape && mapGenerator.getCurrentUnit().currentPath.Count > 1))  && interact) {
+					if ((((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedMinorType == MinorType.Escape && mapGenerator.getCurrentUnit().currentPath.Count > 1) || selectedMinorType == MinorType.Stealth)  && interact) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							mapGenerator.performAction();
 							/*							if (selectedStandardType == StandardType.Attack) {
@@ -1610,6 +1621,7 @@ public class GameGUI : MonoBehaviour {
 
 
 		}
+		// Show Win/Lose screen if the game is over
 		if (mapGenerator.gameState != GameState.Playing) {
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
@@ -1627,6 +1639,7 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(0,-off,Screen.width, Screen.height), content, getBackStyle());
 			GUI.Label(new Rect(0,0,Screen.width, Screen.height), content, st);
 		}
+		// Show Escape/Pause Menu options
 		if (escapeMenuOpen || mapGenerator.gameState != GameState.Playing) {
 			if (GUI.Button(getMenuRect(0, escapeMenuOpen), "Back to Base")) {
 				Application.LoadLevel(2);
@@ -1787,12 +1800,34 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+		case MinorType.Stealth:
 			break;
 		case MinorType.Escape:
 			p.selectMinorType(t);
 			break;
 		case MinorType.Cancel:
 		default:
+			break;
+		}
+	}
+	// The unity event system doesn't let you use methods from the editor unless they return void
+	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
+	// here's another version that accepts a string instead of a MinorType enum.
+	public void selectMinorType(string t)
+	{
+		switch(t)
+		{
+		case "Cancel":
+			if(!selectedMinor) selectMinor(MinorType.Cancel);
+			selectMinorType(MinorType.Cancel);
+			break;
+		case "Loot":
+			if(!selectedMinor) selectMinor(MinorType.Loot);
+			selectMinorType(MinorType.Loot);
+			break;
+		default:
+			if(!selectedMinor) selectMinor(MinorType.None);
+			selectMinorType(MinorType.None);
 			break;
 		}
 	}
@@ -1811,17 +1846,9 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Attack:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.OverClock:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.Throw:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.Intimidate:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.Place_Turret:
 			selectedTurretIndex = 0;
 			mapGenerator.resetRanges();
@@ -1837,6 +1864,47 @@ public class GameGUI : MonoBehaviour {
 			if (mapGenerator.selectedUnit.attackEnemy)
 				mapGenerator.selectedUnit.attackEnemy.deselect();
 			mapGenerator.resetRanges();
+			break;
+		}
+	}
+	// The unity event system doesn't let you use methods from the editor unless they return void
+	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
+	// here's another version that accepts a string instead of a StandardType enum.
+	public void selectStandardType(string t)
+	{
+		switch(t)
+		{
+		case "Cancel":
+			if(!selectedStandard) selectStandard(StandardType.Cancel);
+			selectStandardType(StandardType.Cancel);
+			break;
+		case "Attack":
+			if(!selectedStandard) selectStandard(StandardType.Attack);
+			selectStandardType(StandardType.Attack);
+			break;
+		case "Overclock":
+			if(!selectedStandard) selectStandard(StandardType.OverClock);
+			selectStandardType(StandardType.OverClock);
+			break;
+		case "Throw":
+			if(!selectedStandard) selectStandard(StandardType.Throw);
+			selectStandardType(StandardType.Throw);
+			break;
+		case "Intimidate":
+			if(!selectedStandard) selectStandard(StandardType.Intimidate);
+			selectStandardType(StandardType.Intimidate);
+			break;
+		case "Place Turrent":
+			if(!selectedStandard) selectStandard(StandardType.Place_Turret);
+			selectStandardType(StandardType.Place_Turret);
+			break;
+		case "Lay Trap":
+			if(!selectedStandard) selectStandard(StandardType.Lay_Trap);
+			selectStandardType(StandardType.Lay_Trap);
+			break;
+		default:
+			if(!selectedStandard) selectStandard(StandardType.None);
+			selectStandardType(StandardType.None);
 			break;
 		}
 	}
@@ -1876,5 +1944,34 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-
+	// The unity event system doesn't let you use methods from the editor unless they return void
+	// and use no parameters other than int, float, string, or object reference. To expose selectMovementType,
+	// here's another version that accepts a string instead of a MovementType enum.
+	public void selectMovementType(string t)
+	{
+		switch(t)
+		{
+		case "Cancel":
+			if(!selectedMovement) selectMove();
+			selectMovementType(MovementType.Cancel);
+			break;
+		case "Backstep":
+			if(!selectedMovement) selectMove();
+			selectMovementType(MovementType.BackStep);
+			break;
+		case "Recover":
+			if(!selectedMovement) selectMove();
+			selectMovementType(MovementType.Recover);
+			break;
+		case "Move":
+			if(!selectedMovement) selectMove();
+			selectMovementType(MovementType.Move);
+			break;		
+		default:
+			if(!selectedMovement) selectMove();
+			selectMovementType(MovementType.None);
+			break;
+		}
+	}
+	
 }

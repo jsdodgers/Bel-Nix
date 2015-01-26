@@ -87,7 +87,7 @@ public class AStarNode {
 		return "(" + this.parameters + ", (H: " + h + ",D: " + d + ",F: " + f() + "))";
 	}
 	
-	public virtual String ToString() {
+	public override String ToString() {
 		return toString();
 	}
 }

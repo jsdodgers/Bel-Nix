@@ -2,6 +2,57 @@ using System;
 using UnityEngine;
 using System.Collections;
 
+
+public class ItemMechanicalEditor : EditorItem {
+
+	public ItemMechanicalEditor frame;
+	public ItemMechanicalEditor applicator;
+	public ItemMechanicalEditor gear;
+	public ItemMechanicalEditor energySource;
+	public ItemMechanicalEditor trigger;
+	public string creatorId = "";
+	public int range = 5;
+
+
+	
+	public ItemCode itemCode;
+	
+	public override Item getItem() {
+		switch (itemCode) {
+		case ItemCode.Turret:
+			return new Turret(creatorId, (Frame)frame.getItem(), (Applicator)applicator.getItem(), (Gear)gear.getItem(), (EnergySource)energySource.getItem());
+		case ItemCode.Trap:
+			return new Trap(creatorId, (Frame)frame.getItem(), (Applicator)applicator.getItem(), (Gear)gear.getItem(), (Trigger)trigger.getItem());
+		case ItemCode.Frame:
+			return new Frame();
+		case ItemCode.TestFrame:
+			return new TestFrame();
+		case ItemCode.Applicator:
+			return new Applicator();
+		case ItemCode.TestApplicator:
+			return new TestApplicator();
+		case ItemCode.Gear:
+			return new Gear();
+		case ItemCode.TestGear:
+			return new TestGear();
+		case ItemCode.EnergySource:
+			return new EnergySource();
+		case ItemCode.TestEnergySource:
+			return new TestEnergySource();
+		case ItemCode.Trigger:
+			return new Trigger();
+		case ItemCode.TestTrigger:
+			return new TestTrigger();
+		case ItemCode.TriggerM1:
+			return new TriggerM1();
+		default:
+			return null;
+		}
+	}
+
+}
+
+
 public interface ItemMechanical {
 
 }
@@ -167,7 +218,7 @@ public class Frame : Item, ItemMechanical {
 	public virtual int getHardness() {
 		return 0;
 	}
-	public virtual int getSize() {
+	public new virtual int getSize() {
 		return 0;
 	}
 	public bool isDestroyed() {
@@ -396,6 +447,24 @@ public class TestTrigger : Trigger {
 	}
 	public TestTrigger() {
 		itemName = "Test Trigger";
+		inventoryTextureName = "Units/Turrets/Trigger";
+		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+	}
+}
+
+public class TriggerM1 : Trigger {
+	public TriggerM1(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.TriggerM1;	
+	}
+	public override int triggerTimes() {
+		return 1;
+	}
+	public TriggerM1() {
+		itemName = "Trigger Mark 1";
 		inventoryTextureName = "Units/Turrets/Trigger";
 		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
 	}

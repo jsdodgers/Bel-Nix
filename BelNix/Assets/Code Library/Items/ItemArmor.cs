@@ -3,7 +3,7 @@ using System.Collections;
 
 public enum ArmorType {Head, Shoulder, Chest, Gloves, Pants, Boots}
 
-[RequireComponent (typeof (Character))]
+
 public class ItemArmor : EditorItem {
 
 

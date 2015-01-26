@@ -70,13 +70,6 @@ public class MainMenuGUI : MonoBehaviour {
 		Application.LoadLevel(1);
 	}
 
-	public void loadGame()
-	{
-		//GameObject.Find("Panel - Load Game").GetComponent<Animator>().SetBool(	"Exposed", true);
-		//GameObject.Find("Canvas - Options").GetComponent<Animator>().SetBool(	"Exposed", false);
-		//disableButtons();
-	}
-
 	//public void options()
 	//{
 		//GameObject.Find("Panel - Load Game").GetComponent<Animator>().SetBool(	"Exposed", false);

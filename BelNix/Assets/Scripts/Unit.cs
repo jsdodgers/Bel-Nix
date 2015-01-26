@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
-public enum MinorType {Loot, Mark, TemperedHands, Escape, Invoke, OneOfMany, Cancel, None}
+public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
@@ -15,6 +15,7 @@ public class Unit : MonoBehaviour {
 	public Character characterSheet;
 	public CharacterTemplate characterTemplate;
 	int initiative;
+	int stealth;
 //	public string characterId;
 	public int team = 0;
 	public bool overClockedAttack = false;
@@ -299,6 +300,7 @@ public class Unit : MonoBehaviour {
 	public MinorType[] getMinorTypes() {
 		List<MinorType> minorTypes = new List<MinorType>();
 		minorTypes.Add(MinorType.Loot);
+		minorTypes.Add(MinorType.Stealth);
 		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			MinorType mt = getMinorType(feature);
@@ -476,6 +478,10 @@ public class Unit : MonoBehaviour {
 
 	public void rollInitiative() {
 		initiative = Random.Range(1,21) + characterSheet.combatScores.getInitiative();
+	}
+
+	public void rollStealth() {
+		stealth = Random.Range(1, 11) + characterSheet.skillScores.getScore(Skill.Stealth);
 	}
 
 	public int getInitiative() {
