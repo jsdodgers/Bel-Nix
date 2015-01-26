@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Collections;
 using System.IO;
@@ -1515,7 +1516,7 @@ public class MapGenerator : MonoBehaviour {
 
 	void handleGUIPos() {
 	//	isOnGUI = gui.moveButtonRect().Contains(new Vector2(Input.mousePosition.x, Input.mousePosition.y));
-		isOnGUI = gui.mouseIsOnGUI();
+		isOnGUI = gui.mouseIsOnGUI() || GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject();
 	}
 	
 	

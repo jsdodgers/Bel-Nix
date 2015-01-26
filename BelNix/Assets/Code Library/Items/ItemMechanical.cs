@@ -167,7 +167,7 @@ public class Frame : Item, ItemMechanical {
 	public virtual int getHardness() {
 		return 0;
 	}
-	public virtual int getSize() {
+	public new virtual int getSize() {
 		return 0;
 	}
 	public bool isDestroyed() {
