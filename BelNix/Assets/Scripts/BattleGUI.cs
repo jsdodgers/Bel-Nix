@@ -5,6 +5,7 @@ using System.Collections;
 
 public class BattleGUI : MonoBehaviour {
 
+	static BattleGUI battleGUI;
     // Let's grab the Character Info Panels from the editor
     [SerializeField] private GameObject[] CIPanels = new GameObject[3];
 	[SerializeField] private GameObject consoleCanvas;
@@ -13,10 +14,24 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject consoleContentPanel;
 	[SerializeField] private GameObject consoleMessagePrefab;
 	[SerializeField] private GameObject turnOrderPrefab;
+	Text atAGlanceText;
+	Text[] statsTexts;
 	private Queue consoleText = new Queue();
 	private int maxNumMessages = 20;
     // Numbers as indices aren't very informative. Let's use enums.
     public enum CIPanel { GLANCE, STATS, SKILLS, BUTTONS };
+	
+	public void selectMovementType(string movementType) {
+		GameGUI.selectMovementType(movementType);
+	}
+	
+	public void selectStandardType(string standardType) {
+		GameGUI.selectStandardType(standardType);
+	}
+	
+	public void selectMinorType(string minorType) {
+		GameGUI.selectMinorType(minorType);
+	}
 
 	public bool UIRevealed = false;
 	public void toggleBattleUI()
@@ -61,7 +76,7 @@ public class BattleGUI : MonoBehaviour {
 	public void toggleConsole()
 	{
 		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Hidden");
-		writeToConsole("Somebody just toggled the console");
+		writeToConsoleActually("Somebody just toggled the console", Color.black);
 		//GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
 		//GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
 		//GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
@@ -74,7 +89,26 @@ public class BattleGUI : MonoBehaviour {
 		animator.SetBool(boolName, !animator.GetBool(boolName));
 	}
 
-	private void writeToConsole(string message)
+	public static void setAtAGlanceText(string text) {
+		if (battleGUI==null) return;
+		battleGUI.atAGlanceText.text = text;
+	}
+
+	public static void setStatsText(int statNum, string text) {
+		if (battleGUI==null) return;
+		battleGUI.statsTexts[statNum].text = text;
+	}
+	
+	public static void writeToConsole(string message) {
+		writeToConsole(message, Color.black);
+	}
+	
+	public static void writeToConsole(string message, Color color) {
+		if (battleGUI == null) return;
+		battleGUI.writeToConsoleActually(message, color);
+	}
+
+	private void writeToConsoleActually(string message, Color color)
 	{
         // Get the number of messages written on the console.
 		int numMessages = consoleText.Count;
@@ -92,6 +126,7 @@ public class BattleGUI : MonoBehaviour {
 		Text textComponent = textToAdd.GetComponent<Text>();
 		textComponent.text = UnitGUI.getSmallCapsString(message, textComponent.fontSize - 4);
 		textToAdd.transform.SetParent(consoleContentPanel.transform);
+		textComponent.color = color;
 
         // Move the console scrollbar to the bottom to show the new message
         GameObject.Find("Scrollbar - Console").GetComponent<Scrollbar>().value = 0;
@@ -123,9 +158,16 @@ public class BattleGUI : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		battleGUI = this;
         // By default, the Character Info Canvas' animator idles on "Dismissed," which is visible.
         // We don't want to to be visible until the UI is revealed later, so we have to set it to "Hiding".
-        GameObject.Find("Canvas - Character Info").GetComponent<Animator>().Play("CI_Panel_Hiding");
+		GameGUI.initialize();
+		atAGlanceText = GameObject.Find("Text - At a Glance").GetComponent<Text>();
+		statsTexts = new Text[4];
+		for (int n=0;n<4;n++) {
+			statsTexts[n] = GameObject.Find("Text - Stats" + (n+1)).GetComponent<Text>();
+		}
+		GameObject.Find("Canvas - Character Info").GetComponent<Animator>().Play("CI_Panel_Hiding");
 		GameObject.Find("Canvas - Console").GetComponent<Animator>().Play("Console_Dismissed");
 		foreach(GameObject panel in CIPanels)
 			toggleAnimatorBool(panel.GetComponent<Animator>(), "Hidden");
@@ -134,6 +176,7 @@ public class BattleGUI : MonoBehaviour {
     
 	// Update is called once per frame
 	void Update () {
+		UnitGUI.doTabs();
         // C is for Character Sheet
         // V is for Class Features
         if (Input.anyKeyDown && !UIRevealed)
@@ -151,5 +194,9 @@ public class BattleGUI : MonoBehaviour {
         }
 		//if(GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
 		//	Debug.Log("Pointer is over a gameObject");
+	}
+
+	void OnGUI() {
+		GameGUI.doGUI();
 	}
 }

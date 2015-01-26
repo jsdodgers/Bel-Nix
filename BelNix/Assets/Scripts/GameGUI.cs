@@ -9,43 +9,43 @@ public class GameGUI : MonoBehaviour {
 	
 	static Unit hovering = null;
 	public static MapGenerator mapGenerator;
-	public Log log;
-	GUIStyle playerNormalStyle;
-	GUIStyle playerBoldStyle;
-	GUIStyle selectedButtonStyle = null;
-	GUIStyle nonSelectedButtonStyle = null;
-	GUIStyle selectedSubMenuTurnStyle = null;
-	GUIStyle confirmButtonStyle = null;
-	Vector2 position = new Vector2(0.0f, 0.0f);
-	Rect scrollRect;
-	bool scrollShowing;
-	bool first = true;
+	public static Log log;
+	static GUIStyle playerNormalStyle;
+	static GUIStyle playerBoldStyle;
+	static GUIStyle selectedButtonStyle = null;
+	static GUIStyle nonSelectedButtonStyle = null;
+	static GUIStyle selectedSubMenuTurnStyle = null;
+	static GUIStyle confirmButtonStyle = null;
+	static Vector2 position = new Vector2(0.0f, 0.0f);
+	static Rect scrollRect;
+	static bool scrollShowing;
+	static bool first = true;
 	static int temperedHandsMod = 0;
-	public bool escapeMenuOpen = false;
+	public static bool escapeMenuOpen = false;
 
-	public bool showAttack = false;
-	public bool showMovement = false;
+	public static bool showAttack = false;
+	public static bool showMovement = false;
 
-	Vector2 notTurnMoveRangeSize = new Vector2(150.0f, 50.0f);
-	Vector2 subMenuTurnActionSize = new Vector2(100.0f, 35.0f);
-	Vector2 turretSelectSize = new Vector2(250.0f, 100.0f);
+	static Vector2 notTurnMoveRangeSize = new Vector2(150.0f, 50.0f);
+	static Vector2 subMenuTurnActionSize = new Vector2(100.0f, 35.0f);
+	static Vector2 turretSelectSize = new Vector2(250.0f, 100.0f);
 
-	public Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
-	public Vector2 turretsScrollPosition = new Vector2(0.0f, 0.0f);
-	public Vector2 trapsScrollPosition = new Vector2(0.0f, 0.0f);
+	public static Vector2 selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
+	public static Vector2 turretsScrollPosition = new Vector2(0.0f, 0.0f);
+	public static Vector2 trapsScrollPosition = new Vector2(0.0f, 0.0f);
 	static Vector2 turnOrderScrollPos = new Vector2(0.0f, 0.0f);
 
-	public bool selectedMovement = false;
-	public bool selectedStandard = false;
-	public bool selectedMinor = false;
-	public bool turretDirection = false;
-	public MovementType selectedMovementType = MovementType.None;
-	public StandardType selectedStandardType = StandardType.None;
+	public static bool selectedMovement = false;
+	public static bool selectedStandard = false;
+	public static bool selectedMinor = false;
+	public static bool turretDirection = false;
+	public static MovementType selectedMovementType = MovementType.None;
+	public static StandardType selectedStandardType = StandardType.None;
 	public static MinorType selectedMinorType = MinorType.None;
 
 
-	public Tab clipboardTab = Tab.T;
-	public Mission openMission = Mission.Primary;
+	public static Tab clipboardTab = Tab.T;
+	public static Mission openMission = Mission.Primary;
 
 	static Texture2D actionTexture3;
 	static Texture2D hotkeysBackTextureCenter;
@@ -53,11 +53,9 @@ public class GameGUI : MonoBehaviour {
 	static Texture2D clipBoardBodyTexture;
 
 	// Use this for initialization
-	void Start () {
+	public static void initialize() {
 		clipboardTab = Tab.T;
 		position = new Vector2(0.0f, 0.0f);
-		//selectedButtonStyle = null;
-		//nonSelectedButtonStyle = null;
 		first = true;
 		actionTexture3 = Resources.Load<Texture>("UI/SocketBase_v2") as Texture2D;
 
@@ -66,18 +64,17 @@ public class GameGUI : MonoBehaviour {
 		clipBoardBodyTexture = Resources.Load<Texture>("UI/clipboard-body") as Texture2D;
 	}
 
-	Texture2D getHotKeysBackTexture(int n) {
+	static Texture2D getHotKeysBackTexture(int n) {
 		if (n == -1 || n == Mathf.Max(2, numberActions)) return hotkeysBackTextureLeft;
 		return hotkeysBackTextureCenter;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		UnitGUI.doTabs();
 	}
 
 	// Make the black-bordered solid color texture used throughout the programmer-art UI
-	Texture2D makeTex( int width, int height, Color col )
+	static Texture2D makeTex( int width, int height, Color col )
 	{
 		Color[] pix = new Color[width * height];
 		for( int i = 0; i < pix.Length; ++i )
@@ -94,12 +91,12 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	// Return the size of an action icon  (couldn't this be stored as a field instead?)
-	public Vector2 actionIconSize() {
+	public static Vector2 actionIconSize() {
 		return new Vector2(40.0f, 40.0f);
 	}
 
 
-	public Rect actionIconRect(int n) {
+	public static Rect actionIconRect(int n) {
 		float y = actionBarTotalRect().y + (actionBarTotalSize().y - actionIconSize().y)/2.0f;
 		float totesWidth = numberActions * actionBarTotalSize().y + (actionBarTotalSize().y - actionIconSize().y);
 		float first = (Screen.width - totesWidth)/2.0f;
@@ -107,35 +104,35 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, y, actionIconSize().x, actionIconSize().y);
 	}
 
-	public Vector2 actionButtonsSize() {
+	public static Vector2 actionButtonsSize() {
 //		return new Vector2(90.0f, 50.0f);
 		return new Vector2(150.0f, 40.0f);
 		return notTurnMoveRangeSize;
 //		return new Vector2(90.0f, 40.0f);
 	}
 
-	public Vector2 actionButtonsTotalSize() {
+	public static Vector2 actionButtonsTotalSize() {
 		return new Vector2(236.0f, 200.0f);
 	}
 
-	public Rect rangeRect() {
+	public static Rect rangeRect() {
 		return new Rect(0.0f, Screen.height - notTurnMoveRangeSize.y*2 + 1, notTurnMoveRangeSize.x, notTurnMoveRangeSize.y*2-1);
 	}
 
-	public int numberActions;
-	public Vector2 actionBarSectionSize() {
+	public static int numberActions;
+	public static Vector2 actionBarSectionSize() {
 		return new Vector2(60.0f, 60.0f);
 	}
-	public Vector2 actionBarSideSize() {
+	public static Vector2 actionBarSideSize() {
 		return new Vector2(30.0f, 60.0f);
 	}
-	public Vector2 actionBarTotalSize() {
+	public static Vector2 actionBarTotalSize() {
 		return new Vector2(actionBarSideSize().x * 2 + actionBarSectionSize().x * Mathf.Max(2, numberActions), actionBarSectionSize().y);
 	}
-	public Rect actionBarTotalRect() {
+	public static Rect actionBarTotalRect() {
 		return new Rect((Screen.width - actionBarTotalSize().x)/2.0f, Screen.height - Log.consoleHeight - actionBarTotalSize().y + 10.0f, actionBarTotalSize().x, actionBarTotalSize().y);
 	}
-	public Rect actionBarRect(int n) {
+	public static Rect actionBarRect(int n) {
 		float width = actionBarSectionSize().x;
 		float x = actionBarTotalRect().x;
 		if (n ==-1) width = actionBarSideSize().x;
@@ -150,42 +147,42 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, actionBarTotalRect().y, width, actionBarSectionSize().y);
 	}
 
-	public Rect actionRect() {
+	public static Rect actionRect() {
 		float boxHeight = actionButtonsSize().y * 3 + (1) * 20.0f;
 		return new Rect(-20.0f, Screen.height - actionButtonsTotalSize().y + 10.0f, actionButtonsTotalSize().x, actionButtonsTotalSize().y);
 	}
 
-	public Rect turretTypeRect(int n) {
+	public static Rect turretTypeRect(int n) {
 		return new Rect(Screen.width - turretSelectSize.x, turretTypesRect().y + turretSelectSize.y*n - n, turretSelectSize.x, turretSelectSize.y);
 	}
 
-	public Rect trapTypeRect(int n) {
+	public static Rect trapTypeRect(int n) {
 		return new Rect(trapTypesRect().x, trapTypesRect().y + turretSelectSize.y*n - n, turretSelectSize.x, turretSelectSize.y);
 	}
 
-	public Rect turretTypesRect() {
+	public static Rect turretTypesRect() {
 		float height = turretSelectSize.y * 3 - 2;
 		return new Rect(Screen.width - turretSelectSize.x, (Screen.height - height)/2.0f, turretSelectSize.x, height);
 	}
 
-	public Vector2 trapOkButtons() {
+	public static Vector2 trapOkButtons() {
 		float x = turretSelectSize.x/2.0f-30.0f/2.0f;
 		return new Vector2(x, x/2.0f);
 	}
 
-	public Vector2 trapOkButtonsSize() {
+	public static Vector2 trapOkButtonsSize() {
 		float height = trapOkButtons().y + 20.0f;
 		float width = turretSelectSize.x;
 		return new Vector2(width, height);
 	}
 
-	public Rect trapOkButton(int n) {
+	public static Rect trapOkButton(int n) {
 		float x = trapTypesRect().x + 10.0f;
 		float y = trapTypesRect().y + trapTypesScrollRect().height + 10.0f;
 		return new Rect(x + n * (trapOkButtons().x + 10.0f), y, trapOkButtons().x, trapOkButtons().y);
 	}
 
-	public Rect trapTypesScrollRect() {
+	public static Rect trapTypesScrollRect() {
 		float height = turretSelectSize.y * 3 - 2;
 		float width = turretSelectSize.x;
 		float x = (Screen.width - width)/2.0f;
@@ -193,7 +190,7 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, y, width, height);
 	}
 
-	public Rect trapTypesRect() {
+	public static Rect trapTypesRect() {
 		Rect r = trapTypesScrollRect();
 		r.height += trapOkButtonsSize().y;
 		return r;
@@ -204,23 +201,23 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, y, width, height);
 	}
 
-	public Rect moveButtonRect() {
+	public static Rect moveButtonRect() {
 		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 6.0f, actionRect().y + actionButtonsSize().y * 0 + 20.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
-	public Rect attackButtonRect() {
+	public static Rect attackButtonRect() {
 		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 6.0f, actionRect().y + actionButtonsSize().y * 1 + 30.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
-	public Rect minorButtonRect() {	
+	public static Rect minorButtonRect() {	
 		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x - 6.0f, actionRect().y + actionButtonsSize().y * 2 + 40.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 	
-	public Rect waitButtonRect() {
+	public static Rect waitButtonRect() {
 		return new Rect(actionRect().x + actionButtonsTotalSize().x - actionButtonsSize().x, actionRect().y + actionButtonsSize().y * 3 + 5.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
-	public Rect waitButtonAlwaysRect() {
+	public static Rect waitButtonAlwaysRect() {
 		return new Rect(Screen.width - actionButtonsSize().x, 0.0f, actionButtonsSize().x, actionButtonsSize().y);
 	}
 
@@ -262,7 +259,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	//----------------------------------------------------------- Menus/Confirmation Stuff?
-	public Rect subMenuButtonsRect() {
+	public static Rect subMenuButtonsRect() {
 //		System.Enum[] values = null;
 		int values = 0;
 		if (selectedMovement)
@@ -281,30 +278,30 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, y, width, height);
 	}
 
-	public Rect subMenuButtonRect(int i) {
+	public static Rect subMenuButtonRect(int i) {
 		Rect r = subMenuButtonsRect();
 		return new Rect(r.x, r.y + i * (subMenuTurnActionSize.y - 1), subMenuTurnActionSize.x, subMenuTurnActionSize.y);
 	}
 
-	public Rect confirmButtonRect() {
+	public static Rect confirmButtonRect() {
 		Rect r = subMenuButtonsRect();
 		return new Rect((Screen.width - subMenuTurnActionSize.x)/2.0f, actionBarTotalRect().y - subMenuTurnActionSize.y + 2.0f, subMenuTurnActionSize.x, subMenuTurnActionSize.y);
 	}
 
-	float beginButtonWidth = 150.0f;
-	float beginButtonHeight = 50.0f;
-	public Rect beginButtonRect() {
+	static float beginButtonWidth = 150.0f;
+	static float beginButtonHeight = 50.0f;
+	public static Rect beginButtonRect() {
 		return new Rect((Screen.width - mapGenerator.selectionWidth - beginButtonWidth)/2.0f, Screen.height - beginButtonHeight, beginButtonWidth, beginButtonHeight);
 	}
 
-	float temperedHandsWidth = 400.0f;
-	float temperedHandsHeight = 150.0f;
-	public Rect temperedHandsRect() {
+	static float temperedHandsWidth = 400.0f;
+	static float temperedHandsHeight = 150.0f;
+	public static Rect temperedHandsRect() {
 		return new Rect((Screen.width - temperedHandsWidth)/2.0f, (Screen.height - temperedHandsHeight)/2.0f, temperedHandsWidth, temperedHandsHeight);
 	}
 
 
-	public bool hasConfirmButton() {
+	public static bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
@@ -312,9 +309,9 @@ public class GameGUI : MonoBehaviour {
 				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Stealth || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
-	public bool mouseIsOnGUI() {
+	public static bool mouseIsOnGUI() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
-		if (log.mouseIsOnGUI()) return true;
+	//	if (log.mouseIsOnGUI()) return true;
 		if (mapGenerator) {
 			if (escapeMenuOpen || mapGenerator.gameState != GameState.Playing) {
 				for (int n=0;n<(escapeMenuOpen ? 3 : 2); n++) {
@@ -355,7 +352,7 @@ public class GameGUI : MonoBehaviour {
 		return false;
 	}
 
-	public bool mouseIsOnScrollView() {
+	public static bool mouseIsOnScrollView() {
 		Vector2 mousePos = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
 		if (mapGenerator) {
 			if (scrollShowing) {
@@ -367,7 +364,7 @@ public class GameGUI : MonoBehaviour {
 
 
 	//---------------------------------------------------------- Style Stuff
-	GUIStyle getNormalStyle() {
+	static GUIStyle getNormalStyle() {
 		if (playerNormalStyle == null) {
 			playerNormalStyle = new GUIStyle(GUI.skin.label);
 		//	GUIContent cont = new GUIContent("ab
@@ -377,7 +374,7 @@ public class GameGUI : MonoBehaviour {
 		return playerNormalStyle;
 	}
 
-	GUIStyle getBoldStyle() {
+	static GUIStyle getBoldStyle() {
 		if (playerBoldStyle == null) {
 			playerBoldStyle = new GUIStyle(GUI.skin.label);
 			playerBoldStyle.fontStyle = FontStyle.Bold;
@@ -388,10 +385,10 @@ public class GameGUI : MonoBehaviour {
 		return playerBoldStyle;
 	}
 
-	Dictionary<string, GUIStyle> selectedButtonStyles = null;
-	Dictionary<string, GUIStyle> unselectedButtonStyles = null;
-	Dictionary<string, GUIStyle> disabledButtonStyles = null;
-	GUIStyle getSelectedButtonStyle(string name) {
+	static Dictionary<string, GUIStyle> selectedButtonStyles = null;
+	static Dictionary<string, GUIStyle> unselectedButtonStyles = null;
+	static Dictionary<string, GUIStyle> disabledButtonStyles = null;
+	static GUIStyle getSelectedButtonStyle(string name) {
 		if (selectedButtonStyles == null) selectedButtonStyles = new Dictionary<string, GUIStyle>();
 		if (!selectedButtonStyles.ContainsKey(name)) {
 			GUIStyle st = new GUIStyle("Button");
@@ -402,7 +399,7 @@ public class GameGUI : MonoBehaviour {
 		return selectedButtonStyles[name];
 	}
 	
-	GUIStyle getNonSelectedButtonStyle(string name) {
+	static GUIStyle getNonSelectedButtonStyle(string name) {
 		if (unselectedButtonStyles == null) unselectedButtonStyles = new Dictionary<string, GUIStyle>();
 		if (!unselectedButtonStyles.ContainsKey(name)) {
 			GUIStyle st = new GUIStyle("Button");
@@ -414,7 +411,7 @@ public class GameGUI : MonoBehaviour {
 		return unselectedButtonStyles[name];
 	}
 	
-	GUIStyle getDisabledButtonStyle(string name) {
+	static GUIStyle getDisabledButtonStyle(string name) {
 		if (disabledButtonStyles == null) disabledButtonStyles = new Dictionary<string, GUIStyle>();
 		if (!disabledButtonStyles.ContainsKey(name)) {
 			GUIStyle st = new GUIStyle("Button");
@@ -424,7 +421,7 @@ public class GameGUI : MonoBehaviour {
 		return disabledButtonStyles[name];
 	}
 
-	GUIStyle getSelectedButtonStyle() {
+	static GUIStyle getSelectedButtonStyle() {
 		if (selectedButtonStyle == null) {
 			selectedButtonStyle = new GUIStyle(GUI.skin.button);
 		//	Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
@@ -439,7 +436,7 @@ public class GameGUI : MonoBehaviour {
 		return selectedButtonStyle;
 	}
 	
-	GUIStyle getNonSelectedButtonStyle() {
+	static GUIStyle getNonSelectedButtonStyle() {
 		if (nonSelectedButtonStyle == null) {
 			nonSelectedButtonStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
@@ -452,7 +449,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	static GUIStyle selectedButtonTurretStyle;
-	GUIStyle getSelectedButtonTurretStyle() {
+	static GUIStyle getSelectedButtonTurretStyle() {
 		if (selectedButtonTurretStyle == null) {
 			selectedButtonTurretStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
@@ -467,7 +464,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	static GUIStyle nonSelectedButtonTurretStyle;
-	GUIStyle getNonSelectedButtonTurretStyle() {
+	static GUIStyle getNonSelectedButtonTurretStyle() {
 		if (nonSelectedButtonTurretStyle == null) {
 			nonSelectedButtonTurretStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)notTurnMoveRangeSize.x,(int)notTurnMoveRangeSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
@@ -480,7 +477,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	static Texture2D turretBackgroundTexture;
-	Texture2D getTurretBackgroundTexture() {
+	static Texture2D getTurretBackgroundTexture() {
 		if (turretBackgroundTexture == null) {
 			Rect r = turretTypesRect();
 			turretBackgroundTexture = makeTex((int)r.width,(int)r.height,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
@@ -489,7 +486,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	static Texture2D trapBackgroundTexture;
-	Texture2D getTrapBackgroundTexture() {
+	static Texture2D getTrapBackgroundTexture() {
 		if (trapBackgroundTexture==null) {
 			Rect r = trapTypesRect();
 			trapBackgroundTexture = makeTex((int)r.width,(int)r.height,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
@@ -498,7 +495,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	static GUIStyle trapSelectButtonsStyle;
-	GUIStyle getTrapSelectButtonsStyle() {
+	static GUIStyle getTrapSelectButtonsStyle() {
 		if (trapSelectButtonsStyle == null) {
 			trapSelectButtonsStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)trapOkButtons().x,(int)trapOkButtons().y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
@@ -512,8 +509,8 @@ public class GameGUI : MonoBehaviour {
 		return trapSelectButtonsStyle;
 	}
 
-	GUIStyle beginButtonStyle;
-	GUIStyle getBeginButtonStyle() {
+	static GUIStyle beginButtonStyle;
+	static GUIStyle getBeginButtonStyle() {
 		if (beginButtonStyle == null) {
 			beginButtonStyle = new GUIStyle("button");
 			Texture2D tex = makeTex((int)beginButtonWidth, (int)beginButtonHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
@@ -573,7 +570,7 @@ public class GameGUI : MonoBehaviour {
 		return nonSelectedActionStyles[name];
 	}
 
-	GUIStyle getSelectedSubMenuTurnStyle() {
+	static GUIStyle getSelectedSubMenuTurnStyle() {
 		if (selectedSubMenuTurnStyle == null) {
 			selectedSubMenuTurnStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y, new Color(22.5f/255.0f, 30.0f/255.0f, 152.5f/255.0f));
@@ -587,7 +584,7 @@ public class GameGUI : MonoBehaviour {
 		return selectedSubMenuTurnStyle;
 	}
 
-	GUIStyle getConfirmButtonStyle() {
+	static GUIStyle getConfirmButtonStyle() {
 		if (confirmButtonStyle == null) {
 			confirmButtonStyle = new GUIStyle(GUI.skin.button);
 			Texture2D tex = makeTex((int)subMenuTurnActionSize.x,(int)subMenuTurnActionSize.y,new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
@@ -600,7 +597,7 @@ public class GameGUI : MonoBehaviour {
 
 	
 	static Texture2D turnOrderNameBackgroundTexture = null;
-	Texture2D getTurnOrderNameBackgroundTexture() {
+	static Texture2D getTurnOrderNameBackgroundTexture() {
 		if (turnOrderNameBackgroundTexture == null) {
 			turnOrderNameBackgroundTexture = Unit.makeTexBorder((int)turnOrderNameWidth, (int)turnOrderSectionHeight, new Color(0.5f, 0.8f, 0.1f));
 		}
@@ -608,7 +605,7 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	static Texture2D turnOrderSectionBackgroundTexture = null;
-	Texture2D getTurnOrderSectionBackgroundTexture() {
+	static Texture2D getTurnOrderSectionBackgroundTexture() {
 		if (turnOrderSectionBackgroundTexture == null) {
 			turnOrderSectionBackgroundTexture = Unit.makeTexBorder((int)turnOrderSectionHeight, (int)turnOrderSectionHeight, new Color(0.5f, 0.8f, 0.1f));
 		}
@@ -616,7 +613,7 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	static Texture2D turnOrderNameBackgroundTextureEnemy = null;
-	Texture2D getTurnOrderNameBackgroundTextureEnemy() {
+	static Texture2D getTurnOrderNameBackgroundTextureEnemy() {
 		if (turnOrderNameBackgroundTextureEnemy == null) {
 			turnOrderNameBackgroundTextureEnemy = Unit.makeTexBorder((int)turnOrderNameWidth, (int)turnOrderSectionHeight, new Color(0.8f, 0.2f, 0.1f));
 		}
@@ -624,7 +621,7 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	static Texture2D turnOrderSectionBackgroundTextureEnemy = null;
-	Texture2D getTurnOrderSectionBackgroundTextureEnemy() {
+	static Texture2D getTurnOrderSectionBackgroundTextureEnemy() {
 		if (turnOrderSectionBackgroundTextureEnemy == null) {
 			turnOrderSectionBackgroundTextureEnemy = Unit.makeTexBorder((int)turnOrderSectionHeight, (int)turnOrderSectionHeight, new Color(0.8f, 0.2f, 0.1f));
 		}
@@ -634,7 +631,7 @@ public class GameGUI : MonoBehaviour {
 	
 	static GUIStyle turnOrderSectionStyle;
 	static GUIStyle turnOrderSectionStyleEnemy;
-	GUIStyle getTurnOrderSectionStyle(Unit u) {
+	static GUIStyle getTurnOrderSectionStyle(Unit u) {
 		if (u.team == 0) {
 			if (turnOrderSectionStyle == null) {
 				turnOrderSectionStyle = new GUIStyle("button");
@@ -655,7 +652,7 @@ public class GameGUI : MonoBehaviour {
 	
 	static GUIStyle turnOrderNameStyle;
 	static GUIStyle turnOrderNameStyleEnemy;
-	GUIStyle getTurnOrderNameStyle(Unit u) {
+	static GUIStyle getTurnOrderNameStyle(Unit u) {
 		if (u.team == 0) {
 			if (turnOrderNameStyle == null) {
 				turnOrderNameStyle = new GUIStyle("button");
@@ -693,7 +690,7 @@ public class GameGUI : MonoBehaviour {
 
 
 	static GUIStyle playerInfoStyle;
-	GUIStyle getPlayerInfoStyle() {
+	static GUIStyle getPlayerInfoStyle() {
 		if (playerInfoStyle == null) {
 			playerInfoStyle = new GUIStyle("Label");
 			playerInfoStyle.normal.textColor = Color.white;
@@ -703,7 +700,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	static GUIStyle titleTextStyle = null;
-	public GUIStyle getTitleTextStyle() {
+	public static GUIStyle getTitleTextStyle() {
 		if (titleTextStyle == null) {
 			titleTextStyle = new GUIStyle("Label");
 			titleTextStyle.normal.textColor = Color.white;
@@ -711,8 +708,8 @@ public class GameGUI : MonoBehaviour {
 		}
 		return titleTextStyle;
 	}
-	GUIStyle namesStyle = null;
-	GUIStyle getNamesStyle() {
+	static GUIStyle namesStyle = null;
+	static GUIStyle getNamesStyle() {
 		if (namesStyle==null) {
 			namesStyle = new GUIStyle("Label");
 			namesStyle.fontSize = 12;
@@ -722,10 +719,10 @@ public class GameGUI : MonoBehaviour {
 		return namesStyle;
 	}
 
-	GUIStyle wonStyle = null;
-	GUIStyle lostStyle = null;
-	GUIStyle backStyle = null;
-	GUIStyle getWonStyle() {
+	static GUIStyle wonStyle = null;
+	static GUIStyle lostStyle = null;
+	static GUIStyle backStyle = null;
+	static GUIStyle getWonStyle() {
 		if (wonStyle == null) {
 			wonStyle = new GUIStyle("Label");
 			wonStyle.fontSize = 200;
@@ -734,7 +731,7 @@ public class GameGUI : MonoBehaviour {
 		}
 		return wonStyle;
 	}
-	GUIStyle getLostStyle() {
+	static GUIStyle getLostStyle() {
 		if (lostStyle == null) {
 			lostStyle = new GUIStyle("Label");
 			lostStyle.fontSize = 200;
@@ -743,7 +740,7 @@ public class GameGUI : MonoBehaviour {
 		}
 		return lostStyle;
 	}
-	GUIStyle getBackStyle() {
+	static GUIStyle getBackStyle() {
 		if (backStyle == null) {
 			backStyle = new GUIStyle("Label");
 			backStyle.fontSize = 200;
@@ -755,7 +752,7 @@ public class GameGUI : MonoBehaviour {
 
 
 	//------------------------------------------------------------ Button Behavior stuff
-	public void clickWait() {
+	public static void clickWait() {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (selectedMovement) {
@@ -770,7 +767,7 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.nextPlayer();
 	}
 
-	public void clickStandard() {
+	public static void clickStandard() {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (p==null || p.usedStandard || p.isProne()) return;
@@ -791,7 +788,7 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.resetRanges();
 	}
 
-	public void clickMovement() {
+	public static void clickMovement() {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (p==null || p.usedMovement) return;
@@ -812,7 +809,7 @@ public class GameGUI : MonoBehaviour {
 
 
 
-	public void clickMinor() {
+	public static void clickMinor() {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (p==null || p.minorsLeft==0) return;
@@ -834,19 +831,19 @@ public class GameGUI : MonoBehaviour {
 
 	}
 
-	public bool standardEnabled(StandardType type) {
+	public static bool standardEnabled(StandardType type) {
 		return ((type != StandardType.Attack && type != StandardType.OverClock) || mapGenerator.getCurrentUnit().hasWeapon());
 	}
 
-	public bool movementEnabled(MovementType type) {
+	public static bool movementEnabled(MovementType type) {
 		return type != MovementType.BackStep || mapGenerator.getCurrentUnit().moveDistLeft == mapGenerator.getCurrentUnit().maxMoveDist;
 	}
 
-	public bool minorEnabled(MinorType type) {
+	public static bool minorEnabled(MinorType type) {
 		return (type != MinorType.TemperedHands || mapGenerator.getCurrentUnit().temperedHandsUsesLeft > 0) && (type != MinorType.Escape || !mapGenerator.getCurrentUnit().escapeUsed) && (type != MinorType.Invoke || mapGenerator.getCurrentUnit().invokeUsesLeft > 0);
 	}
 
-	public void selectTypeAt(int index) {
+	public static void selectTypeAt(int index) {
 		if (selectedStandard) {
 			StandardType[] standards = mapGenerator.getCurrentUnit().getStandardTypes();
 			if (index >= standards.Length || !standardEnabled(standards[index])) return;
@@ -864,7 +861,7 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	public void selectNextOfType() {
+	public static void selectNextOfType() {
 		if (mapGenerator.getCurrentUnit() != mapGenerator.selectedUnit || mapGenerator.getCurrentUnit()==null) return;
 		if (selectedMovement && !mapGenerator.getCurrentUnit().usedStandard) clickStandard();
 		else if ((selectedStandard || selectedMovement) && mapGenerator.getCurrentUnit().minorsLeft>0) clickMinor();
@@ -893,7 +890,7 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	public void selectPreviousOfType() {
+	public static void selectPreviousOfType() {
 		if (mapGenerator.getCurrentUnit() != mapGenerator.selectedUnit || mapGenerator.getCurrentUnit()==null) return;
 		if (selectedMinor && !mapGenerator.getCurrentUnit().usedStandard) clickStandard();
 		else if ((selectedStandard || selectedMinor) && !mapGenerator.getCurrentUnit().usedMovement) clickMovement();
@@ -925,7 +922,7 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	public void selectMinor(MinorType minorType) {
+	public static void selectMinor(MinorType minorType) {
 		if (!selectedMinor) {
 			clickMinor();
 			selectedMinorType = minorType;
@@ -935,7 +932,7 @@ public class GameGUI : MonoBehaviour {
 		selectMinorType(selectedMinorType);
 	}
 
-	public void selectMovement(MovementType movementType) {
+	public static void selectMovement(MovementType movementType) {
 		if (!selectedMovement) {
 			clickMovement();
 			selectedMovementType = movementType;
@@ -945,7 +942,7 @@ public class GameGUI : MonoBehaviour {
 		selectMovementType(selectedMovementType);
 	}
 
-	public void selectMove() {
+	public static void selectMove() {
 		selectMovement(MovementType.Move);
 		/*
 		if (selectedStandard) {
@@ -965,7 +962,7 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.resetRanges();*/
 	}
 
-	public void selectStandard(StandardType standardType) {
+	public static void selectStandard(StandardType standardType) {
 		if (!selectedStandard) {
 			clickStandard();
 			selectedStandardType = standardType;
@@ -975,7 +972,7 @@ public class GameGUI : MonoBehaviour {
 		selectStandardType(selectedStandardType);
 	}
 	//	
-	public void selectAttack() {
+	public static void selectAttack() {
 		selectStandard(StandardType.Attack);
 		/*
 		if (selectedMovement) {
@@ -994,7 +991,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	
-	void selectUnit(Unit player) {
+	static void selectUnit(Unit player) {
 		if (player != mapGenerator.selectedUnit) {
 			mapGenerator.deselectAllUnits();
 			mapGenerator.selectUnit(player, false);
@@ -1011,7 +1008,7 @@ public class GameGUI : MonoBehaviour {
 	//------------------------------------------------------------ onGUI stuff
 	static float t = 0;
 	static int dir = 1;
-	public void OnGUI() {
+	public static void doGUI() {
 		bool interact = !escapeMenuOpen && !(mapGenerator != null && mapGenerator.getCurrentUnit()!= null && mapGenerator.getCurrentUnit().doingTemperedHands);
 		float speed = 1.0f/3.0f;
 		t += Time.deltaTime * speed * dir;
@@ -1094,12 +1091,13 @@ public class GameGUI : MonoBehaviour {
 
 		// Game GUI
 		else {
+			return;
 			float consoleRight = 160.0f;
 			if (!clipboardUp) consoleRight += 45.0f;
 			float consoleLeft = 200.0f;
 			if (!mapGenerator.selectedUnit) consoleLeft = 0.0f;
 			else if (mapGenerator.selectedUnit != mapGenerator.getCurrentUnit() || mapGenerator.selectedUnits.Count != 0) consoleLeft = 150.0f;
-			log.doGUI(consoleLeft, consoleRight);
+		//	log.doGUI(consoleLeft, consoleRight);
 			Rect clipBoardRect = clipBoardBodyRect();
 			if (GUI.Button(getTabButtonRect(Tab.T), "T", getTabButtonStyle()) && interact) {
 				clipboardTab = Tab.T;
@@ -1667,7 +1665,7 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	public Rect getMenuRect(int num, bool escape=false) {
+	public static Rect getMenuRect(int num, bool escape=false) {
 		float width = 150.0f;
 		float height = 50.0f;
 		float x = Screen.width/2.0f - width/2.0f;
@@ -1675,8 +1673,8 @@ public class GameGUI : MonoBehaviour {
 		return new Rect(x, y + num * (height + 10.0f), width, height);
 	}
 
-	GUIStyle centeredTextStyle = null;
-	public GUIStyle getCenteredTextStyle() {
+	static GUIStyle centeredTextStyle = null;
+	public static GUIStyle getCenteredTextStyle() {
 		if (centeredTextStyle == null) {
 			centeredTextStyle = new GUIStyle("Label");
 			centeredTextStyle.alignment = TextAnchor.MiddleCenter;
@@ -1684,8 +1682,8 @@ public class GameGUI : MonoBehaviour {
 		return centeredTextStyle;
 	}
 
-	GUIStyle turretPartStyle = null;
-	public GUIStyle getTurretPartStyle() {
+	static GUIStyle turretPartStyle = null;
+	public static GUIStyle getTurretPartStyle() {
 		if (turretPartStyle == null) {
 			turretPartStyle = new GUIStyle("Label");
 			turretPartStyle.active.textColor = turretPartStyle.hover.textColor = turretPartStyle.normal.textColor = Color.white;
@@ -1695,13 +1693,13 @@ public class GameGUI : MonoBehaviour {
 		return turretPartStyle;
 	}
 
-	public Trap selectedTrap = null;
+	public static Trap selectedTrap = null;
 
-	public void selectCurrentTrap() {
+	public static void selectCurrentTrap() {
 		selectedTrap = getCurrentTrap();
 	}
 
-	public void showCurrentTrap() {
+	public static void showCurrentTrap() {
 		List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
 		float height = traps.Count * turretSelectSize.y - traps.Count + 1;
 		Rect r = trapTypeRect(selectedTrapIndex);
@@ -1710,27 +1708,27 @@ public class GameGUI : MonoBehaviour {
 		trapsScrollPosition.y = Mathf.Max(r.y - y + r.height - tR.height, Mathf.Min(trapsScrollPosition.y, r.y - y));
 	}
 
-	public Trap getCurrentTrap() {
+	public static Trap getCurrentTrap() {
 		return getTrap(selectedTrapIndex);
 	}
 
-	public Trap getTrap(int n) {
+	public static Trap getTrap(int n) {
 		List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
 		if (n >= traps.Count || n < 0) return null;
 		return traps[n];
 	}
 
-	public Turret getCurrentTurret() {
+	public static Turret getCurrentTurret() {
 		return getTurret(selectedTurretIndex);
 	}
 
-	public Turret getTurret(int n) {
+	public static Turret getTurret(int n) {
 		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
 		if (n >= turrets.Count || n<0) return null;
 		return turrets[n];
 	}
 
-	public void showCurrentTurret() {
+	public static void showCurrentTurret() {
 		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
 		float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
 		Rect r = turretTypeRect(selectedTurretIndex);
@@ -1745,7 +1743,7 @@ public class GameGUI : MonoBehaviour {
 //		if (turretsScrollPosition.y >
 	}
 
-	void deselectMinor() {
+	static void deselectMinor() {
 		if (looting) {
 			looting = false;
 			UnitGUI.inventoryOpen = inventoryWasOpenLoot;
@@ -1758,14 +1756,14 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	void deselectMovement() {
+	static void deselectMovement() {
 		//		selectedMovementType = MovementType.None;
 		selectedMovement = false;
 		mapGenerator.resetRanges();
 		mapGenerator.removePlayerPath();
 	}
 
-	void deselectStandard() {
+	static void deselectStandard() {
 		selectedStandard = false;
 //		selectedStandardType = StandardType.None;
 		if (mapGenerator.selectedUnit.attackEnemy) {
@@ -1813,7 +1811,7 @@ public class GameGUI : MonoBehaviour {
 	// The unity event system doesn't let you use methods from the editor unless they return void
 	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
 	// here's another version that accepts a string instead of a MinorType enum.
-	public void selectMinorType(string t)
+	public static void selectMinorType(string t)
 	{
 		switch(t)
 		{
@@ -1832,9 +1830,9 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	public int selectedTrapIndex = 0;
-	public int selectedTurretIndex = 0;
-	public void selectStandardType(StandardType t) {
+	public static int selectedTrapIndex = 0;
+	public static int selectedTurretIndex = 0;
+	public static void selectStandardType(StandardType t) {
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
@@ -1870,7 +1868,7 @@ public class GameGUI : MonoBehaviour {
 	// The unity event system doesn't let you use methods from the editor unless they return void
 	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
 	// here's another version that accepts a string instead of a StandardType enum.
-	public void selectStandardType(string t)
+	public static void selectStandardType(string t)
 	{
 		switch(t)
 		{
@@ -1909,12 +1907,12 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
-	void OnStart() {
+	static void OnStart() {
 		selectedStandardType = StandardType.None;
 		selectedMovementType = MovementType.None;
 	}
 	
-	public void selectMovementType(MovementType t) {
+	public static void selectMovementType(MovementType t) {
 		mapGenerator.resetCurrentKeysTile();
 		switch (t) {
 		case MovementType.Cancel:
@@ -1947,7 +1945,7 @@ public class GameGUI : MonoBehaviour {
 	// The unity event system doesn't let you use methods from the editor unless they return void
 	// and use no parameters other than int, float, string, or object reference. To expose selectMovementType,
 	// here's another version that accepts a string instead of a MovementType enum.
-	public void selectMovementType(string t)
+	public static void selectMovementType(string t)
 	{
 		switch(t)
 		{
