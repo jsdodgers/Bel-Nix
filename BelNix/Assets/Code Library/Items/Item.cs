@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public enum ItemType {Weapon = 0, Armor, Useable, Ammunition, Mechanical, Misc}
 public enum ItemStackType {Applicator = 0, Gear, Frame, EnergySource, Trigger, Turret, None}
-public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical};
+public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical, TriggerM1};
 
 
 public class EditorItem : MonoBehaviour {
@@ -15,7 +15,7 @@ public class EditorItem : MonoBehaviour {
 	public Texture2D inventoryTexture;
 	public GameObject spritePrefab;
 	public int layerAdd;
-	public Item getItem() {
+	public virtual Item getItem() {
 		return new Item(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd);
 	}
 }
@@ -263,6 +263,7 @@ public class Weapon : Item {
 		this.durabilityChance = durabilityChance;
 		this.isRanged = isRanged;
 		this.shape = shape;
+		Debug.Log(shape.Length + "   <- shape.length " + shape);
 	}
 
 	

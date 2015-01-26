@@ -3,7 +3,6 @@ using System.Collections;
 
 public enum DamageType {Crushing, Piercing, Slashing, None}
 
-[RequireComponent (typeof (Character))]
 public class ItemWeapon : EditorItem {
 
 	public int hit;
@@ -17,6 +16,11 @@ public class ItemWeapon : EditorItem {
 	public bool isRanged = false;
 	public Vector2[] shape;
 //	Weapon weapon;
+
+	public override Item getItem() {
+		return getWeapon();
+	}
+
 	public virtual Weapon getWeapon() {
 //		if (weapon == null)
 			return new Weapon(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);

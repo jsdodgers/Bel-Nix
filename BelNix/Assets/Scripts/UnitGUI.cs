@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
-using CombatSystem;
 
 public class UnitGUI {
 	static Texture2D playerBannerTexture;
@@ -622,7 +620,7 @@ public class UnitGUI {
 		x += typesSize.x + 20.0f;
 		
 		string statsString = "S" + sizeString + "TURDY" + sizeEnd + "\n" + characterSheet.abilityScores.getSturdy() + " (<size=13>MOD:" + characterSheet.combatScores.getInitiative() + "</size>)" +
-			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.abilityScores.getPerception() + " (<size=13>MOD:" + characterSheet.combatScores.getCritical() + "</size>)" +
+			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.abilityScores.getPerception(0) + " (<size=13>MOD:" + characterSheet.combatScores.getCritical(false) + "</size>)" +
 				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + characterSheet.abilityScores.getTechnique() + " (<size=13>MOD:" + characterSheet.combatScores.getHandling() + "</size>)" +
 				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.combatScores.getDominion() + "</size>)";
 		GUIContent statsContent = new GUIContent(statsString);

@@ -1,24 +1,28 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
-using CombatSystem;
 
 public enum MovementType {Move, BackStep, Recover, Cancel, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
-public enum MinorType {Loot, Cancel, None}
+public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Cancel, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
 public class Unit : MonoBehaviour {
+	public List<Unit> markedUnits;
 	public bool playerControlled = true;
 	public AStarEnemyMap aiMap = null;
 	public Character characterSheet;
 	public CharacterTemplate characterTemplate;
 	int initiative;
+	int stealth;
 //	public string characterId;
 	public int team = 0;
 	public bool overClockedAttack = false;
+
+	public int temperedHandsUsesLeft = 2;
+	public bool escapeUsed = false;
+	public int invokeUsesLeft = 2;
 
 	public Vector3 position;
 	public int maxHitPoints = 10;
@@ -29,6 +33,9 @@ public class Unit : MonoBehaviour {
 
 	public Unit attackedByCharacter = null;
 
+	public bool isBackStepping = false;
+	public bool doingTemperedHands = false;
+	public int temperedHandsMod = 0;
 	public Transform trail;
 	public MapGenerator mapGenerator;
 	public int moveDistLeft = 5;
@@ -57,9 +64,15 @@ public class Unit : MonoBehaviour {
 //	public bool usedMinor1;
 //	public bool usedMinor2;
 
+	public bool inPrimal = false;
+	public Unit primalInstigator = null;
+	public int primalTurnsLeft = 0;
+
+	public bool isMarked;
 	public bool isCurrent;
 	public bool isSelected;
 	public bool isTarget;
+	SpriteRenderer markSprite;
 	SpriteRenderer targetSprite;
 	SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
@@ -70,6 +83,64 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+	public int sneakAttackBonus(Unit u) {
+		if (!hasCombatAdvantageOver(u) || !characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Sneak_Attack)) return 0;
+		int perception = characterSheet.abilityScores.getPerception((hasMarkOn(u) ? 2 : 0));
+		if (distanceFromUnit(u) <= 1.5f) return perception;
+		return perception/2;
+	}
+
+	public bool hasCombatAdvantageOver(Unit u) {
+		return isFlanking(u);
+	}
+
+	public bool isFlanking(Unit u) {
+		return Combat.flanking(this, u);
+	}
+
+	public void beginTurn() {
+		foreach (Unit u in markedUnits) {
+			u.setMarked(true);
+		}
+	}
+
+	public void useTemperedHands(int mod) {
+		temperedHandsUsesLeft--;
+		minorsLeft--;
+		temperedHandsMod = mod;
+	}
+
+	public void endTurn() {
+		Unit[] copiedMarkedUnits = new Unit[markedUnits.Count];
+		markedUnits.CopyTo(copiedMarkedUnits);
+		foreach (Unit u in copiedMarkedUnits) {
+			u.setMarked(false);
+			if (!hasLineOfSightToUnit(u)) markedUnits.Remove(u);
+		}
+		doTurrets();
+		temperedHandsMod = 0;
+	}
+
+	public float getViewRadius() {
+		return mapGenerator.viewRadius;
+	}
+
+	public float getViewRadiusToUnit(Unit u) {
+		return getViewRadius();
+	}
+
+	public bool hasLineOfSightToUnit(Unit u) {
+		return mapGenerator.hasLineOfSight(this, u);
+	}
+
+	public List<Unit> lineOfSightUnits() {
+		List<Unit> units = new List<Unit>();
+		foreach (GameObject go in mapGenerator.enemies) {
+			Unit u = go.GetComponent<Unit>();
+			if (hasLineOfSightToUnit(u)) units.Add(u);
+		}
+		return units;
+	}
 
 	public void addHair() {
 		GameObject go = Instantiate(characterSheet.personalInfo.getCharacterHairStyle().getHairPrefab()) as GameObject;
@@ -126,11 +197,27 @@ public class Unit : MonoBehaviour {
 
 	public static string getNameOfMinorType(MinorType minor) {
 		switch (minor) {
+		case MinorType.TemperedHands:
+			return "Tempered Hands";
 		default:
 			return minor.ToString();
 		}
 	}
 
+	public void selectMinorType(MinorType t) {
+		switch(t) {
+		case MinorType.Escape:
+			currentMoveDist = 2;
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
+			break;
+		default:
+			currentMoveDist = 0;
+			mapGenerator.removePlayerPath();
+			mapGenerator.resetRanges();
+			break;
+		}
+	}
 
 	public void selectMovementType(MovementType t) {
 		switch(t) {
@@ -161,6 +248,21 @@ public class Unit : MonoBehaviour {
 			return StandardType.Intimidate;
 		default:
 			return StandardType.None;
+		}
+	}
+
+	public MinorType getMinorType(ClassFeature feature) {
+		switch (feature) {
+		case ClassFeature.Mark:
+			return MinorType.Mark;
+		case ClassFeature.Tempered_Hands:
+			return MinorType.TemperedHands;
+		case ClassFeature.Escape:
+			return MinorType.Escape;
+		case ClassFeature.Invoke:
+			return MinorType.Invoke;
+		default:
+			return MinorType.None;
 		}
 	}
 
@@ -196,6 +298,16 @@ public class Unit : MonoBehaviour {
 		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
 	public MinorType[] getMinorTypes() {
+		List<MinorType> minorTypes = new List<MinorType>();
+		minorTypes.Add(MinorType.Loot);
+		minorTypes.Add(MinorType.Stealth);
+		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
+		foreach (ClassFeature feature in features) {
+			MinorType mt = getMinorType(feature);
+			if (mt != MinorType.None)
+				minorTypes.Add(mt);
+		}
+		return minorTypes.ToArray();
 		return new MinorType[] {MinorType.Loot};
 	}
 
@@ -238,6 +350,12 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		return false;
+	}
+
+	public void setMarked(bool marked) {
+		isMarked = marked;
+		getMarkSprite().enabled = marked;
+		setMarkPosition();
 	}
 
 	public void setSelected() {
@@ -308,6 +426,18 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public void setMarkPosition() {
+		if (isMarked || true) {
+			float factor = 1.0f/10.0f;
+			float speed = 3.0f;
+			float addedScale = Mathf.Sin(Time.time * speed) * factor;
+			float posY = transform.position.y + 1.0f + addedScale;
+		//	getMarkSprite().transform.localScale = new Vector3(scale, scale, 1.0f);
+			getMark().transform.eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+			getMark().transform.position = new Vector3(transform.position.x, posY, transform.position.z);
+		}
+	}
+
 	public void setTargetObjectScale() {
 		if (isSelected || isTarget) {
 			float factor = 1.0f/10.0f;
@@ -348,6 +478,10 @@ public class Unit : MonoBehaviour {
 
 	public void rollInitiative() {
 		initiative = Random.Range(1,21) + characterSheet.combatScores.getInitiative();
+	}
+
+	public void rollStealth() {
+		stealth = Random.Range(1, 11) + characterSheet.skillScores.getScore(Skill.Stealth);
 	}
 
 	public int getInitiative() {
@@ -574,11 +708,23 @@ public class Unit : MonoBehaviour {
 		return currentPath;
 	}
 
-	public Unit closestEnemy() {
+	public Unit closestEnemy(bool attackUnconscious = false) {
+		return closestUnit(true, false, attackUnconscious);
+	}
+
+	public Unit closestFriendly(bool attackUnconscious = false) {
+		return closestUnit(false, true, attackUnconscious);
+	}
+
+	public Unit closestUnit(bool attackUnconscious = false) {
+		return closestUnit(true, true, attackUnconscious);
+	}
+
+	public Unit closestUnit(bool enemies, bool friendlies, bool attackUnconscious = false) {
 		Unit closest = null;
 		float dist = float.MaxValue;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team && !u.deadOrDyingOrUnconscious()) {
+			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if (d < dist) {
 					dist = d;
@@ -590,7 +736,7 @@ public class Unit : MonoBehaviour {
 		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
 			Transform tr = mapGenerator.turrets.transform.GetChild(n);
 			TurretUnit tur = tr.GetComponent<TurretUnit>();
-			if (tur != null && tur.team != team) {
+			if (tur != null && ((enemies && tur.team != team) || (friendlies && tur.team == team))) {
 				float d = distanceFromUnit(tur);
 				if (d < dist) {
 					dist = d;
@@ -600,11 +746,24 @@ public class Unit : MonoBehaviour {
 		}
 		return closest;
 	}
+	
 
-	public float closestEnemyDist() {
+	public float closestEnemyDist(bool attackUnconscious = false) {
+		return closestUnitDist(true, false, attackUnconscious);
+	}
+	
+	public float closestFriendlyDist(bool attackUnconscious = false) {
+		return closestUnitDist(false, true, attackUnconscious);
+	}
+	
+	public float closestUnitDist(bool attackUnconscious = false) {
+		return closestUnitDist(true, true, attackUnconscious);
+	}
+
+	public float closestUnitDist(bool enemies, bool friendlies, bool attackUnconscious = false) {
 		float dist = 0;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team && !u.deadOrDyingOrUnconscious()) {
+			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if (d < dist || dist == 0) {
 					dist = d;
@@ -614,7 +773,7 @@ public class Unit : MonoBehaviour {
 		for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
 			Transform tr = mapGenerator.turrets.transform.GetChild(n);
 			TurretUnit tur = tr.GetComponent<TurretUnit>();
-			if (tur != null && tur.team != team) {
+			if (tur != null && ((enemies && tur.team != team) || (friendlies && tur.team == team))) {
 				float d = distanceFromUnit(tur);
 				if (d < dist || dist == 0) {
 					dist = d;
@@ -628,8 +787,178 @@ public class Unit : MonoBehaviour {
 		return Mathf.Abs(u.position.x - position.x) + Mathf.Abs(u.position.y - position.y);
 	}
 
+	public static float actionTime;
+	public const float actionDelay = .25f;
+
+	public PrimalState getPrimalState() {
+		return characterSheet.characterSheet.personalInformation.getCharacterRace().getPrimalState();
+	}
+
+	public void performPrimal() {
+		if (isPerformingAnAction() || mapGenerator.movingCamera) {
+			actionTime = Time.time;
+			return;
+		}
+		PrimalState ps = getPrimalState();
+		if (ps == PrimalState.Threatened) {
+			if (Time.time - actionTime < actionDelay) return;
+		//	float closestDist = closestEnemyDist();
+			Unit enemy = primalInstigator;
+			float enemyDist = distanceFromUnit(enemy);
+			if (enemy==null || enemy.isDead()) {
+				enemy = closestUnit(true);
+				enemyDist = closestUnitDist(true);
+				Debug.Log(enemy.getName() + "  " + enemyDist);
+			}
+			if (!usedMovement) {
+				if (enemyDist > 1) {
+					currentMoveDist = 5;
+					List<Unit> units = new List<Unit>();
+					units.Add(enemy);
+					aiMap.setGoalsAndHeuristics(units);
+					AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
+					AStarNode node = ret.finalNode;
+					node = AStarAlgorithm.reversePath(node);
+					//				currentPath = new ArrayList();
+					resetPath();
+					int d = 0;
+					while (node != null) {
+						if (d != 0) {
+							AStarEnemyParameters param = (AStarEnemyParameters)node.parameters;
+							Vector2 v = new Vector2(param.x, param.y);
+							currentPath.Add(v);
+						}
+						node = node.prev;
+						d++;
+						if (d>5) break;
+					}
+					for (int n=currentPath.Count-1;n>=1;n--) {
+						Vector2 v = (Vector2)currentPath[n];
+						if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
+							currentPath.RemoveAt(n);
+							setPathCount();
+						}
+						else {
+							break;
+						}
+					}
+					mapGenerator.resetPlayerPath();
+					mapGenerator.setPlayerPath(currentPath);
+					startMoving(false);
+					usedMovement = true;
+					return;
+				}
+			}
+			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+			//	usedStandard = true;
+			if (!usedStandard) {
+				if (enemyDist <= 1.0f) {
+					usedStandard = true;
+					attackEnemy = enemy;
+					setRotationToAttackEnemy();
+					if (enemy != null) enemy.setTarget();
+					startAttacking();
+					return;
+				}
+			}
+			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+			if ((usedStandard || enemyDist > 1.0f) && (usedMovement || enemyDist <= 1.0f)) {
+				primalTurnsLeft--;
+				if (primalTurnsLeft==0) {
+					inPrimal = false;
+					primalInstigator = null;
+					characterSheet.characterSheet.combatScores.addComposure(1);
+				}
+				mapGenerator.nextPlayer();
+			}
+		}
+		else if (ps == PrimalState.Passive) {
+			primalTurnsLeft--;
+			if (primalTurnsLeft==0) {
+				inPrimal = false;
+				primalInstigator = null;
+				characterSheet.characterSheet.combatScores.addComposure(1);
+			}
+			mapGenerator.nextPlayer();
+		}
+		else if (ps == PrimalState.Reckless) {
+			if (primalInstigator == null) {
+				primalTurnsLeft--;
+				if (primalTurnsLeft==0) {
+					inPrimal = false;
+					primalInstigator = null;
+					characterSheet.characterSheet.combatScores.addComposure(1);
+				}
+				mapGenerator.nextPlayer();
+			}
+			if (!usedMovement) {
+				if (isProne()) {
+					recover();
+					return;
+				}
+				int moveLeft = 5;
+				bool first = true;
+				List<Direction> availableDirections = new List<Direction>();
+				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
+				Direction lastDirection = Direction.None;
+				while (moveLeft > 0 && (availableDirections.Count > 0 || first)) {
+					if (first) first = false;
+					else {
+						Direction nextDirection = availableDirections[Random.Range(0,availableDirections.Count)];
+						while (moveLeft > 0 && t.canPass(nextDirection, this, lastDirection)) {
+							t = t.getTile(nextDirection);
+							moveLeft--;
+							currentPath.Add(new Vector2(t.x,t.y));
+							lastDirection = nextDirection;
+						}
+					}
+					if (t.x <= primalInstigator.position.x && t.canPass(Direction.Left, this, lastDirection)) {
+						availableDirections.Add(Direction.Left);
+					}
+					if (t.x >= primalInstigator.position.x && t.canPass(Direction.Right, this, lastDirection)) {
+						availableDirections.Add(Direction.Right);
+					}
+					if (t.y <= -primalInstigator.position.y && t.canPass(Direction.Up, this, lastDirection)) {
+						availableDirections.Add(Direction.Up);
+					}
+					if (t.y >= -primalInstigator.position.y && t.canPass(Direction.Down, this, lastDirection)) {
+						availableDirections.Add(Direction.Down);
+					}
+				}
+				for (int n=currentPath.Count-1;n>=1;n--) {
+					Vector2 v = (Vector2)currentPath[n];
+					if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
+						currentPath.RemoveAt(n);
+						setPathCount();
+					}
+					else {
+						break;
+					}
+				}
+				mapGenerator.resetPlayerPath();
+				mapGenerator.setPlayerPath(currentPath);
+				startMoving(false);
+				usedMovement = true;
+			}
+			else {
+				primalTurnsLeft--;
+				if (primalTurnsLeft==0) {
+					inPrimal = false;
+					primalInstigator = null;
+					characterSheet.characterSheet.combatScores.addComposure(1);
+				}
+				mapGenerator.nextPlayer();
+			}
+		}
+	}
+	
+	
 	public void performAI() {
-		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
+		if (isPerformingAnAction() || mapGenerator.movingCamera) {
+			actionTime = Time.time;
+			return;
+		}
+		if (Time.time - actionTime < actionDelay) return;
 		float closestDist = closestEnemyDist();
 		Unit enemy = closestEnemy();
 		if (!usedMovement) {
@@ -1214,7 +1543,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious();
+		return !deadOrDyingOrUnconscious() && !inPrimal;
 	}
 
 	public int attackOfOpp(Vector2 one) {
@@ -1273,6 +1602,30 @@ public class Unit : MonoBehaviour {
 		return true;
 	}
 
+	public void markUnit() {
+		if (attackEnemy != null) {
+			markedUnits.Add(attackEnemy);
+			attackEnemy.deselect();
+			attackEnemy.setMarked(true);
+			attackEnemy = null;
+			minorsLeft--;
+		}
+	}
+
+	public bool hasMarkOn(Unit u) {
+		if (!characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Mark)) return false;
+		return markedUnits.Contains(u);
+	}
+
+	public bool invoking = false;
+	public void startInvoking() {
+		if (attackEnemy != null && !invoking) {
+			invoking = true;
+			if (mapGenerator.getCurrentUnit()==this)
+				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+		}
+	}
+
 	public void startAttacking() {
 		startAttacking(false);
 	}
@@ -1307,7 +1660,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void startMoving(bool backStepping) {
-	
+		isBackStepping = backStepping;
 		if (currentPath.Count <= 1) return;
 		shouldDoAthleticsCheck = true;
 		shouldCancelMovement = false;
@@ -1339,7 +1692,7 @@ public class Unit : MonoBehaviour {
 		float directionY = -sign(one.y - zero.y);
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
-		if (dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
+		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
 			attackOfOpp(one);
 			doAttOpp = false;
 		}
@@ -1350,6 +1703,8 @@ public class Unit : MonoBehaviour {
 			unDrawGrid();
 			setNewTilePosition(new Vector3(one.x,-one.y,0.0f));
 			position = new Vector3(one.x, -one.y, 0.0f);
+			Tile newTile = mapGenerator.tiles[(int)one.x,(int)one.y];
+			if (newTile.standable) vaultAnimation(false);
 			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, 0.0f);
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
@@ -1428,6 +1783,20 @@ public class Unit : MonoBehaviour {
 		return target;
 	}
 
+	Transform markTrans = null;
+	public Transform getMark() {
+		if (markTrans == null) {
+			markTrans = transform.FindChild("Mark");
+		}
+		return markTrans;
+	}
+	public SpriteRenderer getMarkSprite() {
+		if (markSprite == null) {
+			markSprite = getMark().GetComponent<SpriteRenderer>();
+		}
+		return markSprite;
+	}
+
 	public SpriteRenderer getTargetSprite() {
 		if (targetSprite == null) {
 			targetSprite = getTarget().GetComponent<SpriteRenderer>();
@@ -1464,9 +1833,9 @@ public class Unit : MonoBehaviour {
 
 	public void setMapGenerator(MapGenerator mg) {
 		mapGenerator = mg;
-		if (!playerControlled) {
+	//	if (!playerControlled) {
 			aiMap = new AStarEnemyMap(this, mapGenerator);
-		}
+	//	}
 	}
 
 	public void removeTurret(TurretUnit tu) {
@@ -1479,7 +1848,11 @@ public class Unit : MonoBehaviour {
 
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
-
+		if (getMarkSprite()) {
+			getMarkSprite().sortingOrder = MapGenerator.markOrder;
+		}
+		setMarked(false);
+		markedUnits = new List<Unit>();
 		turrets = new List<TurretUnit>();
 		afflictions = new List<Affliction>();
 		loadCharacterSheet();
@@ -1512,9 +1885,11 @@ public class Unit : MonoBehaviour {
 		doThrow();
 		doGetThrown();
 		doIntimidate();
+		doInvoke();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
+		setMarkPosition();
 		setTrailRendererPosition();
 		setCircleScale();
 	}
@@ -1551,9 +1926,10 @@ public class Unit : MonoBehaviour {
 					int passability = t.passabilityInDirection(dir);
 					if (passability > 1) {
 						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
-						int check = characterSheet.rollForSkill(Skill.Athletics);
+						int check = rollForSkill(Skill.Athletics);
 						if (check >= passability) {
 							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
+							vaultAnimation(true);
 						}
 						else {
 							gui.log.addMessage(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
@@ -1590,6 +1966,11 @@ public class Unit : MonoBehaviour {
 				setRotationToMostInterestingTile();
 				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
 					gui.selectAttack();
+				}
+				if (gui.selectedMinor) {
+					minorsLeft--;
+					gui.selectMinor(MinorType.None);
+					escapeUsed = true;
 				}
 			}
 		}
@@ -1686,7 +2067,7 @@ public class Unit : MonoBehaviour {
 			if (t.getTile(dir) != null) {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u) {
-					if (u.characterSheet.rollForSkill(Skill.Athletics) < 15) {
+					if (u.rollForSkill(Skill.Athletics) < 15) {
 //					u.affliction = Affliction.Prone;
 						u.becomeProne();
 						alsoProne = u;
@@ -1734,6 +2115,29 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public bool invokeAnimating = false;
+	void doInvoke() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
+		if (invoking && !moving && !rotating) {
+			invokeAnimation();
+			invokeAnimating = true;
+			invoking = false;
+			minorsLeft--;
+			invokeUsesLeft--;
+			useMovementIfStarted();
+		}
+	}
+	
+	void invokeAnimation() {
+		dealInvokeDamage();
+		GameGUI.selectedMinorType = MinorType.None;
+		if (attackEnemy != null) {
+			if (attackEnemy.isTarget) attackEnemy.deselect();
+			attackEnemy = null;
+		}
+		mapGenerator.resetRanges();
+	}
+
 	public bool intimidateAnimating = false;
 	void doIntimidate() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
@@ -1753,12 +2157,57 @@ public class Unit : MonoBehaviour {
 			mapGenerator.resetRanges();
 	}
 
+	public virtual RaceName getRaceName() {
+		return characterSheet.characterSheet.personalInformation.getCharacterRace().raceName;
+	}
+
+	public virtual bool hasUncannyKnowledge() {
+		return characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge);
+	}
+
+	public virtual bool attackEnemyIsFavoredRace() {
+		if (attackEnemy==null) return false;
+		return unitIsFavoredRace(attackEnemy);
+	}
+
+	public virtual bool unitIsFavoredRace(Unit u) {
+		return raceIsFavoredRace(u.getRaceName());
+	}
+
+	public virtual bool raceIsFavoredRace(RaceName race) {
+		return race == characterSheet.characterSheet.characterProgress.getFavoredRace() && race != RaceName.None;
+	}
+
+	public virtual int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+		return characterSheet.rollForSkill(skill, favoredRace, dieType, dieRoll);
+	}
+
+	public virtual int getSkill(Skill skill) {
+		return characterSheet.characterSheet.skillScores.getScore(skill);
+	}
+
+
 	void dealIntimidationDamage() {
 		if (attackEnemy != null) {
-			int sturdy = characterSheet.rollForSkill(Skill.Melee, 20);
-			int wellV = attackEnemy.characterSheet.rollForSkill(Skill.Political, 10);
+			int sturdy = rollForSkill(Skill.Melee, attackEnemyIsFavoredRace(), 20);
+			int wellV = 10 + attackEnemy.characterSheet.characterSheet.combatScores.getWellVersedMod();
 			bool didHit = sturdy >= wellV;
-			int wapoon = Mathf.Max(1, characterSheet.combatScores.getInitiative());
+			int wapoon = Mathf.Max(1, characterSheet.combatScores.getSturdyMod());
+			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			if (didHit) {
+				attackEnemy.damageComposure(wapoon, this);
+				attackEnemy.setRotationToCharacter(this);
+			}
+		}
+	}
+
+	void dealInvokeDamage() {
+		if (attackEnemy != null) {
+			int political = rollForSkill(Skill.Political, attackEnemyIsFavoredRace(), 20);
+			int wellV = 10 + attackEnemy.characterSheet.characterSheet.combatScores.getWellVersedMod();
+			bool didHit = political >= wellV;
+			int wapoon = Mathf.Max(1, characterSheet.combatScores.getWellVersedMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
@@ -1769,10 +2218,16 @@ public class Unit : MonoBehaviour {
 	}
 
 	
+
 	public void damageComposure(int damage, Unit u) {
-		if (damage > 0) {
+		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState()) {
 			crushingHitSFX();
 			characterSheet.combatScores.loseComposure(damage);
+			if (characterSheet.characterSheet.combatScores.isInPrimalState()) {
+				inPrimal = true;
+				primalInstigator = u;
+				primalTurnsLeft = u.characterSheet.characterSheet.combatScores.getDominion() + 1;
+			}
 		}
 	}
 
@@ -1791,6 +2246,11 @@ public class Unit : MonoBehaviour {
 		if (mapGenerator && mapGenerator.audioBank) {
 			mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingSwing, transform.position);
 		}
+	}
+
+	void vaultAnimation(bool vaulting) {
+		anim.SetBool("Vault", vaulting);
+	//	vaultAnimationAllSprites(vaulting);
 	}
 
 	void moveAnimation(bool moving) {
@@ -1819,6 +2279,10 @@ public class Unit : MonoBehaviour {
 
 	void deathAnimationAllSprites() {
 		setAllSpritesTrigger("Death");
+	}
+
+	void vaultAnimationAllSprites(bool vaulting) {
+		setAllSpritesBool("Vault", vaulting);
 	}
 
 	void setAllSpritesBool(string boolName, bool b) {
@@ -1854,7 +2318,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual int rollDamage(bool crit) {
-		return characterSheet.rollDamage(crit);
+		return characterSheet.rollDamage(attackEnemy, crit) + temperedHandsMod;
 	}
 
 	public virtual int overClockDamage() {

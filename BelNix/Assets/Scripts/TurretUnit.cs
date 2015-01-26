@@ -22,6 +22,23 @@ public class TurretUnit : MechanicalUnit {
 		turret.takeDamage(amount);
 	}
 
+	
+	public override RaceName getRaceName() {
+		return RaceName.None;
+	}
+	
+	public override bool attackEnemyIsFavoredRace() {
+		return unitIsFavoredRace(attackEnemy);
+	}
+	
+	public override bool unitIsFavoredRace(Unit u) {
+		return raceIsFavoredRace(u.getRaceName());
+	}
+	
+	public override bool raceIsFavoredRace(RaceName race) {
+		return false;
+	}
+
 	public override bool givesDecisiveStrike() {
 		return false;
 	}
@@ -44,10 +61,20 @@ public class TurretUnit : MechanicalUnit {
 	}
 	
 	public override int rollDamage(bool crit) {
-		return turret.rollDamage() + (owner.characterSheet.characterProgress.hasFeature(CharacterInfo.ClassFeature.Metallic_Affinity) && owner.characterSheet.characterId == turret.creatorId ? 1 : 0);
+		return turret.rollDamage() + (owner.characterSheet.characterProgress.hasFeature(ClassFeature.Metallic_Affinity) && owner.characterSheet.characterId == turret.creatorId ? 1 : 0);
+	}
+
+	
+	public override int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+		int roll = Random.Range(1, dieType + 1);
+		return (skill==Skill.Melee ? getMeleeScore() : 0) + (favoredRace?1:0) + roll;
 	}
 
 	public override bool hasWeaponFocus() {
+		return false;
+	}
+
+	public override bool hasUncannyKnowledge() {
 		return false;
 	}
 

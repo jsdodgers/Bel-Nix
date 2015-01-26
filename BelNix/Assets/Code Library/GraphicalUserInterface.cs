@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.IO;
 using System.Collections.Generic;
-using CharacterInfo;
 
 public class GraphicalUserInterface : MonoBehaviour
 {
@@ -1098,6 +1097,8 @@ public class GraphicalUserInterface : MonoBehaviour
 		//Weapon Focus:
 		characterStr += "0;";
 		//Number of inventory items followed by that many items.
+		characterStr += "0;";
+		//Favored Race
 		characterStr += "0;";
 		Saves.addCharacter(characterStr);
 

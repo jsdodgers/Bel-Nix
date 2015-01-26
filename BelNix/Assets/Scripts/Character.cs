@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using CharacterInfo;
 using System.Linq;
-using CombatSystem;
 using System.IO;
 
 public struct Hit {
@@ -41,17 +39,17 @@ public class Character
 		return characterSheet.characterLoadout.sprites;
 	}
 
-	public int rollForSkill(Skill skill, int dieType = 10) {
-		int roll = Random.Range(1, dieType + 1);
-		return characterSheet.skillScores.getScore(skill) + roll;
+	public int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+		if (dieRoll == -1) dieRoll = Random.Range(1, dieType + 1);
+		return characterSheet.skillScores.getScore(skill) + (favoredRace?1:0) + dieRoll;
 	}
 
-	public int rollDamage() {
-		return rollDamage(false);
+	public int rollDamage(Unit enemy) {
+		return rollDamage(enemy, false);
 	}
 
-	public int rollDamage(bool critical) {
-		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical() : 0);
+	public int rollDamage(Unit enemy, bool critical) {
+		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : 0) + unit.sneakAttackBonus(enemy);
 	}
 
 	public int overloadDamage() {
@@ -243,6 +241,8 @@ public class Character
 			}
 				//Inventory stuff
 		}
+		if (curr < components.Length-1)
+			characterProgress.setFavoredRace(int.Parse(components[curr++]));
 
 	}
 
@@ -274,7 +274,7 @@ public class Character
 		ClassName clas = characterProgress.getCharacterClass().getClassName();
 		characterStr += (clas == ClassName.ExSoldier ? 0 : (clas == ClassName.Engineer ? 1 : (clas == ClassName.Investigator ? 2 : (clas == ClassName.Researcher ? 3 : 4)))) + delimiter;
 		characterStr += abilityScores.getSturdy() + delimiter;
-		characterStr += abilityScores.getPerception() + delimiter;
+		characterStr += abilityScores.getPerception(0) + delimiter;
 		characterStr += abilityScores.getTechnique() + delimiter;
 		characterStr += abilityScores.getWellVersed() + delimiter;
 		foreach (int score in skillScores.scores) {
@@ -317,6 +317,7 @@ public class Character
 			}
 		}
 		characterStr += inventorySize + delimiter + inventoryString;
+		characterStr += characterSheet.characterProgress.getFavoredRaceAsNumber() + delimiter;
 		return characterStr;
 	}
 	
