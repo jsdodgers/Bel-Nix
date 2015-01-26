@@ -1884,6 +1884,9 @@ public class MapGenerator : MonoBehaviour {
 			p.startInvoking();
 			resetRanges();
 		}
+		else if (gui.selectedMinor && GameGUI.selectedMinorType == MinorType.Stealth) {
+			p.rollStealth();
+		}
 	}
 
 	public bool directionsAreOpposite(Direction dir, Direction dir2) {

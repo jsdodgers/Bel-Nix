@@ -3,7 +3,6 @@ using System.Collections;
 
 public enum DamageType {Crushing, Piercing, Slashing, None}
 
-[RequireComponent (typeof (Character))]
 public class ItemWeapon : EditorItem {
 
 	public int hit;

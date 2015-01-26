@@ -74,6 +74,10 @@ public class TurretUnit : MechanicalUnit {
 		return false;
 	}
 
+	public override bool hasUncannyKnowledge() {
+		return false;
+	}
+
 	void doAttack() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (attacking) {

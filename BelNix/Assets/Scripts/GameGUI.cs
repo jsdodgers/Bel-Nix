@@ -303,7 +303,7 @@ public class GameGUI : MonoBehaviour {
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
-				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Stealth || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
 	}
 
 	public bool mouseIsOnGUI() {
@@ -1416,7 +1416,7 @@ public class GameGUI : MonoBehaviour {
 						GUI.enabled = true;
 					}
 					
-					if ((((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedMinorType == MinorType.Escape && mapGenerator.getCurrentUnit().currentPath.Count > 1))  && interact) {
+					if ((((selectedMinorType == MinorType.Mark) && mapGenerator.getCurrentUnit().attackEnemy != null) || (selectedMinorType == MinorType.Escape && mapGenerator.getCurrentUnit().currentPath.Count > 1) || selectedMinorType == MinorType.Stealth)  && interact) {
 						if (GUI.Button(confirmButtonRect(), "Confirm", getConfirmButtonStyle()) && !mapGenerator.performingAction() && !mapGenerator.currentUnitIsAI()) {
 							mapGenerator.performAction();
 							/*							if (selectedStandardType == StandardType.Attack) {
@@ -1787,6 +1787,7 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+		case MinorType.Stealth:
 			break;
 		case MinorType.Escape:
 			p.selectMinorType(t);
@@ -1811,17 +1812,9 @@ public class GameGUI : MonoBehaviour {
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Attack:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.OverClock:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.Throw:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.Intimidate:
-			mapGenerator.resetRanges();
-			break;
 		case StandardType.Place_Turret:
 			selectedTurretIndex = 0;
 			mapGenerator.resetRanges();
