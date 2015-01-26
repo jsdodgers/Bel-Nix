@@ -76,7 +76,6 @@ public class Unit : MonoBehaviour {
 	SpriteRenderer targetSprite;
 	SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
-	public GameGUI gui;
 
 	public List<Affliction> afflictions;
 	public List<TurretUnit> turrets;
@@ -102,6 +101,71 @@ public class Unit : MonoBehaviour {
 		foreach (Unit u in markedUnits) {
 			u.setMarked(true);
 		}
+		setGUIToThis();
+	}
+
+	public void setGUIToThis() {
+		BattleGUI.setAtAGlanceText(getAtAGlanceString());
+		BattleGUI.setStatsText(0,getCharacterStatsString1());
+		BattleGUI.setStatsText(1,getCharacterStatsString2());
+		BattleGUI.setStatsText(2,getCharacterStatsString3());
+		BattleGUI.setStatsText(3,getCharacterStatsString4());
+	}
+
+
+	string getCharacterStatsString1() {
+		string sizeString = "<size=10>";
+		string sizeEnd = "</size>";
+		string otherDivString = "<size=4>\n\n</size>";
+		string divString2 = "<size=4>\n\n</size>";
+
+		return otherDivString + "P" + sizeString + "HYSIQUE" + sizeEnd + "\n" + otherDivString +
+			divString2 + otherDivString + "P" + sizeString + "ROWESS" + sizeEnd + "\n" + otherDivString +
+				divString2 + otherDivString + "M" + sizeString + "ASTERY" + sizeEnd + "\n" + otherDivString +
+				divString2 + otherDivString + "K" + sizeString + "NOWLEDGE" + sizeEnd + otherDivString;
+	}
+
+	string getCharacterStatsString2() {
+		string sizeString = "<size=10>";
+		string sizeEnd = "</size>";
+		string divString = "<size=6>\n\n</size>";
+
+		return "S" + sizeString + "TURDY" + sizeEnd + "\n" + characterSheet.abilityScores.getSturdy() + " (<size=13>MOD:" + characterSheet.combatScores.getInitiative() + "</size>)" +
+			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.abilityScores.getPerception(0) + " (<size=13>MOD:" + characterSheet.combatScores.getCritical(false) + "</size>)" +
+				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + characterSheet.abilityScores.getTechnique() + " (<size=13>MOD:" + characterSheet.combatScores.getHandling() + "</size>)" +
+				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.combatScores.getDominion() + "</size>)";
+	}
+
+	string getCharacterStatsString3() {
+		string sizeString = "<size=10>";
+		string sizeEnd = "</size>";
+		string divString = "<size=6>\n\n</size>";
+
+		return "A" + sizeString + "THLETICS" + sizeEnd + ":\nM" + sizeString + "ELEE" + sizeEnd + ":" + 
+			divString + "R" + sizeString + "ANGED" + sizeEnd + ":\nS" + sizeString + "TEALTH" + sizeEnd + ":" +
+				divString + "M" + sizeString + "ECHANICAL" + sizeEnd + ":\nM" + sizeString + "EDICINAL" + sizeEnd + ":" +
+				divString + "H" + sizeString + "ISTORICAL" + sizeEnd + ":\nP" + sizeString + "OLITICAL" + sizeEnd + ":";
+	}
+
+	string getCharacterStatsString4() {
+		string divString = "<size=6>\n\n</size>";
+
+		return characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.skillScores.getScore(Skill.Melee) + divString +
+			characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.skillScores.getScore(Skill.Stealth) + divString +
+				characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
+				characterSheet.skillScores.getScore(Skill.Historical)  + "\n" + characterSheet.skillScores.getScore(Skill.Political);
+
+	}
+
+	string getAtAGlanceString() {
+//		string playerText = Unit "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
+		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
+		string playerText = UnitGUI.getSmallCapsString(playerName, 13);
+
+		playerText += "\n";
+		playerText += UnitGUI.getSmallCapsString("Health", 13) + ":\n" + (team == 1 ? "?/?" : characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth()) + "\n";
+		playerText += UnitGUI.getSmallCapsString("Composure", 13) + ":\n" + (team == 1 ? "?/?" : characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure());
+		return playerText;
 	}
 
 	public void useTemperedHands(int mod) {
@@ -1928,11 +1992,11 @@ public class Unit : MonoBehaviour {
 						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
 						int check = rollForSkill(Skill.Athletics);
 						if (check >= passability) {
-							gui.log.addMessage(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
+							BattleGUI.writeToConsole(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
 							vaultAnimation(true);
 						}
 						else {
-							gui.log.addMessage(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
+							BattleGUI.writeToConsole(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
 							shouldCancelMovement = true;
 							becomeProne();
 							mapGenerator.resetPlayerPath();
@@ -1965,11 +2029,11 @@ public class Unit : MonoBehaviour {
 				if (currentMoveDist == 0) usedMovement = true;
 				setRotationToMostInterestingTile();
 				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
-					gui.selectAttack();
+					GameGUI.selectAttack();
 				}
-				if (gui.selectedMinor) {
+				if (GameGUI.selectedMinor) {
 					minorsLeft--;
-					gui.selectMinor(MinorType.None);
+					GameGUI.selectMinor(MinorType.None);
 					escapeUsed = true;
 				}
 			}
@@ -2076,10 +2140,10 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		if (team == 0) {
-			gui.log.addMessage(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
+			BattleGUI.writeToConsole(getName() + " was thrown " + (dis*5) + " feet by " + thrownBy.getName() + (becameProne ? " and was knocked prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Color.red);
 		}
 		else {
-			gui.log.addMessage(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Log.greenColor);
+			BattleGUI.writeToConsole(thrownBy.getName() + " threw " + getName() + " " + (dis*5) + " feet" + (becameProne ? " and knocked " + (characterSheet.characterSheet.personalInformation.getCharacterSex()==CharacterSex.Female ? "her":"him") + " prone" + (alsoProne!=null?" along with " + alsoProne.getName():"") : "") + "!", Log.greenColor);
 		}
 		gettingThrown = true;
 //		gettingThrownPosition = new Vector3(x, -y, position.z);
@@ -2250,7 +2314,7 @@ public class Unit : MonoBehaviour {
 
 	void vaultAnimation(bool vaulting) {
 		anim.SetBool("Vault", vaulting);
-	//	vaultAnimationAllSprites(vaulting);
+		vaultAnimationAllSprites(vaulting);
 	}
 
 	void moveAnimation(bool moving) {
@@ -2357,7 +2421,7 @@ public class Unit : MonoBehaviour {
 		int wapoon = (overClockedAttack ?  overClockDamage() : rollDamage(crit));//.characterLoadout.rightHand.rollDamage();
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		attackEnemy.showDamage(wapoon, didHit, crit);
-		gui.log.addMessage(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
+		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
 		if (didHit)
 			attackEnemy.damage(wapoon, this);
 		if (overClockedAttack) {
@@ -2365,7 +2429,7 @@ public class Unit : MonoBehaviour {
 			Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
 			if (w is ItemMechanical) {
 				((WeaponMechanical)w).overClocked = true;
-				gui.selectedStandardType = StandardType.None;
+				GameGUI.selectedStandardType = StandardType.None;
 			}
 		}
 		if (!attackEnemy.moving) {
@@ -2398,8 +2462,8 @@ public class Unit : MonoBehaviour {
 
 	public void killedEnemy(Unit enemy, bool decisiveStrike) {
 		Debug.Log("Killed Enemy!!");
-		if (this.team==0) gui.log.addMessage(getName() + " " + enemy.deathString() + " " + enemy.getName() + "!", Log.greenColor);
-		else gui.log.addMessage(enemy.getName() + " was " + enemy.deathString() +" by " + getName() + "!",Color.red);
+		if (this.team==0) BattleGUI.writeToConsole(getName() + " " + enemy.deathString() + " " + enemy.getName() + "!", Log.greenColor);
+		else BattleGUI.writeToConsole(enemy.getName() + " was " + enemy.deathString() +" by " + getName() + "!",Color.red);
 		if (decisiveStrike) handleClassFeature(ClassFeature.Decisive_Strike);
 		setRotationToMostInterestingTile();
 	}

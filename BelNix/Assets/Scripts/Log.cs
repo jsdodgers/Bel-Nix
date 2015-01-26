@@ -15,7 +15,6 @@ public class LogMessage {
 
 public class Log : MonoBehaviour {
 
-	public GameGUI gui;
 	Queue<LogMessage> messages;
 	public const float consoleHeight = 85;
 	Vector2 scrollPosition = new Vector2(0,0);
