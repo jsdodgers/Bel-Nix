@@ -110,8 +110,32 @@ public class Unit : MonoBehaviour {
 		BattleGUI.setStatsText(1,getCharacterStatsString2());
 		BattleGUI.setStatsText(2,getCharacterStatsString3());
 		BattleGUI.setStatsText(3,getCharacterStatsString4());
+		BattleGUI.setCharacterInfoText(getCharacterInfoString());
+		BattleGUI.setClassFeatures(getClassFeatureStrings());
+		BattleGUI.disableAllButtons();
+		BattleGUI.enableButtons(getMinorTypes(), getMovementTypes(), getStandardTypes());
 	}
 
+	string[] getClassFeatureStrings() {
+		
+		
+		ClassFeature[] classFeatures = characterSheet.characterSheet.characterProgress.getClassFeatures();
+		string[] classFeatureStrings = new string[classFeatures.Length];
+		int n = 0;
+		foreach (ClassFeature classFeature in classFeatures) {
+			classFeatureStrings[n++] = UnitGUI.getSmallCapsString(ClassFeatures.getName(classFeature), 12);
+		}
+		return classFeatureStrings;
+	}
+
+	string getCharacterInfoString() {
+		return UnitGUI.getSmallCapsString("Level",12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterLevel() + "", 14) +
+			"\n" + UnitGUI.getSmallCapsString("Experience", 12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterExperience() + "/" + (characterSheet.characterProgress.getCharacterLevel()*100), 14) +
+				"\n" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 12) +
+				"\n" + UnitGUI.getSmallCapsString(characterSheet.personalInfo.getCharacterRace().getRaceString(), 12) +
+				"\n" + UnitGUI.getSmallCapsString(characterSheet.personalInfo.getCharacterBackground().ToString(), 12);
+
+	}
 
 	string getCharacterStatsString1() {
 		string sizeString = "<size=10>";
@@ -254,6 +278,8 @@ public class Unit : MonoBehaviour {
 
 	public static string getNameOfMovementType(MovementType movement) {
 		switch (movement) {
+		case MovementType.BackStep:
+			return "Back Step";
 		default:
 			return movement.ToString();
 		}
