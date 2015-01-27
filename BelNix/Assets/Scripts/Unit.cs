@@ -14,8 +14,9 @@ public class Unit : MonoBehaviour {
 	public AStarEnemyMap aiMap = null;
 	public Character characterSheet;
 	public CharacterTemplate characterTemplate;
+	public bool aiActive = false;
 	int initiative;
-	int stealth;
+	public int stealth;
 //	public string characterId;
 	public int team = 0;
 	public bool overClockedAttack = false;
@@ -82,11 +83,20 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+	public void setActive(bool active) {
+		aiActive = active;
+		BattleGUI.writeToConsole(getName() + " has been " + (active?"":"de") + "activated!");
+	}
+
 	public int sneakAttackBonus(Unit u) {
 		if (!hasCombatAdvantageOver(u) || !characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Sneak_Attack)) return 0;
 		int perception = characterSheet.abilityScores.getPerception((hasMarkOn(u) ? 2 : 0));
 		if (distanceFromUnit(u) <= 1.5f) return perception;
 		return perception/2;
+	}
+
+	public int getBasePerception() {
+		return characterSheet.combatScores.getPerceptionMod(false);
 	}
 
 	public bool hasCombatAdvantageOver(Unit u) {
@@ -210,22 +220,26 @@ public class Unit : MonoBehaviour {
 	}
 
 	public float getViewRadius() {
-		return mapGenerator.viewRadius;
+		return mapGenerator.viewRadius - (team==0 ? 0.0f : 2.0f);
 	}
 
 	public float getViewRadiusToUnit(Unit u) {
-		return getViewRadius();
+		if (team == 0 || team == u.team) return getViewRadius();
+		int perception = getBasePerception() + 10;
+		int st = u.stealth;
+		int diff = Mathf.Max(0, st - perception);
+		float viewRange = (mapGenerator.getCurrentUnit().team == 0 ? Mathf.Max (0.5f, getViewRadius() - diff) : Mathf.Max(1.5f, getViewRadius() - diff/2));
+		return viewRange;
 	}
 
-	public bool hasLineOfSightToUnit(Unit u) {
-		return mapGenerator.hasLineOfSight(this, u);
+	public bool hasLineOfSightToUnit(Unit u, int distance = -1) {
+		return mapGenerator.hasLineOfSight(this, u, distance);
 	}
 
-	public List<Unit> lineOfSightUnits() {
+	public List<Unit> lineOfSightUnits(int distance = -1) {
 		List<Unit> units = new List<Unit>();
-		foreach (GameObject go in mapGenerator.enemies) {
-			Unit u = go.GetComponent<Unit>();
-			if (hasLineOfSightToUnit(u)) units.Add(u);
+		foreach (Unit u in mapGenerator.enemies) {
+			if (hasLineOfSightToUnit(u, distance)) units.Add(u);
 		}
 		return units;
 	}
@@ -571,7 +585,10 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void rollStealth() {
-		stealth = Random.Range(1, 11) + characterSheet.skillScores.getScore(Skill.Stealth);
+		int roll = Random.Range(1, 11);
+		stealth = roll + characterSheet.skillScores.getScore(Skill.Stealth);
+		BattleGUI.writeToConsole(getName() + " rolled a " + stealth + "(" + roll + " + " + (stealth-roll) + ") for stealth.");
+		minorsLeft--;
 	}
 
 	public int getInitiative() {
@@ -1044,6 +1061,10 @@ public class Unit : MonoBehaviour {
 	
 	
 	public void performAI() {
+		if (!aiActive) {
+			mapGenerator.nextPlayer();
+			return;
+		}
 		if (isPerformingAnAction() || mapGenerator.movingCamera) {
 			actionTime = Time.time;
 			return;
@@ -1804,6 +1825,7 @@ public class Unit : MonoBehaviour {
 			mapGenerator.setCurrentUnitTile();
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
+			mapGenerator.activateEnemies();
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
 				//		attacking = true;
@@ -1941,6 +1963,7 @@ public class Unit : MonoBehaviour {
 		if (getMarkSprite()) {
 			getMarkSprite().sortingOrder = MapGenerator.markOrder;
 		}
+		aiActive = false;
 		setMarked(false);
 		markedUnits = new List<Unit>();
 		turrets = new List<TurretUnit>();
