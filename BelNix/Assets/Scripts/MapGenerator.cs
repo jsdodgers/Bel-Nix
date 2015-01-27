@@ -266,7 +266,6 @@ public class MapGenerator : MonoBehaviour {
 
 	public bool isWithinDistance(float distance, Vector2 from, Vector2 to) {
 		bool isWithin = (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
-		Debug.Log(isWithin);
 		return isWithin;
 	}
 
@@ -280,7 +279,6 @@ public class MapGenerator : MonoBehaviour {
 	public bool hasLineOfSight(Tile from, Tile to, float dist) {
 		Vector2 fromVec = new Vector2((int)((from.x + 0.5f)*gridSize), -(int)((from.y + 0.5f)*gridSize));
 		Vector2 toCenter = new Vector2((int)((to.x + 0.5f)*gridSize), -(int)((to.y + 0.5f)*gridSize));
-		Debug.Log("May Have Line of Sight: " + from.x + ", " + from.y + "   to   " + to.x + ", " + to.y + "   dist: " + dist);
 		if (isWithinDistance(dist*gridSize, fromVec, toCenter) && hasLineOfSight(fromVec, toCenter)) return true;
 		for (int n=-1;n<=1;n+=2) {
 			for (int m=-1;m<=1;m+=2) {
@@ -301,7 +299,6 @@ public class MapGenerator : MonoBehaviour {
 		else if (lrDir == Direction.Right) layerMask += 1 << 18;
 		if (udDir == Direction.Up) layerMask += 1 << 15;
 		else if (udDir == Direction.Down) layerMask += 1 << 16;
-		Debug.Log((from.x/gridSize) + ", " + (from.y/gridSize) + "   " + (to.x/gridSize) + ", " + (to.y/gridSize));
 		return !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), layerMask);
 
 	}

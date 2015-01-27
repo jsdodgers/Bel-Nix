@@ -759,7 +759,6 @@ public class Unit : MonoBehaviour {
 				Direction dir1 = Tile.directionBetweenTiles((Vector2)currList[n-1],(Vector2)currList[n]);
 				if (passibility(dir1,(Vector2)currList[n-1])>1) minorsUsed++;
 			}
-			Debug.Log(nnn + ":   " + minorsUsed);
 			nnn++;
 			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir, minorsUsed);
 			ArrayList withAdded = new ArrayList();
@@ -2009,7 +2008,6 @@ public class Unit : MonoBehaviour {
 
 
 	public void doTurrets() {
-		Debug.Log("DoTurrets " + turrets.Count);
 		foreach (TurretUnit t in turrets) {
 			t.fire();
 		}
