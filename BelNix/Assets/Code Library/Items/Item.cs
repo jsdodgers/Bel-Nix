@@ -263,7 +263,6 @@ public class Weapon : Item {
 		this.durabilityChance = durabilityChance;
 		this.isRanged = isRanged;
 		this.shape = shape;
-		Debug.Log(shape.Length + "   <- shape.length " + shape);
 	}
 
 	

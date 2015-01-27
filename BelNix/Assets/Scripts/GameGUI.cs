@@ -1778,6 +1778,7 @@ public class GameGUI : MonoBehaviour {
 	public static bool inventoryWasOpenLoot = false;
 //	public Tab previouslyOpenTab = Tab.None;
 	public static void selectMinorType(MinorType t) {
+		selectedMinorType = t;
 		mapGenerator.resetCurrentKeysTile();
 		if (mapGenerator.selectedUnit.attackEnemy)
 			mapGenerator.selectedUnit.attackEnemy.deselect();
@@ -1823,6 +1824,30 @@ public class GameGUI : MonoBehaviour {
 			if(!selectedMinor) selectMinor(MinorType.Loot);
 			selectMinorType(MinorType.Loot);
 			break;
+		case "Stealth":
+			if (!selectedMinor) selectMinor(MinorType.Stealth);
+			selectMinorType(MinorType.Stealth);
+			break;
+		case "Escape":
+			if (!selectedMinor) selectMinor(MinorType.Escape);
+			selectMinorType(MinorType.Escape);
+			break;
+		case "Invoke":
+			if (!selectedMinor) selectMinor(MinorType.Invoke);
+			selectMinorType(MinorType.Invoke);
+			break;
+		case "Mark":
+			if (!selectedMinor) selectMinor(MinorType.Mark);
+			selectMinorType(MinorType.Mark);
+			break;
+		case "One Of Many":
+			if (!selectedMinor) selectMinor(MinorType.OneOfMany);
+			selectMinorType(MinorType.OneOfMany);
+			break;
+		case "Tempered Hands":
+			if (!selectedMinor) selectMinor(MinorType.TemperedHands);
+			selectMinorType(MinorType.TemperedHands);
+			break;
 		default:
 			if(!selectedMinor) selectMinor(MinorType.None);
 			selectMinorType(MinorType.None);
@@ -1833,6 +1858,7 @@ public class GameGUI : MonoBehaviour {
 	public static int selectedTrapIndex = 0;
 	public static int selectedTurretIndex = 0;
 	public static void selectStandardType(StandardType t) {
+		selectedStandardType = t;
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
@@ -1880,7 +1906,7 @@ public class GameGUI : MonoBehaviour {
 			if(!selectedStandard) selectStandard(StandardType.Attack);
 			selectStandardType(StandardType.Attack);
 			break;
-		case "Overclock":
+		case "Over Clock":
 			if(!selectedStandard) selectStandard(StandardType.OverClock);
 			selectStandardType(StandardType.OverClock);
 			break;
@@ -1892,13 +1918,17 @@ public class GameGUI : MonoBehaviour {
 			if(!selectedStandard) selectStandard(StandardType.Intimidate);
 			selectStandardType(StandardType.Intimidate);
 			break;
-		case "Place Turrent":
+		case "Place Turret":
 			if(!selectedStandard) selectStandard(StandardType.Place_Turret);
 			selectStandardType(StandardType.Place_Turret);
 			break;
 		case "Lay Trap":
 			if(!selectedStandard) selectStandard(StandardType.Lay_Trap);
 			selectStandardType(StandardType.Lay_Trap);
+			break;
+		case "Inventory":
+			if(!selectedStandard) selectStandard(StandardType.Inventory);
+			selectStandardType(StandardType.Inventory);
 			break;
 		default:
 			if(!selectedStandard) selectStandard(StandardType.None);
@@ -1913,6 +1943,7 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	public static void selectMovementType(MovementType t) {
+		selectedMovementType = t;
 		mapGenerator.resetCurrentKeysTile();
 		switch (t) {
 		case MovementType.Cancel:

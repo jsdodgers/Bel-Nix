@@ -84,9 +84,10 @@ public class MapGenerator : MonoBehaviour {
 	public List<TrapUnit> currentTrap;
 	public TrapUnit currentlySelectedTrap;
 	Unit hoveredCharacter;
-	ArrayList players;
+	List<Unit> players;
 	List<Unit> deadUnits;
-	public ArrayList enemies;
+	List<Unit> nonAlertEnemies;
+	public List<Unit> enemies;
 	public GameObject turrets;
 	public GameObject traps;
 	GameObject grids;
@@ -265,21 +266,19 @@ public class MapGenerator : MonoBehaviour {
 
 	public bool isWithinDistance(float distance, Vector2 from, Vector2 to) {
 		bool isWithin = (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
-		Debug.Log(isWithin);
 		return isWithin;
 	}
 
-	public bool hasLineOfSight(Unit fromUnit, Unit toUnit) {
+	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1) {
 		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
 		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
-		float dist = fromUnit.getViewRadiusToUnit(toUnit);
+		float dist = (distance == -1 ? fromUnit.getViewRadiusToUnit(toUnit) : distance);
 		return hasLineOfSight(from, to, dist);
 	}
 
 	public bool hasLineOfSight(Tile from, Tile to, float dist) {
 		Vector2 fromVec = new Vector2((int)((from.x + 0.5f)*gridSize), -(int)((from.y + 0.5f)*gridSize));
 		Vector2 toCenter = new Vector2((int)((to.x + 0.5f)*gridSize), -(int)((to.y + 0.5f)*gridSize));
-		Debug.Log("May Have Line of Sight: " + from.x + ", " + from.y + "   to   " + to.x + ", " + to.y + "   dist: " + dist);
 		if (isWithinDistance(dist*gridSize, fromVec, toCenter) && hasLineOfSight(fromVec, toCenter)) return true;
 		for (int n=-1;n<=1;n+=2) {
 			for (int m=-1;m<=1;m+=2) {
@@ -300,7 +299,6 @@ public class MapGenerator : MonoBehaviour {
 		else if (lrDir == Direction.Right) layerMask += 1 << 18;
 		if (udDir == Direction.Up) layerMask += 1 << 15;
 		else if (udDir == Direction.Down) layerMask += 1 << 16;
-		Debug.Log((from.x/gridSize) + ", " + (from.y/gridSize) + "   " + (to.x/gridSize) + ", " + (to.y/gridSize));
 		return !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), layerMask);
 
 	}
@@ -445,8 +443,9 @@ public class MapGenerator : MonoBehaviour {
 		createTiles();
 
 		priorityOrder = new List<Unit>();
-		players = new ArrayList();
+		players = new List<Unit>();
 		deadUnits = new List<Unit>();
+		nonAlertEnemies = new List<Unit>();
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
 		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
@@ -475,7 +474,7 @@ public class MapGenerator : MonoBehaviour {
 			p.characterName = "Player" + (n+1);
 	//		p.deselect();
 		}*/
-		enemies = new ArrayList();
+		enemies = new List<Unit>();
 		enemyPrefab = (GameObject)Resources.Load("Units/Jackie/JackieEnemy");
 	/*	Vector3[] positions2 = new Vector3[] {new Vector3(15, -28, 0), new Vector3(17, -27, 0), new Vector3(4, -23, 0)};
 		for (int n=0;n<positions2.Length;n++) {
@@ -498,7 +497,7 @@ public class MapGenerator : MonoBehaviour {
 			p.setPosition(new Vector3(x, y, pos.z));
 			p.setMapGenerator(this);
 //			p.mapGenerator = this;
-			players.Add(player);
+			players.Add(p);
 			//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(p);
 			p.loadCharacterSheet();
@@ -519,7 +518,8 @@ public class MapGenerator : MonoBehaviour {
 			e.setPosition(new Vector3(x, y, pos.z));
 			e.setMapGenerator(this);
 //			e.mapGenerator = this;
-			enemies.Add(enemy);
+			enemies.Add(e);
+			nonAlertEnemies.Add(e);
 	//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(e);
 			e.loadCharacterSheet();
@@ -573,6 +573,38 @@ public class MapGenerator : MonoBehaviour {
 			po1.Add(cs);
 		}
 		priorityOrder.Sort((first, second) => (first.getInitiative() > second.getInitiative() ? -1 : (first.getInitiative() == second.getInitiative() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
+	}
+
+	public void activateEnemies() {
+		List<Unit> nonAlertEnemiesCopy = new List<Unit>();
+		foreach (Unit u in nonAlertEnemies) nonAlertEnemiesCopy.Add(u);
+		while (nonAlertEnemiesCopy.Count > 0) {
+			Unit e = nonAlertEnemiesCopy[0];
+			nonAlertEnemiesCopy.RemoveAt(0);
+			foreach (Player p in players) {
+				if (e.hasLineOfSightToUnit(p)) {
+					e.setActive(true);
+					List<Unit> newlyActivatedUnits = new List<Unit>();
+					newlyActivatedUnits.Add(e);
+					nonAlertEnemies.Remove(e);
+					while (newlyActivatedUnits.Count > 0) {
+						Unit curr = newlyActivatedUnits[0];
+						Debug.Log(curr.getName());
+						newlyActivatedUnits.RemoveAt(0);
+						for (int m=nonAlertEnemies.Count-1;m>=0;m--) {
+							Unit ee = nonAlertEnemies[m];
+							if (ee.hasLineOfSightToUnit(curr)) {
+								ee.setActive(true);
+								newlyActivatedUnits.Add(ee);
+								nonAlertEnemies.Remove(ee);
+								if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
 	}
 
 	public bool isInCharacterPlacement() {
@@ -677,8 +709,6 @@ public class MapGenerator : MonoBehaviour {
 		sr.sprite = spr;
 		sr.transform.parent = Camera.main.transform;
 		go.transform.localPosition = new Vector3(texX, texY, 1.0f);
-//		sr.transform.localPosition = new Vec
-//		go.transform.parent = 
 	}
 
 	float selectionUnitsX;
@@ -833,7 +863,8 @@ public class MapGenerator : MonoBehaviour {
 			addCharacterRange(selectedUnit);
 			selectedUnit.setSelected();
 			selectedUnit.setCurrent();
-			moveCameraToSelected();
+			if (selectedUnit.playerControlled || selectedUnit.aiActive)
+				moveCameraToSelected();
 			lastPlayerPath = selectedUnit.currentPath;
 			float closestEnemy = selectedUnit.closestEnemyDist();
             if (closestEnemy > selectedUnit.characterSheet.characterSheet.characterLoadout.rightHand.range)
@@ -850,9 +881,10 @@ public class MapGenerator : MonoBehaviour {
 					removeCharacter(selectedUnit);
 				}
 			}
-			if (selectedUnit.deadOrDyingOrUnconscious()) {
+			if (selectedUnit.deadOrDyingOrUnconscious() || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
+			activateEnemies();
 	//		editingPath = false;
 		}
 //		setTargetObjectPosition();
@@ -1034,9 +1066,9 @@ public class MapGenerator : MonoBehaviour {
 		cs.removeCurrent();
 		int index = priorityOrder.IndexOf(cs);
 		priorityOrder.Remove(cs);
-		if (enemies.Contains(cs.gameObject)) enemies.Remove(cs.gameObject);
-		if (players.Contains(cs.gameObject)) {
-			players.Remove(cs.gameObject);
+		if (enemies.Contains(cs)) enemies.Remove(cs);
+		if (players.Contains(cs)) {
+			players.Remove(cs);
 			deadUnits.Add(cs);
 		}
 		if (index < currentUnit) currentUnit--;

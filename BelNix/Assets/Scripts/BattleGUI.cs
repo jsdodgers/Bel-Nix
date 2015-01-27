@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
+using System.Collections.Generic;
 
 public class BattleGUI : MonoBehaviour {
 
@@ -12,14 +13,23 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject turnOrderCanvas;
 	[SerializeField] private GameObject characterInfoCanvas;
 	[SerializeField] private GameObject consoleContentPanel;
+	[SerializeField] private GameObject featuresContentPanel;
 	[SerializeField] private GameObject consoleMessagePrefab;
+	[SerializeField] private GameObject classFeaturePrefab;
 	[SerializeField] private GameObject turnOrderPrefab;
 	Text atAGlanceText;
 	Text[] statsTexts;
+	Text characterInfoText;
+	Scrollbar featuresScrollBar;
+	Scrollbar consoleScrollBar;
+	Dictionary<MovementType, GameObject> movementButtons;
+	Dictionary<StandardType, GameObject> standardButtons;
+	Dictionary<MinorType, GameObject> minorButtons;
 	private Queue consoleText = new Queue();
+	private GameObject[] currentClassFeatures = null;
 	private int maxNumMessages = 20;
     // Numbers as indices aren't very informative. Let's use enums.
-    public enum CIPanel { GLANCE, STATS, SKILLS, BUTTONS };
+    public enum CIPanel { Glance, Stats, Skills, Buttons };
 	
 	public void selectMovementType(string movementType) {
 		GameGUI.selectMovementType(movementType);
@@ -48,10 +58,10 @@ public class BattleGUI : MonoBehaviour {
         switch(panel.name)
         {
             case "Panel - Character Stats":
-                toggleCIPanel(CIPanel.STATS);
+                toggleCIPanel(CIPanel.Stats);
                 break;
             case "Panel - Class Features":
-                toggleCIPanel(CIPanel.SKILLS);
+                toggleCIPanel(CIPanel.Skills);
                 break;
             default:
                 break;
@@ -59,17 +69,18 @@ public class BattleGUI : MonoBehaviour {
     }
     private void toggleCIPanel(CIPanel panel)
     {
-		toggleAnimatorBool(CIPanels[(int)panel].GetComponent<Animator>(), "Exposed");
+		Debug.Log("Exposed" + panel.ToString());
+		toggleAnimatorBool(CIPanels[(int)panel].GetComponent<Animator>(), "Exposed" + panel.ToString());
 
-        if (panel == CIPanel.SKILLS)
+        if (panel == CIPanel.Skills)
         {
-            if(CIPanels[(int)CIPanel.STATS].GetComponent<Animator>().GetBool("Exposed"))
-				toggleAnimatorBool(CIPanels[(int)CIPanel.STATS].GetComponent<Animator>(), "Exposed");
+            if(CIPanels[(int)CIPanel.Stats].GetComponent<Animator>().GetBool("ExposedStats"))
+				toggleAnimatorBool(CIPanels[(int)CIPanel.Stats].GetComponent<Animator>(), "ExposedStats");
         }
-        else if (panel == CIPanel.STATS)
+        else if (panel == CIPanel.Stats)
         {
-			if(CIPanels[(int)CIPanel.SKILLS].GetComponent<Animator>().GetBool("Exposed"))
-				toggleAnimatorBool(CIPanels[(int)CIPanel.SKILLS].GetComponent<Animator>(), "Exposed");
+			if(CIPanels[(int)CIPanel.Skills].GetComponent<Animator>().GetBool("ExposedSkills"))
+				toggleAnimatorBool(CIPanels[(int)CIPanel.Skills].GetComponent<Animator>(), "ExposedSkills");
         }
     }
 
@@ -97,6 +108,11 @@ public class BattleGUI : MonoBehaviour {
 	public static void setStatsText(int statNum, string text) {
 		if (battleGUI==null) return;
 		battleGUI.statsTexts[statNum].text = text;
+	}
+
+	public static void setCharacterInfoText(string text) {
+		if (battleGUI == null) return;
+		battleGUI.characterInfoText.text = text;
 	}
 	
 	public static void writeToConsole(string message) {
@@ -129,7 +145,7 @@ public class BattleGUI : MonoBehaviour {
 		textComponent.color = color;
 
         // Move the console scrollbar to the bottom to show the new message
-        GameObject.Find("Scrollbar - Console").GetComponent<Scrollbar>().value = 0;
+        consoleScrollBar.value = 0;
 
         // Adjust the padding on the top of the console if needed. This buffer initially inflates the panel to fit the
         // console, but as text is added, it's no longer needed and it adds a strange empty space if you scroll up.
@@ -137,6 +153,57 @@ public class BattleGUI : MonoBehaviour {
         if (consoleContentPanel.GetComponent<VerticalLayoutGroup>().padding.top < 25)
             consoleContentPanel.GetComponent<VerticalLayoutGroup>().padding.top = 25;
 
+	}
+
+	public static void disableAllButtons() {
+		if (battleGUI == null) return;
+		foreach (GameObject button in battleGUI.minorButtons.Values) {
+			button.SetActive(false);
+		}
+		foreach (GameObject button in battleGUI.standardButtons.Values) {
+			button.SetActive(false);
+		}
+		foreach (GameObject button in battleGUI.movementButtons.Values) {
+			button.SetActive(false);
+		}
+	}
+
+	public static void enableButtons(MinorType[] minorTypes, MovementType[] movementTypes, StandardType[] standardTypes) {
+		if (battleGUI == null) return;
+		foreach (MinorType type in minorTypes) {
+			battleGUI.minorButtons[type].SetActive(true);
+		}
+		foreach (MovementType type in movementTypes) {
+			battleGUI.movementButtons[type].SetActive(true);
+		}
+		foreach (StandardType type in standardTypes) {
+			battleGUI.standardButtons[type].SetActive(true);
+		}
+	}
+
+	public static void setClassFeatures(string[] classFeatureStrings) {
+		if (battleGUI == null) return;
+		battleGUI.setClassFeaturesActually(classFeatureStrings);
+	}
+
+	public void setClassFeaturesActually(string[] classFeatureStrings) {
+		if (currentClassFeatures!=null) {
+			foreach (GameObject feature in currentClassFeatures) {
+				GameObject.Destroy(feature);
+			}
+		}
+		currentClassFeatures = new GameObject[classFeatureStrings.Length];
+		for (int n=0;n<classFeatureStrings.Length;n++) {
+			GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab);
+			Text textComponent = textToAdd.GetComponent<Text>();
+			textComponent.text = classFeatureStrings[n];
+			textToAdd.transform.SetParent(featuresContentPanel.transform);
+			currentClassFeatures[n] = textToAdd;
+		}
+	//	Debug.Log(featuresScrollBar.value);
+	//	featuresScrollBar.value = 1;
+	//	Debug.Log(featuresScrollBar.value);
+//		featuresScrollBar.
 	}
 
 	private void addToPlayerOrder(Unit unit)
@@ -167,6 +234,24 @@ public class BattleGUI : MonoBehaviour {
 		for (int n=0;n<4;n++) {
 			statsTexts[n] = GameObject.Find("Text - Stats" + (n+1)).GetComponent<Text>();
 		}
+		characterInfoText = GameObject.Find("Text - Character Info").GetComponent<Text>();
+		featuresScrollBar = GameObject.Find("Scrollbar - Features").GetComponent<Scrollbar>();
+		consoleScrollBar = GameObject.Find("Scrollbar - Console").GetComponent<Scrollbar>();
+		MinorType[] minorTypes = new MinorType[] {MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.Invoke};
+		MovementType[] movementTypes = new MovementType[] {MovementType.Move, MovementType.BackStep, MovementType.Recover};
+		StandardType[] standardTypes = new StandardType[] {StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory};
+		minorButtons = new Dictionary<MinorType, GameObject>();
+		standardButtons = new Dictionary<StandardType, GameObject>();
+		movementButtons = new Dictionary<MovementType, GameObject>();
+		foreach (MinorType minorType in minorTypes) {
+			minorButtons[minorType] = GameObject.Find("Image - " + Unit.getNameOfMinorType(minorType));
+		}
+		foreach (MovementType movementType in movementTypes) {
+			movementButtons[movementType] = GameObject.Find("Image - " + Unit.getNameOfMovementType(movementType));
+		}
+		foreach (StandardType standardType in standardTypes) {
+			standardButtons[standardType] = GameObject.Find("Image - " + Unit.getNameOfStandardType(standardType));
+		}
 		GameObject.Find("Canvas - Character Info").GetComponent<Animator>().Play("CI_Panel_Hiding");
 		GameObject.Find("Canvas - Console").GetComponent<Animator>().Play("Console_Dismissed");
 		foreach(GameObject panel in CIPanels)
@@ -186,11 +271,11 @@ public class BattleGUI : MonoBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.C))
         {
-            toggleCIPanel(CIPanel.STATS);
+            toggleCIPanel(CIPanel.Stats);
         }
         if (Input.GetKeyDown(KeyCode.V))
         {
-            toggleCIPanel(CIPanel.SKILLS);
+            toggleCIPanel(CIPanel.Skills);
         }
 	}
 
