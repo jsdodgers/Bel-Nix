@@ -192,8 +192,6 @@ public class BattleGUI : MonoBehaviour {
         {
             toggleCIPanel(CIPanel.SKILLS);
         }
-		//if(GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
-		//	Debug.Log("Pointer is over a gameObject");
 	}
 
 	void OnGUI() {
