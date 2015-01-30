@@ -31,8 +31,8 @@ public class BaseManager : MonoBehaviour {
 	bool mouseRightDown;
 	bool mouseMiddleDown;
 
-	string[] missions = new string[]{"Test Map 1", "Test Map 2"};
-	int[] missionLevels = new int[]{4, 3};
+	string[] missions = new string[]{"The Back Alley", "The Warehouse", "Test Map 1"};
+	int[] missionLevels = new int[]{4, 5, 3};
 	Vector2 savesScrollPos = new Vector2();
 	Vector2 barracksScrollPos = new Vector2();
 
