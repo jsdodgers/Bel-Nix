@@ -8,7 +8,7 @@ using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
-	
+	Vector3 cameraPos;
 	public bool doOverlay = false;
 	public bool withLineOfSight = true;
 	public bool testAnimations = false;
@@ -45,7 +45,7 @@ public class MapGenerator : MonoBehaviour {
     public int experienceReward;
     public int copperReward;
 	public string tileMapName;
-	public int gridSize = 70;
+	public int gridSize = 64;
 
 	public AudioBank audioBank;
 	GameObject lastHit;
@@ -446,6 +446,7 @@ public class MapGenerator : MonoBehaviour {
 		if (testAnimations) Time.timeScale = timeScale;
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
 		cameraTransform = mainCameraObj.transform;
+		cameraPos = cameraTransform.position;
 		mainCamera = mainCameraObj.GetComponent<Camera>();
 		currentTrap = new List<TrapUnit>();
 		//	cameraOriginalSize = mainCamera.orthographicSize;
@@ -1062,10 +1063,12 @@ public class MapGenerator : MonoBehaviour {
 		actualWidth = width / gridSize;
 		actualHeight = height / gridSize;
 		Camera.main.orthographicSize = Mathf.Min(Mathf.Max(actualWidth/3, actualHeight/2) + 2, 10.0f);
-		Vector3 newPos = Camera.main.transform.position;
-		newPos.x = ((float)actualWidth) / 2.0f;
-		newPos.y = -((float)actualHeight)/ 2.0f;
-		Camera.main.transform.position = newPos;
+	//	Vector3 newPos = Camera.main.transform.position;
+		cameraPos.x = ((float)actualWidth) / 2.0f;
+		cameraPos.y = -((float)actualHeight)/ 2.0f;
+	//	Camera.main.transform.position = newPos;
+//		mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
+		setCameraPos();
 		//Debug.Log("width: " + width + ", height: " + height);
 		//Debug.Log("actualWidth: " + actualWidth + ", actualHeight: " + actualHeight);
 		//Debug.Log("newPos: " + newPos);
@@ -1166,11 +1169,14 @@ public class MapGenerator : MonoBehaviour {
 	//	float speed = 32.0f;
 		float dist = cameraSpeed * Time.deltaTime;
 //		float distLeft = Mathf.
-		Vector3 pos = Camera.main.transform.position;
+		Vector3 pos = cameraPos;//Camera.main.transform.position;
 		Vector3 left = new Vector3(cameraMoveToPos.x - pos.x, cameraMoveToPos.y - pos.y, cameraMoveToPos.z - pos.z);
 		float distLeft = Mathf.Sqrt(Mathf.Pow(left.x,2) + Mathf.Pow(left.y,2) + Mathf.Pow(left.z,2));
 		if (distLeft <= dist) {
-			Camera.main.transform.position = cameraMoveToPos;
+			cameraPos = cameraMoveToPos;
+//			Camera.main.transform.position = cameraMoveToPos;
+		//	mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
+			setCameraPos();
 			movingCamera = false;
 		}
 		else {
@@ -1182,8 +1188,17 @@ public class MapGenerator : MonoBehaviour {
 			move.y *= dist;
 			move.z *= dist;
 			pos += move;
-			Camera.main.transform.position = pos;
+		//	Camera.main.transform.position = pos;
+			cameraPos = pos;
+		//	mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
+			setCameraPos();
 		}
+	}
+
+	public void setCameraPos() {
+		float sc = gridSize/1.0f;
+		mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * sc)))/sc, ((float)((int)(cameraPos.y * sc)))/sc, cameraPos.z);
+
 	}
 
 	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
@@ -1196,7 +1211,9 @@ public class MapGenerator : MonoBehaviour {
 		cameraSpeed = speed;
 		position.z = Camera.main.transform.position.z;
 		if (instantly) {
-			Camera.main.transform.position = position;
+			cameraPos = position;
+			setCameraPos();
+//			Camera.main.transform.position = position;
 		}
 		else {
 			movingCamera = true;
@@ -2947,10 +2964,12 @@ public class MapGenerator : MonoBehaviour {
 			//	pos.x += xDiff;
 			//	pos.y += yDiff;
 			//	mapTransform.position = pos;
-				Vector3 pos = mainCamera.transform.position;
-				pos.x -= xDiff;
-				pos.y -= yDiff;
-				mainCamera.transform.position = pos;
+			//	Vector3 pos = mainCamera.transform.position;
+				cameraPos.x -= xDiff;
+				cameraPos.y -= yDiff;
+//				mainCamera.transform.position = pos;
+				setCameraPos();
+//				mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
 			}
 		}
 		lastPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -2971,10 +2990,10 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKey(KeyCode.D)) xDiff -= eachFrame;
 		if (xDiff==0 && yDiff==0) return;
 	//	Vector3 pos = mapTransform.position;
-		Vector3 pos = mainCamera.transform.position;
-		pos.x -= xDiff;
-		pos.y -= yDiff;
-		mainCamera.transform.position = pos;
+	//	Vector3 pos = mainCamera.transform.position;
+		cameraPos.x -= xDiff;
+		cameraPos.y -= yDiff;
+		setCameraPos();
 	//	mapTransform.position = pos;
 		lastPos.x -= xDiff;
 		lastPos.y -= yDiff;
