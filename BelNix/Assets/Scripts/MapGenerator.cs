@@ -59,10 +59,11 @@ public class MapGenerator : MonoBehaviour {
 
 	GameObject targetObject;
 
-	public GameObject upWallPrefab;
+/*	public GameObject upWallPrefab;
 	public GameObject downWallPrefab;
 	public GameObject leftWallPrefab;
-	public GameObject rightWallPrefab;
+	public GameObject rightWallPrefab;*/
+	public GameObject anyWallPrefab;
 
 	bool isOnGUI;
 	public Transform playerTransform;
@@ -225,12 +226,6 @@ public class MapGenerator : MonoBehaviour {
 			}
 			mapOverlay.SetPixels(n, 0, 1, actualHeight * gridSize, pixels);
 		}
-//		mapOverlay.SetPixels(pixels);
-//		Thread t = new Thread(new ThreadStart(setOverlayThread));
-//		t.Start();
-//	}
-	
-//	public void setOverlayThread() {
 		mapOverlay.Apply();
 	}
 	bool logged = false;
@@ -299,8 +294,23 @@ public class MapGenerator : MonoBehaviour {
 		else if (lrDir == Direction.Right) layerMask += 1 << 18;
 		if (udDir == Direction.Up) layerMask += 1 << 15;
 		else if (udDir == Direction.Down) layerMask += 1 << 16;
-		return !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), layerMask);
-
+		layerMask = 1 << 19;
+		RaycastHit hitInfo;
+		RaycastHit2D[] hits = Physics2D.LinecastAll(from/gridSize, to/gridSize, layerMask);
+//		bool ret = !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), out hitInfo, layerMask);
+		if (hits != null) {
+			if (to.x == 17 * 64) Debug.Log("Hits: " + hits.Count() + "  " + from + " "  + to);
+			foreach (RaycastHit2D hit in hits) {
+				GameObject go = hit.collider.gameObject;
+				float angleDiff = go.transform.eulerAngles.z - getAngle(from, to);
+				while (angleDiff < 0) angleDiff += 360.0f;
+				while (angleDiff > 360) angleDiff -= 360.0f;
+				if (go.GetComponent<Wall>().bothWays || (angleDiff > 180.0f && angleDiff < 360.0f)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	public void setGameState() {
@@ -401,10 +411,37 @@ public class MapGenerator : MonoBehaviour {
 
     }
 
+	public static float getAngle(Vector3 start, Vector3 end) {
+		return getAngle(new Vector2(start.x, start.y), new Vector2(end.x, end.y));
+	}
 
+	public static float getAngle(Vector2 start, Vector2 end) {
+		float smallAngle = Mathf.Atan(Mathf.Abs(start.y - end.y)/Mathf.Abs(start.x - end.x)) * 180.0f / Mathf.PI;
+		if (end.y >= start.y) {
+			if (end.x < start.x) {
+				return 180.0f - smallAngle;
+			}
+		}
+		else {
+			if (end.x < start.x) {
+				return 180.0f + smallAngle;
+			}
+			return 360.0f - smallAngle;
+		}
+		return smallAngle;
+	}
 
 	// Use this for initialization
 	void Start() {
+		Debug.Log("Starting Tests!");
+		Debug.Log(hasLineOfSight(new Vector2(17, -28), new Vector2(17, -35)));
+		Debug.Log(hasLineOfSight(new Vector2(17, -35), new Vector2(17, -28)));
+		Debug.Log("Angle Tests");
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(1,0)));
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(0,1)));
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(0,-1)));
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(-1,0)));
+		Debug.Log("Ended Tests!");
 		Time.timeScale = 1;
 		if (testAnimations) Time.timeScale = timeScale;
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
@@ -933,40 +970,53 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void parseTiles(string[] tilesArr) {
+		bool vis = false;
 		Transform walls = map.transform.FindChild("Walls");
 		List<Vector2> positions = new List<Vector2>();
 		for (int n=3;n<tilesArr.Length;n++) {
-			int x = Tile.xForTile(tilesArr[n]);
-			int y = Tile.yForTile(tilesArr[n]);
-			Tile t = tiles[x,y];
-			t.parseTile(tilesArr[n]);
-			if (!t.isVisibleFrom(Direction.Right)) {
-				GameObject wall = GameObject.Instantiate(rightWallPrefab) as GameObject;
-				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x + 1.0f, -y - .5f, 0.0f);
+			if (!vis) {
+				if (tilesArr[n]=="Visibility") vis = true;
+				else {
+					int x = Tile.xForTile(tilesArr[n]);
+					int y = Tile.yForTile(tilesArr[n]);
+					Tile t = tiles[x,y];
+					t.parseTile(tilesArr[n]);
+					/*
+					if (!t.isVisibleFrom(Direction.Right)) {
+						GameObject wall = GameObject.Instantiate(rightWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x + 1.0f, -y - .5f, 0.0f);
+					}
+					if (!t.isVisibleFrom(Direction.Left)) {
+						GameObject wall = GameObject.Instantiate(leftWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x, -y - .5f, 0.0f);
+					}
+					if (!t.isVisibleFrom(Direction.Up)) {
+						GameObject wall = GameObject.Instantiate(upWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x + 0.5f, -y, 0.0f);
+					}
+					if (!t.isVisibleFrom(Direction.Down)) {
+						GameObject wall = GameObject.Instantiate(downWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x + 0.5f, -y - 1.0f, 0.0f);
+					}*/
+					if (t.startingPoint) {
+						GameObject go = gridArray[x,y];
+						SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+						Color c = Color.green;
+						c.a = .4f;
+						sr.color = c;
+						positions.Add(new Vector2(go.transform.position.x, go.transform.position.y));
+					}
+				}
 			}
-			if (!t.isVisibleFrom(Direction.Left)) {
-				GameObject wall = GameObject.Instantiate(leftWallPrefab) as GameObject;
+			else {
+				GameObject wall = GameObject.Instantiate(anyWallPrefab) as GameObject;
 				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x, -y - .5f, 0.0f);
-			}
-			if (!t.isVisibleFrom(Direction.Up)) {
-				GameObject wall = GameObject.Instantiate(upWallPrefab) as GameObject;
-				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x + 0.5f, -y, 0.0f);
-			}
-			if (!t.isVisibleFrom(Direction.Down)) {
-				GameObject wall = GameObject.Instantiate(downWallPrefab) as GameObject;
-				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x + 0.5f, -y - 1.0f, 0.0f);
-			}
-			if (t.startingPoint) {
-				GameObject go = gridArray[x,y];
-				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-				Color c = Color.green;
-				c.a = .4f;
-				sr.color = c;
-				positions.Add(new Vector2(go.transform.position.x, go.transform.position.y));
+				Wall w = wall.GetComponent<Wall>();
+				w.parseWall(tilesArr[n], this);
 			}
 		}
 		if (positions.Count > 0) {
