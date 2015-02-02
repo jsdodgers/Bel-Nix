@@ -9,6 +9,8 @@ public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, C
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
 public class Unit : MonoBehaviour {
+	public bool needsOverlay = false;
+	bool doOverlay = false;
 	public List<Unit> markedUnits;
 	public bool playerControlled = true;
 	public AStarEnemyMap aiMap = null;
@@ -1597,10 +1599,11 @@ public class Unit : MonoBehaviour {
 		setRotationToTile(new Vector2(t.x, -t.y));
 	}
 
-	public void setRotationToMostInterestingTile() {	
+	public bool setRotationToMostInterestingTile() {	
 		Tile t = mapGenerator.getMostInterestingTile(this);
 		if (t != null)
 			setRotationToTile(t);
+		return t != null;
 	}
 	
 	void rotateBy(float rotateDist) {
@@ -1642,6 +1645,10 @@ public class Unit : MonoBehaviour {
 		if (d <= rotateDist) {
 			rot1.z = rotation;
 			rotating = false;
+			if (needsOverlay) {
+				doOverlay = true;
+				needsOverlay = false;
+			}
 		}
 		else {
 			rot1.z += rotateDist * s;
@@ -1836,7 +1843,8 @@ public class Unit : MonoBehaviour {
 					//					setRotationFrom(position, attackEnemy.position)
 					setRotationToAttackEnemy();
 				}
-				if (team == 0) mapGenerator.setOverlay();
+				if (team == 0) needsOverlay = true;
+			//	if (team == 0) mapGenerator.setOverlay();
 
 			}
 			redrawGrid();
@@ -1991,6 +1999,10 @@ public class Unit : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if (doOverlay) {
+			mapGenerator.setOverlay();
+			doOverlay = false;
+		}
 		doMovement();
 		doRotation();
 		doAttack();
@@ -2049,7 +2061,8 @@ public class Unit : MonoBehaviour {
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
 							usedMovement = true;
-							if (team == 0) mapGenerator.setOverlay();
+							if (team == 0) needsOverlay = true;
+						//	if (team == 0) mapGenerator.setOverlay();
 
 						}
 						minorsLeft--;
@@ -2074,7 +2087,13 @@ public class Unit : MonoBehaviour {
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
-				setRotationToMostInterestingTile();
+				if (!setRotationToMostInterestingTile()) {
+					rotating = true;
+/*					if (needsOverlay) {
+						doOverlay = true;
+						needsOverlay = false;
+					}*/
+				}
 				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
 					GameGUI.selectAttack();
 				}
@@ -2085,6 +2104,14 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	public void moveFinished() {
+	/*	Debug.Log("Move Finished");
+		if (needsOverlay) {
+			doOverlay = true;
+			needsOverlay = false;
+		}*/
 	}
 
 	void doRotation() {
