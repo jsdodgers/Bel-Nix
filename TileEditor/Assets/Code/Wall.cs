@@ -96,7 +96,6 @@ public class Wall : MonoBehaviour {
 	void Update () {
 		if (changed) {
 			changed = false;
-			Debug.Log("Changed!   " +  startPos + "  " + endPos);
 /*			capsule.transform.position = startPos + (endPos - startPos)/2.0f;
 			capsule.transform.LookAt(startPos);
 			capsule.height = (endPos - startPos).magnitude;
