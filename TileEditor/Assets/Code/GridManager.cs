@@ -310,7 +310,6 @@ public class GridManager : MonoBehaviour {
 					currentWall.setBlockedShown(true);
 				}
 				else if (gui.visibilityMode == 1) {
-					Debug.Log("Mode is 1");
 					RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);//, float.MaxValue, 1 << 8);
 
 //					RaycastHit hit;
@@ -322,7 +321,6 @@ public class GridManager : MonoBehaviour {
 					Collider2D[] col = Physics2D.OverlapPointAll(v);
 					if (col.Length > 0) {
 						foreach (Collider2D c in col) {*/
-						Debug.Log("Has hit");
 						GameObject go = hit.collider.gameObject;
 						Wall w = null;
 						if (go.name.Contains("Circle")) {
