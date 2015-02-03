@@ -88,9 +88,6 @@ public class BattleGUI : MonoBehaviour {
 	{
 		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Hidden");
 		writeToConsoleActually("Somebody just toggled the console", Color.black);
-		//GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
-		//GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
-		//GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
 		GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().adjustArmsForConsole();
 		//cycleTurnOrder();
 	}
@@ -277,8 +274,6 @@ public class BattleGUI : MonoBehaviour {
         {
             toggleCIPanel(CIPanel.Skills);
         }
-		//if(GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
-		//	Debug.Log("Pointer is over a gameObject");
 	}
 
 	void OnGUI() {
