@@ -435,26 +435,28 @@ public class MapGenerator : MonoBehaviour {
 		} while ((lrDir == Direction.Left ? x > to.x + .5f : x < to.x + .5f));
 	}*/
 
-	public bool isWithinDistance(float distance, Vector2 from, Vector2 to) {
-		bool isWithin = (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
-		return isWithin;
+	public bool isWithinDistance(float distance, Vector2 from, Vector2 to, bool manhattan) {
+		if (manhattan) return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y) <= distance;
+		else return (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
 	}
 
-	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1) {
+	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false) {
 		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
 		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
 		float dist = (distance == -1 ? fromUnit.getViewRadiusToUnit(toUnit) : distance);
-		return hasLineOfSight(from, to, dist);
+		return hasLineOfSight(from, to, dist, manhattan);
 	}
 
-	public bool hasLineOfSight(Tile from, Tile to, float dist) {
+	public bool hasLineOfSight(Tile from, Tile to, float dist, bool manhattan = false) {
 		Vector2 fromVec = new Vector2((int)((from.x + 0.5f)*gridSize), -(int)((from.y + 0.5f)*gridSize));
 		Vector2 toCenter = new Vector2((int)((to.x + 0.5f)*gridSize), -(int)((to.y + 0.5f)*gridSize));
-		if (isWithinDistance(dist*gridSize, fromVec, toCenter) && hasLineOfSight(fromVec, toCenter)) return true;
-		for (int n=-1;n<=1;n+=2) {
-			for (int m=-1;m<=1;m+=2) {
-				Vector2 next = new Vector2(toCenter.x + ((gridSize/2.0f) - 1)*n, toCenter.y + ((gridSize/2.0f) - 1) * m);
-				if (isWithinDistance(dist*gridSize, fromVec, next) && hasLineOfSight(fromVec, next)) return true;
+		if (isWithinDistance(dist*gridSize, fromVec, toCenter, manhattan) && hasLineOfSight(fromVec, toCenter)) return true;
+		if (!manhattan) {
+			for (int n=-1;n<=1;n+=2) {
+				for (int m=-1;m<=1;m+=2) {
+					Vector2 next = new Vector2(toCenter.x + ((gridSize/2.0f) - 1)*n, toCenter.y + ((gridSize/2.0f) - 1) * m);
+					if (isWithinDistance(dist*gridSize, fromVec, next, manhattan) && hasLineOfSight(fromVec, next)) return true;
+				}
 			}
 		}
 		return false;

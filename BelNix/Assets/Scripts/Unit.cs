@@ -234,8 +234,14 @@ public class Unit : MonoBehaviour {
 		return viewRange;
 	}
 
-	public bool hasLineOfSightToUnit(Unit u, int distance = -1) {
-		return mapGenerator.hasLineOfSight(this, u, distance);
+	public bool hasLineOfSightToTile(Tile t, Unit u = null, float distance = -1, bool manhattan = false) {
+		if (distance == -1 && u != null) distance = getViewRadiusToUnit(u);
+		if (distance == -1) distance = getViewRadius();
+		return mapGenerator.hasLineOfSight(mapGenerator.tiles[(int)position.x,(int)-position.y], t, distance, manhattan);
+	}
+
+	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false) {
+		return mapGenerator.hasLineOfSight(this, u, distance, manhattan);
 	}
 
 	public List<Unit> lineOfSightUnits(int distance = -1) {
@@ -816,25 +822,25 @@ public class Unit : MonoBehaviour {
 		return currentPath;
 	}
 
-	public Unit closestEnemy(bool attackUnconscious = false) {
-		return closestUnit(true, false, attackUnconscious);
+	public Unit closestEnemy(bool attackUnconscious = false, bool needsLineOfSight = true) {
+		return closestUnit(true, false, attackUnconscious, needsLineOfSight);
 	}
 
-	public Unit closestFriendly(bool attackUnconscious = false) {
-		return closestUnit(false, true, attackUnconscious);
+	public Unit closestFriendly(bool attackUnconscious = false, bool needsLineOfSight = true) {
+		return closestUnit(false, true, attackUnconscious, needsLineOfSight);
 	}
 
-	public Unit closestUnit(bool attackUnconscious = false) {
-		return closestUnit(true, true, attackUnconscious);
+	public Unit closestUnit(bool attackUnconscious = false, bool needsLineOfSight = true) {
+		return closestUnit(true, true, attackUnconscious, needsLineOfSight);
 	}
 
-	public Unit closestUnit(bool enemies, bool friendlies, bool attackUnconscious = false) {
+	public Unit closestUnit(bool enemies, bool friendlies, bool attackUnconscious = false, bool needsLineOfSight = true) {
 		Unit closest = null;
 		float dist = float.MaxValue;
 		foreach (Unit u in mapGenerator.priorityOrder) {
 			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
-				if (d < dist) {
+				if (d < dist && (!needsLineOfSight || mapGenerator.hasLineOfSight(this, u, -1))) {
 					dist = d;
 					closest = u;
 				}
@@ -846,7 +852,7 @@ public class Unit : MonoBehaviour {
 			TurretUnit tur = tr.GetComponent<TurretUnit>();
 			if (tur != null && ((enemies && tur.team != team) || (friendlies && tur.team == team))) {
 				float d = distanceFromUnit(tur);
-				if (d < dist) {
+				if (d < dist && (!needsLineOfSight || mapGenerator.hasLineOfSight(this, tur, -1))) {
 					dist = d;
 					closest = tur;
 				}
@@ -1665,7 +1671,7 @@ public class Unit : MonoBehaviour {
 
 	public int attackOfOpp(Vector2 one) {
 		int move = 0;
-		for (int n=-1;n<=1;n++) {
+		/*for (int n=-1;n<=1;n++) {
 			for (int m=-1;m<=1;m++) {
 				if ((n==0 && m==0) || !(n==0 || m==0)) continue;
 				int x = (int)one.x + n;
@@ -1692,6 +1698,15 @@ public class Unit : MonoBehaviour {
 						
 					}
 				}
+			}
+		}*/
+		foreach (Unit u in mapGenerator.priorityOrder) {
+			if (u.team != team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToUnit(this, u.getAttackRange(), true)) {
+				move++;
+				u.attackEnemy = this;
+				u.setRotationToTile(new Vector2(one.x,-one.y));
+				u.attackAnimation();
+				u.attackAnimating = true;
 			}
 		}
 		return move;
