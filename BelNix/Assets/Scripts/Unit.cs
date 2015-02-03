@@ -1098,6 +1098,13 @@ public class Unit : MonoBehaviour {
 				aiMap.setGoalsAndHeuristics(units);
 				AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
 				AStarNode node = ret.finalNode;
+				AStarNode no = node;
+				string s = "Path:\n";
+				while (no != null) {
+					s += "\n" + no.parameters.toString();
+					no = no.prev;
+				}
+				Debug.Log(s);
 				node = AStarAlgorithm.reversePath(node);
 //				currentPath = new ArrayList();
 				resetPath();
