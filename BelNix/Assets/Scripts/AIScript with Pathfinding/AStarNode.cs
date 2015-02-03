@@ -43,6 +43,10 @@ public class AStarNode {
 		this.h = heuristic;
 	//	return this;
 	}
+
+	public virtual void setPrev(AStarNode node) {
+		prev = node;
+	}
 	
 	public virtual void setHeuristic(float heuristic) {
 		this.h = heuristic;

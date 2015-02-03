@@ -31,14 +31,14 @@ public class AStarAlgorithm {
 				//		Debug.Log("NewD: " + newD + "  OldD: " + nextNode2.distance());
 						if (newD < nextNode2.distance()) {
 							nextNode2.setDistance(newD);
-							nextNode2.prev = node;
+							nextNode2.setPrev(node);
 						}
 					}
 					else {
 				//		Debug.Log("NewD: " + newD);
 						nextNode2 = nextNode;
 						nextNode2.setDistance(newD);
-						nextNode2.prev = node;
+						nextNode2.setPrev(node);
 					} 
 					if (!nextNode2.isValidNode(map)) {
 						closed.Add(nextNode2.parameters);
