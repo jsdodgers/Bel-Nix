@@ -1275,7 +1275,7 @@ public class MapGenerator : MonoBehaviour {
 				mapOverlays[n,m] = new Texture2D(gridSize, gridSize, TextureFormat.ARGB32, false);
 				for (int o=0;o<gridSize;o++) {
 					for (int p=0;p<gridSize;p++) {
-						mapOverlays[n,m].SetPixel(o,p, Color.black);//colors[(n + m)%2]);
+						mapOverlays[n,m].SetPixel(o,p, (doOverlay ? Color.black : Color.clear));//colors[(n + m)%2]);
 					}
 				}
 				mapOverlays[n,m].Apply();
@@ -1291,7 +1291,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 //		mapOverlay = new Texture2D(width, height, TextureFormat.ARGB32, false);
 		canSee = new bool[width, height];
-		resetCanSee(null, false);
+		resetCanSee(null, !doOverlay);
 	/*	for (int n=0;n<width;n++) {
 		//	if (n%2==0) {
 			for (int m=0;m<height;m++) {
