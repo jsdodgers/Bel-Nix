@@ -5,6 +5,13 @@ using System.IO;
 
 public class GridManager : MonoBehaviour {
 
+	public Wall currentWall;
+	public int selectedEdges = 0; // 0 = Both,	1 = Start,	2 = End,	-1 = None
+	public int tileSize = 64;
+
+	public Vector3 oldStartPos;
+	public Vector3 oldEndPos;
+
 	Transform cameraTransform;
 	Camera mainCamera;
 	SpriteRenderer sprend;
@@ -13,6 +20,7 @@ public class GridManager : MonoBehaviour {
 //	ArrayList gridsArray = new ArrayList();
 	Tile[,] gridsArray;
 	GameObject lines;
+	GameObject walls;
 	ArrayList linesArray;
 	GameObject gridPrefab;
 	GameObject mouseOver;
@@ -46,8 +54,11 @@ public class GridManager : MonoBehaviour {
 	Vector2 lastPos;
 	Vector3 startSquareActual;
 
-	int gridX = 0;
-	int gridY = 0;
+	public int gridX = 0;
+	public int gridY = 0;
+
+	public bool wallBothWays = false;
+	public int wallVisibility = 0;
 
 	public bool displayH;
 	public bool displayI;
@@ -97,6 +108,16 @@ public class GridManager : MonoBehaviour {
 	public bool doAction = true;
 	public bool doTurn = true;
 
+	public void showWalls() {
+		walls.SetActive(true);
+		grids.SetActive(false);
+	}
+
+	public void showGrids() {
+		grids.SetActive(true);
+		walls.SetActive(false);
+	}
+
 	public bool doingAll() {
 		return doingAllColors() && doStand && doUp && doRight && doDown && doLeft && doTrigger && doAction && doUpV && doRightV && doLeftV && doDownV && doStartingPoint && doTurn;
 	}
@@ -118,8 +139,9 @@ public class GridManager : MonoBehaviour {
 		sprend = (SpriteRenderer)transform.GetComponent("SpriteRenderer");
 		spr = sprend.sprite;
 		grids = GameObject.Find("Grids");
+		walls = GameObject.Find("Walls");
 		gridsArray = new Tile[gridX,gridY];
-		gridPrefab = (GameObject)Resources.Load("Sprite/Square_64");
+		gridPrefab = (GameObject)Resources.Load("Sprite/Square_" + tileSize);
 		lines = GameObject.Find("Lines");
 		doRed = true;
 		doGreen = true;
@@ -136,7 +158,10 @@ public class GridManager : MonoBehaviour {
 		doDownV = true;
 		doLeftV = true;
 		doRightV = true;
-	//	linesArray = new ArrayList();
+		showGrids();
+		//	linesArray = new ArrayList();
+//		createLineRenderer(0, 20, 0, 20);
+//		createLineRenderer(20, 10, 20, 40);
 	}
 	
 	// Update is called once per frame
@@ -174,7 +199,7 @@ public class GridManager : MonoBehaviour {
 		}
 		mouseLeftDown = Input.GetMouseButton(0);
 		if (Input.GetMouseButtonUp(0)) shiftDragginCancelled = false;
-		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDragginCancelled) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (shiftDown && Input.GetMouseButtonDown(0)));
+		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDragginCancelled) shiftDraggin = ((shiftDraggin && mouseLeftDown) || ((shiftDown || (gui.mapMode == 1/* && gui.visibilityMode == 0*/)) && Input.GetMouseButtonDown(0)));
 		if (!shiftDraggin && !middleDraggin && !rightDraggin) normalDraggin = ((normalDraggin && mouseLeftDown) || (!shiftDown && Input.GetMouseButtonDown(0)));
 		mouseRightDown = Input.GetMouseButton(1);
 		if (!shiftDraggin && !middleDraggin && !normalDraggin) rightDraggin = (rightDraggin && mouseRightDown) || Input.GetMouseButtonDown(1);
@@ -190,7 +215,7 @@ public class GridManager : MonoBehaviour {
 		iDown = Input.GetKey(KeyCode.I);
 		lDown = Input.GetKey(KeyCode.L);
 		sDown = Input.GetKey(KeyCode.S);
-		escapeDown = Input.GetKey(KeyCode.Escape);
+		escapeDown = Input.GetKeyDown(KeyCode.Escape);
 		spaceDown = Input.GetKey(KeyCode.Space);
 	}
 
@@ -257,15 +282,77 @@ public class GridManager : MonoBehaviour {
 				startSquareActual = posActual;
 				startSquare = new Vector2(v3.x,v3.y);
 			//	startSquareActual = startSquare;
-				mouseOver = (GameObject)Instantiate(gridPrefab);
-				SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
-				mouseOver2 = (GameObject)Instantiate(gridPrefab);
-				SpriteRenderer sr2 = mouseOver2.GetComponent<SpriteRenderer>();
-				sr.color = new Color(1.0f,1.0f,1.0f,0.4f);
-				sr.sortingOrder = 2;
-//				sr2.color = new Color (1.0f,1.0f,1.0f,0.5f);
-				sr2.color = new Color(red, green, blue, 0.4f);
-				sr2.sortingOrder = 1;
+				if (gui.mapMode == 0) {
+					mouseOver = (GameObject)Instantiate(gridPrefab);
+					SpriteRenderer sr =  mouseOver.GetComponent<SpriteRenderer>();
+					mouseOver2 = (GameObject)Instantiate(gridPrefab);
+					SpriteRenderer sr2 = mouseOver2.GetComponent<SpriteRenderer>();
+					sr.color = new Color(1.0f,1.0f,1.0f,0.4f);
+					sr.sortingOrder = 2;
+	//				sr2.color = new Color (1.0f,1.0f,1.0f,0.5f);
+					sr2.color = new Color(red, green, blue, 0.4f);
+					sr2.sortingOrder = 1;
+				}
+				else if (gui.visibilityMode == 0) {
+					Debug.Log("Create Wall");
+					LineRenderer lr = createLineRenderer(startSquareActual.x, startSquareActual.x, startSquareActual.y, startSquareActual.y);
+					lr.renderer.sortingOrder = 10;
+					Color c = new Color(red/255.0f, green/255.0f, blue/255.0f);
+				//	lr.SetColors(c,c);
+					Wall w = lr.gameObject.GetComponent<Wall>();
+					w.gridManager = this;
+					w.setStart(startSquareActual.x, startSquareActual.y);
+					w.setEnd(startSquareActual.x, startSquareActual.y);
+					currentWall = w;
+					w.setColor(c);
+					w.visibility = wallVisibility;
+					w.setBothWays(wallBothWays);
+					currentWall.setBlockedShown(true);
+				}
+				else if (gui.visibilityMode == 1) {
+					RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);//, float.MaxValue, 1 << 8);
+
+//					RaycastHit hit;
+//					if (Physics.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector3.zero, out hit)) {
+					if (hit) {
+				/*	Vector3 mousePos2 = Input.mousePosition;
+					mousePos2.z = 5.0f;
+					Vector2 v = Camera.main.ScreenToWorldPoint(mousePos2);
+					Collider2D[] col = Physics2D.OverlapPointAll(v);
+					if (col.Length > 0) {
+						foreach (Collider2D c in col) {*/
+						GameObject go = hit.collider.gameObject;
+						Wall w = null;
+						if (go.name.Contains("Circle")) {
+							selectedEdges = go.name.Contains("Start") ? 1 : 2;
+							w = go.transform.parent.GetComponent<Wall>();
+						}
+						else {
+							selectedEdges = 0;
+							w = go.GetComponent<Wall>();
+						}
+						if (w != null) {
+							if (currentWall != null && currentWall != w) {
+								currentWall.setCirclesShown(false);
+								currentWall.setBlockedShown(false);
+								currentWall.lineRenderer.renderer.sortingOrder = 1;
+							}
+							currentWall = w;
+							oldStartPos = currentWall.startPos;
+							oldEndPos = currentWall.endPos;
+							currentWall.setBlockedShown(true);
+							currentWall.setCirclesShown(false);
+							currentWall.renderer.sortingOrder = 10;
+						}
+					}
+					else if (currentWall != null) {
+						currentWall.setCirclesShown(false);
+						currentWall.lineRenderer.renderer.sortingOrder = 1;
+						currentWall.setBlockedShown(false);
+						currentWall = null;
+					}
+					//}
+				}
 			}
 			else if (spaceDown) {
 				Vector3 v4 = startSquareActual;
@@ -281,25 +368,55 @@ public class GridManager : MonoBehaviour {
 				startSquare = new Vector2(v4.x,v4.y);
 			}
 
-
+			if (gui.mapMode==0) {
+	//			posActual = v3;
+				Vector2 min = new Vector2(Mathf.Min(posActual.x,startSquareActual.x),Mathf.Min(posActual.y,startSquareActual.y));
+				Vector2 max = new Vector2(Mathf.Max(posActual.x,startSquareActual.x),Mathf.Max(posActual.y,startSquareActual.y));
+		//		Vector2 min2 = new Vector2(Mathf.Min(Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) - (((int)gridX)%2==1 ? 0.5f : 0.0f),Mathf.Min(Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) - (((int)gridY)%2==1 ? 0.5f : 0.0f));
+		//		Vector2 max2 = new Vector2(Mathf.Max (Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) + (((int)gridX)%2==1 ? 0.5f : 1.0f) ,Mathf.Max (Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) + (((int)gridY)%2==1 ? 0.5f : 1.0f));
+				Vector2 min2 = new Vector2(Mathf.Min(gridX, Mathf.Max(0.0f, Mathf.Min(v3.x, startSquare.x))) - gridX/2.0f, gridY/2.0f - Mathf.Min(gridY, Mathf.Max(0.0f, Mathf.Min(v3.y, startSquare.y))));
+				Vector2 max2 = new Vector2(Mathf.Max(0.0f, Mathf.Min(gridX-1.0f,Mathf.Max(v3.x, startSquare.x)) + 1.0f) - gridX/2.0f, gridY/2.0f - Mathf.Max(0.0f, 1.0f + Mathf.Min(gridY-1.0f, Mathf.Max(v3.y, startSquare.y))));
+				mouseOver.transform.localScale = new Vector3(max.x - min.x,max.y - min.y, 1.0f);
+				mouseOver.transform.position = new Vector3((max.x + min.x)/2.0f,(max.y + min.y)/2.0f, 2.0f);
+				mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
+				mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
+			}
+			else if (currentWall != null) {
+				if (gui.visibilityMode == 0) {
+					currentWall.setStart(startSquareActual.x, startSquareActual.y);
+					currentWall.setEnd(posActual.x, posActual.y);
+				}
+				else if (wasShiftDraggin) {
+					Vector2 change = new Vector2(posActual.x - lastPos.x, posActual.y - lastPos.y);
+					if (selectedEdges == 0 || selectedEdges == 1)
+						currentWall.setStart(currentWall.startPos.x + change.x, currentWall.startPos.y + change.y);
+					if (selectedEdges == 0 || selectedEdges == 2)
+						currentWall.setEnd(currentWall.endPos.x + change.x, currentWall.endPos.y + change.y);
+				}
+//				LineRenderer lr = currentWall.lineRenderer;
+//				lr.SetPosition(0, new Vector3(startSquareActual.x, startSquareActual.y, 0.0f));
+//				lr.SetPosition(1, new Vector3(posActual.x, posActual.y, 0.0f));
+			}
 			lastPos = posActual;
-//			posActual = v3;
-			Vector2 min = new Vector2(Mathf.Min(posActual.x,startSquareActual.x),Mathf.Min(posActual.y,startSquareActual.y));
-			Vector2 max = new Vector2(Mathf.Max(posActual.x,startSquareActual.x),Mathf.Max(posActual.y,startSquareActual.y));
-	//		Vector2 min2 = new Vector2(Mathf.Min(Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) - (((int)gridX)%2==1 ? 0.5f : 0.0f),Mathf.Min(Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) - (((int)gridY)%2==1 ? 0.5f : 0.0f));
-	//		Vector2 max2 = new Vector2(Mathf.Max (Mathf.Floor (posActual.x),Mathf.Floor (startSquareActual.x)) + (((int)gridX)%2==1 ? 0.5f : 1.0f) ,Mathf.Max (Mathf.Floor (posActual.y),Mathf.Floor (startSquareActual.y)) + (((int)gridY)%2==1 ? 0.5f : 1.0f));
-			Vector2 min2 = new Vector2(Mathf.Min(gridX, Mathf.Max(0.0f, Mathf.Min(v3.x, startSquare.x))) - gridX/2.0f, gridY/2.0f - Mathf.Min(gridY, Mathf.Max(0.0f, Mathf.Min(v3.y, startSquare.y))));
-			Vector2 max2 = new Vector2(Mathf.Max(0.0f, Mathf.Min(gridX-1.0f,Mathf.Max(v3.x, startSquare.x)) + 1.0f) - gridX/2.0f, gridY/2.0f - Mathf.Max(0.0f, 1.0f + Mathf.Min(gridY-1.0f, Mathf.Max(v3.y, startSquare.y))));
-			mouseOver.transform.localScale = new Vector3(max.x - min.x,max.y - min.y, 1.0f);
-			mouseOver.transform.position = new Vector3((max.x + min.x)/2.0f,(max.y + min.y)/2.0f, 2.0f);
-			mouseOver2.transform.localScale = new Vector3(max2.x - min2.x, max2.y - min2.y, 1.0f);
-			mouseOver2.transform.position = new Vector3((max2.x + min2.x)/2.0f, (max2.y + min2.y)/2.0f, 2.0f);
 		}
 		else if (shiftDragginCancelled) {
-			Destroy(mouseOver);
-			mouseOver = null;
-			Destroy(mouseOver2);
-			mouseOver2 = null;
+			if (gui.mapMode==0) {
+				Destroy(mouseOver);
+				mouseOver = null;
+				Destroy(mouseOver2);
+				mouseOver2 = null;
+			}
+			else if (gui.visibilityMode == 0) {
+				Destroy(currentWall.gameObject);
+//				currentWall.lineRenderer.renderer.sortingOrder = 1;
+				currentWall = null;
+			}
+			else {
+				currentWall.setStart(oldStartPos.x, oldStartPos.y);
+				currentWall.setEnd(oldEndPos.x, oldEndPos.y);
+				currentWall.setCirclesShown(true);
+			}
+			shiftDragginCancelled = false;
 		}
 		else if (wasShiftDraggin) {
 			Vector3 v3 = Input.mousePosition;
@@ -312,24 +429,43 @@ public class GridManager : MonoBehaviour {
 			v3.y = Mathf.Floor(v3.y);
 			//Debug.Log("Start: " + startSquare);
 			//Debug.Log("End: " + v3);
-			Vector2 min = new Vector2(Mathf.Min(v3.x,startSquare.x),Mathf.Min(v3.y,startSquare.y));
-			Vector2 max = new Vector2(Mathf.Max(v3.x,startSquare.x),Mathf.Max(v3.y,startSquare.y));
-			Destroy(mouseOver);
-			mouseOver = null;
-			Destroy(mouseOver2);
-			mouseOver2 = null;
-			for (int n = (int)min.x; n <= (int)max.x;n++) {
-				if (n >= 0 && n < gridX) {
-					for (int m = (int)min.y; m <= (int)max.y; m++) {
-						if (m >= 0 && m < gridY) {
-							Tile t = gridsArray[n,m];
-							setProperties(t);
+			if (gui.mapMode == 0) {
+				Vector2 min = new Vector2(Mathf.Min(v3.x,startSquare.x),Mathf.Min(v3.y,startSquare.y));
+				Vector2 max = new Vector2(Mathf.Max(v3.x,startSquare.x),Mathf.Max(v3.y,startSquare.y));
+				Destroy(mouseOver);
+				mouseOver = null;
+				Destroy(mouseOver2);
+				mouseOver2 = null;
+				for (int n = (int)min.x; n <= (int)max.x;n++) {
+					if (n >= 0 && n < gridX) {
+						for (int m = (int)min.y; m <= (int)max.y; m++) {
+							if (m >= 0 && m < gridY) {
+								Tile t = gridsArray[n,m];
+								setProperties(t);
+							}
 						}
 					}
 				}
 			}
+			else if (currentWall != null) {
+				if (gui.visibilityMode == 0 && gui.editWhenPlaced) gui.visibilityMode = 1;
+				if (gui.visibilityMode == 1) {
+					currentWall.setCirclesShown(true);
+				}
+				else {
+					currentWall.lineRenderer.renderer.sortingOrder = 1;
+					currentWall.setBlockedShown(false);
+					currentWall = null;
+				}
+			}
 		}
-		if ((normalDraggin || rightDraggin) && Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
+		else if (shiftDraggin && currentWall != null && !(Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX)) {
+			selectedEdges = -1;
+/*			currentWall.setCirclesShown(false);
+			currentWall.lineRenderer.renderer.sortingOrder = 1;
+			currentWall = null;*/
+		}
+		if ((normalDraggin || rightDraggin) && gui.mapMode == 0 && Input.mousePosition.x < Screen.width*(1-boxWidthPerc) - gui.checkExtraX) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
 			if (hit) {
 				GameObject go = hit.collider.gameObject;
@@ -406,6 +542,10 @@ public class GridManager : MonoBehaviour {
 				str = str + t.stringValue();
 		//	}
 		}
+		str += ";Visibility";
+		for (int n=0;n<walls.transform.childCount;n++) {
+			str += ";" + walls.transform.GetChild(n).GetComponent<Wall>().stringValue();
+		}
 		//Debug.Log(str);
 		int currAdd = 0;
 		string fileDirectory = "../Files/Maps/Tile Maps";
@@ -456,6 +596,7 @@ public class GridManager : MonoBehaviour {
 			yield return www;
 			string text = www.text;
 			string[] tiles = text.Split(";".ToCharArray());
+			clearWalls();
 			if (int.Parse(tiles[1])==gridX && int.Parse(tiles[2])==gridY) {
 				//Debug.Log("Works!");
 				parseTiles(tiles);
@@ -483,11 +624,25 @@ public class GridManager : MonoBehaviour {
 	}
 
 	void parseTiles(string[] tiles) {
+		bool visibility = false;
 		for (int n=3;n<tiles.Length;n++) {
-			int x = Tile.xForTile(tiles[n]);
-			int y = Tile.yForTile(tiles[n]);
-			Tile t = gridsArray[x,y];
-			t.parseTile(tiles[n]);
+			if (!visibility) {
+				if (tiles[n] == "Visibility") visibility = true;
+				else {
+					int x = Tile.xForTile(tiles[n]);
+					int y = Tile.yForTile(tiles[n]);
+					Tile t = gridsArray[x,y];
+					t.parseTile(tiles[n]);
+				}
+			}
+			else {
+				LineRenderer lr = createLineRenderer(0, 0, 0, 0);
+				lr.renderer.sortingOrder = 1;
+				Wall w = lr.GetComponent<Wall>();
+				w.gridManager = this;
+				w.parseWall(tiles[n]);
+
+			}
 		}
 	}
 
@@ -502,6 +657,14 @@ public class GridManager : MonoBehaviour {
 			}
 		}
 		gridsArray = null;
+	}
+
+	void clearWalls() {
+		if (walls != null) {
+			for (int n=0;n<walls.transform.childCount;n++) {
+				Destroy(walls.transform.GetChild(n).gameObject);
+			}
+		}
 	}
 
 	void loadGrid(float x, float y) {
@@ -587,6 +750,7 @@ public class GridManager : MonoBehaviour {
 			sprend.transform.localScale = new Vector3(scaleX, scaleY, sprend.transform.localScale.z);
 			mainCamera.orthographicSize = Mathf.Max(sprend.transform.localScale.x,sprend.transform.localScale.y) * cameraOriginalSize;
 			cameraTransform.localPosition = new Vector3(0,0,-10);
+			clearWalls();
 			loadGrid(scaleX, scaleY);
 			//Debug.Log(www.texture.width + "  " + www.texture.height + "    " + sprend.transform.localScale.x + "  " + sprend.transform.localScale.y);
 		}
@@ -601,10 +765,10 @@ public class GridManager : MonoBehaviour {
 		//Debug.Log(Application.dataPath);
 		WWW www;
 		if (isWindows()) {
-			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\64.png");
+			www = new WWW("file:\\\\" + Application.dataPath + "\\Resources\\Images\\" + tileSize + ".png");
 		}
 		else {
-			www = new WWW("file://" + Application.dataPath + "/Resources/Images/64.png");
+			www = new WWW("file://" + Application.dataPath + "/Resources/Images/" + tileSize + ".png");
 		}
 		www.LoadImageIntoTexture(spr.texture);
 	}
@@ -621,27 +785,15 @@ public class GridManager : MonoBehaviour {
 			return false;
 		}
 	}
+	LineRenderer createLineRenderer(float xStart, float xEnd, float yStart, float yEnd) {
+		GameObject lrO = GameObject.Instantiate(Resources.Load<GameObject>("Images/LineRenderer")) as GameObject;
+		LineRenderer lr = lrO.GetComponent<LineRenderer>();
+		lr.material = new Material(Shader.Find("Particles/Alpha Blended"));
+		lr.SetPosition(0, new Vector3(xStart, yStart, 0.0f));
+		lr.SetPosition(1, new Vector3(xEnd, yEnd, 0.0f));
+		lrO.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+		lrO.transform.parent = walls.transform;
+		return lr;
+	}
 
-	/*
-	public static bool GetImageSize(Texture2D asset, out int width, out int height) {
-		if (asset != null) {
-			string assetPath = AssetDatabase.GetAssetPath(asset);
-			TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
-			
-			if (importer != null) {
-				object[] args = new object[2] { 0, 0 };
-				MethodInfo mi = typeof(TextureImporter).GetMethod("GetWidthAndHeight", BindingFlags.NonPublic | BindingFlags.Instance);
-				mi.Invoke(importer, args);
-				
-				width = (int)args[0];
-				height = (int)args[1];
-				
-				return true;
-			}
-		}
-		
-		height = width = 0;
-		return false;
-	}*/
-	
 }

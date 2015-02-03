@@ -8,13 +8,14 @@ using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 
 public class MapGenerator : MonoBehaviour {
-	
+	Vector3 cameraPos;
 	public bool doOverlay = false;
 	public bool withLineOfSight = true;
 	public bool testAnimations = false;
 	public float timeScale = 0.05f;
 	public GameObject overlayObject;
-	Texture2D mapOverlay;
+	Texture2D[,] mapOverlays;
+//	Texture2D mapOverlay;
 	public List<Unit> selectionUnits;
 	public List<Unit> outOfGameUnits;
 	public List<Vector2> itemPositions = new List<Vector2>();
@@ -45,7 +46,7 @@ public class MapGenerator : MonoBehaviour {
     public int experienceReward;
     public int copperReward;
 	public string tileMapName;
-	public int gridSize = 70;
+	public int gridSize = 64;
 
 	public AudioBank audioBank;
 	GameObject lastHit;
@@ -59,10 +60,11 @@ public class MapGenerator : MonoBehaviour {
 
 	GameObject targetObject;
 
-	public GameObject upWallPrefab;
+/*	public GameObject upWallPrefab;
 	public GameObject downWallPrefab;
 	public GameObject leftWallPrefab;
-	public GameObject rightWallPrefab;
+	public GameObject rightWallPrefab;*/
+	public GameObject anyWallPrefab;
 
 	bool isOnGUI;
 	public Transform playerTransform;
@@ -163,16 +165,28 @@ public class MapGenerator : MonoBehaviour {
 	public int currentKeysSize;
 
 
-	public void resetCanSee() {
+	public void resetCanSee(bool[,] old, bool resetTo = false) {
 		for (int n=0;n<actualWidth * gridSize;n++) {
 			for (int m=0;m<actualHeight * gridSize; m++) {
-				canSee[n,m] = false;
+				if (old!=null)old[n,m] = canSee[n,m];
+				canSee[n,m] = resetTo;
 			}
 		}
 	}
-	Color blockedColor = Color.black;
-	Color clearColor = Color.clear;
+	public bool hasChange(int x, int y, bool[,] old) {
+		for (int n=x*gridSize;n<(x+1)*gridSize;n++) {
+			for (int m=y*gridSize;m<(y+1)*gridSize;m++) {
+				if (canSee[n,m] != old[n,m]) return true;
+			}
+		}
+		return false;
+	}
+	bool first = true;
+	Color blockedColor = Color.black;//Color.black;
+	Color clearColor = Color.clear;//Color.clear;
 	public void setOverlay() {
+	//	blockedColor.a = .5f;
+	//	clearColor.a = .5f;
 		if (!doOverlay) return;
 	/*	Color c = new Color(0, 0, 0, .0f);
 		for (int n=0;n<mapOverlay.width;n++) {
@@ -181,24 +195,102 @@ public class MapGenerator : MonoBehaviour {
 				mapOverlay.SetPixel(n, m, Color.black);
 			}
 		}*/
-		resetCanSee();
-		foreach (Unit u in players) {
-			int x = (int)(u.transform.position.x * (float)gridSize);
-			int y = (int)(-u.transform.position.y * (float)gridSize);
-			Vector2 originalPosition = new Vector2(u.transform.position.x * gridSize, u.transform.position.y * gridSize);
+		bool[,] canSeeOld = new bool[actualWidth*gridSize,actualHeight*gridSize];
+		resetCanSee(canSeeOld);
+		List<Vector2> positions = new List<Vector2>();
+		if (isInCharacterPlacement()) {
+			foreach (Tile t in tiles) {
+				if (t.startingPoint) {
+					positions.Add(new Vector2(t.getPosition().x + .5f, -t.getPosition().y - .5f));
+				}
+			}
+		}
+		else {
+			foreach (Unit u in players) {
+				positions.Add(new Vector2(u.transform.position.x, u.transform.position.y));
+			}
+		}
+		foreach (Vector2 pos in positions) {
+			int printed = 0;
+			int x = (int)(pos.x * (float)gridSize);
+			int y = (int)(-pos.y * (float)gridSize);
+			Vector2 originalPosition = new Vector2(pos.x * gridSize, pos.y * gridSize);
+			Vector2 originalPositionPos = new Vector2(originalPosition.x, gridSize * actualHeight + originalPosition.y - 1);
 			int dist = (int)((viewRadius) * (float)gridSize);
-			Debug.Log(x + " " + y + "  " + dist + "  " + mapOverlay.width);
+//			Debug.Log(x + " " + y + "  " + dist + "  " + mapOverlay.width);
 
 		//	hasLineOfSight(new Vector2(u.transform.position.x*gridSize, u.transform.position.y*gridSize), new Vector2());
-			for (int n= Mathf.Max(0, x - dist);n<Mathf.Min(mapOverlay.width,x + dist);n++) {
-				for (int m=Mathf.Max(0,y-dist);m<Mathf.Min(mapOverlay.height, y + dist);m++) {
-					if (canSee[n,mapOverlay.height - m - 1]) continue;
+			for (int n= Mathf.Max(0, x - dist);n<Mathf.Min(actualWidth*gridSize,x + dist);n++) {
+			/*	for (int m=Mathf.Max(0,y-dist);m<Mathf.Min(actualHeight*gridSize, y + dist);m++) {
+					if (canSee[n,actualHeight*gridSize - m - 1]) continue;
 					if ((n - x) * (n - x) + (m - y) * (m - y) <= dist * dist && (!withLineOfSight || hasLineOfSight(originalPosition, new Vector2(n, -m)))) {
 					//	Debug.Log(n + " " + m + " " + x + "  " + y);
 	//					mapOverlay.SetPixel(n,  mapOverlay.height - m, c);
-						canSee[n,mapOverlay.height - m - 1] = true;
+						canSee[n,actualHeight*gridSize - m - 1] = true;
 					}
 				}
+				*/
+				int a = (int)Mathf.Sqrt((float)(dist * dist - (x - n) * (x - n)));
+				int m = y + a;
+				CollisionPoint cp = getLineOfSightCollisionPoint(originalPosition, new Vector2(n,-m));
+				if (!cp.collides) {// && n > 0 && actualHeight*gridSize - m - 1 > 0 && m > 0)
+				/*	if (printed <= 10) {
+						Debug.Log(originalPosition + "  " + n + "  " + (actualHeight * gridSize - m - 1) + "  " + m);
+						printed++;
+					}*/
+					setVisibilityLine(originalPositionPos,new Vector2(n,actualHeight*gridSize - m - 1),canSee);
+				//	canSee[n,actualHeight*gridSize - m - 1] = true;
+				}
+				else {
+			//		Debug.Log(cp.point + "  " + n + "  " + m + "      " + "   " + (actualHeight*gridSize)  +  "   " + (actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1));
+					setVisibilityLine(originalPositionPos, new Vector2((int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1), canSee);
+			//		canSee[(int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1] = true;
+				}
+				m = y - a;
+
+				cp = getLineOfSightCollisionPoint(originalPosition, new Vector2(n,-m));
+				if (!cp.collides) {
+					setVisibilityLine(originalPositionPos,new Vector2(n,actualHeight*gridSize - m - 1),canSee);
+//					canSee[n,actualHeight*gridSize - m - 1] = true;
+				}
+				else {
+			//		Debug.Log(cp.point + "  " + n + "  " + m);
+					setVisibilityLine(originalPositionPos, new Vector2((int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1), canSee);
+					//		canSee[(int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1] = true;
+				}
+				
+				//				if (actualHeight * gridSize - m - 1 < actualHeight*gridSize)
+//					canSee[n,actualHeight*gridSize - m - 1] = true;
+			}
+			for (int m = Mathf.Max(0,y-dist);m<Mathf.Min(actualHeight*gridSize,y+dist);m++) {
+				int a = (int)Mathf.Sqrt((float)(dist * dist - (y - m) * (y - m)));
+				int n = x + a;
+
+
+				CollisionPoint cp = getLineOfSightCollisionPoint(originalPosition, new Vector2(n,-m));
+				if (!cp.collides) {
+//					if (printed <= 10) {
+
+//					}
+					setVisibilityLine(originalPositionPos,new Vector2(n,actualHeight*gridSize - m - 1),canSee);
+					//					canSee[n,actualHeight*gridSize - m - 1] = true;
+				}
+				else {
+					setVisibilityLine(originalPositionPos, new Vector2((int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1), canSee);
+					//		canSee[(int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1] = true;
+				}
+				n = x - a;
+				cp = getLineOfSightCollisionPoint(originalPosition, new Vector2(n,-m));
+				if (!cp.collides) {
+					setVisibilityLine(originalPositionPos,new Vector2(n,actualHeight*gridSize - m - 1),canSee);
+					//					canSee[n,actualHeight*gridSize - m - 1] = true;
+				}
+				else {
+					setVisibilityLine(originalPositionPos, new Vector2((int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1), canSee);
+					//		canSee[(int)(cp.point.x*gridSize),actualHeight*gridSize + (int)(cp.point.y*gridSize) - 1] = true;
+				}
+				
+
 			}
 		}
 
@@ -213,7 +305,7 @@ public class MapGenerator : MonoBehaviour {
 		Debug.Log(s);
 		Debug.Log(canSee);
 	//	Color[] pixels = new Color[actualWidth * actualHeight * gridSize * gridSize];//mapOverlay.GetPixels();
-		for (int n=0;n<actualWidth*gridSize;n++) {
+	/*	for (int n=0;n<actualWidth*gridSize;n++) {
 			Color[] pixels = new Color[actualHeight * gridSize];
 			for (int m=0;m<actualHeight*gridSize;m++) {
 				Color c = (canSee[n,m]?clearColor:blockedColor);
@@ -225,13 +317,92 @@ public class MapGenerator : MonoBehaviour {
 			}
 			mapOverlay.SetPixels(n, 0, 1, actualHeight * gridSize, pixels);
 		}
-//		mapOverlay.SetPixels(pixels);
-//		Thread t = new Thread(new ThreadStart(setOverlayThread));
-//		t.Start();
-//	}
-	
-//	public void setOverlayThread() {
-		mapOverlay.Apply();
+		mapOverlay.Apply();*/
+
+		for (int n=0;n<actualWidth;n++) {
+			for (int m=0;m<actualHeight;m++) {
+				if (!first && !hasChange(n,m,canSeeOld)) continue;
+				Color[] pixels = new Color[gridSize*gridSize];
+				for (int o=0;o<gridSize*gridSize;o++) {
+//					pixels[o] = (canSee[n*gridSize+o%gridSize,m*gridSize+o/gridSize]?clearColor:blockedColor);
+					if (canSee[n*gridSize+o%gridSize,m*gridSize+o/gridSize]!=canSeeOld[n*gridSize+o%gridSize,m*gridSize+o/gridSize])
+						mapOverlays[n,m].SetPixel(o%gridSize,o/gridSize,(canSee[n*gridSize+o%gridSize,m*gridSize+o/gridSize]?clearColor:blockedColor));
+				}
+//				mapOverlays[n,m].SetPixels(pixels);
+				mapOverlays[n,m].Apply();
+			}
+		}
+		first = false;
+	}
+	bool done = false;
+	public void setVisibilityLine(Vector2 from, Vector2 to, bool[,] visibilities) {
+		float slope = (to.x - from.x == 0.0f ? 10000.0f : Mathf.Abs(to.y - from.y)/Mathf.Abs(to.x-from.x));
+		Vector2 fr = new Vector2();
+		Vector2 t = new Vector2();
+		bool switched = false;
+	//	if (slope <= 1) {
+			if (from.x <= to.x) {
+				fr.x = from.x;
+				fr.y = from.y;
+				t.x = to.x;
+				t.y = to.y;
+			}
+			else {
+				fr.x = to.x;
+				fr.y = to.y;
+				t.x = from.x;
+				t.y = from.y;
+			}
+/*		}
+		else {
+			switched = true;
+			if (from.y <= to.y) {
+				fr.x = from.y;
+				fr.y = from.x;
+				t.x = to.y;
+				t.y = to.x;
+			}
+			else {
+				fr.x = to.y;
+				fr.y = to.x;
+				t.x = from.y;
+				t.y = from.x;
+			}
+		}*/
+		int s = (t.y > fr.y ? 1 : -1);
+		if (t.x - fr.x == 0.0f) return;
+		float deltaerr = (t.x - fr.x == 0.0f ? Mathf.Abs(t.y - fr.y) : Mathf.Abs((t.y - fr.y)/(t.x - fr.x)));
+		float err = 0;
+		int y = (int)fr.y;
+		for (int x=(int)fr.x;x<(int)t.x;x++) {
+
+		//	visibilities[(switched?y:x),(switched?x:y)] = true;
+			err += deltaerr;
+			if (!setVis(x,y,switched,visibilities) && !done) {
+				Debug.Log("aaa: " + x + " " + y + " " + switched + " " + from + "  " + to + "   " + deltaerr + "   " + err);
+				done = true;
+			}
+			while (err >= 0.5f) {
+				y+=s;
+				err-=1;
+				if (!setVis(x,y,switched,visibilities) && !done) {
+					done = true;
+					Debug.Log("bbb: " + x + " " + y + " " + switched + " " + from + "  " + to + "   " + deltaerr + "   " + err + "   " + s);
+				}
+//				visibilities[(switched?y:x),(switched?x:y)] = true;
+			}
+		}
+	}
+	public bool setVis(int x, int y, bool switched, bool[,] vis) {
+		int xA = switched?y:x;
+		int yA = switched?x:y;
+		if (xA-1 < 0 || yA-1 < 0 || xA+1 >= gridSize*actualWidth || yA+1 >= gridSize*actualHeight) return false;
+		vis[xA,yA] = true;
+		vis[xA+1,yA] = true;
+		vis[xA-1,yA] = true;
+		vis[xA,yA-1] = true;
+		vis[xA,yA+1] = true;
+		return true;
 	}
 	bool logged = false;
 /*	public bool hasLineOfSight(Tile from, Tile to) {
@@ -299,8 +470,62 @@ public class MapGenerator : MonoBehaviour {
 		else if (lrDir == Direction.Right) layerMask += 1 << 18;
 		if (udDir == Direction.Up) layerMask += 1 << 15;
 		else if (udDir == Direction.Down) layerMask += 1 << 16;
-		return !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), layerMask);
-
+		layerMask = 1 << 19;
+		RaycastHit hitInfo;
+		RaycastHit2D[] hits = Physics2D.LinecastAll(from/gridSize, to/gridSize, layerMask);
+//		bool ret = !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), out hitInfo, layerMask);
+		if (hits != null) {
+			if (to.x == 17 * 64) Debug.Log("Hits: " + hits.Count() + "  " + from + " "  + to);
+			foreach (RaycastHit2D hit in hits) {
+				GameObject go = hit.collider.gameObject;
+				float angleDiff = go.transform.eulerAngles.z - getAngle(from, to);
+				while (angleDiff < 0) angleDiff += 360.0f;
+				while (angleDiff > 360) angleDiff -= 360.0f;
+				if (go.GetComponent<Wall>().bothWays || (angleDiff > 180.0f && angleDiff < 360.0f)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	public class CollisionPoint {
+		public Vector2 point;
+		public bool collides;
+		public CollisionPoint(Vector2 p, bool c) {
+			point = p;
+			collides = c;
+		}
+		public CollisionPoint(bool c) {
+			collides = c;
+		}
+	}
+	public CollisionPoint getLineOfSightCollisionPoint(Vector2 from, Vector2 to) {
+		int layerMask = 0;
+		Direction lrDir = Direction.Left;
+		if (from.x < to.x) lrDir = Direction.Right;
+		Direction udDir = Direction.Up;
+		if (from.y > to.y) udDir = Direction.Down;
+		if (lrDir == Direction.Left) layerMask += 1 << 17;
+		else if (lrDir == Direction.Right) layerMask += 1 << 18;
+		if (udDir == Direction.Up) layerMask += 1 << 15;
+		else if (udDir == Direction.Down) layerMask += 1 << 16;
+		layerMask = 1 << 19;
+		RaycastHit hitInfo;
+		RaycastHit2D[] hits = Physics2D.LinecastAll(from/gridSize, to/gridSize, layerMask);
+		//		bool ret = !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), out hitInfo, layerMask);
+		if (hits != null) {
+			if (to.x == 17 * 64) Debug.Log("Hits: " + hits.Count() + "  " + from + " "  + to);
+			foreach (RaycastHit2D hit in hits) {
+				GameObject go = hit.collider.gameObject;
+				float angleDiff = go.transform.eulerAngles.z - getAngle(from, to);
+				while (angleDiff < 0) angleDiff += 360.0f;
+				while (angleDiff > 360) angleDiff -= 360.0f;
+				if (go.GetComponent<Wall>().bothWays || (angleDiff > 180.0f && angleDiff < 360.0f)) {
+					return new CollisionPoint(hit.point, true);
+				}
+			}
+		}
+		return new CollisionPoint(false);
 	}
 
 	public void setGameState() {
@@ -401,14 +626,44 @@ public class MapGenerator : MonoBehaviour {
 
     }
 
+	public static float getAngle(Vector3 start, Vector3 end) {
+		return getAngle(new Vector2(start.x, start.y), new Vector2(end.x, end.y));
+	}
 
+	public static float getAngle(Vector2 start, Vector2 end) {
+		float smallAngle = Mathf.Atan(Mathf.Abs(start.y - end.y)/Mathf.Abs(start.x - end.x)) * 180.0f / Mathf.PI;
+		if (end.y >= start.y) {
+			if (end.x < start.x) {
+				return 180.0f - smallAngle;
+			}
+		}
+		else {
+			if (end.x < start.x) {
+				return 180.0f + smallAngle;
+			}
+			return 360.0f - smallAngle;
+		}
+		return smallAngle;
+	}
 
 	// Use this for initialization
 	void Start() {
+		RenderTexture tex = new RenderTexture(100, 100, 1);
+		tex.Create();
+		Debug.Log("Starting Tests!");
+		Debug.Log(hasLineOfSight(new Vector2(17, -28), new Vector2(17, -35)));
+		Debug.Log(hasLineOfSight(new Vector2(17, -35), new Vector2(17, -28)));
+		Debug.Log("Angle Tests");
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(1,0)));
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(0,1)));
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(0,-1)));
+		Debug.Log(getAngle(new Vector2(0,0), new Vector2(-1,0)));
+		Debug.Log("Ended Tests!");
 		Time.timeScale = 1;
 		if (testAnimations) Time.timeScale = timeScale;
 		GameObject mainCameraObj = GameObject.Find("Main Camera");
 		cameraTransform = mainCameraObj.transform;
+		cameraPos = cameraTransform.position;
 		mainCamera = mainCameraObj.GetComponent<Camera>();
 		currentTrap = new List<TrapUnit>();
 		//	cameraOriginalSize = mainCamera.orthographicSize;
@@ -540,6 +795,7 @@ public class MapGenerator : MonoBehaviour {
 		addItemsToMap();
 		createSelectionArea();
 		createSelectionUnits();
+		setOverlay();
 //		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
@@ -884,6 +1140,7 @@ public class MapGenerator : MonoBehaviour {
 			if (selectedUnit.deadOrDyingOrUnconscious() || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
+			BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
 			activateEnemies();
 	//		editingPath = false;
 		}
@@ -933,40 +1190,53 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void parseTiles(string[] tilesArr) {
+		bool vis = false;
 		Transform walls = map.transform.FindChild("Walls");
 		List<Vector2> positions = new List<Vector2>();
 		for (int n=3;n<tilesArr.Length;n++) {
-			int x = Tile.xForTile(tilesArr[n]);
-			int y = Tile.yForTile(tilesArr[n]);
-			Tile t = tiles[x,y];
-			t.parseTile(tilesArr[n]);
-			if (!t.isVisibleFrom(Direction.Right)) {
-				GameObject wall = GameObject.Instantiate(rightWallPrefab) as GameObject;
-				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x + 1.0f, -y - .5f, 0.0f);
+			if (!vis) {
+				if (tilesArr[n]=="Visibility") vis = true;
+				else {
+					int x = Tile.xForTile(tilesArr[n]);
+					int y = Tile.yForTile(tilesArr[n]);
+					Tile t = tiles[x,y];
+					t.parseTile(tilesArr[n]);
+					/*
+					if (!t.isVisibleFrom(Direction.Right)) {
+						GameObject wall = GameObject.Instantiate(rightWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x + 1.0f, -y - .5f, 0.0f);
+					}
+					if (!t.isVisibleFrom(Direction.Left)) {
+						GameObject wall = GameObject.Instantiate(leftWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x, -y - .5f, 0.0f);
+					}
+					if (!t.isVisibleFrom(Direction.Up)) {
+						GameObject wall = GameObject.Instantiate(upWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x + 0.5f, -y, 0.0f);
+					}
+					if (!t.isVisibleFrom(Direction.Down)) {
+						GameObject wall = GameObject.Instantiate(downWallPrefab) as GameObject;
+						wall.transform.parent = walls;
+						wall.transform.position = new Vector3(x + 0.5f, -y - 1.0f, 0.0f);
+					}*/
+					if (t.startingPoint) {
+						GameObject go = gridArray[x,y];
+						SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+						Color c = Color.green;
+						c.a = .4f;
+						sr.color = c;
+						positions.Add(new Vector2(go.transform.position.x, go.transform.position.y));
+					}
+				}
 			}
-			if (!t.isVisibleFrom(Direction.Left)) {
-				GameObject wall = GameObject.Instantiate(leftWallPrefab) as GameObject;
+			else {
+				GameObject wall = GameObject.Instantiate(anyWallPrefab) as GameObject;
 				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x, -y - .5f, 0.0f);
-			}
-			if (!t.isVisibleFrom(Direction.Up)) {
-				GameObject wall = GameObject.Instantiate(upWallPrefab) as GameObject;
-				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x + 0.5f, -y, 0.0f);
-			}
-			if (!t.isVisibleFrom(Direction.Down)) {
-				GameObject wall = GameObject.Instantiate(downWallPrefab) as GameObject;
-				wall.transform.parent = walls;
-				wall.transform.position = new Vector3(x + 0.5f, -y - 1.0f, 0.0f);
-			}
-			if (t.startingPoint) {
-				GameObject go = gridArray[x,y];
-				SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-				Color c = Color.green;
-				c.a = .4f;
-				sr.color = c;
-				positions.Add(new Vector2(go.transform.position.x, go.transform.position.y));
+				Wall w = wall.GetComponent<Wall>();
+				w.parseWall(tilesArr[n], this);
 			}
 		}
 		if (positions.Count > 0) {
@@ -987,35 +1257,59 @@ public class MapGenerator : MonoBehaviour {
 	void createGrid() {
 		
 		
+		overlayObject = map.transform.FindChild("Overlay").gameObject;
+		GameObject overlayCreate = GameObject.Instantiate(overlayObject) as GameObject;
 		sprend = map.GetComponent<SpriteRenderer>();
 		spr = sprend.sprite;
 		//Debug.Log("Start()");
 		int width = spr.texture.width;
 		int height = spr.texture.height;
-		mapOverlay = new Texture2D(width, height, TextureFormat.ARGB32, false);
+		actualWidth = width / gridSize;
+		actualHeight = height / gridSize;
+	//	Color[] colors = new Color[]{Color.green, Color.red};
+		mapOverlays = new Texture2D[actualWidth, actualHeight];
+		for (int n=0;n<actualWidth;n++) {
+			for (int m=0;m<actualHeight;m++) {
+				mapOverlays[n,m] = new Texture2D(gridSize, gridSize, TextureFormat.ARGB32, false);
+				for (int o=0;o<gridSize;o++) {
+					for (int p=0;p<gridSize;p++) {
+						mapOverlays[n,m].SetPixel(o,p, Color.black);//colors[(n + m)%2]);
+					}
+				}
+				mapOverlays[n,m].Apply();
+				GameObject go = GameObject.Instantiate(overlayCreate) as GameObject;
+				go.transform.parent = overlayObject.transform;
+				go.transform.position = new Vector3(n, -(actualHeight - m - 1), 0.0f);
+				SpriteRenderer spr2 = go.GetComponent<SpriteRenderer>();
+				spr2.sprite = Sprite.Create(mapOverlays[n,m], new Rect(0, 0, gridSize, gridSize), new Vector2(0.0f, 1.0f), gridSize);
+			//	spr2.sprite.texture.filterMode = FilterMode.Point;
+				mapOverlays[n,m].wrapMode = TextureWrapMode.Clamp;
+				spr2.renderer.sortingOrder = mapOverlayOrder;
+			}
+		}
+//		mapOverlay = new Texture2D(width, height, TextureFormat.ARGB32, false);
 		canSee = new bool[width, height];
-		resetCanSee();
-		for (int n=0;n<width;n++) {
+		resetCanSee(null, false);
+	/*	for (int n=0;n<width;n++) {
 		//	if (n%2==0) {
 			for (int m=0;m<height;m++) {
 				mapOverlay.SetPixel(n, m, Color.clear);
 		//		}
 			}
 		}
-		mapOverlay.Apply();
+		mapOverlay.Apply();*/
 //		mapOverlay.SetPixels(new Color[]{Color.red});
-		overlayObject = map.transform.FindChild("Overlay").gameObject;
-		SpriteRenderer overlaySprite = overlayObject.GetComponent<SpriteRenderer>();
-		overlaySprite.sprite = Sprite.Create(mapOverlay, new Rect(0, 0, width, height), new Vector2(0, 1.0f), gridSize);
-		overlaySprite.renderer.sortingOrder = mapOverlayOrder;
+//		SpriteRenderer overlaySprite = overlayObject.GetComponent<SpriteRenderer>();
+//		overlaySprite.sprite = Sprite.Create(mapOverlay, new Rect(0, 0, width, height), new Vector2(0, 1.0f), gridSize);
+//		overlaySprite.renderer.sortingOrder = mapOverlayOrder;
 //		if (spr.texture.width % 64 == 0) gridSize = 64;
-		actualWidth = width / gridSize;
-		actualHeight = height / gridSize;
 		Camera.main.orthographicSize = Mathf.Min(Mathf.Max(actualWidth/3, actualHeight/2) + 2, 10.0f);
-		Vector3 newPos = Camera.main.transform.position;
-		newPos.x = ((float)actualWidth) / 2.0f;
-		newPos.y = -((float)actualHeight)/ 2.0f;
-		Camera.main.transform.position = newPos;
+	//	Vector3 newPos = Camera.main.transform.position;
+		cameraPos.x = ((float)actualWidth) / 2.0f;
+		cameraPos.y = -((float)actualHeight)/ 2.0f;
+	//	Camera.main.transform.position = newPos;
+//		mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
+		setCameraPos();
 		//Debug.Log("width: " + width + ", height: " + height);
 		//Debug.Log("actualWidth: " + actualWidth + ", actualHeight: " + actualHeight);
 		//Debug.Log("newPos: " + newPos);
@@ -1116,11 +1410,14 @@ public class MapGenerator : MonoBehaviour {
 	//	float speed = 32.0f;
 		float dist = cameraSpeed * Time.deltaTime;
 //		float distLeft = Mathf.
-		Vector3 pos = Camera.main.transform.position;
+		Vector3 pos = cameraPos;//Camera.main.transform.position;
 		Vector3 left = new Vector3(cameraMoveToPos.x - pos.x, cameraMoveToPos.y - pos.y, cameraMoveToPos.z - pos.z);
 		float distLeft = Mathf.Sqrt(Mathf.Pow(left.x,2) + Mathf.Pow(left.y,2) + Mathf.Pow(left.z,2));
 		if (distLeft <= dist) {
-			Camera.main.transform.position = cameraMoveToPos;
+			cameraPos = cameraMoveToPos;
+//			Camera.main.transform.position = cameraMoveToPos;
+		//	mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
+			setCameraPos();
 			movingCamera = false;
 		}
 		else {
@@ -1132,8 +1429,17 @@ public class MapGenerator : MonoBehaviour {
 			move.y *= dist;
 			move.z *= dist;
 			pos += move;
-			Camera.main.transform.position = pos;
+		//	Camera.main.transform.position = pos;
+			cameraPos = pos;
+		//	mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
+			setCameraPos();
 		}
+	}
+
+	public void setCameraPos() {
+		float sc = gridSize/1.0f;
+		mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * sc)))/sc, ((float)((int)(cameraPos.y * sc)))/sc, cameraPos.z);
+
 	}
 
 	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
@@ -1146,7 +1452,9 @@ public class MapGenerator : MonoBehaviour {
 		cameraSpeed = speed;
 		position.z = Camera.main.transform.position.z;
 		if (instantly) {
-			Camera.main.transform.position = position;
+			cameraPos = position;
+			setCameraPos();
+//			Camera.main.transform.position = position;
 		}
 		else {
 			movingCamera = true;
@@ -2897,10 +3205,12 @@ public class MapGenerator : MonoBehaviour {
 			//	pos.x += xDiff;
 			//	pos.y += yDiff;
 			//	mapTransform.position = pos;
-				Vector3 pos = mainCamera.transform.position;
-				pos.x -= xDiff;
-				pos.y -= yDiff;
-				mainCamera.transform.position = pos;
+			//	Vector3 pos = mainCamera.transform.position;
+				cameraPos.x -= xDiff;
+				cameraPos.y -= yDiff;
+//				mainCamera.transform.position = pos;
+				setCameraPos();
+//				mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
 			}
 		}
 		lastPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -2921,10 +3231,10 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKey(KeyCode.D)) xDiff -= eachFrame;
 		if (xDiff==0 && yDiff==0) return;
 	//	Vector3 pos = mapTransform.position;
-		Vector3 pos = mainCamera.transform.position;
-		pos.x -= xDiff;
-		pos.y -= yDiff;
-		mainCamera.transform.position = pos;
+	//	Vector3 pos = mainCamera.transform.position;
+		cameraPos.x -= xDiff;
+		cameraPos.y -= yDiff;
+		setCameraPos();
 	//	mapTransform.position = pos;
 		lastPos.x -= xDiff;
 		lastPos.y -= yDiff;
@@ -2959,7 +3269,7 @@ public class MapGenerator : MonoBehaviour {
 				Tile t = tiles[x,y];
 				int d = getDistance(u, x, y);
 				int i = t.getInterestingNess(u, d);
-				if (i > interestingNess || (i == interestingNess && d < tileDist)) {
+				if ((i > interestingNess || (i == interestingNess && d < tileDist)) && hasLineOfSight(tiles[(int)u.position.x,(int)-u.position.y],t, viewRadius)) {
 					interestingNess = i;
 					tileDist = d;
 					interesting = t;

@@ -17,6 +17,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject consoleMessagePrefab;
 	[SerializeField] private GameObject classFeaturePrefab;
 	[SerializeField] private GameObject turnOrderPrefab;
+	[SerializeField] private Text playerTurnTextObject;
 	Text atAGlanceText;
 	Text[] statsTexts;
 	Text characterInfoText;
@@ -28,9 +29,40 @@ public class BattleGUI : MonoBehaviour {
 	private Queue consoleText = new Queue();
 	private GameObject[] currentClassFeatures = null;
 	private int maxNumMessages = 20;
+	public bool doPlayerText;
+	Color playerTurnTextColor;
+	float playerTurnTextStartTime;
+	const float textColorAlphaTime = .5f;
+	const float textColorTime = 1.5f;
+	const float textColorAlphaScale = 1.0f/textColorAlphaTime;
     // Numbers as indices aren't very informative. Let's use enums.
     public enum CIPanel { Glance, Stats, Skills, Buttons };
-	
+
+	void updatePlayerTurnText() {
+		float t = Time.time;
+		if (t - playerTurnTextStartTime > textColorTime) {
+			doPlayerText = false;
+			return;
+		}
+	/*	if (t - playerTurnTextStartTime <= textColorAlphaTime) {
+			Debug.Log(textColorAlphaScale + "  " + playerTurnTextColor.a + "  " + Time.deltaTime + "  " + (Time.deltaTime * textColorAlphaScale));
+			playerTurnTextColor.a += Time.deltaTime*textColorAlphaScale;
+		}*/
+		if (t - playerTurnTextStartTime >= textColorTime - textColorAlphaTime) {
+			playerTurnTextColor.a -= Time.deltaTime * textColorAlphaScale;
+		}
+		playerTurnTextObject.color = playerTurnTextColor;
+	}
+
+	public static void setPlayerTurnText(string text, Color color) {
+		writeToConsole(text, color);
+		battleGUI.playerTurnTextObject.text = text;
+		battleGUI.playerTurnTextColor = color;
+		battleGUI.playerTurnTextColor.a = 1.0f;
+		battleGUI.playerTurnTextStartTime = Time.time;
+		battleGUI.doPlayerText = true;
+	}
+
 	public void selectMovementType(string movementType) {
 		GameGUI.selectMovementType(movementType);
 	}
@@ -88,9 +120,6 @@ public class BattleGUI : MonoBehaviour {
 	{
 		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Hidden");
 		writeToConsoleActually("Somebody just toggled the console", Color.black);
-		//GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
-		//GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
-		//GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Console Expanded", !consoleCanvas.GetComponent<Animator>().GetBool("Hidden"));
 		GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().adjustArmsForConsole();
 		//cycleTurnOrder();
 	}
@@ -262,6 +291,8 @@ public class BattleGUI : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		UnitGUI.doTabs();
+		if (doPlayerText) updatePlayerTurnText();
+
         // C is for Character Sheet
         // V is for Class Features
         if (Input.anyKeyDown && !UIRevealed)
@@ -277,8 +308,6 @@ public class BattleGUI : MonoBehaviour {
         {
             toggleCIPanel(CIPanel.Skills);
         }
-		//if(GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
-		//	Debug.Log("Pointer is over a gameObject");
 	}
 
 	void OnGUI() {

@@ -7,10 +7,7 @@ using System.Collections;
 
 public class CharacterLoadout : MonoBehaviour
 {
-// Slots needed
-//      - Question? Will we be able to equip things besides equipment? For example, could key items like 
-//          briefcases, wallets, etc be held in main/offhand
-//          I need to know whether to make these slots for Item or for Equipment
+
 
 	public ItemArmor headSlot;
 	public EditorItem shoulderSlot;
