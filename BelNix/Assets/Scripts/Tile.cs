@@ -315,6 +315,13 @@ public class Tile {
 //		case Direction.Left:
 //			return (this.
 //		}
+		foreach (Unit u in cs.mapGenerator.priorityOrder) {
+			if (u.team != cs.team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true)) {
+				Tile next = getTile(direction);
+				if (!u.hasLineOfSightToTile(next, cs, u.getAttackRange(), true)) return true;
+			}
+		}
+		return false;
 		bool provokesOpportunity = false;
 		if (direction != Direction.Left) provokesOpportunity |= hasAliveEnemyDirection(Direction.Left, cs);
 		if (direction != Direction.Right) provokesOpportunity |= hasAliveEnemyDirection(Direction.Right, cs);
