@@ -197,11 +197,24 @@ public class MapGenerator : MonoBehaviour {
 		}*/
 		bool[,] canSeeOld = new bool[actualWidth*gridSize,actualHeight*gridSize];
 		resetCanSee(canSeeOld);
-		foreach (Unit u in players) {
+		List<Vector2> positions = new List<Vector2>();
+		if (isInCharacterPlacement()) {
+			foreach (Tile t in tiles) {
+				if (t.startingPoint) {
+					positions.Add(new Vector2(t.getPosition().x + .5f, -t.getPosition().y - .5f));
+				}
+			}
+		}
+		else {
+			foreach (Unit u in players) {
+				positions.Add(new Vector2(u.transform.position.x, u.transform.position.y));
+			}
+		}
+		foreach (Vector2 pos in positions) {
 			int printed = 0;
-			int x = (int)(u.transform.position.x * (float)gridSize);
-			int y = (int)(-u.transform.position.y * (float)gridSize);
-			Vector2 originalPosition = new Vector2(u.transform.position.x * gridSize, u.transform.position.y * gridSize);
+			int x = (int)(pos.x * (float)gridSize);
+			int y = (int)(-pos.y * (float)gridSize);
+			Vector2 originalPosition = new Vector2(pos.x * gridSize, pos.y * gridSize);
 			Vector2 originalPositionPos = new Vector2(originalPosition.x, gridSize * actualHeight + originalPosition.y - 1);
 			int dist = (int)((viewRadius) * (float)gridSize);
 //			Debug.Log(x + " " + y + "  " + dist + "  " + mapOverlay.width);
@@ -782,6 +795,7 @@ public class MapGenerator : MonoBehaviour {
 		addItemsToMap();
 		createSelectionArea();
 		createSelectionUnits();
+		setOverlay();
 //		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
@@ -1126,6 +1140,7 @@ public class MapGenerator : MonoBehaviour {
 			if (selectedUnit.deadOrDyingOrUnconscious() || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
+			BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
 			activateEnemies();
 	//		editingPath = false;
 		}
@@ -1258,7 +1273,7 @@ public class MapGenerator : MonoBehaviour {
 				mapOverlays[n,m] = new Texture2D(gridSize, gridSize, TextureFormat.ARGB32, false);
 				for (int o=0;o<gridSize;o++) {
 					for (int p=0;p<gridSize;p++) {
-						mapOverlays[n,m].SetPixel(o,p, Color.clear);//colors[(n + m)%2]);
+						mapOverlays[n,m].SetPixel(o,p, Color.black);//colors[(n + m)%2]);
 					}
 				}
 				mapOverlays[n,m].Apply();
@@ -1274,7 +1289,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 //		mapOverlay = new Texture2D(width, height, TextureFormat.ARGB32, false);
 		canSee = new bool[width, height];
-		resetCanSee(null, true);
+		resetCanSee(null, false);
 	/*	for (int n=0;n<width;n++) {
 		//	if (n%2==0) {
 			for (int m=0;m<height;m++) {
