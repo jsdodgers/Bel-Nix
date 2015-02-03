@@ -457,7 +457,7 @@ public class Unit : MonoBehaviour {
 				int y = (int)-position.y + m;
 				if (x >= 0 && y>=0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
 					Tile t = mapGenerator.tiles[x,y];
-					if (t.canStand()) return true;
+					if (t.canStand() && mapGenerator.hasLineOfSight(t, mapGenerator.tiles[(int)position.x,(int)-position.y], dist, true)) return true;
 				}
 			}
 		}
