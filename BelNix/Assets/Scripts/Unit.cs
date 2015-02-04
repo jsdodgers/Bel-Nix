@@ -1673,7 +1673,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal;
+		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged;
 	}
 
 	public int attackOfOpp(Vector2 one) {
@@ -2116,7 +2116,7 @@ public class Unit : MonoBehaviour {
 						needsOverlay = false;
 					}*/
 				}
-				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
+				if (!usedStandard && closestEnemyDist() <= getWeapon().range) {
 					GameGUI.selectAttack();
 				}
 				if (GameGUI.selectedMinor) {
