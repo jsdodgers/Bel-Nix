@@ -1650,6 +1650,17 @@ public class MapGenerator : MonoBehaviour {
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs) {
 	if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
+		for (int n=Mathf.Max(0, x - radiusLeft); n <= Mathf.Min(actualWidth - 1, x + radiusLeft); n++) {
+			for (int m=Mathf.Max(0, y - radiusLeft); m <= Mathf.Min(actualHeight - 1, y + radiusLeft);m++) {
+			//	if (n == x && m == y) continue;
+				Tile t2 = tiles[n,m];
+				if (t2.canAttackCurr) continue;
+				if (t2.standable && hasLineOfSight(t, t2, radiusLeft, true)) {
+					t2.canAttackCurr = true;
+				}
+			}
+		}
+		/*
 		if (t.canStandCurr && currRadius != 0) return;
 		if (t.canAttackCurr && t.minAttackCurr <= currRadius) return;
 		if (t.standable) {
@@ -1666,6 +1677,7 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack(x,y-1,radiusLeft-1,currRadius+1, cs);
 		if (canAttack(Direction.Down, x, y, cs))
 			setCharacterCanAttack(x,y+1,radiusLeft-1,currRadius+1, cs);
+			*/
 	}
 
 	public void setCharacterCanPlaceTurret(int x, int y, int radiusLeft, int currRadius, Unit cs) {
@@ -3096,11 +3108,7 @@ public class MapGenerator : MonoBehaviour {
 		u.attackEnemy = null;
 	}
 
-	public void resetRanges() {
-		resetRanges(true);
-	}
-
-	public void resetRanges(bool keys) {
+	public void resetRanges(bool keys = true) {
 		if (keys) resetCurrentKeysTile();
 		removeAllRanges(false);
 		if (!isInCharacterPlacement() && GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0 && GameGUI.selectedTrap!=null) {
@@ -3145,7 +3153,7 @@ public class MapGenerator : MonoBehaviour {
 		if ((GameGUI.showMovement && isOther) || (((GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && !isOther))
 			setAroundCharacter(u);
 		else if ((GameGUI.showAttack && isOther) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock) && !isOther))
-			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
+			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.getAttackRange(),0, u);
 		else if ((GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Place_Turret) && !isOther)

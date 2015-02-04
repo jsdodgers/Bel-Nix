@@ -15,7 +15,7 @@ public class AStarEnemyMap : AStarMap {
 	}
 	
 	public void setStartNode() {
-		AStarEnemyParameters parameters = new AStarEnemyParameters((int)unit.position.x,(int)-unit.position.y);
+		AStarEnemyParameters parameters = new AStarEnemyParameters((int)unit.position.x,(int)-unit.position.y, mapGenerator.tiles[(int)unit.position.x,(int)-unit.position.y]);
 		float heuristic = heuristicForParameters(parameters);
 		startNode = new AStarEnemyNode(parameters,heuristic);
 		startNode.setDistance(heuristic);
@@ -24,7 +24,7 @@ public class AStarEnemyMap : AStarMap {
 	public void setGoalsAndHeuristics(List<Unit> goalUnits) {
 		ArrayList arr = new ArrayList();
 		foreach (Unit u in goalUnits) {
-			AStarEnemyParameters parameters = new AStarEnemyParameters((int)u.position.x,(int)-u.position.y);
+			AStarEnemyParameters parameters = new AStarEnemyParameters((int)u.position.x,(int)-u.position.y, mapGenerator.tiles[(int)u.position.x,(int)-u.position.y]);
 			arr.Add(new AStarEnemyNode(parameters,0.0f));
 		}
 		setGoalNodes(arr);
@@ -56,7 +56,7 @@ public class AStarEnemyMap : AStarMap {
 				if ((n==0 && m==0) || (n!=0 && m!=0)) continue;
 				int x = param.x + n;
 				int y = param.y + m;
-				AStarEnemyParameters param1 = new AStarEnemyParameters(x,y);
+				AStarEnemyParameters param1 = new AStarEnemyParameters(x,y, mapGenerator.tiles[x,y]);
 				if (closedList != null && closedList.Contains(param1)) continue;
 				float heur = heuristicForParameters(param1);
 				AStarEnemyNode node1 = new AStarEnemyNode(param1,heur);
@@ -75,7 +75,7 @@ public class AStarEnemyMap : AStarMap {
 		else if (toN.x > fromN.x) dir = Direction.Right;
 		else if (toN.y < fromN.y) dir = Direction.Up;
 		Tile t = mapGenerator.tiles[fromN.x, fromN.y];
-		return t.canPass(dir, unit, dir);
+		return t.canPass(dir, unit, fromN.fromDir);
 	}
 	
 	
@@ -85,8 +85,9 @@ public class AStarEnemyMap : AStarMap {
 		foreach (AStarEnemyNode goal in goalNodes) {
 			AStarEnemyParameters goalParams = (AStarEnemyParameters)goal.parameters;
 			Tile g = mapGenerator.tiles[goalParams.x,goalParams.y];
-			if (Mathf.Abs(goalParams.x-nodeParams.x) + Mathf.Abs(goalParams.y-nodeParams.y)<=(g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f)) {
-				if (t.canStand() || t.getCharacter()==unit) {
+			//if (Mathf.Abs(goalParams.x-nodeParams.x) + Mathf.Abs(goalParams.y-nodeParams.y)<=(g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f)) {
+			if (t.canStand() || t.getCharacter()==unit) {
+				if (mapGenerator.hasLineOfSight(t, g, (g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f), true)) {
 					return true;
 				}
 			}

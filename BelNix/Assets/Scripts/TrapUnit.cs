@@ -47,6 +47,11 @@ public class TrapUnit : MechanicalUnit {
 		doDeath();
 		doAttack();
 	}
+	
+	
+	public override bool canAttOpp() {
+		return false;
+	}
 
 	public override RaceName getRaceName() {
 		return RaceName.None;
