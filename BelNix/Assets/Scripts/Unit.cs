@@ -234,14 +234,14 @@ public class Unit : MonoBehaviour {
 		return viewRange;
 	}
 
-	public bool hasLineOfSightToTile(Tile t, Unit u = null, float distance = -1, bool manhattan = false) {
+	public bool hasLineOfSightToTile(Tile t, Unit u = null, float distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
 		if (distance == -1 && u != null) distance = getViewRadiusToUnit(u);
 		if (distance == -1) distance = getViewRadius();
-		return mapGenerator.hasLineOfSight(mapGenerator.tiles[(int)position.x,(int)-position.y], t, distance, manhattan);
+		return mapGenerator.hasLineOfSight(mapGenerator.tiles[(int)position.x,(int)-position.y], t, distance, manhattan, visMode);
 	}
 
-	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false) {
-		return mapGenerator.hasLineOfSight(this, u, distance, manhattan);
+	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
+		return mapGenerator.hasLineOfSight(this, u, distance, manhattan, visMode);
 	}
 
 	public List<Unit> lineOfSightUnits(int distance = -1) {
@@ -435,9 +435,9 @@ public class Unit : MonoBehaviour {
 		return getStandardTypes().Length;
 	}
 
-	public int minReachableDistance() {
+	public int minReachableDistance(Unit u) {
 		for (int n=1;n<10;n++) {
-			if (canGetWithin(n,n)) return n;
+			if (canGetWithin(n, u, n)) return n;
 		}
 		return 1;
 	}
@@ -448,7 +448,7 @@ public class Unit : MonoBehaviour {
 		return w.range;
 	}
 
-	public bool canGetWithin(int dist, int minDist = 1) {
+	public bool canGetWithin(int dist, Unit u, int minDist = 1) {
 		for (int n=-dist;n<=dist;n++) {
 			for (int m=-dist;m<=dist;m++) {
 				int d = Mathf.Abs(n) + Mathf.Abs(m);
@@ -457,7 +457,7 @@ public class Unit : MonoBehaviour {
 				int y = (int)-position.y + m;
 				if (x >= 0 && y>=0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
 					Tile t = mapGenerator.tiles[x,y];
-					if (t.canStand() && mapGenerator.hasLineOfSight(t, mapGenerator.tiles[(int)position.x,(int)-position.y], dist, true)) return true;
+					if (t.canStand() && mapGenerator.hasLineOfSight(t, mapGenerator.tiles[(int)position.x,(int)-position.y], dist, true, (u.getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) return true;
 				}
 			}
 		}
@@ -2110,7 +2110,7 @@ public class Unit : MonoBehaviour {
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
 				if (!setRotationToMostInterestingTile()) {
-					rotating = true;
+			//		rotating = true;
 /*					if (needsOverlay) {
 						doOverlay = true;
 						needsOverlay = false;
@@ -2129,11 +2129,11 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void moveFinished() {
-	/*	Debug.Log("Move Finished");
+	//	Debug.Log("Move Finished");
 		if (needsOverlay) {
 			doOverlay = true;
 			needsOverlay = false;
-		}*/
+		}
 	}
 
 	void doRotation() {

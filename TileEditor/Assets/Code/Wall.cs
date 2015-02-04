@@ -7,6 +7,8 @@ public class Wall : MonoBehaviour {
 	public bool bothWays;
 	public Color color;
 	public int visibility;
+	public bool canRange = false;
+	public bool canMelee = false;
 	public LineRenderer lineRenderer;
 	public GameObject startCircle;
 	public GameObject endCircle;
@@ -20,7 +22,7 @@ public class Wall : MonoBehaviour {
 	bool changed = true;
 	bool shownI = false;
 	public string stringValue() {
-		return getVecString(startPos) + "," + getVecString(endPos) + "," + (bothWays ? 1 : 0) + "," + visibility + "," + getColorString(color);
+		return getVecString(startPos) + "," + getVecString(endPos) + "," + (bothWays ? 1 : 0) + "," + visibility + "," + (canRange?1:0) + "," + (canMelee?1:0) + "," + getColorString(color);
 	}
 
 	public void parseWall(string wall) {
@@ -30,6 +32,10 @@ public class Wall : MonoBehaviour {
 		setEnd(float.Parse(spl[curr++])/gridManager.tileSize - gridManager.gridX/2.0f, gridManager.gridY/2.0f - float.Parse(spl[curr++])/gridManager.tileSize);
 		setBothWays(int.Parse(spl[curr++])==1);
 		visibility = int.Parse(spl[curr++]);
+		if (spl.Length > 11) {
+			canRange = int.Parse(spl[curr++])==1;
+			canMelee = int.Parse(spl[curr++])==1;
+		}
 		setColor(new Color(int.Parse(spl[curr++])/255.0f,int.Parse(spl[curr++])/255.0f,int.Parse(spl[curr++])/255.0f));
 	}
 

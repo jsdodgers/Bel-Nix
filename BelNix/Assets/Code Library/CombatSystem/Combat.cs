@@ -36,7 +36,7 @@ class Combat {
 		//      would need to occupy to flank the defender
 		Vector2 teammateCoords = new Vector2((processedAttackerPosition.x == processedDefenderPosition.x) ? processedAttackerPosition.x : processedDefenderPosition.x - (processedAttackerPosition.x - processedDefenderPosition.x),
 		                                     (processedAttackerPosition.y == processedDefenderPosition.y) ? processedAttackerPosition.y : processedDefenderPosition.y - (processedAttackerPosition.y - processedDefenderPosition.y));
-		
+		if (teammateCoords.x < 0 || teammateCoords.y < 0 || teammateCoords.x >= attacker.mapGenerator.actualWidth || teammateCoords.y >= attacker.mapGenerator.actualHeight) return false;
 		// return whether or not a teammate is there, which determines whether the defender is flanked or not
 		Tile t = attacker.mapGenerator.tiles[(int)teammateCoords.x, (int)teammateCoords.y];
 		return t.hasAliveAlly(attacker);

@@ -87,7 +87,7 @@ public class AStarEnemyMap : AStarMap {
 			Tile g = mapGenerator.tiles[goalParams.x,goalParams.y];
 			//if (Mathf.Abs(goalParams.x-nodeParams.x) + Mathf.Abs(goalParams.y-nodeParams.y)<=(g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f)) {
 			if (t.canStand() || t.getCharacter()==unit) {
-				if (mapGenerator.hasLineOfSight(t, g, (g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f), true)) {
+				if (mapGenerator.hasLineOfSight(t, g, (g.hasCharacter()?g.getCharacter().minReachableDistance(unit):1.0f), true)) {
 					return true;
 				}
 			}

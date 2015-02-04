@@ -59,6 +59,8 @@ public class GridManager : MonoBehaviour {
 
 	public bool wallBothWays = false;
 	public int wallVisibility = 0;
+	public bool wallRange = false;
+	public bool wallMelee = false;
 
 	public bool displayH;
 	public bool displayI;
@@ -306,6 +308,8 @@ public class GridManager : MonoBehaviour {
 					currentWall = w;
 					w.setColor(c);
 					w.visibility = wallVisibility;
+					w.canMelee = wallMelee;
+					w.canRange = wallRange;
 					w.setBothWays(wallBothWays);
 					currentWall.setBlockedShown(true);
 				}
