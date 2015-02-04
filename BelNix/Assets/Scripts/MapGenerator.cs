@@ -2261,7 +2261,7 @@ public class MapGenerator : MonoBehaviour {
 		return false;
 	}
 
-	public Direction getDirectionOfTile(Tile from, Tile to) {
+	public static Direction getDirectionOfTile(Tile from, Tile to) {
 		foreach (Direction dir in Tile.directions) {
 			if (from.getTile(dir)==to) return dir;
 		}

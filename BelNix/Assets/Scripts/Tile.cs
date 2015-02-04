@@ -310,12 +310,14 @@ public class Tile {
 		}
 	}
 
-	public bool provokesOpportunity(Direction direction, Unit cs) {
+	public bool provokesOpportunity(Direction direction, Unit cs, Unit singleUnit = null) {
 //		switch (direction) {
 //		case Direction.Left:
 //			return (this.
 //		}
-		foreach (Unit u in cs.mapGenerator.priorityOrder) {
+		List<Unit> units = new List<Unit>();
+		if (singleUnit != null) units.Add(singleUnit);
+		foreach (Unit u in (singleUnit != null ? units : cs.mapGenerator.priorityOrder)) {
 			if (u.team != cs.team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true)) {
 				Tile next = getTile(direction);
 				if (!u.hasLineOfSightToTile(next, cs, u.getAttackRange(), true)) return true;

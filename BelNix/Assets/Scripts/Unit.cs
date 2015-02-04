@@ -1676,7 +1676,7 @@ public class Unit : MonoBehaviour {
 		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged;
 	}
 
-	public int attackOfOpp(Vector2 one) {
+	public int attackOfOpp(Vector2 one, Direction dir) {
 		int move = 0;
 		/*for (int n=-1;n<=1;n++) {
 			for (int m=-1;m<=1;m++) {
@@ -1707,8 +1707,10 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}*/
+		Tile t = mapGenerator.tiles[(int)one.x,(int)one.y];
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToUnit(this, u.getAttackRange(), true)) {
+		//	if (u.team != team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToUnit(this, u.getAttackRange(), true)) {
+			if (t.provokesOpportunity(dir, this, u)) {
 				move++;
 				u.attackEnemy = this;
 				u.setRotationToTile(new Vector2(one.x,-one.y));
@@ -1812,7 +1814,9 @@ public class Unit : MonoBehaviour {
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
-			shouldMove = attackOfOpp((Vector2)currentPath[0]);
+			Vector2 from = (Vector2)currentPath[0];
+			Vector2 to = (Vector2)currentPath[1];
+			shouldMove = attackOfOpp(from, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)from.x,(int)from.y], mapGenerator.tiles[(int)to.x,(int)to.y]));
 		}
 		startMovingActually();
 	//	if (shouldMove == 0) startMovingActually();
@@ -1832,7 +1836,8 @@ public class Unit : MonoBehaviour {
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
 		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
-			attackOfOpp(one);
+			Vector2 two = (Vector2)currentPath[2];
+			attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
 			doAttOpp = false;
 		}
 		//		float distX = one.x - zero.x;
