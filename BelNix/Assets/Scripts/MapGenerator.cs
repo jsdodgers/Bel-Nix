@@ -88,7 +88,7 @@ public class MapGenerator : MonoBehaviour {
 	Unit hoveredCharacter;
 	List<Unit> players;
 	List<Unit> deadUnits;
-	List<Unit> nonAlertEnemies;
+	public List<Unit> nonAlertEnemies;
 	public List<Unit> enemies;
 	public GameObject turrets;
 	public GameObject traps;
