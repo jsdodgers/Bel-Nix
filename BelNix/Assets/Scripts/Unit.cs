@@ -1080,7 +1080,11 @@ public class Unit : MonoBehaviour {
 		float closestDist = closestEnemyDist();
 		Unit enemy = closestEnemy();
 		if (!usedMovement) {
-			if (closestDist > 1) {
+			if (isProne()) {
+				recover();
+				return;
+			}
+			if (closestDist > getAttackRange()) {
 				currentMoveDist = 5;
 				List<Unit> units = new List<Unit>();
 				foreach (Unit u in mapGenerator.priorityOrder) {
@@ -1139,7 +1143,7 @@ public class Unit : MonoBehaviour {
 		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
 	//	usedStandard = true;
 		if (!usedStandard) {
-			if (closestDist <= 1.0f) {
+			if (closestDist <= getAttackRange()) {
 				usedStandard = true;
 				attackEnemy = enemy;
 				setRotationToAttackEnemy();
