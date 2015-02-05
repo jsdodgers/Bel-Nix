@@ -1082,6 +1082,7 @@ public class Unit : MonoBehaviour {
 		if (!usedMovement) {
 			if (isProne()) {
 				recover();
+				actionTime = Time.time;
 				return;
 			}
 			if (closestDist > getAttackRange()) {
