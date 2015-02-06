@@ -91,14 +91,17 @@ public class MyGUI : MonoBehaviour {
 		float visibilityModeY = editTypeY + loadButtonHeight + 5.0f;
 		float wallBothWaysY = visibilityModeY + visibilityModeHeight + 5.0f;
 		float wallVisibilityY = wallBothWaysY + textFieldHeight + 5.0f;
-		float editPlacedY = wallVisibilityY + textFieldHeight + 5.0f;
-		float startTitleY = wallVisibilityY + textFieldHeight + 5.0f;
+		float wallRangedY = wallVisibilityY + textFieldHeight + 5.0f;
+		float wallMeleeY = wallRangedY + textFieldHeight + 5.0f;
+		float editPlacedY = wallMeleeY + textFieldHeight + 5.0f;
+		float startTitleY = wallMeleeY + textFieldHeight + 5.0f;
 		float startXY = startTitleY + textFieldHeight + 5.0f;
 		float startYY = startXY + textFieldHeight + 5.0f;
 		float endTitleY = startYY + textFieldHeight + 5.0f;
 		float endXY = endTitleY + textFieldHeight + 5.0f;
 		float endYY = endXY + textFieldHeight + 5.0f;
-		float deleteY = endYY + textFieldHeight + 10.0f;
+		float flipY = endYY + textFieldHeight + 10.0f;
+		float deleteY = flipY + loadButtonHeight + 5.0f;
 
 		float checkHeight = colorBoxHeight;
 		float checkWidth = loadButtonWidth;
@@ -210,6 +213,16 @@ public class MyGUI : MonoBehaviour {
 			if (visibilityMode == 0) {
 				gridManager.wallVisibility = newWallVisibility;
 			}
+			bool ranged = (visibilityMode == 0 || gridManager.currentWall == null ? gridManager.wallRange : gridManager.currentWall.canRange);
+			bool newRanged = GUI.Toggle(new Rect(checkX,wallRangedY,checkWidth,checkHeight),ranged,"Can Range Through");
+			if (visibilityMode == 0) {
+				gridManager.wallRange = newRanged;
+			}
+			bool melee = (visibilityMode == 0 || gridManager.currentWall == null ? gridManager.wallMelee : gridManager.currentWall.canMelee);
+			bool newMelee = GUI.Toggle(new Rect(checkX,wallMeleeY,checkWidth,checkHeight),melee,"Can Melee Through");
+			if (visibilityMode == 0) {
+				gridManager.wallMelee = newMelee;
+			}
 			if (visibilityMode == 0) {
 				editWhenPlaced = GUI.Toggle(new Rect(checkX, editPlacedY, checkWidth, checkHeight), editWhenPlaced, "Edit When Placed");
 			}
@@ -255,6 +268,18 @@ public class MyGUI : MonoBehaviour {
 					if (wallVisibility != newWallVisibility) {
 						gridManager.currentWall.visibility = newWallVisibility;
 					}
+					if (ranged != newRanged) {
+						gridManager.currentWall.canRange = newRanged;
+					}
+					if (melee != newMelee) {
+						gridManager.currentWall.canMelee = newMelee;
+					}
+				}
+				if (GUI.Button(new Rect(loadButtonX, flipY, loadButtonWidth, loadButtonHeight), "Flip")) {
+					Vector3 start = gridManager.currentWall.startPos;
+					Vector3 end = gridManager.currentWall.endPos;
+					gridManager.currentWall.setStart(end.x, end.y);
+					gridManager.currentWall.setEnd(start.x, start.y);
 				}
 				if (GUI.Button(new Rect(loadButtonX, deleteY, loadButtonWidth, loadButtonHeight), "Delete")) {
 					GameObject.Destroy(gridManager.currentWall.gameObject);
