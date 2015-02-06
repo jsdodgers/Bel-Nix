@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
+public enum VisibilityMode {Visibility, Melee, Ranged, None}
 
 public class MapGenerator : MonoBehaviour {
 	Vector3 cameraPos;
@@ -440,29 +441,29 @@ public class MapGenerator : MonoBehaviour {
 		else return (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
 	}
 
-	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false) {
+	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
 		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
 		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
 		float dist = (distance == -1 ? fromUnit.getViewRadiusToUnit(toUnit) : distance);
-		return hasLineOfSight(from, to, dist, manhattan);
+		return hasLineOfSight(from, to, dist, manhattan, visMode);
 	}
 
-	public bool hasLineOfSight(Tile from, Tile to, float dist, bool manhattan = false) {
+	public bool hasLineOfSight(Tile from, Tile to, float dist, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
 		Vector2 fromVec = new Vector2((int)((from.x + 0.5f)*gridSize), -(int)((from.y + 0.5f)*gridSize));
 		Vector2 toCenter = new Vector2((int)((to.x + 0.5f)*gridSize), -(int)((to.y + 0.5f)*gridSize));
-		if (isWithinDistance(dist*gridSize, fromVec, toCenter, manhattan) && hasLineOfSight(fromVec, toCenter)) return true;
+		if (isWithinDistance(dist*gridSize, fromVec, toCenter, manhattan) && hasLineOfSight(fromVec, toCenter, visMode)) return true;
 		if (!manhattan) {
 			for (int n=-1;n<=1;n+=2) {
 				for (int m=-1;m<=1;m+=2) {
 					Vector2 next = new Vector2(toCenter.x + ((gridSize/2.0f) - 1)*n, toCenter.y + ((gridSize/2.0f) - 1) * m);
-					if (isWithinDistance(dist*gridSize, fromVec, next, manhattan) && hasLineOfSight(fromVec, next)) return true;
+					if (isWithinDistance(dist*gridSize, fromVec, next, manhattan) && hasLineOfSight(fromVec, next, visMode)) return true;
 				}
 			}
 		}
 		return false;
 	}
 
-	public bool hasLineOfSight(Vector2 from, Vector2 to) {
+	public bool hasLineOfSight(Vector2 from, Vector2 to, VisibilityMode visMode = VisibilityMode.Visibility) {
 		int layerMask = 0;
 		Direction lrDir = Direction.Left;
 		if (from.x < to.x) lrDir = Direction.Right;
@@ -480,6 +481,12 @@ public class MapGenerator : MonoBehaviour {
 			if (to.x == 17 * 64) Debug.Log("Hits: " + hits.Count() + "  " + from + " "  + to);
 			foreach (RaycastHit2D hit in hits) {
 				GameObject go = hit.collider.gameObject;
+				Wall w = go.GetComponent<Wall>();
+				if (w != null) {
+					if (visMode == VisibilityMode.Visibility && w.visibility != 0) continue;
+					if (visMode == VisibilityMode.Ranged && w.canRange) continue;
+					if (visMode == VisibilityMode.Melee && w.canMelee) continue;
+				}
 				float angleDiff = go.transform.eulerAngles.z - getAngle(from, to);
 				while (angleDiff < 0) angleDiff += 360.0f;
 				while (angleDiff > 360) angleDiff -= 360.0f;
@@ -501,7 +508,7 @@ public class MapGenerator : MonoBehaviour {
 			collides = c;
 		}
 	}
-	public CollisionPoint getLineOfSightCollisionPoint(Vector2 from, Vector2 to) {
+	public CollisionPoint getLineOfSightCollisionPoint(Vector2 from, Vector2 to, VisibilityMode visMode = VisibilityMode.Visibility) {
 		int layerMask = 0;
 		Direction lrDir = Direction.Left;
 		if (from.x < to.x) lrDir = Direction.Right;
@@ -512,13 +519,18 @@ public class MapGenerator : MonoBehaviour {
 		if (udDir == Direction.Up) layerMask += 1 << 15;
 		else if (udDir == Direction.Down) layerMask += 1 << 16;
 		layerMask = 1 << 19;
-		RaycastHit hitInfo;
 		RaycastHit2D[] hits = Physics2D.LinecastAll(from/gridSize, to/gridSize, layerMask);
 		//		bool ret = !Physics.Linecast(new Vector3(from.x / gridSize, from.y/gridSize, 0.0f), new Vector3(to.x / gridSize, to.y / gridSize, 0.0f), out hitInfo, layerMask);
 		if (hits != null) {
 			if (to.x == 17 * 64) Debug.Log("Hits: " + hits.Count() + "  " + from + " "  + to);
 			foreach (RaycastHit2D hit in hits) {
 				GameObject go = hit.collider.gameObject;
+				Wall w = go.GetComponent<Wall>();
+				if (w != null) {
+					if (visMode == VisibilityMode.Visibility && w.visibility != 0) continue;
+					if (visMode == VisibilityMode.Ranged && w.canRange) continue;
+					if (visMode == VisibilityMode.Melee && w.canMelee) continue;
+				}
 				float angleDiff = go.transform.eulerAngles.z - getAngle(from, to);
 				while (angleDiff < 0) angleDiff += 360.0f;
 				while (angleDiff > 360) angleDiff -= 360.0f;
@@ -633,7 +645,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public static float getAngle(Vector2 start, Vector2 end) {
-		float smallAngle = Mathf.Atan(Mathf.Abs(start.y - end.y)/Mathf.Abs(start.x - end.x)) * 180.0f / Mathf.PI;
+		float smallAngle = Mathf.Atan(Mathf.Abs(start.y - end.y)/Mathf.Max(Mathf.Abs(start.x - end.x),0.000001f)) * 180.0f / Mathf.PI;
 		if (end.y >= start.y) {
 			if (end.x < start.x) {
 				return 180.0f - smallAngle;
@@ -767,8 +779,10 @@ public class MapGenerator : MonoBehaviour {
 		}
 		int aaa = 1;
 		GameObject[] mapEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+		Debug.Log(mapEnemies.Count());
 		foreach (GameObject enemy in mapEnemies) {
 			Vector3 pos = enemy.transform.position;
+			Debug.Log(enemy + "  " + enemy.transform.parent + "  "  + pos);
 			Enemy e = enemy.GetComponent<Enemy>();
 			int x = (int)(pos.x - 0.5f);
 			int y = (int)(pos.y + 0.5f);
@@ -1239,6 +1253,7 @@ public class MapGenerator : MonoBehaviour {
 				wall.transform.parent = walls;
 				Wall w = wall.GetComponent<Wall>();
 				w.parseWall(tilesArr[n], this);
+				Debug.Log(w.visibility + " " + w.transform.position);
 			}
 		}
 		if (positions.Count > 0) {
@@ -1650,6 +1665,17 @@ public class MapGenerator : MonoBehaviour {
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs) {
 	if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
+		for (int n=Mathf.Max(0, x - radiusLeft); n <= Mathf.Min(actualWidth - 1, x + radiusLeft); n++) {
+			for (int m=Mathf.Max(0, y - radiusLeft); m <= Mathf.Min(actualHeight - 1, y + radiusLeft);m++) {
+			//	if (n == x && m == y) continue;
+				Tile t2 = tiles[n,m];
+				if (t2.canAttackCurr) continue;
+				if (t2.standable && hasLineOfSight(t, t2, radiusLeft, true, (cs.getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
+					t2.canAttackCurr = true;
+				}
+			}
+		}
+		/*
 		if (t.canStandCurr && currRadius != 0) return;
 		if (t.canAttackCurr && t.minAttackCurr <= currRadius) return;
 		if (t.standable) {
@@ -1666,6 +1692,7 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack(x,y-1,radiusLeft-1,currRadius+1, cs);
 		if (canAttack(Direction.Down, x, y, cs))
 			setCharacterCanAttack(x,y+1,radiusLeft-1,currRadius+1, cs);
+			*/
 	}
 
 	public void setCharacterCanPlaceTurret(int x, int y, int radiusLeft, int currRadius, Unit cs) {
@@ -2234,7 +2261,7 @@ public class MapGenerator : MonoBehaviour {
 		return false;
 	}
 
-	public Direction getDirectionOfTile(Tile from, Tile to) {
+	public static Direction getDirectionOfTile(Tile from, Tile to) {
 		foreach (Direction dir in Tile.directions) {
 			if (from.getTile(dir)==to) return dir;
 		}
@@ -3096,11 +3123,7 @@ public class MapGenerator : MonoBehaviour {
 		u.attackEnemy = null;
 	}
 
-	public void resetRanges() {
-		resetRanges(true);
-	}
-
-	public void resetRanges(bool keys) {
+	public void resetRanges(bool keys = true) {
 		if (keys) resetCurrentKeysTile();
 		removeAllRanges(false);
 		if (!isInCharacterPlacement() && GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0 && GameGUI.selectedTrap!=null) {
@@ -3145,7 +3168,7 @@ public class MapGenerator : MonoBehaviour {
 		if ((GameGUI.showMovement && isOther) || (((GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && !isOther))
 			setAroundCharacter(u);
 		else if ((GameGUI.showAttack && isOther) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock) && !isOther))
-			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.attackRange,0, u);
+			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.getAttackRange(),0, u);
 		else if ((GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Place_Turret) && !isOther)

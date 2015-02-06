@@ -234,14 +234,14 @@ public class Unit : MonoBehaviour {
 		return viewRange;
 	}
 
-	public bool hasLineOfSightToTile(Tile t, Unit u = null, float distance = -1, bool manhattan = false) {
+	public bool hasLineOfSightToTile(Tile t, Unit u = null, float distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
 		if (distance == -1 && u != null) distance = getViewRadiusToUnit(u);
 		if (distance == -1) distance = getViewRadius();
-		return mapGenerator.hasLineOfSight(mapGenerator.tiles[(int)position.x,(int)-position.y], t, distance, manhattan);
+		return mapGenerator.hasLineOfSight(mapGenerator.tiles[(int)position.x,(int)-position.y], t, distance, manhattan, visMode);
 	}
 
-	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false) {
-		return mapGenerator.hasLineOfSight(this, u, distance, manhattan);
+	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
+		return mapGenerator.hasLineOfSight(this, u, distance, manhattan, visMode);
 	}
 
 	public List<Unit> lineOfSightUnits(int distance = -1) {
@@ -435,9 +435,9 @@ public class Unit : MonoBehaviour {
 		return getStandardTypes().Length;
 	}
 
-	public int minReachableDistance() {
+	public int minReachableDistance(Unit u) {
 		for (int n=1;n<10;n++) {
-			if (canGetWithin(n,n)) return n;
+			if (canGetWithin(n, u, n)) return n;
 		}
 		return 1;
 	}
@@ -448,7 +448,7 @@ public class Unit : MonoBehaviour {
 		return w.range;
 	}
 
-	public bool canGetWithin(int dist, int minDist = 1) {
+	public bool canGetWithin(int dist, Unit u, int minDist = 1) {
 		for (int n=-dist;n<=dist;n++) {
 			for (int m=-dist;m<=dist;m++) {
 				int d = Mathf.Abs(n) + Mathf.Abs(m);
@@ -457,7 +457,7 @@ public class Unit : MonoBehaviour {
 				int y = (int)-position.y + m;
 				if (x >= 0 && y>=0 && x < mapGenerator.actualWidth && y < mapGenerator.actualHeight) {
 					Tile t = mapGenerator.tiles[x,y];
-					if (t.canStand() && mapGenerator.hasLineOfSight(t, mapGenerator.tiles[(int)position.x,(int)-position.y], dist, true)) return true;
+					if (t.canStand() && mapGenerator.hasLineOfSight(t, mapGenerator.tiles[(int)position.x,(int)-position.y], dist, true, (u.getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) return true;
 				}
 			}
 		}
@@ -1080,7 +1080,12 @@ public class Unit : MonoBehaviour {
 		float closestDist = closestEnemyDist();
 		Unit enemy = closestEnemy();
 		if (!usedMovement) {
-			if (closestDist > 1) {
+			if (isProne()) {
+				recover();
+				actionTime = Time.time;
+				return;
+			}
+			if (closestDist > getAttackRange()) {
 				currentMoveDist = 5;
 				List<Unit> units = new List<Unit>();
 				foreach (Unit u in mapGenerator.priorityOrder) {
@@ -1139,7 +1144,7 @@ public class Unit : MonoBehaviour {
 		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
 	//	usedStandard = true;
 		if (!usedStandard) {
-			if (closestDist <= 1.0f) {
+			if (closestDist <= getAttackRange()) {
 				usedStandard = true;
 				attackEnemy = enemy;
 				setRotationToAttackEnemy();
@@ -1673,10 +1678,10 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal;
+		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged;
 	}
 
-	public int attackOfOpp(Vector2 one) {
+	public int attackOfOpp(Vector2 one, Direction dir) {
 		int move = 0;
 		/*for (int n=-1;n<=1;n++) {
 			for (int m=-1;m<=1;m++) {
@@ -1707,8 +1712,10 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}*/
+		Tile t = mapGenerator.tiles[(int)one.x,(int)one.y];
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u.team != team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToUnit(this, u.getAttackRange(), true)) {
+		//	if (u.team != team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToUnit(this, u.getAttackRange(), true)) {
+			if (t.provokesOpportunity(dir, this, u)) {
 				move++;
 				u.attackEnemy = this;
 				u.setRotationToTile(new Vector2(one.x,-one.y));
@@ -1812,7 +1819,9 @@ public class Unit : MonoBehaviour {
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
-			shouldMove = attackOfOpp((Vector2)currentPath[0]);
+			Vector2 from = (Vector2)currentPath[0];
+			Vector2 to = (Vector2)currentPath[1];
+			shouldMove = attackOfOpp(from, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)from.x,(int)from.y], mapGenerator.tiles[(int)to.x,(int)to.y]));
 		}
 		startMovingActually();
 	//	if (shouldMove == 0) startMovingActually();
@@ -1832,7 +1841,8 @@ public class Unit : MonoBehaviour {
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
 		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
-			attackOfOpp(one);
+			Vector2 two = (Vector2)currentPath[2];
+			attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
 			doAttOpp = false;
 		}
 		//		float distX = one.x - zero.x;
@@ -2110,13 +2120,13 @@ public class Unit : MonoBehaviour {
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) usedMovement = true;
 				if (!setRotationToMostInterestingTile()) {
-					rotating = true;
+			//		rotating = true;
 /*					if (needsOverlay) {
 						doOverlay = true;
 						needsOverlay = false;
 					}*/
 				}
-				if (!usedStandard && closestEnemyDist() <= characterSheet.characterLoadout.rightHand.getWeapon().range) {
+				if (!usedStandard && closestEnemyDist() <= getWeapon().range) {
 					GameGUI.selectAttack();
 				}
 				if (GameGUI.selectedMinor) {
@@ -2129,11 +2139,11 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void moveFinished() {
-	/*	Debug.Log("Move Finished");
+	//	Debug.Log("Move Finished");
 		if (needsOverlay) {
 			doOverlay = true;
 			needsOverlay = false;
-		}*/
+		}
 	}
 
 	void doRotation() {

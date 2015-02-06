@@ -5,6 +5,8 @@ public class Wall : MonoBehaviour {
 
 	public bool bothWays;
 	public int visibility;
+	public bool canMelee = false;
+	public bool canRange = false;
 
 	Vector2 startPos;
 	Vector2 endPos;
@@ -15,6 +17,10 @@ public class Wall : MonoBehaviour {
 		endPos = new Vector2(float.Parse(walls[curr++])/mapGenerator.gridSize, -float.Parse(walls[curr++])/mapGenerator.gridSize);
 		bothWays = int.Parse(walls[curr++])==1;
 		visibility = int.Parse(walls[curr++]);
+		if (walls.Length > 11) {
+			canRange = int.Parse(walls[curr++])==1;
+			canMelee = int.Parse(walls[curr++])==1;
+		}
 		setTransform();
 	}
 
