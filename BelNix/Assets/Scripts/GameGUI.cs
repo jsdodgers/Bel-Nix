@@ -1776,6 +1776,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public static void deselectCurrentAction() {
+		Debug.Log(selectedStandard + ": " + selectedStandardType + "   " + selectedMovement + ": " + selectedMovementType + "   " + selectedMinor + ": " + selectedMinorType);
 		if (selectedStandard) {
 			deselectStandardType(selectedStandardType);
 		}
@@ -1792,6 +1793,8 @@ public class GameGUI : MonoBehaviour {
 		default:
 			break;
 		}
+		selectedMinor = false;
+		selectedMinorType = MinorType.None;
 	}
 	public static void deselectStandardType(StandardType t) {
 		BattleGUI.selectStandardType(t, false);
@@ -1799,6 +1802,8 @@ public class GameGUI : MonoBehaviour {
 		default:
 			break;
 		}
+		selectedStandard = false;
+		selectedStandardType = StandardType.None;
 	}
 	public static void deselectMovementType(MovementType t) {
 		BattleGUI.selectMovementType(t, false);
@@ -1806,18 +1811,18 @@ public class GameGUI : MonoBehaviour {
 		default:
 			break;
 		}
+		selectedMovement = false;
+		selectedMovementType = MovementType.None;
 	}
 
 	public static bool looting = false;
 	public static bool inventoryWasOpenLoot = false;
 //	public Tab previouslyOpenTab = Tab.None;
 	public static void selectMinorType(MinorType t) {
-		if (t != selectedMinorType) deselectCurrentAction();
-		if (selectedMovement) deselectMovement();
-		if (selectedStandard) deselectStandard();
-		selectedMinor = true;
+		if (t != selectedMinorType || !selectedMinor) deselectCurrentAction();
+		Debug.Log("Minor: " + t);
+		selectedMinor = t != MinorType.None;
 		if (t == selectedMinorType) return;
-		deselectMinorType(selectedMinorType);
 		BattleGUI.selectMinorType(t);
 	//	MinorType oldT = selectedMinorType;
 		selectedMinorType = t;
@@ -1894,10 +1899,9 @@ public class GameGUI : MonoBehaviour {
 	public static int selectedTrapIndex = 0;
 	public static int selectedTurretIndex = 0;
 	public static void selectStandardType(StandardType t) {
-		if (t != selectedStandardType) deselectCurrentAction();
-		if (selectedMovement) deselectMovement();
-		if (selectedMinor) deselectMinor();
-		selectedStandard = true;
+		if (t != selectedStandardType || !selectedStandard) deselectCurrentAction();
+		Debug.Log("Standard: " + t);
+		selectedStandard = t != StandardType.None;
 		if (t == selectedStandardType) return;
 		BattleGUI.selectStandardType(t);
 	//	StandardType oldT = selectedStandardType;
@@ -1980,13 +1984,16 @@ public class GameGUI : MonoBehaviour {
 	static void OnStart() {
 		selectedStandardType = StandardType.None;
 		selectedMovementType = MovementType.None;
+		selectedMinorType = MinorType.None;
+		selectedStandard = false;
+		selectedMinor = false;
+		selectedMovement = false;
 	}
 	
 	public static void selectMovementType(MovementType t) {
-		if (t != selectedMovementType) deselectCurrentAction();
-		if (selectedStandard) deselectStandard();
-		if (selectedMinor) deselectMinor();
-		selectedMovement = true;
+		if (t != selectedMovementType || !selectedMovement) deselectCurrentAction();
+		Debug.Log("Movement: " + t);
+		selectedMovement = t != MovementType.None;
 		if (t == selectedMovementType) return;
 		BattleGUI.selectMovementType(t);
 //		MovementType oldT = selectedMovementType;

@@ -653,6 +653,7 @@ public class Unit : MonoBehaviour {
 
 	public void useMinor(bool changeAnyway = true, bool changeAtAll = true) {
 		minorsLeft--;
+		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
 		if (!changeAtAll && minorsLeft > 0) return;
 		if (!changeAnyway || minorsLeft <= 0)
 			chooseNextBestActionType();
@@ -663,6 +664,7 @@ public class Unit : MonoBehaviour {
 		if (GameGUI.selectedStandard) {
 			chooseNextBestActionType();
 		}
+		BattleGUI.hideStandardArm();
 	}
 
 	public void useMovement() {
@@ -672,6 +674,7 @@ public class Unit : MonoBehaviour {
 		if (GameGUI.selectedMovement) {
 			chooseNextBestActionType();
 		}
+		BattleGUI.hideMovementArm();
 	}
 
 	public int getInitiative() {

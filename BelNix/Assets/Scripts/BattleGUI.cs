@@ -202,6 +202,7 @@ public class BattleGUI : MonoBehaviour {
 	public static void selectMovementType(MovementType type, bool selected = true) {
 		if (type == MovementType.None) return;
 	//	battleGUI.eventSystem.SetSelectedGameObject();
+		Debug.Log(type + "    " + battleGUI.movementButtons[type].transform.GetChild(0).name);
 		battleGUI.movementButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
 
@@ -426,17 +427,27 @@ public class BattleGUI : MonoBehaviour {
 	}
     public static void hideActionArms()
     {
-        GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", true);
-        GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", true);
-        GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", true);
+		hideMinorArm();
+		hideStandardArm();
+		hideMovementArm();
+	}
+	public static void hideMinorArm(bool hidden = true) {
+        GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
+	}
+	public static void hideStandardArm(bool hidden = true) {
+        GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
+	}
+	public static void hideMovementArm(bool hidden = true) {
+        GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
     }
     private void refreshActionArms()
     {
         Unit unit = mapGenerator.getCurrentUnit();
-        enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
-        GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", false);
-        GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", false);
-        GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", false);
+		enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
+		hideMinorArm(false);
+		hideStandardArm(false);
+		hideMovementArm(false);
+		unit.chooseNextBestActionType();
     }
     //--------------------------------------------------------------------------------
 

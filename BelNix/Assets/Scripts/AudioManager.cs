@@ -12,10 +12,14 @@ public class AudioManager : MonoBehaviour {
 	[SerializeField] private float transitionTime;
 	// Use this for initialization
 	void Start () {
-		music = phazingMusic.GetComponent<AudioSource>();
-		anim = phazingMusic.GetComponent<Animator>();
-		cml = phazingMusic.GetComponent<CleanMusicLoop>();
-		cMusic = constantMusic.GetComponent<AudioSource>();
+		if (phazingMusic != null) {
+			music = phazingMusic.GetComponent<AudioSource>();
+			anim = phazingMusic.GetComponent<Animator>();
+			cml = phazingMusic.GetComponent<CleanMusicLoop>();
+		}
+		if (constantMusic != null) {
+			cMusic = constantMusic.GetComponent<AudioSource>();
+		}
 	}
 
 	public void invokeFadeInMusic()

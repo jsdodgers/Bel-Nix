@@ -865,7 +865,6 @@ public class MapGenerator : MonoBehaviour {
 					nonAlertEnemies.Remove(e);
 					while (newlyActivatedUnits.Count > 0) {
 						Unit curr = newlyActivatedUnits[0];
-						Debug.Log(curr.getName());
 						newlyActivatedUnits.RemoveAt(0);
 						for (int m=nonAlertEnemies.Count-1;m>=0;m--) {
 							Unit ee = nonAlertEnemies[m];
@@ -1157,7 +1156,6 @@ public class MapGenerator : MonoBehaviour {
 			else {
 				GameGUI.selectAttack();
 			}*/
-			selectedUnit.chooseNextBestActionType();
 			if (selectedUnit.deadOrDying()) {
 				selectedUnit.damage(1,null);
 				selectedUnit.showDamage(1, true, false);
@@ -1170,7 +1168,9 @@ public class MapGenerator : MonoBehaviour {
 			}
 			BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
 			activateEnemies();
-	//		editingPath = false;
+		//	selectedUnit.chooseNextBestActionType();
+
+			//		editingPath = false;
 		}
         //Invoke("beginTurn", 0.5f);
 //		setTargetObjectPosition();
@@ -2116,13 +2116,16 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (Input.GetKeyDown(KeyCode.Semicolon) && shiftDown) {
 			getCurrentUnit().minorsLeft += 2;
+			BattleGUI.hideMinorArm(false);
 		}
 		if (Input.GetKeyDown(KeyCode.Quote) && shiftDown) {
 			getCurrentUnit().moveDistLeft = 5;
 			getCurrentUnit().usedMovement = false;
+			BattleGUI.hideMovementArm(false);
 		}
 		if (Input.GetKeyDown(KeyCode.LeftBracket) && shiftDown) {
 			getCurrentUnit().usedStandard = false;
+			BattleGUI.hideStandardArm(false);
 		}
 		handleArrows();
 		handleSpace();
