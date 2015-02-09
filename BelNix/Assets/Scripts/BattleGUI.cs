@@ -252,6 +252,10 @@ public class BattleGUI : MonoBehaviour {
 		//cycleTurnOrder();
 	}
 
+    public void toggleTurnOrderMinimize()
+    {
+        toggleAnimatorBool(GameObject.Find("Canvas - Turn Order").GetComponent<Animator>(), "Revealed");
+    }
 	private void toggleAnimatorBool(Animator animator, string boolName)
 	{
 		animator.SetBool(boolName, !animator.GetBool(boolName));
