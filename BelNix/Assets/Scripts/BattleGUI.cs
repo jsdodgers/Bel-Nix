@@ -87,7 +87,7 @@ public class BattleGUI : MonoBehaviour {
         // By default, the Character Info Canvas' animator idles on "Dismissed," which is visible.
         // We don't want to to be visible until the UI is revealed later, so we have to set it to "Hiding".
         GameObject.Find("Canvas - Character Info").GetComponent<Animator>().Play("CI_Panel_Hiding");
-        GameObject.Find("Canvas - Console").GetComponent<Animator>().Play("Console_Dismissed");
+        //GameObject.Find("Canvas - Console").GetComponent<Animator>().Play("Console_Dismissed");
         foreach (GameObject panel in CIPanels)
             toggleAnimatorBool(panel.GetComponent<Animator>(), "Hidden");
     }
@@ -246,7 +246,7 @@ public class BattleGUI : MonoBehaviour {
 
 	public void toggleConsole()
 	{
-		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Hidden");
+		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Dismissed");
 		writeToConsoleActually("Somebody just toggled the console", Color.black);
 		GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().adjustArmsForConsole();
 		//cycleTurnOrder();
