@@ -1596,7 +1596,7 @@ public class Unit : MonoBehaviour {
 		return new Rect(paperDollFullWidth - 1.0f, 0.0f, turnOrderWidth, paperDollFullHeight);
 	}
 	public void drawGUI() {
-		UnitGUI.drawGUI(characterSheet, mapGenerator, this);
+		//UnitGUI.drawGUI(characterSheet, mapGenerator, this);
 	}
 
 	void selectUnit(Unit player) {
