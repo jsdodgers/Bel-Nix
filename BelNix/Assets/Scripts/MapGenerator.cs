@@ -1090,6 +1090,9 @@ public class MapGenerator : MonoBehaviour {
 
 	public Unit nextPlayer() {
 		if (gameState != GameState.Playing) return null;
+		GameGUI.selectMovementType(MovementType.None);
+		GameGUI.selectStandardType(StandardType.None);
+		GameGUI.selectMinorType(MinorType.None);
 		if (currentUnit >=0 && currentUnit < priorityOrder.Count) {
 			getCurrentUnit().removeCurrent();
 			getCurrentUnit().endTurn();
@@ -1129,10 +1132,10 @@ public class MapGenerator : MonoBehaviour {
 //		if (hoveredCharacter) {
 //			resetAroundCharacter(hoveredCharacter);
 //		}
-		if (getCurrentUnit().hasWeapon())
-			GameGUI.selectedStandardType = StandardType.Attack;
-		else GameGUI.selectedStandardType = StandardType.None;
-		GameGUI.selectedMovementType = MovementType.Move;
+	//	if (getCurrentUnit().hasWeapon())
+	//		GameGUI.selectedStandardType = StandardType.Attack;
+	//	else GameGUI.selectedStandardType = StandardType.None;
+	//	GameGUI.selectedMovementType = MovementType.Move;
 		selectedUnit = getCurrentUnit();
 	//	selectedUnit.transform.FindChild("Circle").GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Materials/SelectionCircleWhite");
 		if (selectedUnit) {
@@ -1147,13 +1150,14 @@ public class MapGenerator : MonoBehaviour {
 				moveCameraToSelected();
 			lastPlayerPath = selectedUnit.currentPath;
 			float closestEnemy = selectedUnit.closestEnemyDist();
-            if (closestEnemy > selectedUnit.characterSheet.characterSheet.characterLoadout.rightHand.range)
+         /*   if (closestEnemy > selectedUnit.characterSheet.characterSheet.characterLoadout.rightHand.range)
             {
 				GameGUI.selectMove();
 			}
 			else {
 				GameGUI.selectAttack();
-			}
+			}*/
+			selectedUnit.chooseNextBestActionType();
 			if (selectedUnit.deadOrDying()) {
 				selectedUnit.damage(1,null);
 				selectedUnit.showDamage(1, true, false);
@@ -2248,7 +2252,7 @@ public class MapGenerator : MonoBehaviour {
 				if (turret != null) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(turret);
 				turretBeingPlacedInDirection = Direction.None;
 				turretBeingPlaced = null;
-				getCurrentUnit().usedStandard = true;
+				getCurrentUnit().useStandard();
 				getCurrentUnit().useMovementIfStarted();
 			}
 		}
@@ -2264,8 +2268,8 @@ public class MapGenerator : MonoBehaviour {
 					currentlySelectedTrap.unsetSelectedForPlacement();
 					currentlySelectedTrap = null;
 				}
-				getCurrentUnit().usedStandard = true;
 				getCurrentUnit().useMovementIfStarted();
+				getCurrentUnit().useStandard();
 				currentTrap = new List<TrapUnit>();
 			}
 		}

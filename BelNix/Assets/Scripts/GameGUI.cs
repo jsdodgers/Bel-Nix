@@ -925,7 +925,7 @@ public class GameGUI : MonoBehaviour {
 	public static void selectMinor(MinorType minorType) {
 		if (!selectedMinor) {
 			clickMinor();
-			selectedMinorType = minorType;
+		//	selectedMinorType = minorType;
 		}
 		else if (minorType == selectedMinorType) selectedMinorType = MinorType.None;
 		else selectedMinorType = minorType;
@@ -1092,6 +1092,7 @@ public class GameGUI : MonoBehaviour {
 
 		// Game GUI
 		else {
+			// BattleGUI;
 			return;
 			float consoleRight = 160.0f;
 			if (!clipboardUp) consoleRight += 45.0f;
@@ -1774,12 +1775,53 @@ public class GameGUI : MonoBehaviour {
 		mapGenerator.resetRanges();
 	}
 
+	public static void deselectCurrentAction() {
+		if (selectedStandard) {
+			deselectStandardType(selectedStandardType);
+		}
+		else if (selectedMovement) {
+			deselectMovementType(selectedMovementType);
+		}
+		else if (selectedMinor) {
+			deselectMinorType(selectedMinorType);
+		}
+	}
+	public static void deselectMinorType(MinorType t) {
+		BattleGUI.selectMinorType(t, false);
+		switch (t) {
+		default:
+			break;
+		}
+	}
+	public static void deselectStandardType(StandardType t) {
+		BattleGUI.selectStandardType(t, false);
+		switch (t) {
+		default:
+			break;
+		}
+	}
+	public static void deselectMovementType(MovementType t) {
+		BattleGUI.selectMovementType(t, false);
+		switch (t) {
+		default:
+			break;
+		}
+	}
 
 	public static bool looting = false;
 	public static bool inventoryWasOpenLoot = false;
 //	public Tab previouslyOpenTab = Tab.None;
 	public static void selectMinorType(MinorType t) {
+		if (t != selectedMinorType) deselectCurrentAction();
+		if (selectedMovement) deselectMovement();
+		if (selectedStandard) deselectStandard();
+		selectedMinor = true;
+		if (t == selectedMinorType) return;
+		deselectMinorType(selectedMinorType);
+		BattleGUI.selectMinorType(t);
+	//	MinorType oldT = selectedMinorType;
 		selectedMinorType = t;
+	//	deselectMinorType(oldT);
 		mapGenerator.resetCurrentKeysTile();
 		if (mapGenerator.selectedUnit.attackEnemy)
 			mapGenerator.selectedUnit.attackEnemy.deselect();
@@ -1805,7 +1847,6 @@ public class GameGUI : MonoBehaviour {
 		case MinorType.Escape:
 			p.selectMinorType(t);
 			break;
-		case MinorType.Cancel:
 		default:
 			break;
 		}
@@ -1813,44 +1854,38 @@ public class GameGUI : MonoBehaviour {
 	// The unity event system doesn't let you use methods from the editor unless they return void
 	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
 	// here's another version that accepts a string instead of a MinorType enum.
-	public static void selectMinorType(string t)
-	{
-		switch(t)
-		{
-		case "Cancel":
-			if(!selectedMinor) selectMinor(MinorType.Cancel);
-			selectMinorType(MinorType.Cancel);
-			break;
+	public static void selectMinorType(string t) {
+		switch(t) {
 		case "Loot":
-			if(!selectedMinor) selectMinor(MinorType.Loot);
+		//	if(!selectedMinor) selectMinor(MinorType.Loot);
 			selectMinorType(MinorType.Loot);
 			break;
 		case "Stealth":
-			if (!selectedMinor) selectMinor(MinorType.Stealth);
+	//		if (!selectedMinor) selectMinor(MinorType.Stealth);
 			selectMinorType(MinorType.Stealth);
 			break;
 		case "Escape":
-			if (!selectedMinor) selectMinor(MinorType.Escape);
+	//		if (!selectedMinor) selectMinor(MinorType.Escape);
 			selectMinorType(MinorType.Escape);
 			break;
 		case "Invoke":
-			if (!selectedMinor) selectMinor(MinorType.Invoke);
+	//		if (!selectedMinor) selectMinor(MinorType.Invoke);
 			selectMinorType(MinorType.Invoke);
 			break;
 		case "Mark":
-			if (!selectedMinor) selectMinor(MinorType.Mark);
+	//		if (!selectedMinor) selectMinor(MinorType.Mark);
 			selectMinorType(MinorType.Mark);
 			break;
 		case "One Of Many":
-			if (!selectedMinor) selectMinor(MinorType.OneOfMany);
+	//		if (!selectedMinor) selectMinor(MinorType.OneOfMany);
 			selectMinorType(MinorType.OneOfMany);
 			break;
 		case "Tempered Hands":
-			if (!selectedMinor) selectMinor(MinorType.TemperedHands);
+	///		if (!selectedMinor) selectMinor(MinorType.TemperedHands);
 			selectMinorType(MinorType.TemperedHands);
 			break;
 		default:
-			if(!selectedMinor) selectMinor(MinorType.None);
+	//		if(!selectedMinor) selectMinor(MinorType.None);
 			selectMinorType(MinorType.None);
 			break;
 		}
@@ -1859,17 +1894,25 @@ public class GameGUI : MonoBehaviour {
 	public static int selectedTrapIndex = 0;
 	public static int selectedTurretIndex = 0;
 	public static void selectStandardType(StandardType t) {
+		if (t != selectedStandardType) deselectCurrentAction();
+		if (selectedMovement) deselectMovement();
+		if (selectedMinor) deselectMinor();
+		selectedStandard = true;
+		if (t == selectedStandardType) return;
+		BattleGUI.selectStandardType(t);
+	//	StandardType oldT = selectedStandardType;
 		selectedStandardType = t;
+	//	deselectStandardType(oldT);
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
-		case StandardType.Cancel:
+	/*	case StandardType.Cancel:
 			if (mapGenerator.selectedUnit.attackEnemy)
 				mapGenerator.selectedUnit.attackEnemy.deselect();
 			selectedStandardType = StandardType.None;
 			selectedStandard = false;
 			mapGenerator.resetRanges();
-			break;
+			break;*/
 		case StandardType.Attack:
 		case StandardType.OverClock:
 		case StandardType.Throw:
@@ -1899,40 +1942,36 @@ public class GameGUI : MonoBehaviour {
 	{
 		switch(t)
 		{
-		case "Cancel":
-			if(!selectedStandard) selectStandard(StandardType.Cancel);
-			selectStandardType(StandardType.Cancel);
-			break;
 		case "Attack":
-			if(!selectedStandard) selectStandard(StandardType.Attack);
+		//	if(!selectedStandard) selectStandard(StandardType.Attack);
 			selectStandardType(StandardType.Attack);
 			break;
 		case "Over Clock":
-			if(!selectedStandard) selectStandard(StandardType.OverClock);
+	//		if(!selectedStandard) selectStandard(StandardType.OverClock);
 			selectStandardType(StandardType.OverClock);
 			break;
 		case "Throw":
-			if(!selectedStandard) selectStandard(StandardType.Throw);
+	//		if(!selectedStandard) selectStandard(StandardType.Throw);
 			selectStandardType(StandardType.Throw);
 			break;
 		case "Intimidate":
-			if(!selectedStandard) selectStandard(StandardType.Intimidate);
+	//		if(!selectedStandard) selectStandard(StandardType.Intimidate);
 			selectStandardType(StandardType.Intimidate);
 			break;
 		case "Place Turret":
-			if(!selectedStandard) selectStandard(StandardType.Place_Turret);
+	//		if(!selectedStandard) selectStandard(StandardType.Place_Turret);
 			selectStandardType(StandardType.Place_Turret);
 			break;
 		case "Lay Trap":
-			if(!selectedStandard) selectStandard(StandardType.Lay_Trap);
+	//		if(!selectedStandard) selectStandard(StandardType.Lay_Trap);
 			selectStandardType(StandardType.Lay_Trap);
 			break;
 		case "Inventory":
-			if(!selectedStandard) selectStandard(StandardType.Inventory);
+	//		if(!selectedStandard) selectStandard(StandardType.Inventory);
 			selectStandardType(StandardType.Inventory);
 			break;
 		default:
-			if(!selectedStandard) selectStandard(StandardType.None);
+	//		if(!selectedStandard) selectStandard(StandardType.None);
 			selectStandardType(StandardType.None);
 			break;
 		}
@@ -1944,15 +1983,22 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	public static void selectMovementType(MovementType t) {
+		if (t != selectedMovementType) deselectCurrentAction();
+		if (selectedStandard) deselectStandard();
+		if (selectedMinor) deselectMinor();
+		selectedMovement = true;
+		if (t == selectedMovementType) return;
+		BattleGUI.selectMovementType(t);
+//		MovementType oldT = selectedMovementType;
 		selectedMovementType = t;
 		mapGenerator.resetCurrentKeysTile();
 		switch (t) {
-		case MovementType.Cancel:
+	/*	case MovementType.Cancel:
 			selectedMovementType = MovementType.None;
 			selectedMovement = false;
 			mapGenerator.resetRanges();
 			mapGenerator.removePlayerPath();
-			break;
+			break;*/
 		case MovementType.BackStep:
 		case MovementType.Move:
 
@@ -1981,24 +2027,20 @@ public class GameGUI : MonoBehaviour {
 	{
 		switch(t)
 		{
-		case "Cancel":
-			if(!selectedMovement) selectMove();
-			selectMovementType(MovementType.Cancel);
-			break;
 		case "Backstep":
-			if(!selectedMovement) selectMove();
+	//		if(!selectedMovement) selectMove();
 			selectMovementType(MovementType.BackStep);
 			break;
 		case "Recover":
-			if(!selectedMovement) selectMove();
+	//		if(!selectedMovement) selectMove();
 			selectMovementType(MovementType.Recover);
 			break;
 		case "Move":
-			if(!selectedMovement) selectMove();
+	//		if(!selectedMovement) selectMove();
 			selectMovementType(MovementType.Move);
 			break;		
 		default:
-			if(!selectedMovement) selectMove();
+	//		if(!selectedMovement) selectMove();
 			selectMovementType(MovementType.None);
 			break;
 		}
