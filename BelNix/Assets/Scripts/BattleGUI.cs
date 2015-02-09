@@ -4,10 +4,13 @@ using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
+public enum ClassFeatureCanvas { OneOfMany, TemperedHands }
+
 public class BattleGUI : MonoBehaviour {
 
 	static BattleGUI battleGUI;
     // Let's grab the Character Info Panels from the editor
+	[SerializeField] private EventSystem eventSystem;
     [SerializeField] private GameObject[] CIPanels = new GameObject[3];
 	[SerializeField] private GameObject consoleCanvas;
 	[SerializeField] private GameObject turnOrderCanvas;
@@ -17,6 +20,8 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject consoleMessagePrefab;
 	[SerializeField] private GameObject classFeaturePrefab;
 	[SerializeField] private GameObject turnOrderPrefab;
+	[SerializeField] private GameObject oneOfManyCanvas;
+	[SerializeField] private GameObject temperedHandsCanvas;
 	[SerializeField] private Text playerTurnTextObject;
 	Text atAGlanceText;
 	Text[] statsTexts;
@@ -75,6 +80,24 @@ public class BattleGUI : MonoBehaviour {
 		GameGUI.selectMinorType(minorType);
 	}
 
+	public static void selectMovementType(MovementType type, bool selected = true) {
+		if (type == MovementType.None) return;
+	//	battleGUI.eventSystem.SetSelectedGameObject();
+		battleGUI.movementButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
+	}
+
+	public static void selectStandardType(StandardType type, bool selected = true) {
+		if (type == StandardType.None) return;
+		//	battleGUI.eventSystem.SetSelectedGameObject(battleGUI.standardButtons[type].transform.GetChild(0).gameObject);
+		battleGUI.standardButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
+	}
+
+	public static void selectMinorType(MinorType type, bool selected = true) {
+		if (type == MinorType.None) return;
+		//	battleGUI.eventSystem.SetSelectedGameObject(battleGUI.minorButtons[type].transform.GetChild(0).gameObject);
+		battleGUI.minorButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
+	}
+
 	public bool UIRevealed = false;
 	public void toggleBattleUI()
 	{
@@ -84,6 +107,26 @@ public class BattleGUI : MonoBehaviour {
         GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().setHidden(UIRevealed);
 		UIRevealed = !UIRevealed;
 	}
+
+	public static void showClassFeatureCanvas(ClassFeatureCanvas canvas) {
+		battleGUI.setClassFeatureCanvasShown(canvas, true);
+	}
+
+	public static void hideClassFeatureCanvas(ClassFeatureCanvas canvas) {
+		battleGUI.setClassFeatureCanvasShown(canvas, false);
+	}
+
+	public void setClassFeatureCanvasShown(ClassFeatureCanvas canvas, bool shown) {
+		switch (canvas) {
+		case ClassFeatureCanvas.OneOfMany:
+			oneOfManyCanvas.SetActive(shown);
+			break;
+		case ClassFeatureCanvas.TemperedHands:
+			temperedHandsCanvas.SetActive(shown);
+			break;
+		}
+	}
+	
 
     public void toggleCIPanel(GameObject panel)
     {
@@ -201,6 +244,7 @@ public class BattleGUI : MonoBehaviour {
 		if (battleGUI == null) return;
 		foreach (MinorType type in minorTypes) {
 			battleGUI.minorButtons[type].SetActive(true);
+			Button b;
 		}
 		foreach (MovementType type in movementTypes) {
 			battleGUI.movementButtons[type].SetActive(true);

@@ -2,9 +2,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum MovementType {Move, BackStep, Recover, Cancel, None}
-public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, Cancel, None}
-public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Cancel, None}
+public enum MovementType {Move, BackStep, Recover, None}
+public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, None}
+public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
@@ -206,7 +206,8 @@ public class Unit : MonoBehaviour {
 
 	public void useTemperedHands(int mod) {
 		temperedHandsUsesLeft--;
-		minorsLeft--;
+//		minorsLeft--;
+		useMinor();
 		temperedHandsMod = mod;
 	}
 
@@ -390,7 +391,14 @@ public class Unit : MonoBehaviour {
 		}
 	//	movementTypes.Add(MovementType.Cancel);
 		return movementTypes.ToArray();
-		return new MovementType[] {MovementType.Move, MovementType.BackStep, MovementType.Cancel};
+	}
+
+	public virtual bool hasTurret() {
+		return characterSheet.characterSheet.inventory.hasTurret();
+	}
+
+	public virtual bool hasTrap() {
+		return characterSheet.characterSheet.inventory.hasTrap();
 	}
 
 	public StandardType[] getStandardTypes() {
@@ -402,12 +410,11 @@ public class Unit : MonoBehaviour {
 			if (st != StandardType.None)
 				standardTypes.Add(st);
 		}
-		if (characterSheet.characterSheet.inventory.hasTurret()) standardTypes.Add(StandardType.Place_Turret);
-		if (characterSheet.characterSheet.inventory.hasTrap()) standardTypes.Add(StandardType.Lay_Trap);
+		if (hasTurret()) standardTypes.Add(StandardType.Place_Turret);
+		if (hasTrap()) standardTypes.Add(StandardType.Lay_Trap);
 		standardTypes.Add(StandardType.Inventory);
 	//	standardTypes.Add (StandardType.Cancel);
 		return standardTypes.ToArray();
-		return new StandardType[] {StandardType.Attack, StandardType.Inventory, StandardType.Cancel};
 	}
 	public MinorType[] getMinorTypes() {
 		List<MinorType> minorTypes = new List<MinorType>();
@@ -420,7 +427,6 @@ public class Unit : MonoBehaviour {
 				minorTypes.Add(mt);
 		}
 		return minorTypes.ToArray();
-		return new MinorType[] {MinorType.Loot};
 	}
 
 	public int numberMinors() {
@@ -440,6 +446,43 @@ public class Unit : MonoBehaviour {
 			if (canGetWithin(n, u, n)) return n;
 		}
 		return 1;
+	}
+
+	public void chooseNextBestActionType() {
+		float closest = closestEnemyDist();
+
+		if (!usedStandard) {
+			if (closest <= getAttackRange()) {
+				GameGUI.selectStandardType(StandardType.Attack);
+			}
+			else if (!usedMovement && closest > 1.1f) {
+				GameGUI.selectMovementType(MovementType.Move);
+			}
+			else if (hasTurret()) {
+				GameGUI.selectStandardType(StandardType.Place_Turret);
+			}
+			else if (hasTrap()) {
+				GameGUI.selectStandardType(StandardType.Lay_Trap);
+			}
+			else if (minorsLeft > 0) {
+				GameGUI.selectMinorType(MinorType.Stealth);
+			}
+			else {
+				GameGUI.selectStandardType(StandardType.Attack);
+			}
+		}
+		else if (!usedMovement) {
+			if (closest <= 1.1f)
+				GameGUI.selectMovementType(MovementType.BackStep);
+			else
+				GameGUI.selectMovementType(MovementType.Move);
+		}
+		else if (minorsLeft > 0) {
+			GameGUI.selectMinorType(MinorType.Stealth);
+		}
+		else {
+			mapGenerator.nextPlayer();
+		}
 	}
 
 	public int getAttackRange() {
@@ -596,7 +639,30 @@ public class Unit : MonoBehaviour {
 		int roll = Random.Range(1, 11);
 		stealth = roll + characterSheet.skillScores.getScore(Skill.Stealth);
 		BattleGUI.writeToConsole(getName() + " rolled a " + stealth + "(" + roll + " + " + (stealth-roll) + ") for stealth.");
+		useMinor();
+	}
+
+	public void useMinor(bool changeAnyway = true, bool changeAtAll = true) {
 		minorsLeft--;
+		if (!changeAtAll && minorsLeft > 0) return;
+		if (!changeAnyway || minorsLeft <= 0)
+			chooseNextBestActionType();
+	}
+
+	public void useStandard() {
+		usedStandard = true;
+		if (GameGUI.selectedStandard) {
+			chooseNextBestActionType();
+		}
+	}
+
+	public void useMovement() {
+		usedMovement = true;
+		currentMoveDist = 0;
+		moveDistLeft = 0;
+		if (GameGUI.selectedMovement) {
+			chooseNextBestActionType();
+		}
 	}
 
 	public int getInitiative() {
@@ -1731,7 +1797,7 @@ public class Unit : MonoBehaviour {
 			afflictions.Remove(Affliction.Prone);
 	//	affliction ^= Affliction.Prone;
 	//	affliction = Affliction.None;
-		usedMovement = true;
+		useMovement();
 	}
 
 	public bool isPerformingAnAction() {
@@ -1754,7 +1820,7 @@ public class Unit : MonoBehaviour {
 			attackEnemy.deselect();
 			attackEnemy.setMarked(true);
 			attackEnemy = null;
-			minorsLeft--;
+			useMinor(false);
 		}
 	}
 
@@ -2092,12 +2158,12 @@ public class Unit : MonoBehaviour {
 							becomeProne();
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
-							usedMovement = true;
+							useMovement();
 							if (team == 0) needsOverlay = true;
 						//	if (team == 0) mapGenerator.setOverlay();
 
 						}
-						minorsLeft--;
+						useMinor(false, false);
 					}
 				}
 				shouldDoAthleticsCheck = false;
@@ -2118,7 +2184,7 @@ public class Unit : MonoBehaviour {
 				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
-				if (currentMoveDist == 0) usedMovement = true;
+				if (currentMoveDist == 0) useMovement();
 				if (!setRotationToMostInterestingTile()) {
 			//		rotating = true;
 /*					if (needsOverlay) {
@@ -2126,12 +2192,14 @@ public class Unit : MonoBehaviour {
 						needsOverlay = false;
 					}*/
 				}
-				if (!usedStandard && closestEnemyDist() <= getWeapon().range) {
-					GameGUI.selectAttack();
+				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), (int)closestEnemyDist(), true, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
+					Debug.Log("Select Attack");
+					GameGUI.selectStandardType(StandardType.Attack);
 				}
-				if (GameGUI.selectedMinor) {
-					minorsLeft--;
-					GameGUI.selectMinor(MinorType.None);
+				if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {
+					useMinor();
+				//	minorsLeft--;
+				//	GameGUI.selectMinor(MinorType.None);
 					escapeUsed = true;
 				}
 			}
@@ -2167,12 +2235,10 @@ public class Unit : MonoBehaviour {
 			throwAnimation();
 			throwAnimating = true;
 			throwing = false;
-			usedStandard = true;
 			if (moveDistLeft < maxMoveDist) {
-				usedMovement = true;
-				currentMoveDist = 0;
-				moveDistLeft = 0;
+				useMovement();
 			}
+			useStandard();
 		}
 	}
 
@@ -2279,9 +2345,7 @@ public class Unit : MonoBehaviour {
 
 	public void useMovementIfStarted() {
 		if (moveDistLeft < maxMoveDist) {
-			usedMovement = true;
-			currentMoveDist = 0;
-			moveDistLeft = 0;
+			useMovement();
 		}
 	}
 
@@ -2292,7 +2356,8 @@ public class Unit : MonoBehaviour {
 			invokeAnimation();
 			invokeAnimating = true;
 			invoking = false;
-			minorsLeft--;
+			useMinor(false);
+//			minorsLeft--;
 			invokeUsesLeft--;
 			useMovementIfStarted();
 		}
@@ -2315,7 +2380,7 @@ public class Unit : MonoBehaviour {
 			intimidateAnimation();
 			intimidateAnimating = true;
 			intimidating = false;
-			usedStandard = true;
+			useStandard();
 			useMovementIfStarted();
 		}
 	}
@@ -2584,8 +2649,8 @@ public class Unit : MonoBehaviour {
 		if (this == mapGenerator.getCurrentUnit())
 			mapGenerator.resetRanges();
 		attackAnimating = false;
-		usedStandard = true;
 		useMovementIfStarted();
+		useStandard();
 
 	}
 	

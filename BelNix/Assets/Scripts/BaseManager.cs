@@ -950,7 +950,7 @@ public class BaseManager : MonoBehaviour {
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
 						t.removeItem(selectedItem,1);
-						u.minorsLeft--;
+						u.useMinor(false,false);
 					}
 					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
 					selectedItem = null;
@@ -963,7 +963,7 @@ public class BaseManager : MonoBehaviour {
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {
 							t.removeItem(selectedItem,1);
-							u.minorsLeft--;
+							u.useMinor(false,false);
 						}
 						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
 						selectedItem = null;
