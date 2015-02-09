@@ -82,9 +82,7 @@ public class CCGUI : MonoBehaviour
 	{
 		if(currentState != GUIState.SEX)
 		{
-			Debug.Log("currentState is: " + currentState);
 			setState(--currentState);
-			Debug.Log("currentState is now after --ing: " + currentState);
 		}
 	}
 }
