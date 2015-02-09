@@ -19,6 +19,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject turnOrderPrefab;
 	[SerializeField] private Text playerTurnTextObject;
 
+    private MapGenerator mapGenerator;
     private Text atAGlanceText;
     private Text[] statsTexts;
     private Text characterInfoText;
@@ -80,6 +81,9 @@ public class BattleGUI : MonoBehaviour {
             standardButtons[standardType] = GameObject.Find("Image - " + Unit.getNameOfStandardType(standardType));
         }
 
+        // Grab the MapGenerator for convenience
+        mapGenerator = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
+
         // By default, the Character Info Canvas' animator idles on "Dismissed," which is visible.
         // We don't want to to be visible until the UI is revealed later, so we have to set it to "Hiding".
         GameObject.Find("Canvas - Character Info").GetComponent<Animator>().Play("CI_Panel_Hiding");
@@ -100,7 +104,7 @@ public class BattleGUI : MonoBehaviour {
         if (Input.anyKeyDown && !UIRevealed)
         {
             // Debug only: Reveal the Character UI once a key is pressed.
-            toggleBattleUI();
+            //toggleBattleUI();
         }
         if (Input.GetKeyDown(KeyCode.C))
         {
@@ -118,8 +122,31 @@ public class BattleGUI : MonoBehaviour {
     }
 
     // Trigger everything that needs to happen at the beginning of a turn
-    public void beginTurn()
+    public static void beginTurn(Unit unit)
     {
+        // Update the turn order
+        if (!battleGUI.mapGenerator.isInCharacterPlacement())
+            battleGUI.updateTurnOrderPanel();
+
+        // Set CharacterInformation panels
+        setAtAGlanceText(unit.getAtAGlanceString());
+        setStatsText(0, unit.getCharacterStatsString1());
+        setStatsText(1, unit.getCharacterStatsString2());
+        setStatsText(2, unit.getCharacterStatsString3());
+        setStatsText(3, unit.getCharacterStatsString4());
+        setCharacterInfoText(unit.getCharacterInfoString());
+        setClassFeatures(unit.getClassFeatureStrings());
+        disableAllButtons();
+        hideActionArms();
+        if (unit.team == 0 && !battleGUI.mapGenerator.isInCharacterPlacement())
+        {
+            // Delayed so that the collapsing animation can complete smoothly
+            battleGUI.Invoke("refreshActionArms", 0.25f);
+            //Debug.Log("Player is beginning their turn");
+        }
+        //else
+        //    Debug.Log("NPC is begninning their turn");
+
         // Set the UI to display information based on the current unit taking their turn
         // Reveal relevant hidden UI elements (such as action bars that were hidden last turn)
     }
@@ -168,15 +195,23 @@ public class BattleGUI : MonoBehaviour {
 
     // Some handy methods for controlling the GUI
 	public bool UIRevealed = false;
+    public static void toggleUI()
+    {
+        battleGUI.toggleBattleUI();
+    }
 	public void toggleBattleUI()
 	{
 		consoleCanvas.GetComponent<Animator>().SetBool("Hidden", UIRevealed);
 		turnOrderCanvas.GetComponent<Animator>().SetBool("Hidden", UIRevealed);
-		characterInfoCanvas.GetComponent<Animator>().SetBool("Hidden", UIRevealed);
+		setCharacterInfoVisibility(!UIRevealed);
         GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().setHidden(UIRevealed);
 		UIRevealed = !UIRevealed;
 	}
 
+    public static void setCharacterInfoVisibility(bool isVisible)
+    {
+        battleGUI.characterInfoCanvas.GetComponent<Animator>().SetBool("Hidden", !isVisible);
+    }
     public void toggleCIPanel(GameObject panel)
     {
         switch(panel.name)
@@ -194,7 +229,7 @@ public class BattleGUI : MonoBehaviour {
 
     private void toggleCIPanel(CIPanel panel)
     {
-		Debug.Log("Exposed" + panel.ToString());
+		//Debug.Log("Exposed" + panel.ToString());
 		toggleAnimatorBool(CIPanels[(int)panel].GetComponent<Animator>(), "Exposed" + panel.ToString());
 
         if (panel == CIPanel.Skills)
@@ -340,15 +375,28 @@ public class BattleGUI : MonoBehaviour {
 			battleGUI.standardButtons[type].SetActive(true);
 		}
 	}
+    public static void hideActionArms()
+    {
+        GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", true);
+        GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", true);
+        GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", true);
+    }
+    private void refreshActionArms()
+    {
+        Unit unit = mapGenerator.getCurrentUnit();
+        enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
+        GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", false);
+        GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", false);
+        GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", false);
+    }
     //--------------------------------------------------------------------------------
 
 	
     // Manage the Turn Order panel
-    public void updateTurnOrderPanel()    // rename to updateTurnOrderPanel
+    public void updateTurnOrderPanel()
     {
-        // Grab the player entry and MapGenerator container for convenience
+        // Grab the Turn Order Panel (container/parent for the player entries) for convenience
         GameObject turnOrderPanel = GameObject.Find("Panel - Character Entries");
-        MapGenerator mapGenerator = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
 
         // if the Turn Order panel already has children, then new character(s) has/have entered the fray.
         if (turnOrderPanel.transform.childCount > 0)
@@ -377,10 +425,16 @@ public class BattleGUI : MonoBehaviour {
         // (this is only likely to matter if new characters enter the fray after combat has already started)
         //Debug.Log(turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text);
         //Debug.Log(mapGenerator.getCurrentUnit().characterSheet.personalInfo.getCharacterName().fullName());
-        while (turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text
-            != mapGenerator.getCurrentUnit().characterSheet.personalInfo.getCharacterName().fullName())
+        for (int i = 0; i < turnOrderPanel.transform.childCount; i++)
         {
-            cycleTurnOrder();
+            if (turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text
+            != mapGenerator.getCurrentUnit().characterSheet.personalInfo.getCharacterName().fullName())
+            {
+                cycleTurnOrder();
+
+                //Debug.Log("Yo.");
+            }
+            else break;
         }
     }
     
@@ -388,7 +442,6 @@ public class BattleGUI : MonoBehaviour {
 	{
         GameObject turnOrderPanel = GameObject.Find("Panel - Character Entries");
 		GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
-        MapGenerator mapGenerator = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
         List<Unit> activatedCharacters = new List<Unit>(mapGenerator.priorityOrder);
         // If the unit is not participating in combat (they're not activated), take it out.
         foreach (Unit enemy in mapGenerator.nonAlertEnemies)
