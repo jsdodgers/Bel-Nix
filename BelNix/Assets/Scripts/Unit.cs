@@ -113,6 +113,7 @@ public class Unit : MonoBehaviour {
 		foreach (Unit u in markedUnits) {
 			u.setMarked(true);
 		}
+		idleAnimation(true);
 		//setGUIToThis();
         BattleGUI.beginTurn(this);
 	}
@@ -224,6 +225,7 @@ public class Unit : MonoBehaviour {
 			u.setMarked(false);
 			if (!hasLineOfSightToUnit(u)) markedUnits.Remove(u);
 		}
+		idleAnimation(false);
 		doTurrets();
 		temperedHandsMod = 0;
 	}
@@ -1734,8 +1736,10 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void recover() {
-		if (isProne())
+		if (isProne()) {
 			afflictions.Remove(Affliction.Prone);
+			proneAnimation(false);
+		}
 	//	affliction ^= Affliction.Prone;
 	//	affliction = Affliction.None;
 		usedMovement = true;
@@ -2267,6 +2271,7 @@ public class Unit : MonoBehaviour {
 	void becomeProne() {
 		if (!isProne()) {
 			afflictions.Add(Affliction.Prone);
+			proneAnimation(true);
 		}
 	}
 
@@ -2435,6 +2440,16 @@ public class Unit : MonoBehaviour {
 		movementAnimationAllSprites(moving);
 	}
 
+	void idleAnimation(bool idle) {
+		anim.SetBool("Idle",idle);
+		idleAnimationAllSprites(idle);
+	}
+
+	void proneAnimation(bool prone) {
+		anim.SetBool("Prone",prone);
+		proneAnimationAllSprites(prone);
+	}
+
 	void deathAnimation() {
 		anim.SetTrigger("Death");
 		deathAnimationAllSprites();
@@ -2452,6 +2467,14 @@ public class Unit : MonoBehaviour {
 
 	void movementAnimationAllSprites(bool move) {
 		setAllSpritesBool("Move",move);
+	}
+
+	void idleAnimationAllSprites(bool idle) {
+		setAllSpritesBool("Idle",idle);
+	}
+
+	void proneAnimationAllSprites(bool prone) {
+		setAllSpritesBool("Prone",prone);
 	}
 
 	void deathAnimationAllSprites() {

@@ -165,6 +165,7 @@ public class MapGenerator : MonoBehaviour {
 	public Tile currentKeysTile;
 	public int currentKeysSize;
 
+	public AudioManager aManager;
 
 	public void resetCanSee(bool[,] old, bool resetTo = false) {
 		for (int n=0;n<actualWidth * gridSize;n++) {
@@ -694,6 +695,7 @@ public class MapGenerator : MonoBehaviour {
 		mapTransform = map.transform;
 		targetObject = GameObject.Find("Target");
 		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
+		aManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
 		GameGUI.mapGenerator = this;
 
 		turrets = mapTransform.FindChild("Turrets").gameObject;
@@ -848,6 +850,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void activateEnemies() {
+		bool anyEnemiesActive = false;
 		List<Unit> nonAlertEnemiesCopy = new List<Unit>();
 		foreach (Unit u in nonAlertEnemies) nonAlertEnemiesCopy.Add(u);
 		while (nonAlertEnemiesCopy.Count > 0) {
@@ -855,6 +858,7 @@ public class MapGenerator : MonoBehaviour {
 			nonAlertEnemiesCopy.RemoveAt(0);
 			foreach (Player p in players) {
 				if (e.hasLineOfSightToUnit(p)) {
+					anyEnemiesActive = true;
 					e.setActive(true);
 					List<Unit> newlyActivatedUnits = new List<Unit>();
 					newlyActivatedUnits.Add(e);
@@ -876,6 +880,10 @@ public class MapGenerator : MonoBehaviour {
 					break;
 				}
 			}
+		}
+		if(anyEnemiesActive)
+		{
+			aManager.invokeFadeInMusic();
 		}
 	}
 
@@ -1394,6 +1402,21 @@ public class MapGenerator : MonoBehaviour {
 			currentUnit--;
 			GameGUI.selectedMovement = false;
 			nextPlayer();
+		}
+
+		bool anyEnemiesActive = false;
+		foreach(Unit u in enemies)
+		{
+			if(u.aiActive)
+			{
+				anyEnemiesActive = true;
+				break;
+			}
+		}
+
+		if(!anyEnemiesActive)
+		{
+			aManager.invokeFadeOutMusic();
 		}
 	}
 
