@@ -113,9 +113,11 @@ public class Unit : MonoBehaviour {
 		foreach (Unit u in markedUnits) {
 			u.setMarked(true);
 		}
-		setGUIToThis();
+		//setGUIToThis();
+        BattleGUI.beginTurn(this);
 	}
 
+    /*
 	public void setGUIToThis() {
 		BattleGUI.setAtAGlanceText(getAtAGlanceString());
 		BattleGUI.setStatsText(0,getCharacterStatsString1());
@@ -126,9 +128,9 @@ public class Unit : MonoBehaviour {
 		BattleGUI.setClassFeatures(getClassFeatureStrings());
 		BattleGUI.disableAllButtons();
 		BattleGUI.enableButtons(getMinorTypes(), getMovementTypes(), getStandardTypes());
-	}
+	}*/
 
-	string[] getClassFeatureStrings() {
+	public string[] getClassFeatureStrings() {
 		
 		
 		ClassFeature[] classFeatures = characterSheet.characterSheet.characterProgress.getClassFeatures();
@@ -140,7 +142,7 @@ public class Unit : MonoBehaviour {
 		return classFeatureStrings;
 	}
 
-	string getCharacterInfoString() {
+	public string getCharacterInfoString() {
 		return UnitGUI.getSmallCapsString("Level",12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterLevel() + "", 14) +
 			"\n" + UnitGUI.getSmallCapsString("Experience", 12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterExperience() + "/" + (characterSheet.characterProgress.getCharacterLevel()*100), 14) +
 				"\n" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 12) +
@@ -149,7 +151,8 @@ public class Unit : MonoBehaviour {
 
 	}
 
-	string getCharacterStatsString1() {
+    public string getCharacterStatsString1()
+    {
 		string sizeString = "<size=10>";
 		string sizeEnd = "</size>";
 		string otherDivString = "<size=4>\n\n</size>";
@@ -161,7 +164,8 @@ public class Unit : MonoBehaviour {
 				divString2 + otherDivString + "K" + sizeString + "NOWLEDGE" + sizeEnd + otherDivString;
 	}
 
-	string getCharacterStatsString2() {
+    public string getCharacterStatsString2()
+    {
 		string sizeString = "<size=10>";
 		string sizeEnd = "</size>";
 		string divString = "<size=6>\n\n</size>";
@@ -172,7 +176,8 @@ public class Unit : MonoBehaviour {
 				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.combatScores.getDominion() + "</size>)";
 	}
 
-	string getCharacterStatsString3() {
+    public string getCharacterStatsString3()
+    {
 		string sizeString = "<size=10>";
 		string sizeEnd = "</size>";
 		string divString = "<size=6>\n\n</size>";
@@ -183,7 +188,8 @@ public class Unit : MonoBehaviour {
 				divString + "H" + sizeString + "ISTORICAL" + sizeEnd + ":\nP" + sizeString + "OLITICAL" + sizeEnd + ":";
 	}
 
-	string getCharacterStatsString4() {
+    public string getCharacterStatsString4()
+    {
 		string divString = "<size=6>\n\n</size>";
 
 		return characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.skillScores.getScore(Skill.Melee) + divString +
@@ -193,7 +199,8 @@ public class Unit : MonoBehaviour {
 
 	}
 
-	string getAtAGlanceString() {
+    public string getAtAGlanceString()
+    {
 //		string playerText = Unit "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
 		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
 		string playerText = UnitGUI.getSmallCapsString(playerName, 13);

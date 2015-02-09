@@ -89,7 +89,7 @@ public class MapGenerator : MonoBehaviour {
 	Unit hoveredCharacter;
 	List<Unit> players;
 	List<Unit> deadUnits;
-	List<Unit> nonAlertEnemies;
+	public List<Unit> nonAlertEnemies;
 	public List<Unit> enemies;
 	public GameObject turrets;
 	public GameObject traps;
@@ -1164,9 +1164,16 @@ public class MapGenerator : MonoBehaviour {
 			activateEnemies();
 	//		editingPath = false;
 		}
+        //Invoke("beginTurn", 0.5f);
 //		setTargetObjectPosition();
 		return getCurrentUnit();
 	}
+
+    //private void beginTurn()
+    //{
+    //    BattleGUI.beginTurn();
+    //}
+
 
 	public Unit getCurrentUnit() {
 		if (currentUnit == -1) return null;
@@ -2681,39 +2688,50 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if ((isInCharacterPlacement() && (mouseDown && !leftClickIsMakingSelection()) && !rightDraggin && !middleDraggin)) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<10);
-			if (hit) {
-				GameObject go = hit.collider.gameObject;
-				Unit uu = go.GetComponent<Unit>();
-				if (uu.team == 0) {
-					selectedSelectionObject = go;
-	//				selectedUnit = go.GetComponent<Unit>();
-	//				selectedUnit.setSelected();
-					deselectAllUnits();
-					selectUnit(uu,false);
-					go.transform.parent = playerTransform;
-					go.GetComponent<SpriteRenderer>().sortingOrder = playerSelectSelectedPlayerOrder;
-					uu.setAllSpritesToRenderingOrder(playerSelectSelectedPlayerArmorOrder);
-					Vector3 pos = Input.mousePosition;
-					pos.z = 10.0f;
-					pos = Camera.main.ScreenToWorldPoint(pos);
-					selectedSelectionDiff = new Vector2(pos.x - go.transform.localPosition.x, pos.y - go.transform.localPosition.y);
-					if (lastHit) {
-						int posX = (int)lastHit.transform.localPosition.x;
-						int posY = -(int)lastHit.transform.localPosition.y;
-						Tile t = tiles[posX,posY];
-						if (t.getCharacter()==go.GetComponent<Unit>()) {
-							selectionStartingTile = t;
-						}
-						else selectionStartingTile = null;
-					}
-					selectionCurrentIndex = selectionUnits.IndexOf(go.GetComponent<Unit>());
-					if (selectionStartingTile==null) {
-						selectionStartingIndex = selectionCurrentIndex;
-					}
-					selectionUnits.Remove(go.GetComponent<Unit>());
-					selectionStartingPos = go.transform.position;
-				}
-			}
+            if (hit)
+            {
+                GameObject go = hit.collider.gameObject;
+                Unit uu = go.GetComponent<Unit>();
+                if (uu.team == 0)
+                {
+                    selectedSelectionObject = go;
+                    //				selectedUnit = go.GetComponent<Unit>();
+                    //				selectedUnit.setSelected();
+                    deselectAllUnits();
+                    selectUnit(uu, false);
+                    BattleGUI.setCharacterInfoVisibility(true);
+                    BattleGUI.beginTurn(uu);
+                    go.transform.parent = playerTransform;
+                    go.GetComponent<SpriteRenderer>().sortingOrder = playerSelectSelectedPlayerOrder;
+                    uu.setAllSpritesToRenderingOrder(playerSelectSelectedPlayerArmorOrder);
+                    Vector3 pos = Input.mousePosition;
+                    pos.z = 10.0f;
+                    pos = Camera.main.ScreenToWorldPoint(pos);
+                    selectedSelectionDiff = new Vector2(pos.x - go.transform.localPosition.x, pos.y - go.transform.localPosition.y);
+                    if (lastHit)
+                    {
+                        int posX = (int)lastHit.transform.localPosition.x;
+                        int posY = -(int)lastHit.transform.localPosition.y;
+                        Tile t = tiles[posX, posY];
+                        if (t.getCharacter() == go.GetComponent<Unit>())
+                        {
+                            selectionStartingTile = t;
+                        }
+                        else selectionStartingTile = null;
+                    }
+                    selectionCurrentIndex = selectionUnits.IndexOf(go.GetComponent<Unit>());
+                    if (selectionStartingTile == null)
+                    {
+                        selectionStartingIndex = selectionCurrentIndex;
+                    }
+                    selectionUnits.Remove(go.GetComponent<Unit>());
+                    selectionStartingPos = go.transform.position;
+                }
+            }
+            else
+            {
+                BattleGUI.setCharacterInfoVisibility(false);
+            }
 		}
 	
 		
