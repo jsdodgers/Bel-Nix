@@ -20,25 +20,31 @@ public class AudioManager : MonoBehaviour {
 
 	public void invokeFadeInMusic()
 	{
-		if(music.time >= cml.loopEnd - transitionTime)
+		if(phazingMusic != null)
 		{
-			Invoke("fadeInMusic", transitionTime + 0.25f);
-		}
-		else
-		{
-			fadeInMusic();
+			if(music.time >= cml.loopEnd - transitionTime)
+			{
+				Invoke("fadeInMusic", transitionTime + 0.25f);
+			}
+			else
+			{
+				fadeInMusic();
+			}
 		}
 	}
 
 	public void invokeFadeOutMusic()
 	{
-		if(music.time >= cml.loopEnd - transitionTime)
+		if(phazingMusic != null)
 		{
-			Invoke("fadeOutMusic", transitionTime + 0.25f);
-		}
-		else
-		{
-			fadeOutMusic();
+			if(music.time >= cml.loopEnd - transitionTime)
+			{
+				Invoke("fadeOutMusic", transitionTime + 0.25f);
+			}
+			else
+			{
+				fadeOutMusic();
+			}
 		}
 	}
 
