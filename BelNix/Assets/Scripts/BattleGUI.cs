@@ -3,9 +3,11 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public enum ClassFeatureCanvas { OneOfMany, TemperedHands }
 public enum ConfirmButton {Movement = 0, Standard, Minor }
+public enum ActionArm {Movement = 0, Standard, Minor }
 
 public class BattleGUI : MonoBehaviour {
 
@@ -29,6 +31,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject temperedHandsCanvas;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
+	[SerializeField] private ButtonSwap actionsButton;
 
     private MapGenerator mapGenerator;
     private Text atAGlanceText;
@@ -50,6 +53,7 @@ public class BattleGUI : MonoBehaviour {
 	const float textColorAlphaTime = .5f;
 	const float textColorTime = 1.5f;
 	const float textColorAlphaScale = 1.0f/textColorAlphaTime;
+	public static bool[] armsShown = new bool[3];
     
     // Numbers as indices aren't very informative. Let's use enums.
     public enum CIPanel { Glance, Stats, Skills, Buttons };
@@ -58,6 +62,7 @@ public class BattleGUI : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
+		for (int n=0;n<3;n++) armsShown[n] = false;
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -133,6 +138,14 @@ public class BattleGUI : MonoBehaviour {
     {
         GameGUI.doGUI();
     }
+
+	public static void setActionsButtonDefault(bool defaultSprite) {
+		battleGUI.actionsButton.setSprite(defaultSprite);
+	}
+
+	public static bool armShown(ActionArm arm) {
+		return armsShown[(int)arm];
+	}
 
 	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false) {
 		battleGUI.hideTurretSelectActually(hide, selectCurrent);
@@ -261,9 +274,9 @@ public class BattleGUI : MonoBehaviour {
         setStatsText(3, unit.getCharacterStatsString4());
         setCharacterInfoText(unit.getCharacterInfoString());
         setClassFeatures(unit.getClassFeatureStrings());
-        disableAllButtons();
+//        disableAllButtons();
         hideActionArms();
-        if (unit.team == 0 && !battleGUI.mapGenerator.isInCharacterPlacement())
+        if (unit.getTeam() == 0 && !battleGUI.mapGenerator.isInCharacterPlacement())
         {
             // Delayed so that the collapsing animation can complete smoothly
             battleGUI.Invoke("refreshActionArms", 0.25f);
@@ -321,7 +334,6 @@ public class BattleGUI : MonoBehaviour {
 	public static void selectMovementType(MovementType type, bool selected = true) {
 		if (type == MovementType.None) return;
 	//	battleGUI.eventSystem.SetSelectedGameObject();
-		Debug.Log(type + "    " + battleGUI.movementButtons[type].transform.GetChild(0).name);
 		battleGUI.movementButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
 
@@ -520,24 +532,108 @@ public class BattleGUI : MonoBehaviour {
 	}
     //--------------------------------------------------------------------------------
 
+	
+	public static void resetMovementButtons() {
+		hideMovementArm();
+		battleGUI.Invoke("resetMovementButtonsActually",0.25f);		
+	}
+	public static void showMovementButtons() {
+		battleGUI.resetMovementButtonsActually();
+	}
+	public void resetMovementButtonsActually() {
+		enableButtons(mapGenerator.getCurrentUnit().getMovementTypes());
+		hideMovementArm(false);
+	}
 
+	public static void resetStandardButtons() {
+		hideStandardArm();
+		battleGUI.Invoke("resetStandardButtonsActually",0.25f);		
+	}
+	public static void showStandardButtons() {
+		battleGUI.resetStandardButtonsActually();
+	}
+	public void resetStandardButtonsActually() {
+		enableButtons(mapGenerator.getCurrentUnit().getStandardTypes());
+		hideStandardArm(false);
+	}
+
+	public static void resetMinorButtons() {
+		hideMinorArm();
+		battleGUI.Invoke("resetMinorButtonsActually",0.25f);		
+	}
+	public static void showMinorButtons() {
+		battleGUI.resetMinorButtonsActually();
+	}
+	public void resetMinorButtonsActually() {
+		enableButtons(mapGenerator.getCurrentUnit().getMinorTypes());
+		hideMinorArm(false);
+	}
     // Manage the available Action Buttons
-	public static void disableAllButtons() {
+/*	public static void disableAllButtons() {
 		if (battleGUI == null) return;
+		disableMinorButtonsExcept();
+		disableStandardButtonsExcept();
+		disableMovementButtonsExcept();
+	}
+	public static bool buttonIsIn(GameObject button, MinorType[] minorTypes) {
+		foreach (MinorType t in minorTypes) {
+			if (button.name == "Image - " + Unit.getNameOfMinorType(t)) return true;
+		}
+		return false;
+	}
+	public static bool buttonIsIn(GameObject button, StandardType[] standardTypes) {
+		foreach (StandardType t in standardTypes) {
+			if (button.name == "Image - " + Unit.getNameOfStandardType(t)) return true;
+		}
+		return false;
+	}
+	public static bool buttonIsIn(GameObject button, MovementType[] movementTypes) {
+		foreach (MovementType t in movementTypes) {
+			if (button.name == "Image - " + Unit.getNameOfMovementType(t)) return true;
+		}
+		return false;
+	}
+	public static void disableMinorButtonsExcept(MinorType[] minorTypes = new MinorType[0]) {
 		foreach (GameObject button in battleGUI.minorButtons.Values) {
-			button.SetActive(false);
-		}
-		foreach (GameObject button in battleGUI.standardButtons.Values) {
-			button.SetActive(false);
-		}
-		foreach (GameObject button in battleGUI.movementButtons.Values) {
-			button.SetActive(false);
+			if (buttonIsIn(button, minorTypes)) button.SetActive(true);
+			else button.SetActive(false);
 		}
 	}
+	public static void disableStandardButtonsExcept(StandardType[] standardTypes = new StandardType[0]) {
+		foreach (GameObject button in battleGUI.standardButtons.Values) {
+			if (buttonIsIn(button, standardTypes)) button.SetActive(true);
+			else button.SetActive(false);
+		}
+	}
+	public static void disableMovementButtonsExcept(MovementType[] movementTypes = new MovementType[0]) {
+		foreach (GameObject button in battleGUI.movementButtons.Values) {
+			if (buttonIsIn(button, movementTypes)) button.SetActive(true);
+			else button.SetActive(false);
+		}
+	}*/
 
 	public static void enableButtons(MinorType[] minorTypes, MovementType[] movementTypes, StandardType[] standardTypes) {
 		if (battleGUI == null) return;
-		foreach (MinorType type in minorTypes) {
+		//		battleGUI.movementButtons.
+		enableButtons(minorTypes);
+		enableButtons(movementTypes);
+		enableButtons(standardTypes);
+	}
+	public static void enableButtons(MinorType[] minorTypes) {
+		foreach (MinorType type in battleGUI.minorButtons.Keys) {
+			battleGUI.minorButtons[type].SetActive(minorTypes.Contains(type));
+		}
+	}
+	public static void enableButtons(MovementType[] movementTypes) {
+		foreach (MovementType type in battleGUI.movementButtons.Keys) {
+			battleGUI.movementButtons[type].SetActive(movementTypes.Contains(type));
+		}
+	}
+	public static void enableButtons(StandardType[] standardTypes) {
+		foreach (StandardType type in battleGUI.standardButtons.Keys) {
+			battleGUI.standardButtons[type].SetActive(standardTypes.Contains(type));
+		}
+/*		foreach (MinorType type in minorTypes) {
 			battleGUI.minorButtons[type].SetActive(true);
 			Button b;
 		}
@@ -546,7 +642,7 @@ public class BattleGUI : MonoBehaviour {
 		}
 		foreach (StandardType type in standardTypes) {
 			battleGUI.standardButtons[type].SetActive(true);
-		}
+		}*/
 	}
     public static void hideActionArms()
     {
@@ -555,21 +651,27 @@ public class BattleGUI : MonoBehaviour {
 		hideMovementArm();
 	}
 	public static void hideMinorArm(bool hidden = true) {
+	//	armsShown[(int)ActionArm.Minor] = !hidden;
         GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
 	}
 	public static void hideStandardArm(bool hidden = true) {
+	//	armsShown[(int)ActionArm.Standard] = !hidden;
         GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
 	}
 	public static void hideMovementArm(bool hidden = true) {
+	//	armsShown[(int)ActionArm.Movement] = !hidden;
         GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
     }
     private void refreshActionArms()
     {
         Unit unit = mapGenerator.getCurrentUnit();
-		enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
-		hideMinorArm(false);
-		hideStandardArm(false);
-		hideMovementArm(false);
+	//	enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
+	//	hideMinorArm(false);
+	//	hideStandardArm(false);
+	//	hideMovementArm(false);
+		showMovementButtons();
+		showStandardButtons();
+		showMinorButtons();
 		unit.chooseNextBestActionType();
     }
     //--------------------------------------------------------------------------------

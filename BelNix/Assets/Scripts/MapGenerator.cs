@@ -443,6 +443,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
+		if (toUnit == null) return false;
 		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
 		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
 		float dist = (distance == -1 ? fromUnit.getViewRadiusToUnit(toUnit) : distance);
@@ -2109,24 +2110,24 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (Input.GetKeyDown(KeyCode.Tab)) {
 			if (shiftDown) {
-				GameGUI.selectPreviousOfType();
+				GameGUI.selectPreviousAction();//.selectPreviousOfType();
 			}
 			else {
-				GameGUI.selectNextOfType();
+				GameGUI.selectNextAction();//OfType();
 			}
 		}
 		if (Input.GetKeyDown(KeyCode.Semicolon) && shiftDown) {
 			getCurrentUnit().minorsLeft += 2;
-			BattleGUI.hideMinorArm(false);
+			BattleGUI.showMinorButtons();//.hideMinorArm(false);
 		}
 		if (Input.GetKeyDown(KeyCode.Quote) && shiftDown) {
 			getCurrentUnit().moveDistLeft = 5;
 			getCurrentUnit().usedMovement = false;
-			BattleGUI.hideMovementArm(false);
+			BattleGUI.showMovementButtons();//.hideMovementArm(false);
 		}
 		if (Input.GetKeyDown(KeyCode.LeftBracket) && shiftDown) {
 			getCurrentUnit().usedStandard = false;
-			BattleGUI.hideStandardArm(false);
+			BattleGUI.showStandardButtons();//.hideStandardArm(false);
 		}
 		handleArrows();
 		handleSpace();

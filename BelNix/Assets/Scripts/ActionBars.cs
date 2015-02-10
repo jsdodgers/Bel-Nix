@@ -67,7 +67,9 @@ public class ActionBars : MonoBehaviour {
 
 	public void toggleExtendCollapse(GameObject actionArm)
 	{
-		actionArm.GetComponent<Animator>().SetBool("Extended", !actionArm.GetComponent<Animator>().GetBool("Extended"));
+
+//		actionArm.GetComponent<Animator>().SetBool("Extended", !actionArm.GetComponent<Animator>().GetBool("Extended"));
+		setArm(actionArm, !actionArm.GetComponent<Animator>().GetBool("Extended"));
 		//adjustForConsole();
 	}
 	public void extendAllArms()
@@ -84,7 +86,18 @@ public class ActionBars : MonoBehaviour {
 
 	private void setArm(GameObject arm, bool val)
 	{
+		if (arm.name.Contains("Minor")) BattleGUI.armsShown[(int)ActionArm.Minor] = val;
+		if (arm.name.Contains("Standard")) BattleGUI.armsShown[(int)ActionArm.Standard] = val;
+		if (arm.name.Contains("Movement")) BattleGUI.armsShown[(int)ActionArm.Movement] = val;
 		arm.GetComponent<Animator>().SetBool("Extended", val);
+		bool anyOpen = false;
+		foreach (GameObject arm2 in actionArms) {
+			anyOpen |= !arm2.GetComponent<Animator>().GetBool("Extended");
+			if (anyOpen) break;
+		}
+		autoHide = anyOpen;
+//		gameObject.GetComponent<ButtonSwap>().setSprite(anyOpen);
+	//	BattleGUI.setActionsButtonDefault(!anyOpen);
 	}
 
 

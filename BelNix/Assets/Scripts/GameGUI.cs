@@ -875,6 +875,80 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
+	public static void selectPreviousAction() {
+		selectActionBy(-1);
+	}
+
+	public static void selectNextAction() {
+		selectActionBy(1);
+	}
+
+	public static void selectActionBy(int by) {
+		Unit u = mapGenerator.getCurrentUnit();
+		MovementType[] movementTypes = u.getMovementTypes();
+		StandardType[] standardTypes = u.getStandardTypes();
+		MinorType[] minorTypes = u.getMinorTypes();
+		bool someArmShown = (!u.usedStandard && BattleGUI.armShown(ActionArm.Standard)) || (!u.usedMovement && BattleGUI.armShown(ActionArm.Movement)) || (u.minorsLeft > 0 && BattleGUI.armShown(ActionArm.Minor));
+		bool movement = !u.usedMovement && (!someArmShown || BattleGUI.armShown(ActionArm.Movement));
+		bool standard = !u.usedStandard && (!someArmShown || BattleGUI.armShown(ActionArm.Standard));
+		bool minor = u.minorsLeft > 0 && (!someArmShown || BattleGUI.armShown(ActionArm.Minor));
+		int totalTypes = (movement ? movementTypes.Length : 0) + (standard ? standardTypes.Length : 0) + (minor ? minorTypes.Length : 0);
+		int currentType = 0;
+		bool found = false;
+		if (movement && !found) {
+			foreach (MovementType type in movementTypes) {
+				if (selectedMovement && type == selectedMovementType) {
+					found = true;
+					break;
+				}
+				currentType++;
+			}
+		}
+		if (standard && !found) {
+			foreach (StandardType type in standardTypes) {
+				if (selectedStandard && type == selectedStandardType) {
+					found = true;
+					break;
+				}
+				currentType++;
+			}
+		}
+		if (minor && !found) {
+			foreach (MinorType type in minorTypes) {
+				if (selectedMinor && type == selectedMinorType) {
+					found = true;
+					break;
+				}
+				currentType++;
+			}
+		}
+		if (currentType >= totalTypes) currentType = totalTypes-1;
+		currentType += by;
+		while (currentType < 0) currentType += totalTypes;
+		currentType %= totalTypes;
+		if (movement) {
+			if (currentType < movementTypes.Length) {
+				selectMovementType(movementTypes[currentType]);
+				return;
+			}
+			else currentType -= movementTypes.Length;
+		}
+		if (standard) {
+			if (currentType < standardTypes.Length) {
+				selectStandardType(standardTypes[currentType]);
+				return;
+			}
+			else currentType -= standardTypes.Length;
+		}
+		if (minor) {
+			if (currentType < minorTypes.Length) {
+				selectMinorType(minorTypes[currentType]);
+				return;
+			}
+			else currentType -= minorTypes.Length;
+		}
+	}
+
 	public static void selectNextOfType() {
 		if (mapGenerator.getCurrentUnit() != mapGenerator.selectedUnit || mapGenerator.getCurrentUnit()==null) return;
 		if (selectedMovement && !mapGenerator.getCurrentUnit().usedStandard) clickStandard();
@@ -1781,7 +1855,6 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public static void deselectCurrentAction() {
-		Debug.Log(selectedStandard + ": " + selectedStandardType + "   " + selectedMovement + ": " + selectedMovementType + "   " + selectedMinor + ": " + selectedMinorType);
 		if (selectedStandard) {
 			deselectStandardType(selectedStandardType);
 			if (showingConfirm) {

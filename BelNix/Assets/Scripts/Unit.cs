@@ -419,7 +419,7 @@ public class Unit : MonoBehaviour {
 		}
 		else {
 			movementTypes.Add(MovementType.Move);
-			movementTypes.Add(MovementType.BackStep);
+			if (moveDistLeft == maxMoveDist) movementTypes.Add(MovementType.BackStep);
 		}
 	//	movementTypes.Add(MovementType.Cancel);
 		return movementTypes.ToArray();
@@ -482,35 +482,23 @@ public class Unit : MonoBehaviour {
 
 	public void chooseNextBestActionType() {
 		float closest = closestEnemyDist();
-
-		if (!usedStandard) {
-			if (closest <= getAttackRange()) {
-				GameGUI.selectStandardType(StandardType.Attack);
-			}
-			else if (!usedMovement && closest > 1.1f) {
-				GameGUI.selectMovementType(MovementType.Move);
-			}
-			else if (hasTurret()) {
-				GameGUI.selectStandardType(StandardType.Place_Turret);
-			}
-			else if (hasTrap()) {
-				GameGUI.selectStandardType(StandardType.Lay_Trap);
-			}
-			else if (minorsLeft > 0) {
-				GameGUI.selectMinorType(MinorType.Stealth);
-			}
-			else {
-				GameGUI.selectStandardType(StandardType.Attack);
-			}
+		if (!usedStandard && closest <= getAttackRange()) {
+			GameGUI.selectStandardType(StandardType.Attack);
 		}
-		else if (!usedMovement) {
-			if (closest <= 1.1f)
-				GameGUI.selectMovementType(MovementType.BackStep);
-			else
-				GameGUI.selectMovementType(MovementType.Move);
+		else if (!usedMovement && closest > 1.1f) {
+			GameGUI.selectMovementType(MovementType.Move);
+		}
+		else if (!usedMovement && moveDistLeft == maxMoveDist && closest <= 1.1f) {
+			GameGUI.selectMovementType(MovementType.BackStep);
 		}
 		else if (minorsLeft > 0) {
 			GameGUI.selectMinorType(MinorType.Stealth);
+		}
+		else if (!usedMovement) {
+			GameGUI.selectMovementType(MovementType.Move);
+		}
+		else if (!usedStandard) {
+			GameGUI.selectStandardType(StandardType.Attack);
 		}
 		else {
 			mapGenerator.nextPlayer();
@@ -2230,6 +2218,7 @@ public class Unit : MonoBehaviour {
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (currentMoveDist == 0) useMovement();
+				else BattleGUI.resetMovementButtons();
 				if (!setRotationToMostInterestingTile()) {
 			//		rotating = true;
 /*					if (needsOverlay) {
@@ -2237,8 +2226,7 @@ public class Unit : MonoBehaviour {
 						needsOverlay = false;
 					}*/
 				}
-				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), (int)closestEnemyDist(), true, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
-					Debug.Log("Select Attack");
+				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), getAttackRange(), true, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
 					GameGUI.selectStandardType(StandardType.Attack);
 				}
 				if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {

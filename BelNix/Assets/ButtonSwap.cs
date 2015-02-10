@@ -12,6 +12,11 @@ public class ButtonSwap : MonoBehaviour {
 
     public void toggleSprite()
     {
-        GetComponent<Animator>().SetBool("CurrentlyDefault", !GetComponent<Animator>().GetBool("CurrentlyDefault"));
+		setSprite(!GetComponent<Animator>().GetBool("CurrentlyDefault"));
     }
+	public void setSprite(bool currentlyDefault) {
+		Debug.Log(currentlyDefault);
+		GetComponent<Animator>().SetBool("CurrentlyDefault", currentlyDefault);
+
+	}
 }
