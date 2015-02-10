@@ -24,7 +24,7 @@ public class GameGUI : MonoBehaviour {
 	static Rect scrollRect;
 	static bool scrollShowing;
 	static bool first = true;
-	static int temperedHandsMod = 0;
+	public static int temperedHandsMod = 0;
 	public static bool escapeMenuOpen = false;
 
 	public static bool showAttack = false;
@@ -1051,6 +1051,12 @@ public class GameGUI : MonoBehaviour {
 		}
 	}
 
+	public static void useTemperedHands() {
+		mapGenerator.getCurrentUnit().useTemperedHands(temperedHandsMod);
+		temperedHandsMod = 0;
+		BattleGUI.resetTemperedHands();
+	}
+
 	public static void selectMinor(MinorType minorType) {
 		if (!selectedMinor) {
 			clickMinor();
@@ -1395,7 +1401,7 @@ public class GameGUI : MonoBehaviour {
 
 				GUI.Box(r,"");
 				if (GUI.Button(new Rect(r.x + ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Cancel")) {
-					mapGenerator.getCurrentUnit().doingTemperedHands = false;
+			//		mapGenerator.getCurrentUnit().doingTemperedHands = false;
 					temperedHandsMod = 0;
 				}
 				if (GUI.Button(new Rect(r.x + r.width - buttSize.x - ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Confirm")) {
@@ -1923,6 +1929,13 @@ public class GameGUI : MonoBehaviour {
 		selectedMinorType = MinorType.None;
 		BattleGUI.selectMinorType(t, false);
 		switch (t) {
+		case MinorType.TemperedHands:
+			temperedHandsMod = 0;
+			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
+			break;
+		case MinorType.OneOfMany:
+			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			break;
 		default:
 			break;
 		}
@@ -1984,8 +1997,11 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case MinorType.TemperedHands:
-			p.doingTemperedHands = true;
 			temperedHandsMod = 0;
+			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
+			break;
+		case MinorType.OneOfMany:
+			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
 			break;
 		case MinorType.Loot:
 			looting = true;

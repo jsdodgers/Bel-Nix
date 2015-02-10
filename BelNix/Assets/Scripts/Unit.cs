@@ -239,7 +239,8 @@ public class Unit : MonoBehaviour {
 		temperedHandsUsesLeft--;
 //		minorsLeft--;
 		useMinor();
-		temperedHandsMod = mod;
+		temperedHandsMod += mod;
+		if (temperedHandsUsesLeft == 0) BattleGUI.resetMinorButtons();
 	}
 
 	public void endTurn() {
@@ -401,8 +402,10 @@ public class Unit : MonoBehaviour {
 		case ClassFeature.Mark:
 			return MinorType.Mark;
 		case ClassFeature.Tempered_Hands:
+			if (temperedHandsUsesLeft==0) return MinorType.None;
 			return MinorType.TemperedHands;
 		case ClassFeature.Escape:
+			if (escapeUsed) return MinorType.None;
 			return MinorType.Escape;
 		case ClassFeature.Invoke:
 			return MinorType.Invoke;
@@ -667,7 +670,7 @@ public class Unit : MonoBehaviour {
 		minorsLeft--;
 		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
 		if (!changeAtAll && minorsLeft > 0) return;
-		if (!changeAnyway || minorsLeft <= 0)
+		if (changeAnyway || minorsLeft <= 0)
 			chooseNextBestActionType();
 	}
 
@@ -2602,6 +2605,9 @@ public class Unit : MonoBehaviour {
 
 	public virtual int getMeleeScore() {
 		return characterSheet.characterSheet.skillScores.getScore(Skill.Melee);
+	}
+	public virtual int getMeleeScoreWithMods(Unit u) {
+		return getMeleeScore() + (unitIsFavoredRace(u) ? 1 : 0) + (Combat.flanking(this,u) ? 2 : 0) + (hasUncannyKnowledge() ? 1 : 0) + (hasWeaponFocus() ? 2 : 0) - temperedHandsMod;
 	}
 
 	public virtual int rollDamage(bool crit) {

@@ -32,6 +32,10 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+	public Text temperedHandsHitText;
+	public Text temperedHandsDamageText;
+	public Button plus;
+	public Button minus;
 
     private MapGenerator mapGenerator;
     private Text atAGlanceText;
@@ -351,6 +355,26 @@ public class BattleGUI : MonoBehaviour {
 
 	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown) {
 		battleGUI.confirmButtons[(int)confirmButton].SetActive(shown);
+	}
+	public static void resetTemperedHands() {
+		battleGUI.setTemperedHandsStuff();
+	}
+	public void useTemperedHands() {
+		GameGUI.useTemperedHands();
+	}
+	public void increaseTemperedHands() {
+		GameGUI.temperedHandsMod++;
+		setTemperedHandsStuff();
+	}
+	public void decreaseTemperedHands() {
+		GameGUI.temperedHandsMod--;
+		setTemperedHandsStuff();
+	}
+	public void setTemperedHandsStuff() {
+		plus.interactable = GameGUI.temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+		minus.interactable = GameGUI.temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+		temperedHandsHitText.text = "" + (-GameGUI.temperedHandsMod);
+		temperedHandsDamageText.text = "" + (GameGUI.temperedHandsMod);
 	}
 
     // Some handy methods for controlling the GUI
