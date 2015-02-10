@@ -17,7 +17,20 @@ public class TurretUnit : MechanicalUnit {
 		doDeath();
 		doAttack();
 	}
-	
+
+	public override int getCurrentHealth() {
+		return turret.getHealth();
+	}
+	public override int getMaxHealth() {
+		return turret.getMaxHealth();
+	}
+	public override int getCurrentComposure() {
+		return 0;
+	}
+	public override int getMaxComposure() {
+		return 0;
+	}
+
 	public override void loseHealth(int amount) {
 		turret.takeDamage(amount);
 	}
@@ -116,7 +129,16 @@ public class TurretUnit : MechanicalUnit {
 		//	Debug.Log("End Death");
 	}
 
+	public override string getStatusSummary() {
+		return string.Format("{0}\nHP: {1}/{2}\nTurns Left: {3}/{4}", getName(), getCurrentHealth(), getMaxHealth(), turret.turnsLeft(), turret.maxTurns());
+	}
+
+	public override int getTeam() {
+		return owner.getTeam();
+	}
+
 	public override int getAC() {
+		if (turret == null) return 0;
 		return turret.frame.getHardness();
 	}
 

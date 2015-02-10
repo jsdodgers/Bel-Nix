@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public enum ClassFeatureCanvas { OneOfMany, TemperedHands }
+public enum ConfirmButton {Movement = 0, Standard, Minor }
 
 public class BattleGUI : MonoBehaviour {
 
@@ -18,11 +19,15 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject characterInfoCanvas;
 	[SerializeField] private GameObject consoleContentPanel;
 	[SerializeField] private GameObject featuresContentPanel;
+	[SerializeField] private GameObject turretSelectCanvas;
+	[SerializeField] private GameObject turretSelectContentPanel;
 	[SerializeField] private GameObject consoleMessagePrefab;
 	[SerializeField] private GameObject classFeaturePrefab;
+	[SerializeField] private GameObject turretSelectPrefab;
 	[SerializeField] private GameObject turnOrderPrefab;
 	[SerializeField] private GameObject oneOfManyCanvas;
 	[SerializeField] private GameObject temperedHandsCanvas;
+	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 
     private MapGenerator mapGenerator;
@@ -31,6 +36,7 @@ public class BattleGUI : MonoBehaviour {
     private Text characterInfoText;
     private Scrollbar featuresScrollBar;
     private Scrollbar consoleScrollBar;
+	public Scrollbar turretScrollBar;
     private Dictionary<MovementType, GameObject> movementButtons;
     private Dictionary<StandardType, GameObject> standardButtons;
     private Dictionary<MinorType, GameObject> minorButtons;
@@ -99,6 +105,7 @@ public class BattleGUI : MonoBehaviour {
     }
 
 
+
     // Update is called once per frame
     void Update()
     {
@@ -126,6 +133,118 @@ public class BattleGUI : MonoBehaviour {
     {
         GameGUI.doGUI();
     }
+
+	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false) {
+		battleGUI.hideTurretSelectActually(hide, selectCurrent);
+	}
+
+	public void hideTurretSelectActually(bool hide = true, bool selectCurrent = false) {
+		turretSelectCanvas.SetActive(!hide);
+		if (selectCurrent && lastSelected != null) {
+			setTrapTurretButtonSelected(lastSelected, true);
+		}
+	}
+
+	public void selectTrapOrTurret() {
+		if (lastSelected == null) return;
+		GameGUI.selectedTrapTurret = true;
+		hideTurretSelectActually();
+		mapGenerator.resetRanges();
+	}
+	GameObject lastSelected = null;
+	public void selectTrapTurretButton(GameObject button) {
+		if (lastSelected != null) setTrapTurretButtonSelected(lastSelected, false);
+		MechanicalPlacementScript scr = button.GetComponent<MechanicalPlacementScript>();
+		GameGUI.selectedTrap = scr.trap;
+		GameGUI.selectedTurret = scr.turret;
+		setTrapTurretButtonSelected(button, true);
+		lastSelected = button;
+	}
+
+	public void setTrapTurretButtonSelected(GameObject button, bool selected) {
+		Animator anim = button.GetComponent<Animator>();
+		anim.SetBool("CurrentAction",selected);
+	}
+	
+	public static void turnOnTurretSelect(Unit u) {
+		battleGUI.turnOnTurretSelectActually(u);
+	}
+	
+	public void turnOnTurretSelectActually(Unit u) {
+		List<Turret> turrets = u.getTurrets();
+		hideTurretSelectActually(false);
+		for (int n = turretSelectContentPanel.transform.childCount-1;n>=0;n--) {
+			GameObject.Destroy(turretSelectContentPanel.transform.GetChild(n).gameObject);
+		}
+		bool first = true;
+		foreach (Turret t in turrets) {
+			GameObject tsp = GameObject.Instantiate(turretSelectPrefab) as GameObject;
+			Button b = tsp.GetComponent<Button>();
+			b.onClick.AddListener(delegate() { selectTrapTurretButton(b.gameObject); });
+			MechanicalPlacementScript scr = tsp.GetComponent<MechanicalPlacementScript>();
+			scr.turret = t;
+			tsp.transform.parent = turretSelectContentPanel.transform;
+			Text tex = tsp.transform.FindChild("Text").GetComponent<Text>();
+			Image img = tsp.transform.FindChild("Image").GetComponent<Image>();
+			tex.text = turretString(t);
+			img.sprite = Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
+			if (first) {
+				lastSelected = tsp;
+				setTrapTurretButtonSelected(tsp, true);
+				GameGUI.selectedTurret = t;
+				first = false;
+			}
+		}
+		turretScrollBar.value = 1;
+	}
+	
+	public static void turnOnTrapSelect(Unit u) {
+		battleGUI.turnOnTrapSelectActually(u);
+	}
+	
+	public void turnOnTrapSelectActually(Unit u) {
+		List<Trap> traps = u.getTraps();
+		hideTurretSelectActually(false);
+		for (int n = turretSelectContentPanel.transform.childCount-1;n>=0;n--) {
+			GameObject.Destroy(turretSelectContentPanel.transform.GetChild(n).gameObject);
+		}
+		bool first = true;
+		foreach (Trap t in traps) {
+			GameObject tsp = GameObject.Instantiate(turretSelectPrefab) as GameObject;
+			Button b = tsp.GetComponent<Button>();
+			b.onClick.AddListener(delegate() { selectTrapTurretButton(b.gameObject); });
+			MechanicalPlacementScript scr = tsp.GetComponent<MechanicalPlacementScript>();
+			scr.trap = t;
+			tsp.transform.parent = turretSelectContentPanel.transform;
+			Text tex = tsp.transform.FindChild("Text").GetComponent<Text>();
+			Image img = tsp.transform.FindChild("Image").GetComponent<Image>();
+			tex.text = trapString(t);
+			img.sprite = Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
+			if (first) {
+				lastSelected = tsp;
+				setTrapTurretButtonSelected(tsp, true);
+				GameGUI.selectedTrap = t;
+				first = false;
+			}
+		}
+		turretScrollBar.value = 1;
+	}
+
+	string turretString(Turret t) {
+		string str = "Frame: " + t.frame.itemName + "\n" +
+			"Energy Source: " + t.energySource.itemName + "\n" +
+				"Gear: " + t.gear.itemName + "\n" +
+				"Applicator: " + t.applicator.itemName;
+		return UnitGUI.getSmallCapsString(str, 9);
+	}
+
+	string trapString(Trap t) {
+		string str = "Frame: " + t.frame.itemName + "\n" +
+			"Trigger: " + t.trigger.itemName + "\n" +
+				"Gear: " + t.gear.itemName + "\n" +
+				"Applicator: " + t.applicator.itemName;
+		return UnitGUI.getSmallCapsString(str, 9);
+	}
 
     // Trigger everything that needs to happen at the beginning of a turn
     public static void beginTurn(Unit unit)
@@ -216,6 +335,10 @@ public class BattleGUI : MonoBehaviour {
 		if (type == MinorType.None) return;
 		//	battleGUI.eventSystem.SetSelectedGameObject(battleGUI.minorButtons[type].transform.GetChild(0).gameObject);
 		battleGUI.minorButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
+	}
+
+	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown) {
+		battleGUI.confirmButtons[(int)confirmButton].SetActive(shown);
 	}
 
     // Some handy methods for controlling the GUI

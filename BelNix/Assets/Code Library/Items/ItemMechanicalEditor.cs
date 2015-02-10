@@ -94,6 +94,12 @@ public class Turret : Item, ItemMechanical {
 	{
 		return ItemCode.Turret;
 	}
+	public int turnsLeft() {
+		return energySource.turnsLeft;
+	}
+	public int maxTurns() {
+		return energySource.getMaxTurns();
+	}
 	public bool hasUsesLeft() {
 		return energySource.hasUsesLeft();
 	}
@@ -111,6 +117,12 @@ public class Turret : Item, ItemMechanical {
 	}
 	public bool isDestroyed() {
 		return frame.isDestroyed();
+	}
+	public int getHealth() {
+		return frame.healthLeft;
+	}
+	public int getMaxHealth() {
+		return frame.getDurability();
 	}
 	public Turret(string creator, Frame fr, Applicator app, Gear g, EnergySource es) {
 		itemStackType = ItemStackType.Turret;
@@ -193,7 +205,7 @@ public class Trap : Item, ItemMechanical {
 }
 
 public class Frame : Item, ItemMechanical {
-	int healthLeft;
+	internal int healthLeft;
 	public override string getItemData (string delim)
 	{
 		return base.getItemData(delim) + delim +

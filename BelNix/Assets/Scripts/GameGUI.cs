@@ -6,7 +6,11 @@ using System.Linq;
 public enum Tab {R, C, V, B, T, Cancel, None}
 public enum Mission {Primary, Secondary, Optional, None}
 public class GameGUI : MonoBehaviour {
-	
+
+	public static Trap selectedTrap;
+	public static Turret selectedTurret;
+	public static bool selectedTrapTurret;
+
 	static Unit hovering = null;
 	public static MapGenerator mapGenerator;
 	public static Log log;
@@ -71,6 +75,16 @@ public class GameGUI : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+	}
+
+	public static void setConfirmShown() {
+		if (showingConfirm != hasConfirmButton()) {
+			showingConfirm = !showingConfirm;
+			ConfirmButton but = ConfirmButton.Standard;
+			if (selectedMinor) but = ConfirmButton.Minor;
+			else if (selectedMovement) but = ConfirmButton.Movement;
+			BattleGUI.setConfirmButtonShown(but, showingConfirm);
+		}
 	}
 
 	// Make the black-bordered solid color texture used throughout the programmer-art UI
@@ -300,7 +314,7 @@ public class GameGUI : MonoBehaviour {
 		return new Rect((Screen.width - temperedHandsWidth)/2.0f, (Screen.height - temperedHandsHeight)/2.0f, temperedHandsWidth, temperedHandsHeight);
 	}
 
-
+	public static bool showingConfirm = false;
 	public static bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
@@ -1093,7 +1107,7 @@ public class GameGUI : MonoBehaviour {
 		// Game GUI
 		else {
 			// BattleGUI;
-			return;
+		//	return;
 			float consoleRight = 160.0f;
 			if (!clipboardUp) consoleRight += 45.0f;
 			float consoleLeft = 200.0f;
@@ -1478,7 +1492,7 @@ public class GameGUI : MonoBehaviour {
 				}
 			}
 			if (selectedStandard && selectedStandardType==StandardType.Place_Turret) {
-				List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+				List<Turret> turrets = mapGenerator.getCurrentUnit().getTurrets();
 				float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
 				//	height *= 4;
 				GUI.DrawTexture(turretTypesRect(), getTurretBackgroundTexture());
@@ -1522,7 +1536,7 @@ public class GameGUI : MonoBehaviour {
 			}
 			
 			if (selectedStandard && selectedStandardType==StandardType.Place_Turret) {
-				List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+				List<Turret> turrets = mapGenerator.getCurrentUnit().getTurrets();
 				float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
 			//	height *= 4;
 				GUI.DrawTexture(turretTypesRect(), getTurretBackgroundTexture());
@@ -1566,7 +1580,7 @@ public class GameGUI : MonoBehaviour {
 			}
 			
 			if (selectedStandard && selectedStandardType==StandardType.Lay_Trap && selectedTrap==null) {
-				List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
+				List<Trap> traps = mapGenerator.getCurrentUnit().getTraps();
 				float height = traps.Count * turretSelectSize.y - traps.Count + 2;
 				//	height *= 4;
 				GUI.DrawTexture(trapTypesRect(), getTurretBackgroundTexture());
@@ -1695,14 +1709,14 @@ public class GameGUI : MonoBehaviour {
 		return turretPartStyle;
 	}
 
-	public static Trap selectedTrap = null;
+//	public static Trap selectedTrap = null;
 
 	public static void selectCurrentTrap() {
-		selectedTrap = getCurrentTrap();
+//		selectedTrap = getCurrentTrap();
 	}
 
 	public static void showCurrentTrap() {
-		List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
+		List<Trap> traps = mapGenerator.getCurrentUnit().getTraps();
 		float height = traps.Count * turretSelectSize.y - traps.Count + 1;
 		Rect r = trapTypeRect(selectedTrapIndex);
 		Rect tR = trapTypesScrollRect();
@@ -1715,7 +1729,7 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public static Trap getTrap(int n) {
-		List<Trap> traps = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTraps();
+		List<Trap> traps = mapGenerator.getCurrentUnit().getTraps();
 		if (n >= traps.Count || n < 0) return null;
 		return traps[n];
 	}
@@ -1725,13 +1739,13 @@ public class GameGUI : MonoBehaviour {
 	}
 
 	public static Turret getTurret(int n) {
-		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+		List<Turret> turrets = mapGenerator.getCurrentUnit().getTurrets();
 		if (n >= turrets.Count || n<0) return null;
 		return turrets[n];
 	}
 
 	public static void showCurrentTurret() {
-		List<Turret> turrets = mapGenerator.getCurrentUnit().characterSheet.characterSheet.inventory.getTurrets();
+		List<Turret> turrets = mapGenerator.getCurrentUnit().getTurrets();
 		float height = turrets.Count * turretSelectSize.y - turrets.Count + 1;
 		Rect r = turretTypeRect(selectedTurretIndex);
 		Rect tR = turretTypesRect();
@@ -1752,89 +1766,107 @@ public class GameGUI : MonoBehaviour {
 //			openTab = previouslyOpenTab;
 		}
 		selectedMinor = false;
-		if (mapGenerator.selectedUnit.attackEnemy) {
-			mapGenerator.selectedUnit.attackEnemy.deselect();
-			mapGenerator.resetAttack();
-		}
+
 	}
 
 	static void deselectMovement() {
 		//		selectedMovementType = MovementType.None;
 		selectedMovement = false;
-		mapGenerator.resetRanges();
-		mapGenerator.removePlayerPath();
 	}
 
 	static void deselectStandard() {
 		selectedStandard = false;
 //		selectedStandardType = StandardType.None;
-		if (mapGenerator.selectedUnit.attackEnemy) {
-			mapGenerator.selectedUnit.attackEnemy.deselect();
-			mapGenerator.resetAttack();
-		}
-		mapGenerator.resetRanges();
+
 	}
 
 	public static void deselectCurrentAction() {
 		Debug.Log(selectedStandard + ": " + selectedStandardType + "   " + selectedMovement + ": " + selectedMovementType + "   " + selectedMinor + ": " + selectedMinorType);
 		if (selectedStandard) {
 			deselectStandardType(selectedStandardType);
+			if (showingConfirm) {
+				BattleGUI.setConfirmButtonShown(ConfirmButton.Standard, false);
+				showingConfirm = false;
+			}
 		}
 		else if (selectedMovement) {
 			deselectMovementType(selectedMovementType);
+			if (showingConfirm) {
+				BattleGUI.setConfirmButtonShown(ConfirmButton.Movement, false);
+				showingConfirm = false;
+			}
 		}
 		else if (selectedMinor) {
 			deselectMinorType(selectedMinorType);
+			if (showingConfirm) {
+				BattleGUI.setConfirmButtonShown(ConfirmButton.Minor, false);
+				showingConfirm = false;
+			}
 		}
 	}
 	public static void deselectMinorType(MinorType t) {
+		selectedMinor = false;
+		selectedMinorType = MinorType.None;
 		BattleGUI.selectMinorType(t, false);
 		switch (t) {
 		default:
 			break;
 		}
-		selectedMinor = false;
-		selectedMinorType = MinorType.None;
+		if (mapGenerator.selectedUnit.attackEnemy) {
+			mapGenerator.selectedUnit.attackEnemy.deselect();
+			mapGenerator.resetAttack();
+		}
 	}
 	public static void deselectStandardType(StandardType t) {
 		BattleGUI.selectStandardType(t, false);
+		selectedStandard = false;
+		selectedStandardType = StandardType.None;
 		switch (t) {
+		case StandardType.Attack:
+		case StandardType.Intimidate:
+		case StandardType.OverClock:
+		case StandardType.Throw:
+			if (mapGenerator.selectedUnit.attackEnemy) {
+				mapGenerator.selectedUnit.attackEnemy.deselect();
+				mapGenerator.resetAttack();
+			}
+			break;
+		case StandardType.Lay_Trap:
+			selectedTrap = null;
+			BattleGUI.hideTurretSelect();
+			break;
+		case StandardType.Place_Turret:
+			selectedTurretIndex = 0;
+			BattleGUI.hideTurretSelect();
+			break;
 		default:
 			break;
 		}
-		selectedStandard = false;
-		selectedStandardType = StandardType.None;
+		mapGenerator.resetRanges();
 	}
 	public static void deselectMovementType(MovementType t) {
+		selectedMovement = false;
+		selectedMovementType = MovementType.None;
 		BattleGUI.selectMovementType(t, false);
 		switch (t) {
 		default:
+			mapGenerator.resetRanges();
+			mapGenerator.removePlayerPath();
 			break;
 		}
-		selectedMovement = false;
-		selectedMovementType = MovementType.None;
+
 	}
 
 	public static bool looting = false;
 	public static bool inventoryWasOpenLoot = false;
-//	public Tab previouslyOpenTab = Tab.None;
+
 	public static void selectMinorType(MinorType t) {
-		if (t != selectedMinorType || !selectedMinor) deselectCurrentAction();
-		Debug.Log("Minor: " + t);
+		if (t != selectedMinorType || (!selectedMinor && t != MinorType.None)) deselectCurrentAction();
 		selectedMinor = t != MinorType.None;
 		if (t == selectedMinorType) return;
 		BattleGUI.selectMinorType(t);
-	//	MinorType oldT = selectedMinorType;
 		selectedMinorType = t;
-	//	deselectMinorType(oldT);
 		mapGenerator.resetCurrentKeysTile();
-		if (mapGenerator.selectedUnit.attackEnemy)
-			mapGenerator.selectedUnit.attackEnemy.deselect();
-		if (looting && t != MinorType.Loot) {
-			UnitGUI.inventoryOpen = inventoryWasOpenLoot;
-			looting = false;
-		}
-		mapGenerator.resetRanges();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case MinorType.TemperedHands:
@@ -1856,41 +1888,30 @@ public class GameGUI : MonoBehaviour {
 			break;
 		}
 	}
-	// The unity event system doesn't let you use methods from the editor unless they return void
-	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
-	// here's another version that accepts a string instead of a MinorType enum.
 	public static void selectMinorType(string t) {
 		switch(t) {
 		case "Loot":
-		//	if(!selectedMinor) selectMinor(MinorType.Loot);
 			selectMinorType(MinorType.Loot);
 			break;
 		case "Stealth":
-	//		if (!selectedMinor) selectMinor(MinorType.Stealth);
 			selectMinorType(MinorType.Stealth);
 			break;
 		case "Escape":
-	//		if (!selectedMinor) selectMinor(MinorType.Escape);
 			selectMinorType(MinorType.Escape);
 			break;
 		case "Invoke":
-	//		if (!selectedMinor) selectMinor(MinorType.Invoke);
 			selectMinorType(MinorType.Invoke);
 			break;
 		case "Mark":
-	//		if (!selectedMinor) selectMinor(MinorType.Mark);
 			selectMinorType(MinorType.Mark);
 			break;
 		case "One Of Many":
-	//		if (!selectedMinor) selectMinor(MinorType.OneOfMany);
 			selectMinorType(MinorType.OneOfMany);
 			break;
 		case "Tempered Hands":
-	///		if (!selectedMinor) selectMinor(MinorType.TemperedHands);
 			selectMinorType(MinorType.TemperedHands);
 			break;
 		default:
-	//		if(!selectedMinor) selectMinor(MinorType.None);
 			selectMinorType(MinorType.None);
 			break;
 		}
@@ -1899,83 +1920,64 @@ public class GameGUI : MonoBehaviour {
 	public static int selectedTrapIndex = 0;
 	public static int selectedTurretIndex = 0;
 	public static void selectStandardType(StandardType t) {
-		if (t != selectedStandardType || !selectedStandard) deselectCurrentAction();
-		Debug.Log("Standard: " + t);
+		if (t != selectedStandardType || (!selectedStandard && t != StandardType.None)) deselectCurrentAction();
 		selectedStandard = t != StandardType.None;
 		if (t == selectedStandardType) return;
 		BattleGUI.selectStandardType(t);
-	//	StandardType oldT = selectedStandardType;
 		selectedStandardType = t;
-	//	deselectStandardType(oldT);
 		mapGenerator.resetCurrentKeysTile();
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
-	/*	case StandardType.Cancel:
-			if (mapGenerator.selectedUnit.attackEnemy)
-				mapGenerator.selectedUnit.attackEnemy.deselect();
-			selectedStandardType = StandardType.None;
-			selectedStandard = false;
-			mapGenerator.resetRanges();
-			break;*/
 		case StandardType.Attack:
 		case StandardType.OverClock:
 		case StandardType.Throw:
 		case StandardType.Intimidate:
-		case StandardType.Place_Turret:
-			selectedTurretIndex = 0;
 			mapGenerator.resetRanges();
+			break;
+		case StandardType.Place_Turret:
+			BattleGUI.turnOnTurretSelect(mapGenerator.getCurrentUnit());
+//			mapGenerator.resetRanges();
+			selectedTrapTurret = false;
 			break;
 		case StandardType.Lay_Trap:
-			selectedTrapIndex = 0;
+			BattleGUI.turnOnTrapSelect(mapGenerator.getCurrentUnit());
+//			selectedTrapIndex = 0;
 			trapsScrollPosition = new Vector2(0.0f, 0.0f);
-			selectedTrap = null;
-			mapGenerator.resetRanges();
+//			selectedTrap = null;
+			selectedTrapTurret = false;
+//			mapGenerator.resetRanges();
 			break;
 		default:
-			selectedTrap = null;
-			if (mapGenerator.selectedUnit.attackEnemy)
-				mapGenerator.selectedUnit.attackEnemy.deselect();
-			mapGenerator.resetRanges();
 			break;
 		}
 	}
-	// The unity event system doesn't let you use methods from the editor unless they return void
-	// and use no parameters other than int, float, string, or object reference. To expose selectStandardType,
-	// here's another version that accepts a string instead of a StandardType enum.
+
 	public static void selectStandardType(string t)
 	{
 		switch(t)
 		{
 		case "Attack":
-		//	if(!selectedStandard) selectStandard(StandardType.Attack);
 			selectStandardType(StandardType.Attack);
 			break;
 		case "Over Clock":
-	//		if(!selectedStandard) selectStandard(StandardType.OverClock);
 			selectStandardType(StandardType.OverClock);
 			break;
 		case "Throw":
-	//		if(!selectedStandard) selectStandard(StandardType.Throw);
 			selectStandardType(StandardType.Throw);
 			break;
 		case "Intimidate":
-	//		if(!selectedStandard) selectStandard(StandardType.Intimidate);
 			selectStandardType(StandardType.Intimidate);
 			break;
 		case "Place Turret":
-	//		if(!selectedStandard) selectStandard(StandardType.Place_Turret);
 			selectStandardType(StandardType.Place_Turret);
 			break;
 		case "Lay Trap":
-	//		if(!selectedStandard) selectStandard(StandardType.Lay_Trap);
 			selectStandardType(StandardType.Lay_Trap);
 			break;
 		case "Inventory":
-	//		if(!selectedStandard) selectStandard(StandardType.Inventory);
 			selectStandardType(StandardType.Inventory);
 			break;
 		default:
-	//		if(!selectedStandard) selectStandard(StandardType.None);
 			selectStandardType(StandardType.None);
 			break;
 		}
@@ -1991,8 +1993,7 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	public static void selectMovementType(MovementType t) {
-		if (t != selectedMovementType || !selectedMovement) deselectCurrentAction();
-		Debug.Log("Movement: " + t);
+		if (t != selectedMovementType || (!selectedMovement && t != MovementType.None)) deselectCurrentAction();
 		selectedMovement = t != MovementType.None;
 		if (t == selectedMovementType) return;
 		BattleGUI.selectMovementType(t);
@@ -2000,36 +2001,23 @@ public class GameGUI : MonoBehaviour {
 		selectedMovementType = t;
 		mapGenerator.resetCurrentKeysTile();
 		switch (t) {
-	/*	case MovementType.Cancel:
-			selectedMovementType = MovementType.None;
-			selectedMovement = false;
-			mapGenerator.resetRanges();
-			mapGenerator.removePlayerPath();
-			break;*/
 		case MovementType.BackStep:
 		case MovementType.Move:
 
 			mapGenerator.getCurrentUnit().selectMovementType(t);
-			if (t == MovementType.BackStep)
-				Debug.Log("BackStep: " + mapGenerator.lastPlayerPath.Count + "\n\n" + mapGenerator.selectedUnit.currentPath.Count);
 			break;
 		case MovementType.Recover:
 			mapGenerator.getCurrentUnit().recover();
-//			mapGenerator.getCurrentUnit().affliction = Affliction.None;
-//			mapGenerator.getCurrentUnit().usedMovement = true;
-			mapGenerator.resetRanges();
-			mapGenerator.removePlayerPath();
+		//	mapGenerator.resetRanges();
+		//	mapGenerator.removePlayerPath();
 			break;
 		default:
-			mapGenerator.resetRanges();
-			mapGenerator.removePlayerPath();
+		//	mapGenerator.resetRanges();
+		//	mapGenerator.removePlayerPath();
 			break;
 		}
 	}
 
-	// The unity event system doesn't let you use methods from the editor unless they return void
-	// and use no parameters other than int, float, string, or object reference. To expose selectMovementType,
-	// here's another version that accepts a string instead of a MovementType enum.
 	public static void selectMovementType(string t)
 	{
 		switch(t)

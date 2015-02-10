@@ -200,15 +200,38 @@ public class Unit : MonoBehaviour {
 
 	}
 
-    public string getAtAGlanceString()
-    {
+	public virtual List<Turret> getTurrets() {
+		return characterSheet.characterSheet.inventory.getTurrets();
+	}
+
+	public virtual List<Trap> getTraps() {
+		return characterSheet.characterSheet.inventory.getTraps();
+	}
+
+	public virtual int getCurrentHealth() {
+		return characterSheet.combatScores.getCurrentHealth();
+	}
+
+	public virtual int getMaxHealth() {
+		return characterSheet.combatScores.getMaxHealth();
+	}
+
+	public virtual int getCurrentComposure() {
+		return characterSheet.combatScores.getCurrentComposure();
+	}
+
+	public virtual int getMaxComposure() {
+		return characterSheet.combatScores.getMaxComposure();
+	}
+
+    public string getAtAGlanceString()  {
 //		string playerText = Unit "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
-		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
+		string playerName = getName();
 		string playerText = UnitGUI.getSmallCapsString(playerName, 13);
 
 		playerText += "\n";
-		playerText += UnitGUI.getSmallCapsString("Health", 13) + ":\n" + (team == 1 ? "?/?" : characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth()) + "\n";
-		playerText += UnitGUI.getSmallCapsString("Composure", 13) + ":\n" + (team == 1 ? "?/?" : characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure());
+		playerText += UnitGUI.getSmallCapsString("Health", 13) + ":\n" + (team == 1 ? "?/?" : getCurrentHealth() + "/" + getMaxHealth()) + "\n";
+		playerText += UnitGUI.getSmallCapsString("Composure", 13) + ":\n" + (team == 1 ? "?/?" : getCurrentComposure() + "/" + getMaxComposure());
 		return playerText;
 	}
 
@@ -421,13 +444,13 @@ public class Unit : MonoBehaviour {
 		}
 		if (hasTurret()) standardTypes.Add(StandardType.Place_Turret);
 		if (hasTrap()) standardTypes.Add(StandardType.Lay_Trap);
-		standardTypes.Add(StandardType.Inventory);
+	//	standardTypes.Add(StandardType.Inventory);
 	//	standardTypes.Add (StandardType.Cancel);
 		return standardTypes.ToArray();
 	}
 	public MinorType[] getMinorTypes() {
 		List<MinorType> minorTypes = new List<MinorType>();
-		minorTypes.Add(MinorType.Loot);
+	//	minorTypes.Add(MinorType.Loot);
 		minorTypes.Add(MinorType.Stealth);
 		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
@@ -523,6 +546,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void setSelected() {
+		return;
 		isSelected = true;
 		isTarget = false;
 		getTargetSprite().enabled = true;
@@ -682,15 +706,22 @@ public class Unit : MonoBehaviour {
 	}
 
 	public bool isEnemyOf(Unit cs) {
-		return team != cs.team;
+		return getTeam() != cs.getTeam();
 	}
 
 	public bool isAllyOf(Unit cs) {
-		return team == cs.team;
+		return getTeam() == cs.getTeam();
 	}
 
-
-
+	public virtual int getTeam() {
+		return team;
+	}
+	public virtual string getStatusSummary() {
+		return string.Format("{0}\nHP: {1}/{2}\nCP: {3}/{4}", getName(), getCurrentHealth(), getMaxHealth(), getCurrentComposure(), getMaxComposure());
+	}
+	
+	
+	
 	
 	
 	public void setNewTilePosition(Vector3 pos) {

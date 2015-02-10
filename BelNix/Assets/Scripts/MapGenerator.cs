@@ -1452,6 +1452,7 @@ public class MapGenerator : MonoBehaviour {
 		if (isInCharacterPlacement()) {
 			createSelectionArea();
 		}
+		GameGUI.setConfirmShown();
 	//	setTargetObjectScale();
 	}
 
@@ -2046,20 +2047,26 @@ public class MapGenerator : MonoBehaviour {
 			deleteCurrentTrap();
 		}
 		if (Input.GetKeyDown(KeyCode.Escape) && !normalDraggin && !shiftDraggin) {
-			if (UnitGUI.openTab == Tab.None && !UnitGUI.inventoryOpen) {
-				if (GameGUI.selectedStandard && GameGUI.selectedStandardType != StandardType.None) {
-					if (GameGUI.selectedStandardType==StandardType.Lay_Trap && GameGUI.selectedTrap != null) {
+			if (UnitGUI.inventoryOpen) {
+				UnitGUI.inventoryOpen = false;
+			}
+			else {
+				if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Lay_Trap || GameGUI.selectedStandardType == StandardType.Place_Turret) && GameGUI.selectedTrapTurret) {
+				/*	if (GameGUI.selectedStandardType==StandardType.Lay_Trap && GameGUI.selectedTrap != null) {
 						GameGUI.selectedTrap = null;
 						resetRanges();
 					}
-					else GameGUI.selectStandard(GameGUI.selectedStandardType);
+					else GameGUI.selectStandard(GameGUI.selectedStandardType);*/
+					GameGUI.selectedTrapTurret = false;
+					resetRanges();
+					BattleGUI.hideTurretSelect(false, true);
 				}
-				else if (GameGUI.selectedMovement && GameGUI.selectedMovementType!=MovementType.None) {
+			/*	else if (GameGUI.selectedMovement && GameGUI.selectedMovementType!=MovementType.None) {
 					GameGUI.selectMovement(GameGUI.selectedMovementType);
 				}
 				else if (GameGUI.selectedMinor && GameGUI.selectedMinorType != MinorType.None) {
 					GameGUI.selectMinor(GameGUI.selectedMinorType);
-				}
+				}*/
 		//		else if (selectedUnit == null) {
 		//			openEscapeMenu();
 //					selectUnit(getCurrentUnit(),false);
@@ -2069,13 +2076,7 @@ public class MapGenerator : MonoBehaviour {
 					openEscapeMenu();
 				}
 			}
-			else if (GameGUI.selectedMinor && GameGUI.selectedMinorType==MinorType.Loot) {
-				GameGUI.selectMinor(MinorType.Loot);
-			}
-			else if (UnitGUI.inventoryOpen) {
-				UnitGUI.inventoryOpen = false;
-			}
-			else UnitGUI.openTab = Tab.None;
+//			else UnitGUI.openTab = Tab.None;
 		}
 		if (leftClickIsMakingSelection() && !shiftDown) {
 			if (Input.GetKeyDown(KeyCode.W)) {
@@ -2248,32 +2249,33 @@ public class MapGenerator : MonoBehaviour {
 
 		if (GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Place_Turret) {
 			if (turretBeingPlaced != null) {
-				Turret turret = GameGUI.getCurrentTurret();
-				turretBeingPlaced.turret = turret;
-				turretBeingPlaced.owner = getCurrentUnit();
+			//	Turret turret = GameGUI.getCurrentTurret();
+			//	turretBeingPlaced.turret = turret;
 				getCurrentUnit().addTurret(turretBeingPlaced);
-				if (turret != null) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(turret);
+				if (GameGUI.selectedTurret != null) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(GameGUI.selectedTurret);
 				turretBeingPlacedInDirection = Direction.None;
 				turretBeingPlaced = null;
-				getCurrentUnit().useStandard();
 				getCurrentUnit().useMovementIfStarted();
+				getCurrentUnit().useStandard();
 			}
 		}
 		if (GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Lay_Trap) {
-			if (GameGUI.selectedTrap==null) {
-				GameGUI.selectCurrentTrap();
+			if (!GameGUI.selectedTrapTurret) {
+				GameGUI.selectedTrapTurret = true;
 				resetRanges();
 			}
 			else {
-				if (currentTrap.Count > 0) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(currentTrap[0].trap);
-				while (currentTrap.Count > 0) currentTrap.RemoveAt(0);
-				if (currentlySelectedTrap != null) {
-					currentlySelectedTrap.unsetSelectedForPlacement();
-					currentlySelectedTrap = null;
+				if (currentTrap.Count > 0) {
+					getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(currentTrap[0].trap);
+					while (currentTrap.Count > 0) currentTrap.RemoveAt(0);
+					if (currentlySelectedTrap != null) {
+						currentlySelectedTrap.unsetSelectedForPlacement();
+						currentlySelectedTrap = null;
+					}
+					getCurrentUnit().useMovementIfStarted();
+					getCurrentUnit().useStandard();
+					currentTrap = new List<TrapUnit>();
 				}
-				getCurrentUnit().useMovementIfStarted();
-				getCurrentUnit().useStandard();
-				currentTrap = new List<TrapUnit>();
 			}
 		}
 
@@ -2399,7 +2401,9 @@ public class MapGenerator : MonoBehaviour {
 			handleKeyAction(t, dir);
 		}
 	}
-
+	public void logPoop() {
+		Debug.Log("Poop");
+	}
 	public void handleKeyAction(Tile t, Direction dir) {
 		Unit u = getCurrentUnit();
 		if (GameGUI.selectedStandard) {
@@ -2418,6 +2422,8 @@ public class MapGenerator : MonoBehaviour {
 						tu.mapGenerator = this;
 						tu.team = getCurrentUnit().team;
 						turretBeingPlaced = tu;
+						turretBeingPlaced.owner = getCurrentUnit();
+						turretBeingPlaced.turret = GameGUI.selectedTurret;
 					}
 					t.setCharacter(tu);
 					Vector2 v = t.getPosition();
@@ -2497,7 +2503,7 @@ public class MapGenerator : MonoBehaviour {
 	void handleSpace() {
 		timeSinceSpace += Time.deltaTime * Time.timeScale;
 		if (Input.GetKeyDown(KeyCode.F) && isInPriority()) {
-			if (GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Place_Turret) {
+			if (false && GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Place_Turret) {
 				
 				if (shiftDown) GameGUI.selectedTurretIndex--;
 				else GameGUI.selectedTurretIndex++;
@@ -2506,7 +2512,7 @@ public class MapGenerator : MonoBehaviour {
 				GameGUI.selectedTurretIndex %= numTurrets;
 				GameGUI.showCurrentTurret();
 			}
-			else if (GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Lay_Trap && GameGUI.selectedTrap==null) {
+			else if (false && GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Lay_Trap && GameGUI.selectedTrap==null) {
 				if (shiftDown) GameGUI.selectedTrapIndex--;
 				else GameGUI.selectedTrapIndex++;
 				int numTraps = getCurrentUnit().characterSheet.characterSheet.inventory.getTraps().Count;
@@ -2787,6 +2793,8 @@ public class MapGenerator : MonoBehaviour {
 								tu.mapGenerator = this;
 								tu.team = getCurrentUnit().team;
 								turretBeingPlaced = tu;
+								turretBeingPlaced.owner = getCurrentUnit();
+								turretBeingPlaced.turret = GameGUI.selectedTurret;
 							}
 							t.setCharacter(tu);
 							Vector2 v = t.getPosition();
@@ -3174,7 +3182,7 @@ public class MapGenerator : MonoBehaviour {
 	public void resetRanges(bool keys = true) {
 		if (keys) resetCurrentKeysTile();
 		removeAllRanges(false);
-		if (!isInCharacterPlacement() && GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0 && GameGUI.selectedTrap!=null) {
+		if (!isInCharacterPlacement() && GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Lay_Trap && currentTrap.Count!=0 && GameGUI.selectedTrap!=null && GameGUI.selectedTrapTurret) {
 			setTrapPlacementRange((int)currentTrap[0].position.x, (int)-currentTrap[0].position.y, 1);
 		}
 		else if (selectedUnit) {
@@ -3221,7 +3229,7 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Place_Turret) && !isOther)
 			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
-		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Lay_Trap && GameGUI.selectedTrap!=null) && !isOther)
+		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Lay_Trap && GameGUI.selectedTrap!=null && GameGUI.selectedTrapTurret) && !isOther)
 			setCharacterCanLayTrap((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if (GameGUI.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke) && !isOther)
 			setMarkRange(getCurrentUnit(), false);
