@@ -320,7 +320,8 @@ public class GameGUI : MonoBehaviour {
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
-				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Stealth || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
+				((selectedMinor && (selectedMinorType == MinorType.Stealth)));
 	}
 
 	public static bool mouseIsOnGUI() {
@@ -882,7 +883,7 @@ public class GameGUI : MonoBehaviour {
 	public static void selectNextAction() {
 		selectActionBy(1);
 	}
-
+	
 	public static void selectActionBy(int by) {
 		Unit u = mapGenerator.getCurrentUnit();
 		MovementType[] movementTypes = u.getMovementTypes();
@@ -926,6 +927,46 @@ public class GameGUI : MonoBehaviour {
 		currentType += by;
 		while (currentType < 0) currentType += totalTypes;
 		currentType %= totalTypes;
+		if (movement) {
+			if (currentType < movementTypes.Length) {
+				selectMovementType(movementTypes[currentType]);
+				return;
+			}
+			else currentType -= movementTypes.Length;
+		}
+		if (standard) {
+			if (currentType < standardTypes.Length) {
+				selectStandardType(standardTypes[currentType]);
+				return;
+			}
+			else currentType -= standardTypes.Length;
+		}
+		if (minor) {
+			if (currentType < minorTypes.Length) {
+				selectMinorType(minorTypes[currentType]);
+				return;
+			}
+			else currentType -= minorTypes.Length;
+		}
+	}
+
+	
+	public static void selectActionAt(int actionInd) {
+		Unit u = mapGenerator.getCurrentUnit();
+		MovementType[] movementTypes = u.getMovementTypes();
+		StandardType[] standardTypes = u.getStandardTypes();
+		MinorType[] minorTypes = u.getMinorTypes();
+		bool someArmShown = (!u.usedStandard && BattleGUI.armShown(ActionArm.Standard)) || (!u.usedMovement && BattleGUI.armShown(ActionArm.Movement)) || (u.minorsLeft > 0 && BattleGUI.armShown(ActionArm.Minor));
+		bool movement = !u.usedMovement && (!someArmShown || BattleGUI.armShown(ActionArm.Movement));
+		bool standard = !u.usedStandard && (!someArmShown || BattleGUI.armShown(ActionArm.Standard));
+		bool minor = u.minorsLeft > 0 && (!someArmShown || BattleGUI.armShown(ActionArm.Minor));
+		int totalTypes = (movement ? movementTypes.Length : 0) + (standard ? standardTypes.Length : 0) + (minor ? minorTypes.Length : 0);
+		int currentType = actionInd;
+
+		if (currentType >= totalTypes) return;//currentType = totalTypes-1;
+	//	currentType += by;
+	//	while (currentType < 0) currentType += totalTypes;
+	//	currentType %= totalTypes;
 		if (movement) {
 			if (currentType < movementTypes.Length) {
 				selectMovementType(movementTypes[currentType]);
@@ -1181,7 +1222,7 @@ public class GameGUI : MonoBehaviour {
 		// Game GUI
 		else {
 			// BattleGUI;
-		//	return;
+			return;
 			float consoleRight = 160.0f;
 			if (!clipboardUp) consoleRight += 45.0f;
 			float consoleLeft = 200.0f;

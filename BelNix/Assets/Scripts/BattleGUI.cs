@@ -62,7 +62,7 @@ public class BattleGUI : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-		for (int n=0;n<3;n++) armsShown[n] = false;
+		for (int n=0;n<3;n++) armsShown[n] = true;
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -427,7 +427,7 @@ public class BattleGUI : MonoBehaviour {
 	public void toggleConsole()
 	{
 		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Dismissed");
-		writeToConsoleActually("Somebody just toggled the console", Color.black);
+	//	writeToConsoleActually("Somebody just toggled the console", Color.black);
 		GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().adjustArmsForConsole();
 		//cycleTurnOrder();
 	}
