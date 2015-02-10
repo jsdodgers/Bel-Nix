@@ -1936,6 +1936,10 @@ public class GameGUI : MonoBehaviour {
 		case MinorType.OneOfMany:
 			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
 			break;
+		case MinorType.Mark:
+		case MinorType.Escape:
+			mapGenerator.resetRanges();
+			break;
 		default:
 			break;
 		}
@@ -2009,6 +2013,8 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+			mapGenerator.resetRanges();
+			break;
 		case MinorType.Stealth:
 			break;
 		case MinorType.Escape:

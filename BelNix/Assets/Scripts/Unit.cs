@@ -1960,7 +1960,8 @@ public class Unit : MonoBehaviour {
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
 			currentMoveDist--;
-			moveDistLeft--;
+			if (GameGUI.selectedMovementType == MovementType.Move)
+				moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
 			mapGenerator.setCurrentUnitTile();
 			shouldDoAthleticsCheck = true;
@@ -2220,8 +2221,10 @@ public class Unit : MonoBehaviour {
 				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
-				if (currentMoveDist == 0) useMovement();
-				else BattleGUI.resetMovementButtons();
+				if (GameGUI.selectedMovement) {
+					if (currentMoveDist == 0) useMovement();
+					else BattleGUI.resetMovementButtons();
+				}
 				if (!setRotationToMostInterestingTile()) {
 			//		rotating = true;
 /*					if (needsOverlay) {
@@ -2237,6 +2240,7 @@ public class Unit : MonoBehaviour {
 				//	minorsLeft--;
 				//	GameGUI.selectMinor(MinorType.None);
 					escapeUsed = true;
+					BattleGUI.resetMinorButtons();
 				}
 			}
 		}
