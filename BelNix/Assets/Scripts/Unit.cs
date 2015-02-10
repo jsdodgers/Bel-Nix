@@ -2698,11 +2698,12 @@ public class Unit : MonoBehaviour {
 			attackEnemy.attackedByCharacter = null;
 		}
 		mapGenerator.resetAttack(this);
-		if (this == mapGenerator.getCurrentUnit())
-			mapGenerator.resetRanges();
 		attackAnimating = false;
-		useMovementIfStarted();
-		useStandard();
+		if (this == mapGenerator.getCurrentUnit()) {
+			mapGenerator.resetRanges();
+			useMovementIfStarted();
+			useStandard();
+		}
 
 	}
 	
