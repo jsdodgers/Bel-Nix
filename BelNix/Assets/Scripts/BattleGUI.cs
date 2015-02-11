@@ -32,6 +32,10 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+	public Text temperedHandsHitText;
+	public Text temperedHandsDamageText;
+	public Button plus;
+	public Button minus;
 
     private MapGenerator mapGenerator;
     private Text atAGlanceText;
@@ -62,7 +66,7 @@ public class BattleGUI : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-		for (int n=0;n<3;n++) armsShown[n] = false;
+		for (int n=0;n<3;n++) armsShown[n] = true;
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -352,6 +356,26 @@ public class BattleGUI : MonoBehaviour {
 	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown) {
 		battleGUI.confirmButtons[(int)confirmButton].SetActive(shown);
 	}
+	public static void resetTemperedHands() {
+		battleGUI.setTemperedHandsStuff();
+	}
+	public void useTemperedHands() {
+		GameGUI.useTemperedHands();
+	}
+	public void increaseTemperedHands() {
+		GameGUI.temperedHandsMod++;
+		setTemperedHandsStuff();
+	}
+	public void decreaseTemperedHands() {
+		GameGUI.temperedHandsMod--;
+		setTemperedHandsStuff();
+	}
+	public void setTemperedHandsStuff() {
+		plus.interactable = GameGUI.temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+		minus.interactable = GameGUI.temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+		temperedHandsHitText.text = "" + (-GameGUI.temperedHandsMod);
+		temperedHandsDamageText.text = "" + (GameGUI.temperedHandsMod);
+	}
 
     // Some handy methods for controlling the GUI
 	public bool UIRevealed = false;
@@ -427,7 +451,7 @@ public class BattleGUI : MonoBehaviour {
 	public void toggleConsole()
 	{
 		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Dismissed");
-		writeToConsoleActually("Somebody just toggled the console", Color.black);
+	//	writeToConsoleActually("Somebody just toggled the console", Color.black);
 		GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().adjustArmsForConsole();
 		//cycleTurnOrder();
 	}

@@ -24,7 +24,7 @@ public class GameGUI : MonoBehaviour {
 	static Rect scrollRect;
 	static bool scrollShowing;
 	static bool first = true;
-	static int temperedHandsMod = 0;
+	public static int temperedHandsMod = 0;
 	public static bool escapeMenuOpen = false;
 
 	public static bool showAttack = false;
@@ -320,7 +320,8 @@ public class GameGUI : MonoBehaviour {
 			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
-				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Stealth || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null);
+				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
+				((selectedMinor && (selectedMinorType == MinorType.Stealth)));
 	}
 
 	public static bool mouseIsOnGUI() {
@@ -882,7 +883,7 @@ public class GameGUI : MonoBehaviour {
 	public static void selectNextAction() {
 		selectActionBy(1);
 	}
-
+	
 	public static void selectActionBy(int by) {
 		Unit u = mapGenerator.getCurrentUnit();
 		MovementType[] movementTypes = u.getMovementTypes();
@@ -926,6 +927,46 @@ public class GameGUI : MonoBehaviour {
 		currentType += by;
 		while (currentType < 0) currentType += totalTypes;
 		currentType %= totalTypes;
+		if (movement) {
+			if (currentType < movementTypes.Length) {
+				selectMovementType(movementTypes[currentType]);
+				return;
+			}
+			else currentType -= movementTypes.Length;
+		}
+		if (standard) {
+			if (currentType < standardTypes.Length) {
+				selectStandardType(standardTypes[currentType]);
+				return;
+			}
+			else currentType -= standardTypes.Length;
+		}
+		if (minor) {
+			if (currentType < minorTypes.Length) {
+				selectMinorType(minorTypes[currentType]);
+				return;
+			}
+			else currentType -= minorTypes.Length;
+		}
+	}
+
+	
+	public static void selectActionAt(int actionInd) {
+		Unit u = mapGenerator.getCurrentUnit();
+		MovementType[] movementTypes = u.getMovementTypes();
+		StandardType[] standardTypes = u.getStandardTypes();
+		MinorType[] minorTypes = u.getMinorTypes();
+		bool someArmShown = (!u.usedStandard && BattleGUI.armShown(ActionArm.Standard)) || (!u.usedMovement && BattleGUI.armShown(ActionArm.Movement)) || (u.minorsLeft > 0 && BattleGUI.armShown(ActionArm.Minor));
+		bool movement = !u.usedMovement && (!someArmShown || BattleGUI.armShown(ActionArm.Movement));
+		bool standard = !u.usedStandard && (!someArmShown || BattleGUI.armShown(ActionArm.Standard));
+		bool minor = u.minorsLeft > 0 && (!someArmShown || BattleGUI.armShown(ActionArm.Minor));
+		int totalTypes = (movement ? movementTypes.Length : 0) + (standard ? standardTypes.Length : 0) + (minor ? minorTypes.Length : 0);
+		int currentType = actionInd;
+
+		if (currentType >= totalTypes) return;//currentType = totalTypes-1;
+	//	currentType += by;
+	//	while (currentType < 0) currentType += totalTypes;
+	//	currentType %= totalTypes;
 		if (movement) {
 			if (currentType < movementTypes.Length) {
 				selectMovementType(movementTypes[currentType]);
@@ -1008,6 +1049,12 @@ public class GameGUI : MonoBehaviour {
 			if (index < 0) index = minors.Length-1;
 			selectMinor(minors[index]);
 		}
+	}
+
+	public static void useTemperedHands() {
+		mapGenerator.getCurrentUnit().useTemperedHands(temperedHandsMod);
+		temperedHandsMod = 0;
+		BattleGUI.resetTemperedHands();
 	}
 
 	public static void selectMinor(MinorType minorType) {
@@ -1181,7 +1228,7 @@ public class GameGUI : MonoBehaviour {
 		// Game GUI
 		else {
 			// BattleGUI;
-		//	return;
+			return;
 			float consoleRight = 160.0f;
 			if (!clipboardUp) consoleRight += 45.0f;
 			float consoleLeft = 200.0f;
@@ -1354,7 +1401,7 @@ public class GameGUI : MonoBehaviour {
 
 				GUI.Box(r,"");
 				if (GUI.Button(new Rect(r.x + ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Cancel")) {
-					mapGenerator.getCurrentUnit().doingTemperedHands = false;
+			//		mapGenerator.getCurrentUnit().doingTemperedHands = false;
 					temperedHandsMod = 0;
 				}
 				if (GUI.Button(new Rect(r.x + r.width - buttSize.x - ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Confirm")) {
@@ -1882,6 +1929,18 @@ public class GameGUI : MonoBehaviour {
 		selectedMinorType = MinorType.None;
 		BattleGUI.selectMinorType(t, false);
 		switch (t) {
+		case MinorType.TemperedHands:
+			temperedHandsMod = 0;
+			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
+			break;
+		case MinorType.OneOfMany:
+			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			break;
+		case MinorType.Mark:
+		case MinorType.Escape:
+		case MinorType.Invoke:
+			mapGenerator.resetRanges();
+			break;
 		default:
 			break;
 		}
@@ -1943,8 +2002,11 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case MinorType.TemperedHands:
-			p.doingTemperedHands = true;
 			temperedHandsMod = 0;
+			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
+			break;
+		case MinorType.OneOfMany:
+			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
 			break;
 		case MinorType.Loot:
 			looting = true;
@@ -1952,6 +2014,9 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+		case MinorType.Invoke:
+			mapGenerator.resetRanges();
+			break;
 		case MinorType.Stealth:
 			break;
 		case MinorType.Escape:

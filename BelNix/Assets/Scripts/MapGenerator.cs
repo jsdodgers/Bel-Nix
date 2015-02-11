@@ -1969,9 +1969,9 @@ public class MapGenerator : MonoBehaviour {
 				getCurrentUnit().damage(1000,null);
 			}
 		}
-		if (Input.GetKeyDown(KeyCode.Alpha7)) {
+	/*	if (Input.GetKeyDown(KeyCode.Alpha7)) {
 			setOverlay();
-		}
+		}*/
 		if (Input.GetKeyDown(KeyCode.R)) {
 //			GameGUI.clickTab(Tab.R);
 			GameGUI.clipboardTab = Tab.R;
@@ -2015,34 +2015,34 @@ public class MapGenerator : MonoBehaviour {
 	//		GameGUI.selectMovement(MovementType.Move);
 	//	}
 		if (Input.GetKeyDown(KeyCode.Alpha1)) {
-			GameGUI.selectTypeAt(0);
+			GameGUI.selectActionAt(0);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha2)) {
-			GameGUI.selectTypeAt(1);
+			GameGUI.selectActionAt(1);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha3)) {
-			GameGUI.selectTypeAt(2);
+			GameGUI.selectActionAt(2);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha4)) {
-			GameGUI.selectTypeAt(3);
+			GameGUI.selectActionAt(3);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha5)) {
-			GameGUI.selectTypeAt(4);
+			GameGUI.selectActionAt(4);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha6)) {
-			GameGUI.selectTypeAt(5);
+			GameGUI.selectActionAt(5);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha7)) {
-			GameGUI.selectTypeAt(6);
+			GameGUI.selectActionAt(6);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha8)) {
-			GameGUI.selectTypeAt(7);
+			GameGUI.selectActionAt(7);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha9)) {
-			GameGUI.selectTypeAt(8);
+			GameGUI.selectActionAt(8);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha0)) {
-			GameGUI.selectTypeAt(9);
+			GameGUI.selectActionAt(9);
 		}
 		if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) {
 			deleteCurrentTrap();
@@ -2290,6 +2290,9 @@ public class MapGenerator : MonoBehaviour {
 		}
 		else if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Stealth) {
 			p.rollStealth();
+		}
+		else if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.TemperedHands) {
+			GameGUI.useTemperedHands();
 		}
 	}
 
@@ -2603,7 +2606,7 @@ public class MapGenerator : MonoBehaviour {
 		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
 			(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || 
 				performingAction() ||
-				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape));
+				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape || GameGUI.selectedMinorType == MinorType.TemperedHands));
 	}
 
 
