@@ -790,13 +790,13 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (selectedMovement) {
-			deselectMovement();
+			deselectMovementType(selectedMovementType);
 		}
 		if (selectedStandard) {
-			deselectStandard();
+			deselectStandardType(selectedStandardType);
 		}
 		if (selectedMinor) {
-			deselectMinor();
+			deselectMinorType(selectedMinorType);
 		}
 		mapGenerator.nextPlayer();
 	}
