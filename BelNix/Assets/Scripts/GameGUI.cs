@@ -1938,6 +1938,7 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case MinorType.Mark:
 		case MinorType.Escape:
+		case MinorType.Invoke:
 			mapGenerator.resetRanges();
 			break;
 		default:
@@ -2013,6 +2014,7 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+		case MinorType.Invoke:
 			mapGenerator.resetRanges();
 			break;
 		case MinorType.Stealth:

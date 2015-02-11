@@ -408,6 +408,7 @@ public class Unit : MonoBehaviour {
 			if (escapeUsed) return MinorType.None;
 			return MinorType.Escape;
 		case ClassFeature.Invoke:
+			if (invokeUsesLeft==0) return MinorType.None;
 			return MinorType.Invoke;
 		default:
 			return MinorType.None;
@@ -2397,21 +2398,24 @@ public class Unit : MonoBehaviour {
 			invokeAnimation();
 			invokeAnimating = true;
 			invoking = false;
+			useMovementIfStarted();
 			useMinor(false);
 //			minorsLeft--;
 			invokeUsesLeft--;
-			useMovementIfStarted();
+			if (invokeUsesLeft == 0) {
+				BattleGUI.resetMinorButtons();
+				chooseNextBestActionType();
+			}
+
 		}
 	}
 	
 	void invokeAnimation() {
 		dealInvokeDamage();
-		GameGUI.selectedMinorType = MinorType.None;
 		if (attackEnemy != null) {
 			if (attackEnemy.isTarget) attackEnemy.deselect();
 			attackEnemy = null;
 		}
-		mapGenerator.resetRanges();
 	}
 
 	public bool intimidateAnimating = false;
