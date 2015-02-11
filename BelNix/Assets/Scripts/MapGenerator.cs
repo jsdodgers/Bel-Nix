@@ -664,6 +664,9 @@ public class MapGenerator : MonoBehaviour {
 
 	// Use this for initialization
 	void Start() {
+		Debug.Log("Start");
+		GameGUI.mapGenerator = this;
+		GameGUI.resetVars();
 		RenderTexture tex = new RenderTexture(100, 100, 1);
 		tex.Create();
 		Debug.Log("Starting Tests!");
@@ -697,7 +700,6 @@ public class MapGenerator : MonoBehaviour {
 		targetObject = GameObject.Find("Target");
 		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
 		aManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
-		GameGUI.mapGenerator = this;
 
 		turrets = mapTransform.FindChild("Turrets").gameObject;
 		traps = mapTransform.FindChild("Traps").gameObject;
@@ -1453,7 +1455,9 @@ public class MapGenerator : MonoBehaviour {
 		if (isInCharacterPlacement()) {
 			createSelectionArea();
 		}
-		GameGUI.setConfirmShown();
+		if (isInPriority()) {
+			GameGUI.setConfirmShown();
+		}
 	//	setTargetObjectScale();
 	}
 
@@ -2134,6 +2138,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void openEscapeMenu() {
+		BattleGUI.hitEscape();
 		GameGUI.escapeMenuOpen = !GameGUI.escapeMenuOpen;
 		Debug.Log(GameGUI.escapeMenuOpen);
 	}

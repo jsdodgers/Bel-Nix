@@ -12,10 +12,15 @@ public enum ActionArm {Movement = 0, Standard, Minor }
 public class BattleGUI : MonoBehaviour {
 
 	static BattleGUI battleGUI;
-
+	private string[] saves;
+	[SerializeField] private GameObject saveEntry;
 	[SerializeField] private EventSystem eventSystem;
     // Let's grab some UI Elements from the editor
-    [SerializeField] private GameObject[] CIPanels = new GameObject[3];
+	[SerializeField] private GameObject[] CIPanels = new GameObject[3];
+	[SerializeField] private GameObject loadGameCanvas;
+	[SerializeField] private GameObject pauseMenuCanvas;
+	[SerializeField] private GameObject saveGameCanvas;
+	[SerializeField] private Scrollbar loadGameScrollBar;
 	[SerializeField] private GameObject consoleCanvas;
 	[SerializeField] private GameObject turnOrderCanvas;
 	[SerializeField] private GameObject characterInfoCanvas;
@@ -32,6 +37,9 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+	private int currentPauseCanvas = 0;
+	[SerializeField] private Canvas[] pauseButtons;
+	[SerializeField] private GameObject[] pauseWindows;
 	public Text temperedHandsHitText;
 	public Text temperedHandsDamageText;
 	public Button plus;
@@ -58,6 +66,8 @@ public class BattleGUI : MonoBehaviour {
 	const float textColorTime = 1.5f;
 	const float textColorAlphaScale = 1.0f/textColorAlphaTime;
 	public static bool[] armsShown = new bool[3];
+	public bool pauseMenuOpen = false;
+	public bool loadMenuOpen = false;
     
     // Numbers as indices aren't very informative. Let's use enums.
     public enum CIPanel { Glance, Stats, Skills, Buttons };
@@ -111,6 +121,9 @@ public class BattleGUI : MonoBehaviour {
         //GameObject.Find("Canvas - Console").GetComponent<Animator>().Play("Console_Dismissed");
         foreach (GameObject panel in CIPanels)
             toggleAnimatorBool(panel.GetComponent<Animator>(), "Hidden");
+		
+		saves = Saves.getSaveFiles();
+		populateSaves();
     }
 
 
@@ -142,6 +155,52 @@ public class BattleGUI : MonoBehaviour {
     {
         GameGUI.doGUI();
     }
+
+	public void exitToBase() {
+		GameGUI.escapeMenuOpen = false;
+		Application.LoadLevel(2);
+	}
+
+	public void exitToMenu() {
+		GameGUI.escapeMenuOpen = false;
+		Application.LoadLevel(0);
+	}
+
+	public void quitGame() {
+		GameGUI.escapeMenuOpen = false;
+		Application.Quit();
+	}
+
+	public static void hitEscape() {
+		battleGUI.hitEscapeActually();
+
+	}
+	void hitEscapeActually() {
+		if (loadMenuOpen)  setLoadGameCanvasShown(false);
+		else battleGUI.setPauseMenuShown(!pauseMenuOpen);
+	}
+
+	public void setPauseMenuShown(bool shown) {
+		pauseMenuOpen = shown;
+		pauseMenuCanvas.SetActive(pauseMenuOpen);
+	}
+
+	public void loadGame() {
+		setLoadGameCanvasShown(true);
+	}
+
+	public void setLoadGameCanvasShown(bool shown) {
+		loadMenuOpen = shown;
+		loadGameCanvas.SetActive(shown);
+	}
+
+	public void selectPauseMenuTab(int tab) {
+		pauseButtons[currentPauseCanvas].sortingOrder = 10000;
+		pauseWindows[currentPauseCanvas].SetActive(false);
+		currentPauseCanvas = tab;
+		pauseButtons[currentPauseCanvas].sortingOrder = 10010;
+		pauseWindows[currentPauseCanvas].SetActive(true);
+	}
 
 	public static void setActionsButtonDefault(bool defaultSprite) {
 		battleGUI.actionsButton.setSprite(defaultSprite);
@@ -784,6 +843,40 @@ public class BattleGUI : MonoBehaviour {
 	}
     //--------------------------------------------------------------------------------
 
-
+	private void populateSaves()
+	{
+		pauseMenuCanvas.GetComponent<CanvasGroup>().alpha = 0.0f;
+		// Step 1: need to format the canvas to fit the number of saves and look correct
+	//	GameObject savedGameCanvas = GameObject.Find("Canvas - Load Content");
+		RectTransform savedGameCanvasRect =  saveGameCanvas.GetComponent<RectTransform>();
+		// Set the canvas height to fit all of the save files
+		// height should be (#saves * buttonheight) + ((#saves-1) * inter-entry padding) + top padding + bottom padding
+		int numSaves = saves.Length;
+	/*	float buttonHeight = 60;	// Currently the height of each button. Later I should grab this from the prefab.
+		float topPadding = savedGameCanvas.GetComponent<VerticalLayoutGroup>().padding.top;
+		float botPadding = savedGameCanvas.GetComponent<VerticalLayoutGroup>().padding.bottom;
+		float newHeight = 	(numSaves * buttonHeight) + 	// cumulative button height
+			topPadding + botPadding + 		// padding at the top and bottom
+				((numSaves-1) * savedGameCanvas.GetComponent<VerticalLayoutGroup>().spacing);	// cumulative spacing between buttons
+		if(newHeight < GameObject.Find("ScrollView - Save Files").GetComponent<RectTransform>().rect.height)
+		{
+			newHeight = GameObject.Find("ScrollView - Save Files").GetComponent<RectTransform>().rect.height;
+		}
+		savedGameCanvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, newHeight);
+		savedGameCanvasRect.anchoredPosition = new Vector2(savedGameCanvasRect.anchoredPosition.x, newHeight/-2);
+*/
+		//Step 2: We need to instantiate a button for each save and add them as children of the canvas.
+		// While we're at it, we'll also set the text field of the save entry to the save name.
+		for(int i = 0; i < saves.Length; i++)
+		{
+			GameObject newSaveEntry = (GameObject)Instantiate(saveEntry);
+			newSaveEntry.transform.GetChild(1).GetComponentInChildren<Text>().text = saves[i];
+			newSaveEntry.transform.SetParent(saveGameCanvas.transform);
+		}
+		loadGameScrollBar.value = 1;
+		setLoadGameCanvasShown(false);
+		setPauseMenuShown(false);
+		pauseMenuCanvas.GetComponent<CanvasGroup>().alpha = 1.0f;
+	}
 	
 }

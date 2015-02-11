@@ -56,6 +56,25 @@ public class GameGUI : MonoBehaviour {
 	static Texture2D hotkeysBackTextureLeft;
 	static Texture2D clipBoardBodyTexture;
 
+	public static void resetVars() {
+		clipboardTab = Tab.T;
+		openMission = Mission.Primary;
+		selectedMovement = false;
+		selectedStandard = false;
+		selectedMinor = false;
+		selectedStandardType = StandardType.None;
+		selectedMovementType = MovementType.None;
+		selectedMinorType = MinorType.None;
+		escapeMenuOpen = false;
+		temperedHandsMod = 0;
+		selectedTrap = null;
+		selectedTurret = null;selectedTrapTurret = false;
+		selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
+		turretsScrollPosition = new Vector2(0.0f, 0.0f);
+		trapsScrollPosition = new Vector2(0.0f, 0.0f);
+		turnOrderScrollPos = new Vector2(0.0f, 0.0f);
+	}
+
 	// Use this for initialization
 	public static void initialize() {
 		clipboardTab = Tab.T;
@@ -1775,7 +1794,7 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(0,0,Screen.width, Screen.height), content, st);
 		}
 		// Show Escape/Pause Menu options
-		if (escapeMenuOpen || mapGenerator.gameState != GameState.Playing) {
+		if (false && (escapeMenuOpen || mapGenerator.gameState != GameState.Playing)) {
 			if (GUI.Button(getMenuRect(0, escapeMenuOpen), "Back to Base")) {
 				Application.LoadLevel(2);
 			}
