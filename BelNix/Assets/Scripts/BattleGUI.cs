@@ -34,6 +34,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject turnOrderPrefab;
 	[SerializeField] private GameObject oneOfManyCanvas;
 	[SerializeField] private GameObject temperedHandsCanvas;
+	[SerializeField] private Slider masterVolumeSlider;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
@@ -76,6 +77,13 @@ public class BattleGUI : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
+		if (PlayerPrefs.HasKey("globalVolume")) {
+			AudioListener.volume = PlayerPrefs.GetFloat("globalVolume");
+			masterVolumeSlider.value = PlayerPrefs.GetFloat("globalVolume");
+		}
+		else {
+			AudioListener.volume = masterVolumeSlider.value = 1;
+		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
@@ -155,6 +163,15 @@ public class BattleGUI : MonoBehaviour {
     {
         GameGUI.doGUI();
     }
+
+	public void setVolume(Slider slider) {
+		setVolume(slider.value);
+	}
+
+	public void setVolume(float value) {
+		PlayerPrefs.SetFloat("globalVolume", value);
+		AudioListener.volume = value;
+	}
 
 	public void exitToBase() {
 		GameGUI.escapeMenuOpen = false;
