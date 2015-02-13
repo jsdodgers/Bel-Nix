@@ -20,6 +20,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject loadGameCanvas;
 	[SerializeField] private GameObject pauseMenuCanvas;
 	[SerializeField] private GameObject saveGameCanvas;
+	[SerializeField] private GameObject endGameCanvas;
 	[SerializeField] private Scrollbar loadGameScrollBar;
 	[SerializeField] private GameObject consoleCanvas;
 	[SerializeField] private GameObject turnOrderCanvas;
@@ -34,13 +35,19 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject turnOrderPrefab;
 	[SerializeField] private GameObject oneOfManyCanvas;
 	[SerializeField] private GameObject temperedHandsCanvas;
+	[SerializeField] private GameEndMenu gameEndMenu;
 	[SerializeField] private Slider masterVolumeSlider;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+	[SerializeField] private GameObject endGameUnitPrefab;
+	[SerializeField] private GameObject endGameUnitsContent;
 	private int currentPauseCanvas = 0;
+	private int currentGameOverCanvas = 0;
 	[SerializeField] private Canvas[] pauseButtons;
 	[SerializeField] private GameObject[] pauseWindows;
+	[SerializeField] private Canvas[] gameOverButtons;
+	[SerializeField] private GameObject[] gameOverWindows;
 	public Text temperedHandsHitText;
 	public Text temperedHandsDamageText;
 	public Button plus;
@@ -51,8 +58,9 @@ public class BattleGUI : MonoBehaviour {
     private Text[] statsTexts;
     private Text characterInfoText;
     private Scrollbar featuresScrollBar;
-    private Scrollbar consoleScrollBar;
+	private Scrollbar consoleScrollBar;
 	public Scrollbar turretScrollBar;
+	public Scrollbar gameOverUntsScrollBar;
     private Dictionary<MovementType, GameObject> movementButtons;
     private Dictionary<StandardType, GameObject> standardButtons;
     private Dictionary<MinorType, GameObject> minorButtons;
@@ -173,6 +181,33 @@ public class BattleGUI : MonoBehaviour {
 		AudioListener.volume = value;
 	}
 
+	public static void setEndGameUnits(int c, int exp, bool won) {
+		battleGUI.setEndGameUnitsActually(c, exp, won);
+
+	}
+
+	void setEndGameUnitsActually(int c, int exp, bool won) {
+		endGameCanvas.SetActive(true);
+		gameEndMenu.setValues(c, exp, won);
+		for (int n = endGameUnitsContent.transform.childCount-1; n >= 0; n--) {
+			GameObject.Destroy(endGameUnitsContent.transform.GetChild(n).gameObject);
+		}
+		foreach (Unit u in mapGenerator.players) {
+			createEndGameObjectFor(u);
+		}
+		foreach (Unit u in mapGenerator.deadUnits) {
+			createEndGameObjectFor(u);
+		}
+		gameOverUntsScrollBar.value = 1;
+	}
+
+	void createEndGameObjectFor(Unit u) {
+		GameObject go = GameObject.Instantiate(endGameUnitPrefab) as GameObject;
+		EndGameUnit egu = go.GetComponent<EndGameUnit>();
+		egu.setUnit(u);
+		egu.transform.SetParent(endGameUnitsContent.transform, false);
+	}
+
 	public void exitToBase() {
 		GameGUI.escapeMenuOpen = false;
 		Application.LoadLevel(2);
@@ -190,11 +225,12 @@ public class BattleGUI : MonoBehaviour {
 
 	public static void hitEscape() {
 		battleGUI.hitEscapeActually();
-
 	}
-	void hitEscapeActually() {
+	public void hitEscapeActually() {
 		if (loadMenuOpen)  setLoadGameCanvasShown(false);
 		else battleGUI.setPauseMenuShown(!pauseMenuOpen);
+		GameGUI.escapeMenuOpen = pauseMenuOpen;
+
 	}
 
 	public void setPauseMenuShown(bool shown) {
@@ -217,6 +253,14 @@ public class BattleGUI : MonoBehaviour {
 		currentPauseCanvas = tab;
 		pauseButtons[currentPauseCanvas].sortingOrder = 10010;
 		pauseWindows[currentPauseCanvas].SetActive(true);
+	}
+
+	public void selectGameOverTab(int tab) {
+		gameOverButtons[currentGameOverCanvas].sortingOrder = 10000;
+		gameOverWindows[currentGameOverCanvas].SetActive(false);
+		currentGameOverCanvas = tab;
+		gameOverButtons[currentGameOverCanvas].sortingOrder = 10010;
+		gameOverWindows[currentGameOverCanvas].SetActive(true);
 	}
 
 	public static void setActionsButtonDefault(bool defaultSprite) {
