@@ -264,7 +264,8 @@ public class Unit : MonoBehaviour {
 		int perception = getBasePerception() + 10;
 		int st = u.stealth;
 		int diff = Mathf.Max(0, st - perception);
-		float viewRange = (mapGenerator.getCurrentUnit().team == 0 ? Mathf.Max (0.5f, getViewRadius() - diff) : Mathf.Max(1.5f, getViewRadius() - diff/2));
+		float viewRange = (mapGenerator.getCurrentUnit().team != team ? Mathf.Max (0.5f, getViewRadius() - diff) : Mathf.Max(1.5f, getViewRadius() - diff/2));
+	//	Debug.Log(getName() + " view range to " + u.getName() + ":  " + viewRange);
 		return viewRange;
 	}
 
