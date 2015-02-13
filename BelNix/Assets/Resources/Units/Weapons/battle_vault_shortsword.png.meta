@@ -54,8 +54,8 @@ TextureImporter:
         y: 0
         width: 64
         height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: .5, y: .25}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: battle_vault_shortsword_1
       rect:
@@ -64,8 +64,8 @@ TextureImporter:
         y: 0
         width: 64
         height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: .5, y: .449999988}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: battle_vault_shortsword_2
       rect:
@@ -74,8 +74,8 @@ TextureImporter:
         y: 0
         width: 64
         height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: .5, y: .550000012}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: battle_vault_shortsword_3
       rect:
@@ -84,8 +84,8 @@ TextureImporter:
         y: 0
         width: 64
         height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: .5, y: .75}
       border: {x: 0, y: 0, z: 0, w: 0}
   spritePackingTag: 
   userData: 
