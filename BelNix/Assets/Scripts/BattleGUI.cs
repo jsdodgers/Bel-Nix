@@ -831,7 +831,6 @@ public class BattleGUI : MonoBehaviour {
     private void addToPlayerOrder(Unit unit)
 	{
         GameObject turnOrderPanel = GameObject.Find("Panel - Character Entries");
-		GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
         List<Unit> activatedCharacters = new List<Unit>(mapGenerator.priorityOrder);
         // If the unit is not participating in combat (they're not activated), take it out.
         foreach (Unit enemy in mapGenerator.nonAlertEnemies)
@@ -841,6 +840,8 @@ public class BattleGUI : MonoBehaviour {
         // If it wasn't taken out, add it to the turn order.
         if (activatedCharacters.Contains(unit))
         {
+            GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
+
             turnOrderEntry.transform.SetParent(turnOrderPanel.transform);
             turnOrderEntry.transform.SetAsLastSibling();
             // Set turn order number (the box on the left) based on their position in the list of activated units
@@ -852,8 +853,6 @@ public class BattleGUI : MonoBehaviour {
             else
                 turnOrderEntry.GetComponent<CanvasGroup>().alpha = 1.0f;
         }
-        else
-            Destroy(turnOrderEntry);
 	}
 
 	private void cycleTurnOrder()
