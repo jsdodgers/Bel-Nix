@@ -409,6 +409,11 @@ public class BattleGUI : MonoBehaviour {
 	public void selectMinorType(string minorType) {
 		GameGUI.selectMinorType(minorType);
 	}
+
+    public void clickEndTurn()
+    {
+        GameGUI.clickWait();
+    }
     //--------------------------------------------------------------------------------
 
 	public static void selectMovementType(MovementType type, bool selected = true) {
@@ -847,7 +852,8 @@ public class BattleGUI : MonoBehaviour {
             else
                 turnOrderEntry.GetComponent<CanvasGroup>().alpha = 1.0f;
         }
-
+        else
+            Destroy(turnOrderEntry);
 	}
 
 	private void cycleTurnOrder()
