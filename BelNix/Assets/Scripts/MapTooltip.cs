@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class MapTooltip : MonoBehaviour {
@@ -42,7 +43,8 @@ public class MapTooltip : MonoBehaviour {
         // Find the coordinates of the cursor in tile-space.
         Vector2 cursorHoverCoords = getHoveredTileCoordinates();
 
-        if (coordsWithinTileGrid(cursorHoverCoords)) {
+        if (coordsWithinTileGrid(cursorHoverCoords) && !GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
+        {
             Tile hoveredTile = map.tiles[(int)cursorHoverCoords.x, (int)cursorHoverCoords.y];
             // Check if there's a character at the hovered-over tile, and whether they're alive if so.
             if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead())  {
@@ -64,6 +66,7 @@ public class MapTooltip : MonoBehaviour {
             //  However, if none of these checks return true, then there's nothing interesting to view, so no tooltip.
             else gameObject.GetComponent<Canvas>().enabled = false;
         }
+        else gameObject.GetComponent<Canvas>().enabled = false;
     }
 
     // Set the tooltip box's coordinates.
