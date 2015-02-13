@@ -42,16 +42,16 @@ public class MainMenuGUI : MonoBehaviour {
 		if(saves.Length > 0)
 		{
 			buttons[1].GetComponent<Button>().interactable = true;
-			GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[1]);
+	//		GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[1]);
 		}
 	}
 
 	public void resetFocus()
 	{
-		if(saves.Length > 0)
+	/*	if(saves.Length > 0)
 			GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[1]);
 		else
-			GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[0]);
+			GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[0]);*/
 	}
 
 	public void disableButtons()
@@ -97,7 +97,7 @@ public class MainMenuGUI : MonoBehaviour {
 			if(i != 1)	// 1 is Load Game
 				buttons[i].GetComponent<Button>().interactable = true;
 		}
-		GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[0]);
+	//	GameObject.Find("EventSystem").GetComponent<EventSystem>().SetSelectedGameObject(buttons[0]);
 		// If there are no saves, keep Load Game disabled, otherwise enable it and set focus to it
 		enableLoadButton();
 	}
