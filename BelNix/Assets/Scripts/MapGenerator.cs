@@ -664,6 +664,9 @@ public class MapGenerator : MonoBehaviour {
 
 	// Use this for initialization
 	void Start() {
+		Debug.Log("Start");
+		GameGUI.mapGenerator = this;
+		GameGUI.resetVars();
 		RenderTexture tex = new RenderTexture(100, 100, 1);
 		tex.Create();
 		Debug.Log("Starting Tests!");
@@ -697,7 +700,6 @@ public class MapGenerator : MonoBehaviour {
 		targetObject = GameObject.Find("Target");
 		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
 		aManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
-		GameGUI.mapGenerator = this;
 
 		turrets = mapTransform.FindChild("Turrets").gameObject;
 		traps = mapTransform.FindChild("Traps").gameObject;
@@ -1453,7 +1455,9 @@ public class MapGenerator : MonoBehaviour {
 		if (isInCharacterPlacement()) {
 			createSelectionArea();
 		}
-		GameGUI.setConfirmShown();
+		if (isInPriority()) {
+			GameGUI.setConfirmShown();
+		}
 	//	setTargetObjectScale();
 	}
 
@@ -2134,6 +2138,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void openEscapeMenu() {
+		BattleGUI.hitEscape();
 		GameGUI.escapeMenuOpen = !GameGUI.escapeMenuOpen;
 		Debug.Log(GameGUI.escapeMenuOpen);
 	}
@@ -2290,6 +2295,9 @@ public class MapGenerator : MonoBehaviour {
 		}
 		else if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Stealth) {
 			p.rollStealth();
+		}
+		else if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.TemperedHands) {
+			GameGUI.useTemperedHands();
 		}
 	}
 
@@ -2603,7 +2611,7 @@ public class MapGenerator : MonoBehaviour {
 		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
 			(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || 
 				performingAction() ||
-				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape));
+				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape || GameGUI.selectedMinorType == MinorType.TemperedHands));
 	}
 
 

@@ -239,7 +239,8 @@ public class Unit : MonoBehaviour {
 		temperedHandsUsesLeft--;
 //		minorsLeft--;
 		useMinor();
-		temperedHandsMod = mod;
+		temperedHandsMod += mod;
+		if (temperedHandsUsesLeft == 0) BattleGUI.resetMinorButtons();
 	}
 
 	public void endTurn() {
@@ -401,10 +402,13 @@ public class Unit : MonoBehaviour {
 		case ClassFeature.Mark:
 			return MinorType.Mark;
 		case ClassFeature.Tempered_Hands:
+			if (temperedHandsUsesLeft==0) return MinorType.None;
 			return MinorType.TemperedHands;
 		case ClassFeature.Escape:
+			if (escapeUsed) return MinorType.None;
 			return MinorType.Escape;
 		case ClassFeature.Invoke:
+			if (invokeUsesLeft==0) return MinorType.None;
 			return MinorType.Invoke;
 		default:
 			return MinorType.None;
@@ -667,7 +671,7 @@ public class Unit : MonoBehaviour {
 		minorsLeft--;
 		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
 		if (!changeAtAll && minorsLeft > 0) return;
-		if (!changeAnyway || minorsLeft <= 0)
+		if (changeAnyway || minorsLeft <= 0)
 			chooseNextBestActionType();
 	}
 
@@ -1957,7 +1961,8 @@ public class Unit : MonoBehaviour {
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
 			currentMoveDist--;
-			moveDistLeft--;
+			if (GameGUI.selectedMovementType == MovementType.Move)
+				moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
 			mapGenerator.setCurrentUnitTile();
 			shouldDoAthleticsCheck = true;
@@ -2217,8 +2222,10 @@ public class Unit : MonoBehaviour {
 				addTrail();
 				currentPath = new ArrayList();
 				currentPath.Add(new Vector2(position.x, -position.y));
-				if (currentMoveDist == 0) useMovement();
-				else BattleGUI.resetMovementButtons();
+				if (GameGUI.selectedMovement) {
+					if (currentMoveDist == 0) useMovement();
+					else BattleGUI.resetMovementButtons();
+				}
 				if (!setRotationToMostInterestingTile()) {
 			//		rotating = true;
 /*					if (needsOverlay) {
@@ -2234,6 +2241,7 @@ public class Unit : MonoBehaviour {
 				//	minorsLeft--;
 				//	GameGUI.selectMinor(MinorType.None);
 					escapeUsed = true;
+					BattleGUI.resetMinorButtons();
 				}
 			}
 		}
@@ -2390,21 +2398,24 @@ public class Unit : MonoBehaviour {
 			invokeAnimation();
 			invokeAnimating = true;
 			invoking = false;
+			useMovementIfStarted();
 			useMinor(false);
 //			minorsLeft--;
 			invokeUsesLeft--;
-			useMovementIfStarted();
+			if (invokeUsesLeft == 0) {
+				BattleGUI.resetMinorButtons();
+				chooseNextBestActionType();
+			}
+
 		}
 	}
 	
 	void invokeAnimation() {
 		dealInvokeDamage();
-		GameGUI.selectedMinorType = MinorType.None;
 		if (attackEnemy != null) {
 			if (attackEnemy.isTarget) attackEnemy.deselect();
 			attackEnemy = null;
 		}
-		mapGenerator.resetRanges();
 	}
 
 	public bool intimidateAnimating = false;
@@ -2602,6 +2613,9 @@ public class Unit : MonoBehaviour {
 
 	public virtual int getMeleeScore() {
 		return characterSheet.characterSheet.skillScores.getScore(Skill.Melee);
+	}
+	public virtual int getMeleeScoreWithMods(Unit u) {
+		return getMeleeScore() + (unitIsFavoredRace(u) ? 1 : 0) + (Combat.flanking(this,u) ? 2 : 0) + (hasUncannyKnowledge() ? 1 : 0) + (hasWeaponFocus() ? 2 : 0) - temperedHandsMod;
 	}
 
 	public virtual int rollDamage(bool crit) {

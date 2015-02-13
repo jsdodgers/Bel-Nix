@@ -24,7 +24,7 @@ public class GameGUI : MonoBehaviour {
 	static Rect scrollRect;
 	static bool scrollShowing;
 	static bool first = true;
-	static int temperedHandsMod = 0;
+	public static int temperedHandsMod = 0;
 	public static bool escapeMenuOpen = false;
 
 	public static bool showAttack = false;
@@ -55,6 +55,25 @@ public class GameGUI : MonoBehaviour {
 	static Texture2D hotkeysBackTextureCenter;
 	static Texture2D hotkeysBackTextureLeft;
 	static Texture2D clipBoardBodyTexture;
+
+	public static void resetVars() {
+		clipboardTab = Tab.T;
+		openMission = Mission.Primary;
+		selectedMovement = false;
+		selectedStandard = false;
+		selectedMinor = false;
+		selectedStandardType = StandardType.None;
+		selectedMovementType = MovementType.None;
+		selectedMinorType = MinorType.None;
+		escapeMenuOpen = false;
+		temperedHandsMod = 0;
+		selectedTrap = null;
+		selectedTurret = null;selectedTrapTurret = false;
+		selectionUnitScrollPosition = new Vector2(0.0f, 0.0f);
+		turretsScrollPosition = new Vector2(0.0f, 0.0f);
+		trapsScrollPosition = new Vector2(0.0f, 0.0f);
+		turnOrderScrollPos = new Vector2(0.0f, 0.0f);
+	}
 
 	// Use this for initialization
 	public static void initialize() {
@@ -771,13 +790,13 @@ public class GameGUI : MonoBehaviour {
 		if (mapGenerator.performingAction() || mapGenerator.currentUnitIsAI() || mapGenerator.isInCharacterPlacement()) return;
 		Unit p = mapGenerator.selectedUnit;
 		if (selectedMovement) {
-			deselectMovement();
+			deselectMovementType(selectedMovementType);
 		}
 		if (selectedStandard) {
-			deselectStandard();
+			deselectStandardType(selectedStandardType);
 		}
 		if (selectedMinor) {
-			deselectMinor();
+			deselectMinorType(selectedMinorType);
 		}
 		mapGenerator.nextPlayer();
 	}
@@ -1049,6 +1068,12 @@ public class GameGUI : MonoBehaviour {
 			if (index < 0) index = minors.Length-1;
 			selectMinor(minors[index]);
 		}
+	}
+
+	public static void useTemperedHands() {
+		mapGenerator.getCurrentUnit().useTemperedHands(temperedHandsMod);
+		temperedHandsMod = 0;
+		BattleGUI.resetTemperedHands();
 	}
 
 	public static void selectMinor(MinorType minorType) {
@@ -1395,7 +1420,7 @@ public class GameGUI : MonoBehaviour {
 
 				GUI.Box(r,"");
 				if (GUI.Button(new Rect(r.x + ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Cancel")) {
-					mapGenerator.getCurrentUnit().doingTemperedHands = false;
+			//		mapGenerator.getCurrentUnit().doingTemperedHands = false;
 					temperedHandsMod = 0;
 				}
 				if (GUI.Button(new Rect(r.x + r.width - buttSize.x - ins, r.y + r.height - buttSize.y - 5.0f, buttSize.x, buttSize.y), "Confirm")) {
@@ -1769,7 +1794,7 @@ public class GameGUI : MonoBehaviour {
 			GUI.Label(new Rect(0,0,Screen.width, Screen.height), content, st);
 		}
 		// Show Escape/Pause Menu options
-		if (escapeMenuOpen || mapGenerator.gameState != GameState.Playing) {
+		if (false && (escapeMenuOpen || mapGenerator.gameState != GameState.Playing)) {
 			if (GUI.Button(getMenuRect(0, escapeMenuOpen), "Back to Base")) {
 				Application.LoadLevel(2);
 			}
@@ -1923,6 +1948,18 @@ public class GameGUI : MonoBehaviour {
 		selectedMinorType = MinorType.None;
 		BattleGUI.selectMinorType(t, false);
 		switch (t) {
+		case MinorType.TemperedHands:
+			temperedHandsMod = 0;
+			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
+			break;
+		case MinorType.OneOfMany:
+			BattleGUI.hideClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			break;
+		case MinorType.Mark:
+		case MinorType.Escape:
+		case MinorType.Invoke:
+			mapGenerator.resetRanges();
+			break;
 		default:
 			break;
 		}
@@ -1984,8 +2021,11 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case MinorType.TemperedHands:
-			p.doingTemperedHands = true;
 			temperedHandsMod = 0;
+			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
+			break;
+		case MinorType.OneOfMany:
+			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
 			break;
 		case MinorType.Loot:
 			looting = true;
@@ -1993,6 +2033,9 @@ public class GameGUI : MonoBehaviour {
 			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
+		case MinorType.Invoke:
+			mapGenerator.resetRanges();
+			break;
 		case MinorType.Stealth:
 			break;
 		case MinorType.Escape:

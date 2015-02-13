@@ -113,7 +113,7 @@ public class MapTooltip : MonoBehaviour {
 		string name = npcUnit.getName();
         float chanceToHit = 0.0f;
         if (map.getCurrentUnit() != null)  {
-            chanceToHit = 5 * (20 + map.getCurrentUnit().getMeleeScore() - npcUnit.getAC());
+            chanceToHit = 5 * (20 + map.getCurrentUnit().getMeleeScoreWithMods(npcUnit) - npcUnit.getAC());
         }
         chanceToHit = (chanceToHit > 100) ? 100 : chanceToHit;
         string healthCondition = getHealthCondition(npcUnit);
