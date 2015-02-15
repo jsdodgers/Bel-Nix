@@ -233,6 +233,7 @@ public class MeshGen : MonoBehaviour {
 			Debug.Log(p + "  " + q + "  " + r + "  " + val);
 			printed = true;
 		}
+//		return val >= 0.05f;
 		return val >= .0001f || (val <= 0.0f && val >= -0.00002f);
 //		if (val == 0) return 0;  // colinear
 //		return (val > 0)? 1: 2; // clock or counterclock wise
