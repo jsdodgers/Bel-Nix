@@ -9,6 +9,7 @@ public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, C
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 
 public class Unit : MonoBehaviour {
+	public MeshGen meshGen;
 	public bool needsOverlay = false;
 	bool doOverlay = false;
 	public List<Unit> markedUnits;
@@ -308,6 +309,14 @@ public class Unit : MonoBehaviour {
 		foreach (SpriteOrder sprite in sprites) {
 			sprite.sprite.renderer.sortingOrder = renderingOrder + sprite.order;
 		}
+	}
+
+	public void setAllSpritesRenderQueue(int queue) {
+		List<SpriteOrder> sprites = getSprites();
+		foreach (SpriteOrder sprite in sprites) {
+			SetRenderQueue.setRendererQueue(sprite.sprite.renderer, new int[] {queue});
+		}
+		SetRenderQueue.setRendererQueue(renderer, new int[] {queue});
 	}
 
 	public bool isProne() {
@@ -1959,7 +1968,7 @@ public class Unit : MonoBehaviour {
 			position = new Vector3(one.x, -one.y, 0.0f);
 			Tile newTile = mapGenerator.tiles[(int)one.x,(int)one.y];
 			if (newTile.standable) vaultAnimation(false);
-			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, 0.0f);
+			transform.localPosition = new Vector3(one.x + 0.5f, -one.y - 0.5f, transform.localPosition.z);
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
 			currentMoveDist--;
@@ -1970,6 +1979,7 @@ public class Unit : MonoBehaviour {
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			mapGenerator.activateEnemies();
+			if (team == 0) mapGenerator.setOverlay(this);
 			if (currentPath.Count >= 2) {
 				setRotatingPath();
 				//		attacking = true;
@@ -1995,6 +2005,7 @@ public class Unit : MonoBehaviour {
 			pos.x += directionX*moveDist;
 			pos.y += directionY*moveDist;
 			transform.localPosition = pos;
+			if (team == 0) mapGenerator.setOverlay(this);
 			//			transform.Translate(new Vector3(directionX * moveDist, directionY * moveDist, 0.0f));
 		}
 		//	Vector2 dist = new Vector2(currentPath[1].x - currentPath[0].x, currentPath[1].y - currentPath[0].y);
@@ -2805,6 +2816,7 @@ public class Unit : MonoBehaviour {
 			if (mapGenerator.priorityOrder.Contains(this))
 				mapGenerator.removeCharacter(this);
 			didActualDeath = true;
+			mapGenerator.removeOverlay(this);
 		}
 		//	Debug.Log("End Death");
 	}

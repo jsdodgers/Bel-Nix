@@ -7,6 +7,7 @@ public enum Direction {Up, Down, Right, Left, None};
 
 public class Tile {
 
+	public MeshGen meshGen;
 //	GameObject player;
 //	GameObject enemy;
 	Unit character;
