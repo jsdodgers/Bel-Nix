@@ -203,6 +203,94 @@ public class ClassFeatures
 			return "";
 		}
 	}
+
+    public static string getTooltipDescription(ClassFeature feature) {
+        switch (feature)
+        {
+            case ClassFeature.Decisive_Strike:
+                return "";
+            case ClassFeature.Throw:
+                return "Throw a target away from you.";
+            case ClassFeature.Intimidate:
+                return "Attack your target's composure.";
+            case ClassFeature.Weapon_Focus:
+                return "";
+            case ClassFeature.Combat_Reload:
+                return "";
+            case ClassFeature.Into_The_Fray:
+                return "Move twice as far, but cannot use your standard action.";
+            case ClassFeature.Grapple:
+                return "Use an enemy as a human shield (cannot use your standard action while this is active).";
+
+            //******ENGINEER*****\\
+            case ClassFeature.Construction:
+                return "";
+            case ClassFeature.Efficient_Storage:
+                return "";
+            case ClassFeature.Metallic_Affinity:
+                return "";
+            case ClassFeature.Over_Clock:
+                return "Deal max weapon damage, but your weapon is unusable for the mission.";
+            case ClassFeature.Trap_Specialist:
+                return "";
+            case ClassFeature.Turret_Specialist:
+                return "Shoot a ranged attack using your turret.";
+            case ClassFeature.Danger_Close:
+                return "";
+
+            //*****INVESTIGATOR*****\\
+
+            case ClassFeature.Mark:
+                return "Gain additional Perception on marked targets.";
+            case ClassFeature.Sneak_Attack:
+                return "";
+            case ClassFeature.Escape:
+                return "Move two squares.";
+            case ClassFeature.Quick_Draw:
+                return "Gain combat advantage on a target before combat starts.";
+            case ClassFeature.Loaded_Deck:
+                return "Draw from your glove slot.";
+            case ClassFeature.Dual_Wield:
+                return "";
+            case ClassFeature.Reversal:
+                return "";
+
+            //*****RESEARCHER*****\\
+            case ClassFeature.Uncanny_Knowledge:
+                return "";
+            case ClassFeature.Trained_Medic:
+                return "";
+            case ClassFeature.Tempered_Hands:
+                return "Increase damage and decrease hit or vice versa.";
+            case ClassFeature.Favored_Race:
+                return "";
+            case ClassFeature.Strike_Chest:
+                return "Bleed an enemy over multiple turns.";
+            case ClassFeature.Brush_With_Death:
+                return "";
+            case ClassFeature.Quick_Operation:
+                return "Draw and use a shoulder slot as one minor.";
+
+            //*****ORATOR*****\\
+            case ClassFeature.Invoke:
+                return "Attack an enemy's composure.";
+            case ClassFeature.Primal_Control:
+                return "";
+            case ClassFeature.One_Of_Many:
+                return "";
+            case ClassFeature.Instill_Paranoia:
+                return "Make enemies neutral.";
+            case ClassFeature.Terrify:
+                return "";
+            case ClassFeature.Loud_Voice:
+                return "";
+            case ClassFeature.Demoralize:
+                return "Cause enemies around you to hit less.";
+
+            default:
+                return "";
+        }
+    }
 }
 
 

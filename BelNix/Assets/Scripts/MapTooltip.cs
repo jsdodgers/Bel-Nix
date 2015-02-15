@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class MapTooltip : MonoBehaviour {
@@ -13,6 +14,7 @@ public class MapTooltip : MonoBehaviour {
     private Vector3 toolTipPos;
     private Text toolTipText;
     private GameObject tooltipPanel;
+    private Unit lastHoveredUnit;
 
 
 	// Use this for initialization
@@ -35,35 +37,50 @@ public class MapTooltip : MonoBehaviour {
 
     // Find the tile the mouse is over, place the tooltip above that tile, check for interesting objects inside that tile
     // and display the tooltip with that object's information inside.
-    private void updateTooltip() {
+    private void updateTooltip() 
+    {
         // Put the tooltip box into position.
         moveTooltipAboveHoveredTile();
 
         // Find the coordinates of the cursor in tile-space.
         Vector2 cursorHoverCoords = getHoveredTileCoordinates();
 
-        if (coordsWithinTileGrid(cursorHoverCoords)) {
+        if (coordsWithinTileGrid(cursorHoverCoords) && !GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
+        {
             Tile hoveredTile = map.tiles[(int)cursorHoverCoords.x, (int)cursorHoverCoords.y];
-            // Check if there's a character at the hovered-over tile, and whether they're alive if so.
-            if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead())  {
-                // Check if you've already updated the tooltip, evidenced by it being enabled.
-                Unit hoveredUnit = hoveredTile.getCharacter();
-                    // Check if the character is a party member
-                    if (hoveredUnit.getTeam() == 0) {
-                        // Show accurate health/composure
-                        toolTipText.text = getPlayerStatusSummary(hoveredUnit);
-                        //tooltipPanel.GetComponent<RectTransform>() = toolTipText.gameObject.GetComponent<RectTransform>().rect.height;
-                    }
-                    else {
-                        // Show rough condition, like "Healthy", "Bruised", etc
-                        toolTipText.text = getNPCStatusSummary(hoveredUnit);
-                    }
-                    gameObject.GetComponent<Canvas>().enabled = true;
-            }
-            // An if-else ladder could go here to check for things besides characters, such as traps/chests/etc.
-            //  However, if none of these checks return true, then there's nothing interesting to view, so no tooltip.
-            else gameObject.GetComponent<Canvas>().enabled = false;
+            updateTooltipText(hoveredTile);
         }
+        else gameObject.GetComponent<Canvas>().enabled = false;
+    }
+
+    private void updateTooltipText(Tile hoveredTile)
+    {
+        // Check if there's a character at the hovered-over tile, and whether they're alive if so.
+        if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead())
+        {
+            Unit hoveredUnit = hoveredTile.getCharacter();
+            
+            // Update the tooltip's text if you're hovering over a new unit
+            if (lastHoveredUnit == null || hoveredUnit != lastHoveredUnit)
+            {
+                lastHoveredUnit = hoveredUnit;
+                // Check if the character is a party member
+                if (hoveredUnit.getTeam() == 0)
+                {
+                    // Show accurate health/composure
+                    toolTipText.text = getPlayerStatusSummary(hoveredUnit);
+                }
+                else
+                {
+                    // Show rough condition, like "Healthy", "Bruised", etc
+                    toolTipText.text = getNPCStatusSummary(hoveredUnit);
+                }
+            }
+            gameObject.GetComponent<Canvas>().enabled = true;
+        }
+        // An if-else ladder could go here to check for things besides characters, such as traps/chests/etc.
+        //  However, if none of these checks return true, then there's nothing interesting to view, so no tooltip.
+        else gameObject.GetComponent<Canvas>().enabled = false;
     }
 
     // Set the tooltip box's coordinates.
@@ -72,7 +89,8 @@ public class MapTooltip : MonoBehaviour {
         // The tooltip position should be centered one unit above the hovered tile.
         toolTipPos =  tileCoords + new Vector3(0.5f, -0.5f, z);
         toolTipPos.y *= -1;
-        gameObject.GetComponent<RectTransform>().position = toolTipPos;
+        //gameObject.GetComponent<RectTransform>().position = toolTipPos;
+        gameObject.GetComponent<RectTransform>().anchoredPosition = toolTipPos;
     }
 
     // Check the input coordinates against bounds of the 2D array containing all of the tiles.

@@ -77,13 +77,14 @@ public class Unit : MonoBehaviour {
 	public bool isTarget;
 	SpriteRenderer markSprite;
 	SpriteRenderer targetSprite;
-	SpriteRenderer hairSprite;
+	public SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
 
 	public List<Affliction> afflictions;
 	public List<TurretUnit> turrets;
 
 	public GameObject damagePrefab;
+
 
 	public void setActive(bool active) {
 		aiActive = active;
@@ -264,7 +265,8 @@ public class Unit : MonoBehaviour {
 		int perception = getBasePerception() + 10;
 		int st = u.stealth;
 		int diff = Mathf.Max(0, st - perception);
-		float viewRange = (mapGenerator.getCurrentUnit().team == 0 ? Mathf.Max (0.5f, getViewRadius() - diff) : Mathf.Max(1.5f, getViewRadius() - diff/2));
+		float viewRange = (mapGenerator.getCurrentUnit().team != team ? Mathf.Max (0.5f, getViewRadius() - diff) : Mathf.Max(1.5f, getViewRadius() - diff/2));
+	//	Debug.Log(getName() + " view range to " + u.getName() + ":  " + viewRange);
 		return viewRange;
 	}
 
@@ -287,7 +289,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void addHair() {
-		GameObject go = Instantiate(characterSheet.personalInfo.getCharacterHairStyle().getHairPrefab()) as GameObject;
+		GameObject go = Instantiate(characterSheet.characterSheet.personalInformation.getCharacterHairStyle().getHairPrefab()) as GameObject;
 		go.transform.parent = transform;
 		go.transform.localPosition = new Vector3(0, 0, 0);
 		go.transform.localEulerAngles = new Vector3(0, 0, 0);
@@ -2557,6 +2559,13 @@ public class Unit : MonoBehaviour {
 		anim.SetTrigger("Attack");
 		attackAnimationAllSprites();
 		//	attackEnemy = null;
+	}
+
+	public void resetAllSprites() {
+		vaultAnimation(false);
+		moveAnimation(false);
+		idleAnimation(false);
+		proneAnimation(false);
 	}
 
 	void attackAnimationAllSprites() {
