@@ -110,6 +110,15 @@ public class BattleGUI : MonoBehaviour {
 			AudioListener.volume = masterVolumeSlider.value = 1;
 		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
+
+        if (Screen.width >= 1920)
+        {
+            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+        }
+        else if (Screen.width >= 1600)
+        {
+            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
+        }
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
