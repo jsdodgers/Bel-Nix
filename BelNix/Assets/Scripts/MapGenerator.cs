@@ -1448,7 +1448,8 @@ public class MapGenerator : MonoBehaviour {
 		GameObject lrO = GameObject.Instantiate(Resources.Load("Materials/LineRenderer",typeof(GameObject)) as GameObject) as GameObject;
 		LineRenderer lr = lrO.GetComponent<LineRenderer>();
 //		Debug.Log("Line: " + lr.renderer.sortingOrder);
-//		lr.renderer.sortingOrder = lineOrder;
+		lr.renderer.sortingOrder = lineOrder;
+		lr.renderer.material.renderQueue = 1000;
 		lr.SetPosition(0, new Vector3(xStart, yStart, 0.0f));
 		lr.SetPosition(1, new Vector3(xEnd, yEnd, 0.0f));
 		lrO.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
