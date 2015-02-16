@@ -277,7 +277,7 @@ public class ClassFeatures
             case ClassFeature.Primal_Control:
                 return "";
             case ClassFeature.One_Of_Many:
-                return "";
+				return "Become hidden when near allies or gain a boost when alone.";
             case ClassFeature.Instill_Paranoia:
                 return "Make enemies neutral.";
             case ClassFeature.Terrify:

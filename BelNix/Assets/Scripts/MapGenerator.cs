@@ -12,7 +12,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 cameraPos;
 	public GameObject overlayMeshPrefab;
 	public GameObject[] overlayImage;
-	public float smoothness = 360.0f;
+	public float smoothness = 720.0f;
 	public bool doOverlay = false;
 	public bool withLineOfSight = true;
 	public bool testAnimations = false;
