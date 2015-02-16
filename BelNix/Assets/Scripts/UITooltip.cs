@@ -11,7 +11,7 @@ public class UITooltip : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		Debug.Log(getTooltipText(gameObject));
+		//Debug.Log(getTooltipText(gameObject));
         tooltip = generateTooltip();
         //Invoke("fitToScreenEdges", 5);
         hideTooltip();
@@ -26,6 +26,7 @@ public class UITooltip : MonoBehaviour {
     public void displayTooltip()
     {
         tooltip.SetActive(true);
+        visible = true;
     }
 
     public void hideTooltip()
@@ -33,6 +34,7 @@ public class UITooltip : MonoBehaviour {
         if (tooltip == null)
             return;
         tooltip.SetActive(false);
+        visible = false;
     }
 
     private GameObject generateTooltip()
@@ -41,14 +43,16 @@ public class UITooltip : MonoBehaviour {
         GameObject ttPanel  = new GameObject("Panel - UITooltip");
 		ttPanel.transform.SetParent(gameObject.transform);
         ttPanel.AddComponent<RectTransform>();
+        ttPanel.GetComponent<RectTransform>().localScale = Vector2.one;
         ttPanel.AddComponent<Image>();
 		ttPanel.AddComponent<Canvas>();
         ttPanel.AddComponent<ContentSizeFitter>();
         ttPanel.AddComponent<HorizontalLayoutGroup>();
         
         GameObject ttText   = new GameObject("Text - UITooltip");
-		ttText.transform.SetParent(ttPanel.transform);
         ttText.AddComponent<RectTransform>();
+        ttText.transform.SetParent(ttPanel.transform);
+        ttText.GetComponent<RectTransform>().localScale = Vector2.one;
         ttText.AddComponent<Text>();
         
         // Initialize some components
@@ -57,14 +61,16 @@ public class UITooltip : MonoBehaviour {
         ttText.GetComponent<Text>().font = Resources.Load<Font>("Fonts/Courier New");
         ttText.GetComponent<Text>().alignment = TextAnchor.MiddleCenter;
         ttText.GetComponent<Text>().color = Color.black;
+        Debug.Log("Line spacing is: " + ttText.GetComponent<Text>().lineSpacing);
 
 		ttPanel.GetComponent<Canvas>().overrideSorting = true;
-		ttPanel.GetComponent<Canvas>().sortingOrder = 1;
+		ttPanel.GetComponent<Canvas>().sortingOrder = 5;
+        ttPanel.GetComponent<Canvas>().overridePixelPerfect = true;
         ttPanel.GetComponent<Canvas>().pixelPerfect = true;
         ttPanel.GetComponent<Image>().sprite = Resources.Load<Sprite>("UI/tooltip_background");
         ttPanel.GetComponent<Image>().type = Image.Type.Sliced;
         ttPanel.GetComponent<Image>().fillCenter = true;
-        ttPanel.GetComponent<RectTransform>().anchoredPosition = Vector2.zero + new Vector2(0, -40);
+        ttPanel.GetComponent<RectTransform>().anchoredPosition = Vector3.zero + new Vector3(0, -40, 0);
         ttPanel.GetComponent<RectTransform>().sizeDelta = new Vector2(80.0f, 40.0f);
         ttPanel.GetComponent<HorizontalLayoutGroup>().padding.left      = PADDING;
         ttPanel.GetComponent<HorizontalLayoutGroup>().padding.right     = PADDING;

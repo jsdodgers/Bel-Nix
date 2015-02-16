@@ -82,9 +82,26 @@ public class BattleGUI : MonoBehaviour {
     public enum CIPanel { Glance, Stats, Skills, Buttons };
     //--------------------------------------------------------------------------------
 
+    private void cameraDebug()
+    {
+        gameObject.GetComponent<Canvas>().enabled = false;
+        Camera uiCamera = GameObject.Find("Camera - UI").GetComponent<Camera>();
+        Camera mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+        if (uiCamera.orthographicSize != mainCamera.orthographicSize)
+        {
+            uiCamera.enabled = false;
+            uiCamera.orthographicSize = mainCamera.orthographicSize;
+            uiCamera.enabled = true;
+            gameObject.GetComponent<Canvas>().enabled = true;
+        }
+    }
+
     // Use this for initialization
     void Start()
     {
+        //Some audiovisual setup
+        //gameObject.GetComponent<Canvas>().enabled = false;
+        //Invoke("cameraDebug", 0.01f);
 		if (PlayerPrefs.HasKey("globalVolume")) {
 			AudioListener.volume = PlayerPrefs.GetFloat("globalVolume");
 			masterVolumeSlider.value = PlayerPrefs.GetFloat("globalVolume");
@@ -93,6 +110,15 @@ public class BattleGUI : MonoBehaviour {
 			AudioListener.volume = masterVolumeSlider.value = 1;
 		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
+
+        if (Screen.width >= 1920)
+        {
+            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+        }
+        else if (Screen.width >= 1600)
+        {
+            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
+        }
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -626,10 +652,11 @@ public class BattleGUI : MonoBehaviour {
         currentClassFeatures = new GameObject[classFeatureStrings.Length];
         for (int n = 0; n < classFeatureStrings.Length; n++)
         {
-            GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab);
+            GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab); 
             Text textComponent = textToAdd.GetComponent<Text>();
             textComponent.text = classFeatureStrings[n];
             textToAdd.transform.SetParent(featuresContentPanel.transform);
+            textToAdd.GetComponent<RectTransform>().localScale = Vector2.one;
             currentClassFeatures[n] = textToAdd;
         }
         //	Debug.Log(featuresScrollBar.value);
@@ -656,6 +683,7 @@ public class BattleGUI : MonoBehaviour {
 
         // Create a text entry, pop an entry off the queue if necessary, then add the new one.
 		GameObject textToAdd = (GameObject)Instantiate(consoleMessagePrefab);
+        
 		if(numMessages >= maxNumMessages)
 		{
 			GameObject deleteThis = (GameObject)consoleText.Dequeue();
@@ -667,6 +695,7 @@ public class BattleGUI : MonoBehaviour {
 		Text textComponent = textToAdd.GetComponent<Text>();
 		textComponent.text = UnitGUI.getSmallCapsString(message, textComponent.fontSize - 4);
 		textToAdd.transform.SetParent(consoleContentPanel.transform);
+        textToAdd.GetComponent<RectTransform>().localScale = Vector2.one;
 		textComponent.color = color;
 
         // Move the console scrollbar to the bottom to show the new message
@@ -885,8 +914,10 @@ public class BattleGUI : MonoBehaviour {
         if (activatedCharacters.Contains(unit))
         {
             GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
+            
 
             turnOrderEntry.transform.SetParent(turnOrderPanel.transform);
+            turnOrderEntry.GetComponent<RectTransform>().localScale = Vector2.one;
             turnOrderEntry.transform.SetAsLastSibling();
             // Set turn order number (the box on the left) based on their position in the list of activated units
             turnOrderEntry.transform.GetChild(0).transform.GetChild(0).GetComponent<Text>().text = (activatedCharacters.IndexOf(unit) + 1).ToString();
@@ -936,6 +967,7 @@ public class BattleGUI : MonoBehaviour {
 		for(int i = 0; i < saves.Length; i++)
 		{
 			GameObject newSaveEntry = (GameObject)Instantiate(saveEntry);
+            newSaveEntry.GetComponent<RectTransform>().sizeDelta = Vector2.one;
 			newSaveEntry.transform.GetChild(1).GetComponentInChildren<Text>().text = saves[i];
 			newSaveEntry.transform.SetParent(saveGameCanvas.transform);
 		}
