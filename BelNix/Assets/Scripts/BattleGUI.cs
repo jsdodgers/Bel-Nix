@@ -317,6 +317,11 @@ public class BattleGUI : MonoBehaviour {
 		return armsShown[(int)arm];
 	}
 
+
+	public void selectOneOfManyMode(int mode) {
+		mapGenerator.getCurrentUnit().useOneOfMany((OneOfManyMode)mode);
+	}
+
 	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false) {
 		battleGUI.hideTurretSelectActually(hide, selectCurrent);
 	}

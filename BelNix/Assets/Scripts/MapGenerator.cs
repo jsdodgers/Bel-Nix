@@ -2362,6 +2362,9 @@ public class MapGenerator : MonoBehaviour {
 		else if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.TemperedHands) {
 			GameGUI.useTemperedHands();
 		}
+		else if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.OneOfMany) {
+			p.useOneOfMany(OneOfManyMode.Hidden);
+		}
 	}
 
 	public bool directionsAreOpposite(Direction dir, Direction dir2) {
@@ -2674,7 +2677,7 @@ public class MapGenerator : MonoBehaviour {
 		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
 			(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || 
 				performingAction() ||
-				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape || GameGUI.selectedMinorType == MinorType.TemperedHands));
+				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || (GameGUI.selectedMinorType == MinorType.OneOfMany && GameGUI.oneOfManyConfirm) || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape || GameGUI.selectedMinorType == MinorType.TemperedHands));
 	}
 
 

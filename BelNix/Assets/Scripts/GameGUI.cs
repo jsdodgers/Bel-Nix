@@ -340,7 +340,7 @@ public class GameGUI : MonoBehaviour {
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
 				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
-				((selectedMinor && (selectedMinorType == MinorType.Stealth)));
+				((selectedMinor && (selectedMinorType == MinorType.Stealth || (selectedMinorType == MinorType.OneOfMany && oneOfManyConfirm))));
 	}
 
 	public static bool mouseIsOnGUI() {
@@ -2010,6 +2010,7 @@ public class GameGUI : MonoBehaviour {
 
 	public static bool looting = false;
 	public static bool inventoryWasOpenLoot = false;
+	public static bool oneOfManyConfirm = false;
 
 	public static void selectMinorType(MinorType t) {
 		if (t != selectedMinorType || (!selectedMinor && t != MinorType.None)) deselectCurrentAction();
@@ -2026,7 +2027,11 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case MinorType.OneOfMany:
 			if (!mapGenerator.selectedUnit.hasOneOfManyHider()) {
+				oneOfManyConfirm = false;
 				BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			}
+			else {
+				oneOfManyConfirm = true;
 			}
 			break;
 		case MinorType.Loot:

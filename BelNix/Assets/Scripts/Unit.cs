@@ -7,7 +7,7 @@ public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Thro
 public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
-
+public enum OneOfManyMode {Hidden = 0, Hit, Damage, AC, Movement, None};
 public class Unit : MonoBehaviour {
 	public MeshGen meshGen;
 	public bool needsOverlay = false;
@@ -28,6 +28,8 @@ public class Unit : MonoBehaviour {
 	public bool escapeUsed = false;
 	public bool oneOfManyUsed = false;
 	public int invokeUsesLeft = 2;
+	public OneOfManyMode oneOfManyMode = OneOfManyMode.None;
+	public int oneOfManyTurnsLeft = 0;
 
 	public Vector3 position;
 	public int maxHitPoints = 10;
@@ -88,6 +90,45 @@ public class Unit : MonoBehaviour {
 
 	public GameObject damagePrefab;
 
+	public void loseOneOfMany() {
+		oneOfManyMode = OneOfManyMode.None;
+		oneOfManyTurnsLeft = 0;
+	}
+
+	public void useOneOfMany(OneOfManyMode mode) {
+		oneOfManyMode = mode;
+		oneOfManyUsed = true;
+		switch (mode) {
+		case OneOfManyMode.Hit:
+		case OneOfManyMode.Damage:
+		case OneOfManyMode.AC:
+		case OneOfManyMode.Hidden:
+			oneOfManyTurnsLeft = 10;
+			break;
+		case OneOfManyMode.Movement:
+			oneOfManyTurnsLeft = 1;
+			moveDistLeft++;
+			break;
+		default:
+			break;
+		}
+		useMinor();
+		BattleGUI.resetMinorButtons();
+	}
+
+	public int getOneOfManyBonus(OneOfManyMode mode) {
+		if (mode != oneOfManyMode) return 0;
+		switch (mode) {
+		case OneOfManyMode.Hit:
+		case OneOfManyMode.Damage:
+		case OneOfManyMode.AC:
+			return characterSheet.combatScores.getWellVersedMod();
+		case OneOfManyMode.Movement:
+			return 1;
+		default:
+			return 0;
+		}
+	}
 
 	public void setActive(bool active) {
 		aiActive = active;
@@ -116,6 +157,12 @@ public class Unit : MonoBehaviour {
 	public void beginTurn() {
 		foreach (Unit u in markedUnits) {
 			u.setMarked(true);
+		}
+		if (oneOfManyTurnsLeft > 0) {
+			oneOfManyTurnsLeft--;
+			if (oneOfManyTurnsLeft == 0) {
+				oneOfManyMode = OneOfManyMode.None;
+			}
 		}
 		idleAnimation(true);
 		//setGUIToThis();
@@ -710,6 +757,7 @@ public class Unit : MonoBehaviour {
 			chooseNextBestActionType();
 		}
 		BattleGUI.hideStandardArm();
+		if (oneOfManyMode == OneOfManyMode.Hidden) loseOneOfMany();
 	}
 
 	public void useMovement() {
@@ -720,6 +768,7 @@ public class Unit : MonoBehaviour {
 			chooseNextBestActionType();
 		}
 		BattleGUI.hideMovementArm();
+		if (oneOfManyMode == OneOfManyMode.Hidden) loseOneOfMany();
 	}
 
 	public int getInitiative() {
@@ -968,7 +1017,7 @@ public class Unit : MonoBehaviour {
 		Unit closest = null;
 		float dist = float.MaxValue;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
+			if (u!=this && (((enemies && u.team != team && u.oneOfManyMode != OneOfManyMode.Hidden) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if (d < dist && (!needsLineOfSight || mapGenerator.hasLineOfSight(this, u, -1))) {
 					dist = d;
@@ -1007,7 +1056,7 @@ public class Unit : MonoBehaviour {
 	public float closestUnitDist(bool enemies, bool friendlies, bool attackUnconscious = false) {
 		float dist = 0;
 		foreach (Unit u in mapGenerator.priorityOrder) {
-			if (u!=this && (((enemies && u.team != team) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
+			if (u!=this && (((enemies && u.team != team && u.oneOfManyMode != OneOfManyMode.Hidden) || (friendlies && u.team == team)) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if (d < dist || dist == 0) {
 					dist = d;
@@ -1219,7 +1268,7 @@ public class Unit : MonoBehaviour {
 				currentMoveDist = 5;
 				List<Unit> units = new List<Unit>();
 				foreach (Unit u in mapGenerator.priorityOrder) {
-					if (team != u.team && !u.deadOrDyingOrUnconscious()) {
+					if (team != u.team && !u.deadOrDyingOrUnconscious() && u.oneOfManyMode != OneOfManyMode.Hidden) {
 						units.Add (u);
 					}
 				}
@@ -2656,7 +2705,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual int getAC() {
-		return characterSheet.characterSheet.characterLoadout.getAC();
+		return characterSheet.characterSheet.characterLoadout.getAC() + getOneOfManyBonus(OneOfManyMode.AC);
 	}
 
 	public virtual string getName() {
@@ -2677,7 +2726,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual int rollDamage(bool crit) {
-		return characterSheet.rollDamage(attackEnemy, crit) + temperedHandsMod;
+		return characterSheet.rollDamage(attackEnemy, crit) + temperedHandsMod + getOneOfManyBonus(OneOfManyMode.Damage);
 	}
 
 	public virtual int overClockDamage() {
