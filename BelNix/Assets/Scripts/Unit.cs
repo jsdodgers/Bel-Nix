@@ -1933,7 +1933,7 @@ public class Unit : MonoBehaviour {
 		}
 		//					p.rotating = true;
 		if (mapGenerator.getCurrentUnit()==this)
-			mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+			mapGenerator.moveCameraToSelected(false, 90.0f);//.moveCameraToPosition(transform.position, false, 90.0f);
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
