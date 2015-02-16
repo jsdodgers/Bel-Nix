@@ -152,7 +152,7 @@ public class BattleGUI : MonoBehaviour {
         // Initialize the fields relating to Action Buttons
         MinorType[] minorTypes = new MinorType[] { MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.OneOfMany, MinorType.Invoke };
         MovementType[] movementTypes = new MovementType[] { MovementType.Move, MovementType.BackStep, MovementType.Recover };
-        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory };
+        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.InstillParanoia, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory };
         minorButtons = new Dictionary<MinorType, GameObject>();
         standardButtons = new Dictionary<StandardType, GameObject>();
         movementButtons = new Dictionary<MovementType, GameObject>();

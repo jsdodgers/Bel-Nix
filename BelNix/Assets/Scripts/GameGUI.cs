@@ -1977,6 +1977,7 @@ public class GameGUI : MonoBehaviour {
 		case StandardType.Intimidate:
 		case StandardType.OverClock:
 		case StandardType.Throw:
+		case StandardType.InstillParanoia:
 			if (mapGenerator.selectedUnit.attackEnemy) {
 				mapGenerator.selectedUnit.attackEnemy.deselect();
 				mapGenerator.resetAttack();
@@ -2096,6 +2097,7 @@ public class GameGUI : MonoBehaviour {
 		case StandardType.OverClock:
 		case StandardType.Throw:
 		case StandardType.Intimidate:
+		case StandardType.InstillParanoia:
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Place_Turret:
@@ -2131,6 +2133,9 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case "Intimidate":
 			selectStandardType(StandardType.Intimidate);
+			break;
+		case "Instill Paranoia":
+			selectStandardType(StandardType.InstillParanoia);
 			break;
 		case "Place Turret":
 			selectStandardType(StandardType.Place_Turret);
