@@ -1163,7 +1163,7 @@ public class GameGUI : MonoBehaviour {
 	static float t = 0;
 	static int dir = 1;
 	public static void doGUI() {
-		bool interact = !escapeMenuOpen && !(mapGenerator != null && mapGenerator.getCurrentUnit()!= null && mapGenerator.getCurrentUnit().doingTemperedHands);
+		bool interact = true;// !escapeMenuOpen && !(mapGenerator != null && mapGenerator.getCurrentUnit()!= null && mapGenerator.getCurrentUnit().doingTemperedHands);
 		float speed = 1.0f/3.0f;
 		t += Time.deltaTime * speed * dir;
 		Color start = Color.cyan;
@@ -2025,8 +2025,9 @@ public class GameGUI : MonoBehaviour {
 			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
 			break;
 		case MinorType.OneOfMany:
-			if (!mapGenerator.selectedUnit.hasOneOfManyHider())
+			if (!mapGenerator.selectedUnit.hasOneOfManyHider()) {
 				BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			}
 			break;
 		case MinorType.Loot:
 			looting = true;

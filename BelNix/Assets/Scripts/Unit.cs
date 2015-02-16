@@ -275,6 +275,7 @@ public class Unit : MonoBehaviour {
 
 	public bool hasOneOfManyHider() {
 		foreach (Unit u in mapGenerator.players) {
+			if (u == this) continue;
 			if (hasLineOfSightToUnit(u, 3, true)) return true;
 		}
 		return false;

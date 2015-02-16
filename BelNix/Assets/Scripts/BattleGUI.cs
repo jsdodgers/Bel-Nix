@@ -99,7 +99,7 @@ public class BattleGUI : MonoBehaviour {
     // Use this for initialization
 	public void setReferenceResolution() {
 		if (Screen.width >= 1200)
-			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
+			consoleCanvas.transform.parent.gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
 	}
     void Start()
     {
@@ -572,6 +572,7 @@ public class BattleGUI : MonoBehaviour {
 	}
 
 	public void setClassFeatureCanvasShown(ClassFeatureCanvas canvas, bool shown) {
+		Debug.Log(canvas + "  " + shown);
 		switch (canvas) {
 		case ClassFeatureCanvas.OneOfMany:
 			oneOfManyCanvas.SetActive(shown);
