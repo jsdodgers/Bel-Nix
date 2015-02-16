@@ -533,6 +533,31 @@ public class MapGenerator : MonoBehaviour {
 		}
 		return true;
 	}
+
+    public bool hasLineOfSight(Unit enemy)
+    {
+        if (isInCharacterPlacement())
+        {
+            foreach (Tile t in tiles)
+            {
+                if (t.startingPoint)
+                {
+                    if (hasLineOfSight(t, tiles[(int)enemy.position.x, -(int)enemy.position.y], viewRadius))
+                        return true;
+                }
+            }
+        }
+        else
+        {
+            foreach (Unit player in players)
+            {
+                if (player.hasLineOfSightToUnit(enemy))
+                    return true;
+            }
+        }
+        return false;
+    }
+
 	public class CollisionPoint {
 		public Vector2 point;
 		public bool collides;
@@ -1536,7 +1561,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
-		if (selectedUnit == null) return;
+		if (selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit))) return;
 		Vector3 sel = selectedUnit.transform.position;
 		moveCameraToPosition(sel, instantly, speed);
 	}
