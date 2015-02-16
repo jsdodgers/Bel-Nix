@@ -97,6 +97,10 @@ public class BattleGUI : MonoBehaviour {
     }
 
     // Use this for initialization
+	public void setReferenceResolution() {
+		if (Screen.width >= 1200)
+			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
+	}
     void Start()
     {
         //Some audiovisual setup
@@ -110,15 +114,26 @@ public class BattleGUI : MonoBehaviour {
 			AudioListener.volume = masterVolumeSlider.value = 1;
 		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
-
-        if (Screen.width >= 1920)
+	 /*     if (Screen.width >= 1920)
         {
             gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
-        }
-        else if (Screen.width >= 1600)
-        {
-            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
-        }
+		}
+		else if (Screen.width >= 1680)
+		{
+			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1680, 1050);
+		}
+		else if (Screen.width >= 1600)
+		{
+			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
+		}
+		else if (Screen.width >= 1366)
+		{
+			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1366, 768);
+		}
+		else if (Screen.width >= 1280)
+		{
+			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
+		}*/
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -171,8 +186,13 @@ public class BattleGUI : MonoBehaviour {
 
 
     // Update is called once per frame
+	int oldWidth = 0;
     void Update()
     {
+		if (Screen.width != oldWidth) {
+			oldWidth = Screen.width;
+			setReferenceResolution();
+		}
         UnitGUI.doTabs();
         if (doPlayerText) updatePlayerTurnText();
 

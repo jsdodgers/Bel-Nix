@@ -11,7 +11,7 @@ public enum VisibilityMode {Visibility, Melee, Ranged, None}
 public class MapGenerator : MonoBehaviour {
 	Vector3 cameraPos;
 	public GameObject overlayMeshPrefab;
-	public GameObject overlayImage;
+	public GameObject[] overlayImage;
 	public bool doOverlay = false;
 	public bool withLineOfSight = true;
 	public bool testAnimations = false;
@@ -201,7 +201,9 @@ public class MapGenerator : MonoBehaviour {
 	public void setOverlay() {
 	//	blockedColor.a = .5f;
 	//	clearColor.a = .5f;
-		overlayImage.SetActive(doOverlay);
+		foreach (GameObject overlayI in overlayImage) {
+			overlayI.SetActive(doOverlay);
+		}
 		if (!doOverlay) return;
 //		bool[,] canSeeOld = new bool[actualWidth*gridSize,actualHeight*gridSize];
 //		resetCanSee(canSeeOld);
@@ -350,7 +352,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 	public void setOverlay(MeshPos pos, bool print = false) {
-		float softness = 720.0f;
+		float softness = 1440.0f;
 		List<Vector2> points = new List<Vector2>();
 		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/softness) {
 			float sin = Mathf.Sin(n);
