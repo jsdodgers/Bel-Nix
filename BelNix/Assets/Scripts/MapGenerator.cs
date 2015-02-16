@@ -1743,7 +1743,7 @@ public class MapGenerator : MonoBehaviour {
 		Tile t = tiles[x,y];
 		for (int n=Mathf.Max(0, x - radiusLeft); n <= Mathf.Min(actualWidth - 1, x + radiusLeft); n++) {
 			for (int m=Mathf.Max(0, y - radiusLeft); m <= Mathf.Min(actualHeight - 1, y + radiusLeft);m++) {
-			//	if (n == x && m == y) continue;
+				if (n == x && m == y) continue;
 				Tile t2 = tiles[n,m];
 				if (t2.canAttackCurr) continue;
 				if (t2.standable && hasLineOfSight(t, t2, radiusLeft, true, (cs.getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
