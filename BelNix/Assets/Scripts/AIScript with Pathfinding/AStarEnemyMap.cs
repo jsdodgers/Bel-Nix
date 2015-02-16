@@ -53,9 +53,9 @@ public class AStarEnemyMap : AStarMap {
 		AStarEnemyParameters param = (AStarEnemyParameters)node.parameters;
 		for (int n=-1;n<=1;n++) {
 			for (int m=-1;m<=1;m++) {
-				if ((n==0 && m==0) || (n!=0 && m!=0)) continue;
 				int x = param.x + n;
 				int y = param.y + m;
+				if ((n==0 && m==0) || (n!=0 && m!=0) || x < 0 || y < 0 || x >= mapGenerator.actualWidth || y >= mapGenerator.actualHeight) continue;
 				AStarEnemyParameters param1 = new AStarEnemyParameters(x,y, mapGenerator.tiles[x,y]);
 				if (closedList != null && closedList.Contains(param1)) continue;
 				float heur = heuristicForParameters(param1);
