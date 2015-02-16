@@ -1794,7 +1794,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged;
+		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged && !isProne();
 	}
 
 	public int attackOfOpp(Vector2 one, Direction dir) {
@@ -2216,6 +2216,13 @@ public class Unit : MonoBehaviour {
 							BattleGUI.writeToConsole(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
 							shouldCancelMovement = true;
 							int landedIndex = lastPath.IndexOf(currentPath[0]);
+							string s = "CurrentPath: ";
+							foreach (Vector2 v in currentPath) s += v + "  ";
+							s += "\nLastPath: ";
+							foreach (Vector2 v in lastPath) s += v + "  ";
+							s += "\nCurrentZero: " + currentPath[0];
+							s += "\nIndex: " + landedIndex + "  " + lastPath[landedIndex];
+							Debug.Log(s);
 							for (int n = landedIndex;n >= 0; n--) {
 								Vector2 v = lastPath[n];
 								Tile newTile = mapGenerator.tiles[(int)v.x,(int)v.y];
@@ -2226,6 +2233,7 @@ public class Unit : MonoBehaviour {
 									mapGenerator.setCurrentUnitTile();
 									mapGenerator.activateEnemies();
 									if (team == 0) mapGenerator.setOverlay(this);
+									break;
 								}
 							}
 							becomeProne();
