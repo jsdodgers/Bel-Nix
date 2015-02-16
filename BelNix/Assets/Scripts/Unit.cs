@@ -2765,7 +2765,7 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.skillScores.getScore(Skill.Melee);
 	}
 	public virtual int getMeleeScoreWithMods(Unit u) {
-		return getMeleeScore() + (unitIsFavoredRace(u) ? 1 : 0) + (Combat.flanking(this,u) ? 2 : 0) + (hasUncannyKnowledge() ? 1 : 0) + (hasWeaponFocus() ? 2 : 0) - temperedHandsMod;
+		return getMeleeScore() + (unitIsFavoredRace(u) ? 1 : 0) + (Combat.flanking(this,u) ? 2 : 0) + (hasUncannyKnowledge() ? 1 : 0) + (hasWeaponFocus() ? 2 : 0) + getOneOfManyBonus(OneOfManyMode.Hit) - temperedHandsMod;
 	}
 
 	public virtual int rollDamage(bool crit) {

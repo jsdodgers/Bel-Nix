@@ -158,6 +158,8 @@ public class UITooltip : MonoBehaviour {
 			return "Escape: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Escape);
 		case "Button - Invoke":
 			return "Invoke: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Invoke);
+		case "Button - Instill Paranoia":
+			return "Instill Paranoia:\n" + ClassFeatures.getTooltipDescription(ClassFeature.Instill_Paranoia);
 		case "Button - One Of Many":
 			return "One Of Many: \n" + ClassFeatures.getTooltipDescription(ClassFeature.One_Of_Many);
 
