@@ -20,6 +20,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject loadGameCanvas;
 	[SerializeField] private GameObject pauseMenuCanvas;
 	[SerializeField] private GameObject saveGameCanvas;
+	[SerializeField] private GameObject endGameCanvas;
 	[SerializeField] private Scrollbar loadGameScrollBar;
 	[SerializeField] private GameObject consoleCanvas;
 	[SerializeField] private GameObject turnOrderCanvas;
@@ -34,13 +35,19 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject turnOrderPrefab;
 	[SerializeField] private GameObject oneOfManyCanvas;
 	[SerializeField] private GameObject temperedHandsCanvas;
+	[SerializeField] private GameEndMenu gameEndMenu;
 	[SerializeField] private Slider masterVolumeSlider;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+	[SerializeField] private GameObject endGameUnitPrefab;
+	[SerializeField] private GameObject endGameUnitsContent;
 	private int currentPauseCanvas = 0;
+	private int currentGameOverCanvas = 0;
 	[SerializeField] private Canvas[] pauseButtons;
 	[SerializeField] private GameObject[] pauseWindows;
+	[SerializeField] private Canvas[] gameOverButtons;
+	[SerializeField] private GameObject[] gameOverWindows;
 	public Text temperedHandsHitText;
 	public Text temperedHandsDamageText;
 	public Button plus;
@@ -51,8 +58,9 @@ public class BattleGUI : MonoBehaviour {
     private Text[] statsTexts;
     private Text characterInfoText;
     private Scrollbar featuresScrollBar;
-    private Scrollbar consoleScrollBar;
+	private Scrollbar consoleScrollBar;
 	public Scrollbar turretScrollBar;
+	public Scrollbar gameOverUntsScrollBar;
     private Dictionary<MovementType, GameObject> movementButtons;
     private Dictionary<StandardType, GameObject> standardButtons;
     private Dictionary<MinorType, GameObject> minorButtons;
@@ -74,9 +82,26 @@ public class BattleGUI : MonoBehaviour {
     public enum CIPanel { Glance, Stats, Skills, Buttons };
     //--------------------------------------------------------------------------------
 
+    private void cameraDebug()
+    {
+        gameObject.GetComponent<Canvas>().enabled = false;
+        Camera uiCamera = GameObject.Find("Camera - UI").GetComponent<Camera>();
+        Camera mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+        if (uiCamera.orthographicSize != mainCamera.orthographicSize)
+        {
+            uiCamera.enabled = false;
+            uiCamera.orthographicSize = mainCamera.orthographicSize;
+            uiCamera.enabled = true;
+            gameObject.GetComponent<Canvas>().enabled = true;
+        }
+    }
+
     // Use this for initialization
     void Start()
     {
+        //Some audiovisual setup
+        //gameObject.GetComponent<Canvas>().enabled = false;
+        //Invoke("cameraDebug", 0.01f);
 		if (PlayerPrefs.HasKey("globalVolume")) {
 			AudioListener.volume = PlayerPrefs.GetFloat("globalVolume");
 			masterVolumeSlider.value = PlayerPrefs.GetFloat("globalVolume");
@@ -85,6 +110,15 @@ public class BattleGUI : MonoBehaviour {
 			AudioListener.volume = masterVolumeSlider.value = 1;
 		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
+
+        if (Screen.width >= 1920)
+        {
+            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+        }
+        else if (Screen.width >= 1600)
+        {
+            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
+        }
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -173,6 +207,33 @@ public class BattleGUI : MonoBehaviour {
 		AudioListener.volume = value;
 	}
 
+	public static void setEndGameUnits(int c, int exp, bool won) {
+		battleGUI.setEndGameUnitsActually(c, exp, won);
+
+	}
+
+	void setEndGameUnitsActually(int c, int exp, bool won) {
+		endGameCanvas.SetActive(true);
+		gameEndMenu.setValues(c, exp, won);
+		for (int n = endGameUnitsContent.transform.childCount-1; n >= 0; n--) {
+			GameObject.Destroy(endGameUnitsContent.transform.GetChild(n).gameObject);
+		}
+		foreach (Unit u in mapGenerator.players) {
+			createEndGameObjectFor(u);
+		}
+		foreach (Unit u in mapGenerator.deadUnits) {
+			createEndGameObjectFor(u);
+		}
+		gameOverUntsScrollBar.value = 1;
+	}
+
+	void createEndGameObjectFor(Unit u) {
+		GameObject go = GameObject.Instantiate(endGameUnitPrefab) as GameObject;
+		EndGameUnit egu = go.GetComponent<EndGameUnit>();
+		egu.setUnit(u);
+		egu.transform.SetParent(endGameUnitsContent.transform, false);
+	}
+
 	public void exitToBase() {
 		GameGUI.escapeMenuOpen = false;
 		Application.LoadLevel(2);
@@ -190,11 +251,12 @@ public class BattleGUI : MonoBehaviour {
 
 	public static void hitEscape() {
 		battleGUI.hitEscapeActually();
-
 	}
-	void hitEscapeActually() {
+	public void hitEscapeActually() {
 		if (loadMenuOpen)  setLoadGameCanvasShown(false);
 		else battleGUI.setPauseMenuShown(!pauseMenuOpen);
+		GameGUI.escapeMenuOpen = pauseMenuOpen;
+
 	}
 
 	public void setPauseMenuShown(bool shown) {
@@ -217,6 +279,14 @@ public class BattleGUI : MonoBehaviour {
 		currentPauseCanvas = tab;
 		pauseButtons[currentPauseCanvas].sortingOrder = 10010;
 		pauseWindows[currentPauseCanvas].SetActive(true);
+	}
+
+	public void selectGameOverTab(int tab) {
+		gameOverButtons[currentGameOverCanvas].sortingOrder = 10000;
+		gameOverWindows[currentGameOverCanvas].SetActive(false);
+		currentGameOverCanvas = tab;
+		gameOverButtons[currentGameOverCanvas].sortingOrder = 10010;
+		gameOverWindows[currentGameOverCanvas].SetActive(true);
 	}
 
 	public static void setActionsButtonDefault(bool defaultSprite) {
@@ -582,10 +652,11 @@ public class BattleGUI : MonoBehaviour {
         currentClassFeatures = new GameObject[classFeatureStrings.Length];
         for (int n = 0; n < classFeatureStrings.Length; n++)
         {
-            GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab);
+            GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab); 
             Text textComponent = textToAdd.GetComponent<Text>();
             textComponent.text = classFeatureStrings[n];
             textToAdd.transform.SetParent(featuresContentPanel.transform);
+            textToAdd.GetComponent<RectTransform>().localScale = Vector2.one;
             currentClassFeatures[n] = textToAdd;
         }
         //	Debug.Log(featuresScrollBar.value);
@@ -612,6 +683,7 @@ public class BattleGUI : MonoBehaviour {
 
         // Create a text entry, pop an entry off the queue if necessary, then add the new one.
 		GameObject textToAdd = (GameObject)Instantiate(consoleMessagePrefab);
+        
 		if(numMessages >= maxNumMessages)
 		{
 			GameObject deleteThis = (GameObject)consoleText.Dequeue();
@@ -623,6 +695,7 @@ public class BattleGUI : MonoBehaviour {
 		Text textComponent = textToAdd.GetComponent<Text>();
 		textComponent.text = UnitGUI.getSmallCapsString(message, textComponent.fontSize - 4);
 		textToAdd.transform.SetParent(consoleContentPanel.transform);
+        textToAdd.GetComponent<RectTransform>().localScale = Vector2.one;
 		textComponent.color = color;
 
         // Move the console scrollbar to the bottom to show the new message
@@ -841,8 +914,10 @@ public class BattleGUI : MonoBehaviour {
         if (activatedCharacters.Contains(unit))
         {
             GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
+            
 
             turnOrderEntry.transform.SetParent(turnOrderPanel.transform);
+            turnOrderEntry.GetComponent<RectTransform>().localScale = Vector2.one;
             turnOrderEntry.transform.SetAsLastSibling();
             // Set turn order number (the box on the left) based on their position in the list of activated units
             turnOrderEntry.transform.GetChild(0).transform.GetChild(0).GetComponent<Text>().text = (activatedCharacters.IndexOf(unit) + 1).ToString();
@@ -892,6 +967,7 @@ public class BattleGUI : MonoBehaviour {
 		for(int i = 0; i < saves.Length; i++)
 		{
 			GameObject newSaveEntry = (GameObject)Instantiate(saveEntry);
+            newSaveEntry.GetComponent<RectTransform>().sizeDelta = Vector2.one;
 			newSaveEntry.transform.GetChild(1).GetComponentInChildren<Text>().text = saves[i];
 			newSaveEntry.transform.SetParent(saveGameCanvas.transform);
 		}

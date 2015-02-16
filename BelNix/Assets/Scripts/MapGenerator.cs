@@ -87,8 +87,8 @@ public class MapGenerator : MonoBehaviour {
 	public List<TrapUnit> currentTrap;
 	public TrapUnit currentlySelectedTrap;
 	Unit hoveredCharacter;
-	List<Unit> players;
-	List<Unit> deadUnits;
+	public List<Unit> players;
+	public List<Unit> deadUnits;
 	public List<Unit> nonAlertEnemies;
 	public List<Unit> enemies;
 	public GameObject turrets;
@@ -584,6 +584,8 @@ public class MapGenerator : MonoBehaviour {
 		rewardPlayer(mainUnit);
 		savePlayers();
 		deleteDeadPlayers();
+		
+		BattleGUI.setEndGameUnits(copperReward, experienceReward, true);
 	}
 
 	public void restPlayers() {
@@ -616,7 +618,8 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void playerLost() {
-
+		
+		BattleGUI.setEndGameUnits(copperReward, experienceReward, false);
 	}
 
     public void rewardPlayer(Unit mainCharacter)
@@ -1396,6 +1399,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void removeCharacter(Unit cs) {
+
 		cs.removeCurrent();
 		int index = priorityOrder.IndexOf(cs);
 		priorityOrder.Remove(cs);
@@ -2139,8 +2143,6 @@ public class MapGenerator : MonoBehaviour {
 
 	public void openEscapeMenu() {
 		BattleGUI.hitEscape();
-		GameGUI.escapeMenuOpen = !GameGUI.escapeMenuOpen;
-		Debug.Log(GameGUI.escapeMenuOpen);
 	}
 
 	public void deleteCurrentTrap() {

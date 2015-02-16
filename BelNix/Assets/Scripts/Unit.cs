@@ -77,13 +77,14 @@ public class Unit : MonoBehaviour {
 	public bool isTarget;
 	SpriteRenderer markSprite;
 	SpriteRenderer targetSprite;
-	SpriteRenderer hairSprite;
+	public SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
 
 	public List<Affliction> afflictions;
 	public List<TurretUnit> turrets;
 
 	public GameObject damagePrefab;
+
 
 	public void setActive(bool active) {
 		aiActive = active;
@@ -288,7 +289,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void addHair() {
-		GameObject go = Instantiate(characterSheet.personalInfo.getCharacterHairStyle().getHairPrefab()) as GameObject;
+		GameObject go = Instantiate(characterSheet.characterSheet.personalInformation.getCharacterHairStyle().getHairPrefab()) as GameObject;
 		go.transform.parent = transform;
 		go.transform.localPosition = new Vector3(0, 0, 0);
 		go.transform.localEulerAngles = new Vector3(0, 0, 0);
@@ -2558,6 +2559,13 @@ public class Unit : MonoBehaviour {
 		anim.SetTrigger("Attack");
 		attackAnimationAllSprites();
 		//	attackEnemy = null;
+	}
+
+	public void resetAllSprites() {
+		vaultAnimation(false);
+		moveAnimation(false);
+		idleAnimation(false);
+		proneAnimation(false);
 	}
 
 	void attackAnimationAllSprites() {
