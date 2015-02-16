@@ -2226,6 +2226,7 @@ public class Unit : MonoBehaviour {
 									mapGenerator.setCurrentUnitTile();
 									mapGenerator.activateEnemies();
 									if (team == 0) mapGenerator.setOverlay(this);
+									break;
 								}
 							}
 							becomeProne();
