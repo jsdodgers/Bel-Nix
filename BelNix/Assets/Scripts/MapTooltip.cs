@@ -53,10 +53,35 @@ public class MapTooltip : MonoBehaviour {
         else gameObject.GetComponent<Canvas>().enabled = false;
     }
 
+
+    private bool hasLineOfSight(Unit enemy)
+    {
+        if (map.isInCharacterPlacement())
+        {
+            foreach (Tile t in map.tiles)
+            {
+                if (t.startingPoint)
+                {
+                    if (map.hasLineOfSight(t, map.tiles[(int)enemy.position.x, -(int)enemy.position.y], map.viewRadius))
+                        return true;
+                }
+            }
+        }
+        else
+        {
+            foreach (Unit player in map.players)
+            {
+                if (player.hasLineOfSightToUnit(enemy))
+                    return true;
+            }
+        }
+        return false;
+    }
+
     private void updateTooltipText(Tile hoveredTile)
     {
         // Check if there's a character at the hovered-over tile, and whether they're alive if so.
-        if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead())
+        if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead() && (hoveredTile.getCharacter().team == 0 || hasLineOfSight(hoveredTile.getCharacter())))
         {
             Unit hoveredUnit = hoveredTile.getCharacter();
             
