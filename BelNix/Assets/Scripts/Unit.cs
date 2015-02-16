@@ -76,7 +76,7 @@ public class Unit : MonoBehaviour {
 	public bool isCurrent;
 	public bool isSelected;
 	public bool isTarget;
-	SpriteRenderer markSprite;
+	SpriteRenderer[] markSprite;
 	SpriteRenderer targetSprite;
 	public SpriteRenderer hairSprite;
 	public bool doAttOpp = true;
@@ -544,7 +544,10 @@ public class Unit : MonoBehaviour {
 
 	public void setMarked(bool marked) {
 		isMarked = marked;
-		getMarkSprite().enabled = marked;
+		foreach (SpriteRenderer sr in getMarkSprite()) {
+			sr.enabled = marked;
+		}
+//		getMarkSprite().enabled = marked;
 		setMarkPosition();
 	}
 
@@ -625,7 +628,7 @@ public class Unit : MonoBehaviour {
 			float posY = transform.position.y + 1.0f + addedScale;
 		//	getMarkSprite().transform.localScale = new Vector3(scale, scale, 1.0f);
 			getMark().transform.eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
-			getMark().transform.position = new Vector3(transform.position.x, posY, transform.position.z);
+			getMark().transform.position = new Vector3(transform.position.x, posY, getMark().transform.position.z);
 		}
 	}
 
@@ -2058,9 +2061,10 @@ public class Unit : MonoBehaviour {
 		}
 		return markTrans;
 	}
-	public SpriteRenderer getMarkSprite() {
+
+	public SpriteRenderer[] getMarkSprite() {
 		if (markSprite == null) {
-			markSprite = getMark().GetComponent<SpriteRenderer>();
+			markSprite = getMark().GetComponentsInChildren<SpriteRenderer>();//.GetComponent<SpriteRenderer>();
 		}
 		return markSprite;
 	}
@@ -2116,8 +2120,11 @@ public class Unit : MonoBehaviour {
 
 	public virtual void initializeVariables() {
 //		characterSheet = gameObject.GetComponent<Character>();
-		if (getMarkSprite()) {
-			getMarkSprite().sortingOrder = MapGenerator.markOrder;
+		if (getMarkSprite() != null) {
+			foreach (SpriteRenderer sr in getMarkSprite()) {
+				sr.sortingOrder = MapGenerator.markOrder;
+			}
+		//	getMarkSprite().sortingOrder = MapGenerator.markOrder;
 		}
 		aiActive = false;
 		setMarked(false);

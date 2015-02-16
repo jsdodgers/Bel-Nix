@@ -36,8 +36,8 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerArmorOrder = 310 + sortingOrderExtra;
 	public const int playerMovingOrder = 400 + sortingOrderExtra;
 	public const int playerMovingArmorOrder = 410 + sortingOrderExtra;
-	public const int markOrder = 600 + sortingOrderExtra;
 	public const int mapOverlayOrder = 950 + sortingOrderExtra;
+	public const int markOrder = 960 + sortingOrderExtra;
 	public const int playerSelectOrder = 1000 + sortingOrderExtra;
 	public const int playerSelectPlayerOrder = 1200 + sortingOrderExtra;
 	public const int playerSelectPlayerArmorOrder = 1210 + sortingOrderExtra;
@@ -340,8 +340,8 @@ public class MapGenerator : MonoBehaviour {
 		return new MeshPos(new Vector2(t.getPosition().x + .5f, -t.getPosition().y - .5f), mg);
 		//		break;
 	}
-	public void setOverlay(Unit u) {
-		setOverlay(getMeshPos(u));
+	public void setOverlay(Unit u, bool print = false) {
+		setOverlay(getMeshPos(u), print);
 	}
 	public void removeOverlay(Unit u) {
 		if (u.meshGen != null) {
@@ -349,8 +349,8 @@ public class MapGenerator : MonoBehaviour {
 			u.meshGen = null;
 		}
 	}
-	public void setOverlay(MeshPos pos) {
-		float softness = 360.0f;
+	public void setOverlay(MeshPos pos, bool print = false) {
+		float softness = 720.0f;
 		List<Vector2> points = new List<Vector2>();
 		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/softness) {
 			float sin = Mathf.Sin(n);
@@ -366,7 +366,7 @@ public class MapGenerator : MonoBehaviour {
 				points.Add(v);
 			}
 		}
-		pos.meshGen.createMesh(points.ToArray());
+		pos.meshGen.createMesh(points.ToArray(), pos.position, print);
 	}
 	bool done = false;
 	public void setVisibilityLine(Vector2 from, Vector2 to, bool[,] visibilities) {
@@ -2081,6 +2081,8 @@ public class MapGenerator : MonoBehaviour {
 			GameGUI.selectActionAt(8);
 		}
 		if (Input.GetKeyDown(KeyCode.Alpha0)) {
+			Debug.Log("Alpha0");
+			setOverlay(getCurrentUnit(), true);
 			GameGUI.selectActionAt(9);
 		}
 		if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) {
