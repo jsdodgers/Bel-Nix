@@ -12,6 +12,7 @@ public class MapGenerator : MonoBehaviour {
 	Vector3 cameraPos;
 	public GameObject overlayMeshPrefab;
 	public GameObject[] overlayImage;
+	public float smoothness = 360.0f;
 	public bool doOverlay = false;
 	public bool withLineOfSight = true;
 	public bool testAnimations = false;
@@ -352,9 +353,8 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 	public void setOverlay(MeshPos pos, bool print = false) {
-		float softness = 1440.0f;
 		List<Vector2> points = new List<Vector2>();
-		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/softness) {
+		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/smoothness) {
 			float sin = Mathf.Sin(n);
 			float cos = Mathf.Cos(n);
 			float y = pos.position.y + sin * viewRadius;
