@@ -1933,7 +1933,7 @@ public class Unit : MonoBehaviour {
 		}
 		//					p.rotating = true;
 		if (mapGenerator.getCurrentUnit()==this)
-			mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+			mapGenerator.moveCameraToSelected(false, 90.0f);//.moveCameraToPosition(transform.position, false, 90.0f);
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
@@ -2216,17 +2216,10 @@ public class Unit : MonoBehaviour {
 							BattleGUI.writeToConsole(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
 							shouldCancelMovement = true;
 							int landedIndex = lastPath.IndexOf(currentPath[0]);
-							string s = "CurrentPath: ";
-							foreach (Vector2 v in currentPath) s += v + "  ";
-							s += "\nLastPath: ";
-							foreach (Vector2 v in lastPath) s += v + "  ";
-							s += "\nCurrentZero: " + currentPath[0];
-							s += "\nIndex: " + landedIndex + "  " + lastPath[landedIndex];
-							Debug.Log(s);
 							for (int n = landedIndex;n >= 0; n--) {
 								Vector2 v = lastPath[n];
 								Tile newTile = mapGenerator.tiles[(int)v.x,(int)v.y];
-								if (newTile.canStand()) {
+								if (newTile.canStand() || newTile.getCharacter() == this) {
 									setNewTilePosition(new Vector3(v.x,-v.y,0.0f));
 									position = new Vector3(v.x, -v.y, 0.0f);
 									transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, transform.localPosition.z);
