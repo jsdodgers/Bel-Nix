@@ -47,7 +47,8 @@ public class Unit : MonoBehaviour {
 	public int attackRange = 1;
 	public int viewDist = 11;
 	public int maxMoveDist = 5;
-	public ArrayList currentPath = new ArrayList();
+	public List<Vector2> currentPath = new List<Vector2>();
+	public List<Vector2> lastPath;
 	public int currentMaxPath = 0;
 	public bool beingAttacked = false;
 	public bool wasBeingAttacked = false;
@@ -753,7 +754,7 @@ public class Unit : MonoBehaviour {
 	public void resetPath() {
 //		Debug.Log("reset path");
 		currentMaxPath = 0;
-		currentPath = new ArrayList();
+		currentPath = new List<Vector2>();
 		currentPath.Add(new Vector2(position.x, -position.y));
 	}
 	
@@ -767,10 +768,10 @@ public class Unit : MonoBehaviour {
 		currentMaxPath = currentPath.Count - 1;
 	}
 	
-	public ArrayList addPathTo(Vector2 pos) {
+	public List<Vector2> addPathTo(Vector2 pos) {
 		int diff;
 		//	if (currentPath.Count > 0) {
-		Vector2 lastObj = (Vector2)currentPath[currentPath.Count-1];
+		Vector2 lastObj = currentPath[currentPath.Count-1];
 		diff = (int)(Mathf.Abs(lastObj.x - pos.x) + Mathf.Abs(lastObj.y - pos.y));
 		//	}
 		//	else {
@@ -788,7 +789,7 @@ public class Unit : MonoBehaviour {
 		//				currentPath.Add(v);
 		//			}
 //		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
-		currentPath = calculatePathSubtractive((ArrayList)currentPath.Clone(), pos, currentMoveDist - currentMaxPath);
+		currentPath = calculatePathSubtractive(new List<Vector2>(currentPath), pos, currentMoveDist - currentMaxPath);
 		setPathCount();
 		//		}
 		return currentPath;
@@ -804,7 +805,7 @@ public class Unit : MonoBehaviour {
 		return mapGenerator.passibility(dir, (int)pos.x, (int)pos.y);
 	}
 
-	ArrayList calculatePath(ArrayList currentPathFake, Vector2 posFrom,Vector2 posTo, ArrayList curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None, int minorsUsed = 0) {
+	List<Vector2> calculatePath(List<Vector2> currentPathFake, Vector2 posFrom,Vector2 posTo, List<Vector2> curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None, int minorsUsed = 0) {
 		//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
 		if (minorsUsed > minorsLeft) return curr;
 		if (!first) {
@@ -817,22 +818,22 @@ public class Unit : MonoBehaviour {
 		if (maxDist <= 0) return curr;
 		ArrayList a = new ArrayList();
 		if (canPass(Direction.Left, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Left, minorsUsed + (passibility(Direction.Left, posFrom)>1?1:0)));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x - 1, posFrom.y), posTo, new List<Vector2>(curr), maxDist-1, false, num+1, Direction.Left, minorsUsed + (passibility(Direction.Left, posFrom)>1?1:0)));
 		if (canPass(Direction.Right, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Right, minorsUsed + (passibility(Direction.Right, posFrom)>1?1:0)));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x + 1, posFrom.y), posTo, new List<Vector2>(curr), maxDist-1, false, num+1, Direction.Right, minorsUsed + (passibility(Direction.Right, posFrom)>1?1:0)));
 		if (canPass(Direction.Up, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Up, minorsUsed + (passibility(Direction.Up, posFrom)>1?1:0)));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y - 1), posTo, new List<Vector2>(curr), maxDist-1, false, num+1, Direction.Up, minorsUsed + (passibility(Direction.Up, posFrom)>1?1:0)));
 		if (canPass(Direction.Down, posFrom, dirFrom))
-			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, (ArrayList)curr.Clone(), maxDist-1, false, num+1, Direction.Down, minorsUsed + (passibility(Direction.Down, posFrom)>1?1:0)));
+			a.Add(calculatePath(currentPathFake, new Vector2(posFrom.x, posFrom.y + 1), posTo, new List<Vector2>(curr), maxDist-1, false, num+1, Direction.Down, minorsUsed + (passibility(Direction.Down, posFrom)>1?1:0)));
 		int dist = maxDist + 10000;
 		int minLength = maxDist + 10000;
-		ArrayList minArray = curr;//new ArrayList();
+		List<Vector2> minArray = curr;//new ArrayList();
 		//		Debug.Log("dist: " + dist);
-		foreach (ArrayList b in a) {
+		foreach (List<Vector2> b in a) {
 			//			Debug.Log("From: " + posFrom + " To: " + posTo + " maxDist: " + maxDist + " num: " + num + " count: " + b.Count + " currCount: " + curr.Count);
 			//			if (num == 1) Debug.Log("First: " + b.Count + "  " + maxDist);
 			if (b.Count == 0) continue;
-			Vector2 last = (Vector2)b[b.Count-1];
+			Vector2 last = b[b.Count-1];
 			int d = (int)(Mathf.Abs(last.x - posTo.x) + Mathf.Abs(last.y - posTo.y));
 			//			if (num == 1) Debug.Log("First Two: " + d);
 			if (d < dist || (d == dist && b.Count < minLength)) {// && b.Count > 1)) {
@@ -846,13 +847,13 @@ public class Unit : MonoBehaviour {
 		return minArray;
 	}
 	
-	ArrayList calculatePathSubtractive(ArrayList currList, Vector2 posTo, int maxDist) {
+	List<Vector2> calculatePathSubtractive(List<Vector2> currList, Vector2 posTo, int maxDist) {
 
 		int closestDist = maxDist + 10000;
 		int minLength = maxDist + 10000;
 
-		ArrayList closestArray = (ArrayList)currList.Clone();
-		Vector2 las = (Vector2)currList[currList.Count-1];
+		List<Vector2> closestArray = new List<Vector2>(currList);
+		Vector2 las = currList[currList.Count-1];
 		int dis = (int)(Mathf.Abs(las.x - posTo.x) + Mathf.Abs(las.y - posTo.y));
 		closestDist = dis;
 		minLength = currList.Count;
@@ -862,15 +863,15 @@ public class Unit : MonoBehaviour {
 			//		Debug.Log("currList: " + currList.Count);
 			Vector2 last1;
 			if (currList.Count > 0) {
-				last1 = (Vector2)currList[currList.Count-1];
+				last1 = currList[currList.Count-1];
 			}
 			else {
 				last1 = new Vector2(position.x, position.y);
 			}
 			Direction dir = Direction.None;
 			if (currList.Count > 1) {
-				Vector2 curr = (Vector2)currList[currList.Count-1];
-				Vector2 last = (Vector2)currList[currList.Count-2];
+				Vector2 curr = currList[currList.Count-1];
+				Vector2 last = currList[currList.Count-2];
 				if (curr.x < last.x) dir = Direction.Left;
 				else if (curr.x > last.x) dir = Direction.Right;
 				else if (curr.y < last.y) dir = Direction.Up;
@@ -878,13 +879,13 @@ public class Unit : MonoBehaviour {
 			}
 			int minorsUsed = 0;
 			for (int n=1;n<currList.Count;n++) {
-				Tile t1 = mapGenerator.tiles[(int)((Vector2)currList[n-1]).x,(int)((Vector2)currList[n-1]).y];
-				Direction dir1 = Tile.directionBetweenTiles((Vector2)currList[n-1],(Vector2)currList[n]);
-				if (passibility(dir1,(Vector2)currList[n-1])>1) minorsUsed++;
+				Tile t1 = mapGenerator.tiles[(int)(currList[n-1]).x,(int)(currList[n-1]).y];
+				Direction dir1 = Tile.directionBetweenTiles(currList[n-1],currList[n]);
+				if (passibility(dir1,currList[n-1])>1) minorsUsed++;
 			}
 			nnn++;
-			ArrayList added = calculatePath(currList, last1, posTo, new ArrayList(), maxDist, true, 0, dir, minorsUsed);
-			ArrayList withAdded = new ArrayList();
+			List<Vector2> added = calculatePath(currList, last1, posTo, new List<Vector2>(), maxDist, true, 0, dir, minorsUsed);
+			List<Vector2> withAdded = new List<Vector2>();
 			foreach (Vector2 v in currList) {
 				withAdded.Add(v);
 			}
@@ -892,7 +893,7 @@ public class Unit : MonoBehaviour {
 				withAdded.Add(v);
 			}
 			if (withAdded.Count != 0) {
-				Vector2 last = (Vector2)withAdded[withAdded.Count-1];
+				Vector2 last = withAdded[withAdded.Count-1];
 				int d = (int)(Mathf.Abs(last.x - posTo.x) + Mathf.Abs(last.y - posTo.y));
 				if (d == 0) return withAdded;
 				if (d < closestDist) {// || (d == closestDist && withAdded.Count < minLength)) {
@@ -910,7 +911,7 @@ public class Unit : MonoBehaviour {
 		return closestArray;
 	}
 	
-	public static bool exists(ArrayList a, Vector2 v) {
+	public static bool exists(List<Vector2> a, Vector2 v) {
 		if (a == null) return false;
 		foreach (Vector2 v2 in a) {
 			if (vectorsEqual(v2, v)) return true;
@@ -922,14 +923,14 @@ public class Unit : MonoBehaviour {
 		return Mathf.Abs(one.x - two.x) < 0.01 && Mathf.Abs(one.y - two.y) < 0.01;
 	}
 	
-	public ArrayList removeFromPathTo(Vector2 pos) {
+	public List<Vector2> removeFromPathTo(Vector2 pos) {
 		for (int n = currentPath.Count-1; n>=0; n--) {
 			if (currentPath[n].Equals(pos)) {
 				break;
 			}
-			Vector2 curr = (Vector2)currentPath[n];
+			Vector2 curr = currentPath[n];
 			if (n > 0) {
-				Vector2 curr1 = (Vector2)currentPath[n-1];
+				Vector2 curr1 = currentPath[n-1];
 				currentMaxPath -= (int)(Mathf.Abs(curr.x - curr1.x) + Mathf.Abs(curr.y - curr1.y));
 			}
 			currentPath.RemoveAt(n);
@@ -1062,7 +1063,7 @@ public class Unit : MonoBehaviour {
 						if (d>5) break;
 					}
 					for (int n=currentPath.Count-1;n>=1;n--) {
-						Vector2 v = (Vector2)currentPath[n];
+						Vector2 v = currentPath[n];
 						if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
 							currentPath.RemoveAt(n);
 							setPathCount();
@@ -1155,7 +1156,7 @@ public class Unit : MonoBehaviour {
 					}
 				}
 				for (int n=currentPath.Count-1;n>=1;n--) {
-					Vector2 v = (Vector2)currentPath[n];
+					Vector2 v = currentPath[n];
 					if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
 						currentPath.RemoveAt(n);
 						setPathCount();
@@ -1240,7 +1241,7 @@ public class Unit : MonoBehaviour {
 					if (d>5) break;
 				}
 				for (int n=currentPath.Count-1;n>=1;n--) {
-					Vector2 v = (Vector2)currentPath[n];
+					Vector2 v = currentPath[n];
 					if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
 						currentPath.RemoveAt(n);
 						setPathCount();
@@ -1699,7 +1700,7 @@ public class Unit : MonoBehaviour {
 	
 	
 	public void setRotatingPath() {
-		setRotationFrom((Vector2)currentPath[0],(Vector2)currentPath[1]);
+		setRotationFrom(currentPath[0],currentPath[1]);
 	}
 	
 	public void setRotationToAttackEnemy() {
@@ -1936,8 +1937,8 @@ public class Unit : MonoBehaviour {
 		setRotatingPath();
 		shouldMove = 0;
 		if (!backStepping) {
-			Vector2 from = (Vector2)currentPath[0];
-			Vector2 to = (Vector2)currentPath[1];
+			Vector2 from = currentPath[0];
+			Vector2 to = currentPath[1];
 			shouldMove = attackOfOpp(from, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)from.x,(int)from.y], mapGenerator.tiles[(int)to.x,(int)to.y]));
 		}
 		startMovingActually();
@@ -1945,20 +1946,21 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void startMovingActually() {
+		lastPath = new List<Vector2>(currentPath);
 		moving = true;
 		removeTrail();
 	}
 
 	void moveBy(float moveDist, bool attopp) {
-		Vector2 one = (Vector2)currentPath[1];
-		Vector2 zero = (Vector2)currentPath[0];
+		Vector2 one = currentPath[1];
+		Vector2 zero = currentPath[0];
 		zero = new Vector2(transform.localPosition.x - 0.5f, -transform.localPosition.y - 0.5f);
 		float directionX = sign(one.x - zero.x);
 		float directionY = -sign(one.y - zero.y);
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
 		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
-			Vector2 two = (Vector2)currentPath[2];
+			Vector2 two = currentPath[2];
 			attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
 			doAttOpp = false;
 		}
@@ -1983,7 +1985,7 @@ public class Unit : MonoBehaviour {
 			doAttOpp = true;
 			mapGenerator.activateEnemies();
 			if (team == 0) mapGenerator.setOverlay(this);
-			if (currentPath.Count >= 2) {
+			if (currentPath.Count >= 2 && !isProne()) {
 				setRotatingPath();
 				//		attacking = true;
 			}
@@ -1994,7 +1996,7 @@ public class Unit : MonoBehaviour {
 					//					setRotationFrom(position, attackEnemy.position)
 					setRotationToAttackEnemy();
 				}
-				if (team == 0) needsOverlay = true;
+			//	if (team == 0) needsOverlay = true;
 			//	if (team == 0) mapGenerator.setOverlay();
 
 			}
@@ -2198,8 +2200,8 @@ public class Unit : MonoBehaviour {
 		//	}
 			if (shouldDoAthleticsCheck) {
 				if (currentPath.Count >= 2) {
-					Vector2 from = (Vector2)currentPath[0];
-					Vector2 to = (Vector2)currentPath[1];
+					Vector2 from = currentPath[0];
+					Vector2 to = currentPath[1];
 					Direction dir = Tile.directionBetweenTiles(from,to);
 					Tile t = mapGenerator.tiles[(int)from.x,(int)from.y];
 					int passability = t.passabilityInDirection(dir);
@@ -2213,6 +2215,19 @@ public class Unit : MonoBehaviour {
 						else {
 							BattleGUI.writeToConsole(getName() + " failed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ") and became prone.");
 							shouldCancelMovement = true;
+							int landedIndex = lastPath.IndexOf(currentPath[0]);
+							for (int n = landedIndex;n >= 0; n--) {
+								Vector2 v = lastPath[n];
+								Tile newTile = mapGenerator.tiles[(int)v.x,(int)v.y];
+								if (newTile.canStand()) {
+									setNewTilePosition(new Vector3(v.x,-v.y,0.0f));
+									position = new Vector3(v.x, -v.y, 0.0f);
+									transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, transform.localPosition.z);
+									mapGenerator.setCurrentUnitTile();
+									mapGenerator.activateEnemies();
+									if (team == 0) mapGenerator.setOverlay(this);
+								}
+							}
 							becomeProne();
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
@@ -2240,7 +2255,8 @@ public class Unit : MonoBehaviour {
 				moving = false;
 				shouldCancelMovement = false;
 				addTrail();
-				currentPath = new ArrayList();
+				currentPath = new List<Vector2>();
+				lastPath = new List<Vector2>();
 				currentPath.Add(new Vector2(position.x, -position.y));
 				if (GameGUI.selectedMovement) {
 					if (currentMoveDist == 0) useMovement();

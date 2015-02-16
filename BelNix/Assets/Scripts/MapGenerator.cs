@@ -104,7 +104,7 @@ public class MapGenerator : MonoBehaviour {
 	GameObject[,] gridArray;
 	public bool[,] canSee;
 	public Tile[,] tiles;
-	public ArrayList lastPlayerPath;
+	public List<Vector2> lastPlayerPath;
 	GameObject mouseOver;
 	Vector2 startSquare;
 	Vector2 lastPosDrag;
@@ -1387,7 +1387,7 @@ public class MapGenerator : MonoBehaviour {
 		//Debug.Log("newPos: " + newPos);
 		//Debug.Log("End");
 		selectedUnit = null;
-		lastPlayerPath = new ArrayList();
+		lastPlayerPath = new List<Vector2>();
 		selectedUnits = new List<Unit>();
 		for (int n=0;n<=actualHeight;n++) {
 			createLineRenderer(-0.025f, actualWidth + 0.025f, -n, -n);
@@ -1567,10 +1567,10 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
-	public void setPlayerPath(ArrayList path1) {
+	public void setPlayerPath(List<Vector2> path1) {
 		for (int n=1;n<path1.Count;n++) {
-			Vector2 v = (Vector2)path1[n];
-			Vector2 v0 = (Vector2)path1[n-1];
+			Vector2 v = path1[n];
+			Vector2 v0 = path1[n-1];
 
 
 			GameObject go;
@@ -1582,7 +1582,7 @@ public class MapGenerator : MonoBehaviour {
 				go.transform.eulerAngles = new Vector3(0.0f, 0.0f, (xDif==-1 ?90.0f : (xDif==1 ? 270.0f : (yDif == -1 ? 0.0f : 180.0f))));
 			}
 			else {
-				Vector2 v2 = (Vector2)path1[n+1];
+				Vector2 v2 = path1[n+1];
 				if (v2.x == v0.x || v2.y == v0.y) {
 					go = GameObject.Instantiate(arrowStraightPrefab) as GameObject;
 					go.renderer.sortingOrder = arrowOrder;
@@ -2265,7 +2265,7 @@ public class MapGenerator : MonoBehaviour {
 					resetPlayerPath();
 					lastPlayerPath = selectedUnit.currentPath;
 					setPlayerPath(lastPlayerPath);
-					Vector2 v = (Vector2)lastPlayerPath[lastPlayerPath.Count-1];
+					Vector2 v = lastPlayerPath[lastPlayerPath.Count-1];
 					currentKeysTile = tiles[(int)v.x,(int)v.y];
 					return;
 				}
@@ -3183,7 +3183,7 @@ public class MapGenerator : MonoBehaviour {
 		if (selectedUnit) {
 		//	resetAroundCharacter(selectedUnit);
 			resetPlayerPath();
-			lastPlayerPath = new ArrayList();
+			lastPlayerPath = new List<Vector2>();
 			selectedUnit.resetPath();
 			if (selectedUnit.attackEnemy != null) {
 				selectedUnit.attackEnemy.deselect();
