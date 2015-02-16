@@ -1794,7 +1794,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged;
+		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged && !isProne();
 	}
 
 	public int attackOfOpp(Vector2 one, Direction dir) {
