@@ -101,7 +101,7 @@ public class BattleGUI : MonoBehaviour {
     {
         //Some audiovisual setup
         //gameObject.GetComponent<Canvas>().enabled = false;
-        Invoke("cameraDebug", 0.01f);
+        //Invoke("cameraDebug", 0.01f);
 		if (PlayerPrefs.HasKey("globalVolume")) {
 			AudioListener.volume = PlayerPrefs.GetFloat("globalVolume");
 			masterVolumeSlider.value = PlayerPrefs.GetFloat("globalVolume");

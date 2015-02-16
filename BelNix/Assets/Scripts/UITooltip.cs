@@ -65,6 +65,7 @@ public class UITooltip : MonoBehaviour {
 
 		ttPanel.GetComponent<Canvas>().overrideSorting = true;
 		ttPanel.GetComponent<Canvas>().sortingOrder = 5;
+        ttPanel.GetComponent<Canvas>().overridePixelPerfect = true;
         ttPanel.GetComponent<Canvas>().pixelPerfect = true;
         ttPanel.GetComponent<Image>().sprite = Resources.Load<Sprite>("UI/tooltip_background");
         ttPanel.GetComponent<Image>().type = Image.Type.Sliced;
