@@ -2025,7 +2025,8 @@ public class GameGUI : MonoBehaviour {
 			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
 			break;
 		case MinorType.OneOfMany:
-			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			if (!mapGenerator.selectedUnit.hasOneOfManyHider())
+				BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
 			break;
 		case MinorType.Loot:
 			looting = true;

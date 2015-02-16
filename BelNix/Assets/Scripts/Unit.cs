@@ -26,6 +26,7 @@ public class Unit : MonoBehaviour {
 
 	public int temperedHandsUsesLeft = 2;
 	public bool escapeUsed = false;
+	public bool oneOfManyUsed = false;
 	public int invokeUsesLeft = 2;
 
 	public Vector3 position;
@@ -272,6 +273,13 @@ public class Unit : MonoBehaviour {
 		return viewRange;
 	}
 
+	public bool hasOneOfManyHider() {
+		foreach (Unit u in mapGenerator.players) {
+			if (hasLineOfSightToUnit(u, 3, true)) return true;
+		}
+		return false;
+	}
+
 	public bool hasLineOfSightToTile(Tile t, Unit u = null, float distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
 		if (distance == -1 && u != null) distance = getViewRadiusToUnit(u);
 		if (distance == -1) distance = getViewRadius();
@@ -357,6 +365,8 @@ public class Unit : MonoBehaviour {
 		switch (minor) {
 		case MinorType.TemperedHands:
 			return "Tempered Hands";
+		case MinorType.OneOfMany:
+			return "One Of Many";
 		default:
 			return minor.ToString();
 		}
@@ -419,6 +429,9 @@ public class Unit : MonoBehaviour {
 		case ClassFeature.Escape:
 			if (escapeUsed) return MinorType.None;
 			return MinorType.Escape;
+		case ClassFeature.One_Of_Many:
+			if (oneOfManyUsed) return MinorType.None;
+			return MinorType.OneOfMany;
 		case ClassFeature.Invoke:
 			if (invokeUsesLeft==0) return MinorType.None;
 			return MinorType.Invoke;
