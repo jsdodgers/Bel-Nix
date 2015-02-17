@@ -86,6 +86,16 @@ public class CCGUI : MonoBehaviour
 		setHairStyle(0);
 	}
 
+	public void setFirstName(Text firstName)
+	{
+		characterName = firstName.text;
+	}
+
+	public void setLastName(Text lastName)
+	{
+		characterLastName = lastName.text;
+	}
+
 	bool settingPrimary = true;
 	public void settingPrimaryColor() {settingPrimary = true;}
 	public void settingSecondaryColor() {settingPrimary = false;}
