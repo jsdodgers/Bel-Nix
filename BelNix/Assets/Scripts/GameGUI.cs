@@ -1957,7 +1957,11 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case MinorType.Mark:
 		case MinorType.Escape:
+			mapGenerator.resetRanges();
+			break;
 		case MinorType.Invoke:
+			if (mapGenerator.getCurrentUnit().primalControlUnit != null)
+				mapGenerator.getCurrentUnit().setPrimalControl(0);
 			mapGenerator.resetRanges();
 			break;
 		default:
@@ -1974,10 +1978,17 @@ public class GameGUI : MonoBehaviour {
 		selectedStandardType = StandardType.None;
 		switch (t) {
 		case StandardType.Attack:
-		case StandardType.Intimidate:
 		case StandardType.OverClock:
 		case StandardType.Throw:
 		case StandardType.InstillParanoia:
+			if (mapGenerator.selectedUnit.attackEnemy) {
+				mapGenerator.selectedUnit.attackEnemy.deselect();
+				mapGenerator.resetAttack();
+			}
+			break;
+		case StandardType.Intimidate:
+			if (mapGenerator.getCurrentUnit().primalControlUnit != null)
+				mapGenerator.getCurrentUnit().setPrimalControl(0);
 			if (mapGenerator.selectedUnit.attackEnemy) {
 				mapGenerator.selectedUnit.attackEnemy.deselect();
 				mapGenerator.resetAttack();

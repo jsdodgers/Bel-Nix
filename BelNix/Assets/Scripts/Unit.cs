@@ -74,6 +74,7 @@ public class Unit : MonoBehaviour {
 //	public bool usedMinor2;
 
 	public bool inPrimal = false;
+	public int primalControl = 0;
 	public Unit primalInstigator = null;
 	public int primalTurnsLeft = 0;
 
@@ -750,6 +751,7 @@ public class Unit : MonoBehaviour {
 
 	public void useMinor(bool changeAnyway = true, bool changeAtAll = true) {
 		minorsLeft--;
+		Debug.Log("Minors Used: " + minorsLeft);
 		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
 		if (!changeAtAll && minorsLeft > 0) return;
 		if (changeAnyway || minorsLeft <= 0)
@@ -1103,7 +1105,7 @@ public class Unit : MonoBehaviour {
 		//	float closestDist = closestEnemyDist();
 			Unit enemy = primalInstigator;
 			float enemyDist = distanceFromUnit(enemy);
-			if (enemy==null || enemy.isDead()) {
+			if (enemy==null || enemy.isDead() || primalControl == 1) {
 				enemy = closestUnit(true);
 				enemyDist = closestUnitDist(true);
 				Debug.Log(enemy.getName() + "  " + enemyDist);
@@ -1164,6 +1166,7 @@ public class Unit : MonoBehaviour {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0) {
 					inPrimal = false;
+					primalControl = 0;
 					primalInstigator = null;
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
@@ -1174,6 +1177,7 @@ public class Unit : MonoBehaviour {
 			primalTurnsLeft--;
 			if (primalTurnsLeft==0) {
 				inPrimal = false;
+				primalControl = 0;
 				primalInstigator = null;
 				characterSheet.characterSheet.combatScores.addComposure(1);
 			}
@@ -1184,6 +1188,7 @@ public class Unit : MonoBehaviour {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0) {
 					inPrimal = false;
+					primalControl = 0;
 					primalInstigator = null;
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
@@ -1197,29 +1202,34 @@ public class Unit : MonoBehaviour {
 				int moveLeft = 5;
 				bool first = true;
 				List<Direction> availableDirections = new List<Direction>();
+				if (position.x < 0 || position.y > 0 || position.x >= mapGenerator.actualWidth || -position.y >= mapGenerator.actualHeight) {
+					usedMovement = true;
+					return;
+				}
 				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
 				Direction lastDirection = Direction.None;
 				while (moveLeft > 0 && (availableDirections.Count > 0 || first)) {
 					if (first) first = false;
 					else {
 						Direction nextDirection = availableDirections[Random.Range(0,availableDirections.Count)];
-						while (moveLeft > 0 && t.canPass(nextDirection, this, lastDirection)) {
+						while (moveLeft > 0 && t != null && t.canPass(nextDirection, this, lastDirection)) {
 							t = t.getTile(nextDirection);
 							moveLeft--;
 							currentPath.Add(new Vector2(t.x,t.y));
 							lastDirection = nextDirection;
 						}
 					}
-					if (t.x <= primalInstigator.position.x && t.canPass(Direction.Left, this, lastDirection)) {
+					availableDirections = new List<Direction>();
+					if ((primalControl == 3 || (primalControl == 0 && t.x <= primalInstigator.position.x)) && t != null && t.canPass(Direction.Left, this, lastDirection)) {
 						availableDirections.Add(Direction.Left);
 					}
-					if (t.x >= primalInstigator.position.x && t.canPass(Direction.Right, this, lastDirection)) {
+					if ((primalControl == 4 || (primalControl == 0 && t.x >= primalInstigator.position.x)) && t != null && t.canPass(Direction.Right, this, lastDirection)) {
 						availableDirections.Add(Direction.Right);
 					}
-					if (t.y <= -primalInstigator.position.y && t.canPass(Direction.Up, this, lastDirection)) {
+					if ((primalControl == 1 || (primalControl == 0 && t.y <= -primalInstigator.position.y)) && t != null && t.canPass(Direction.Up, this, lastDirection)) {
 						availableDirections.Add(Direction.Up);
 					}
-					if (t.y >= -primalInstigator.position.y && t.canPass(Direction.Down, this, lastDirection)) {
+					if ((primalControl == 2 || (primalControl == 0 && t.y >= -primalInstigator.position.y)) && t != null && t.canPass(Direction.Down, this, lastDirection)) {
 						availableDirections.Add(Direction.Down);
 					}
 				}
@@ -1242,6 +1252,7 @@ public class Unit : MonoBehaviour {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0) {
 					inPrimal = false;
+					primalControl = 0;
 					primalInstigator = null;
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
@@ -2537,24 +2548,12 @@ public class Unit : MonoBehaviour {
 			invokeAnimation();
 			invokeAnimating = true;
 			invoking = false;
-			useMovementIfStarted();
-			useMinor(false);
-			//			minorsLeft--;
-			invokeUsesLeft--;
-			if (invokeUsesLeft == 0) {
-				BattleGUI.resetMinorButtons();
-				chooseNextBestActionType();
-			}
-			
+
 		}
 	}
 	
 	void invokeAnimation() {
 		dealInvokeDamage();
-		if (attackEnemy != null) {
-			if (attackEnemy.isTarget) attackEnemy.deselect();
-			attackEnemy = null;
-		}
 	}
 
 	public bool intimidateAnimating = false;
@@ -2564,21 +2563,17 @@ public class Unit : MonoBehaviour {
 			intimidateAnimation();
 			intimidateAnimating = true;
 			intimidating = false;
-			useStandard();
-			useMovementIfStarted();
 		}
 	}
 
 	void intimidateAnimation() {
 		dealIntimidationDamage();
-		mapGenerator.resetAttack(this);
-		if (this == mapGenerator.getCurrentUnit())
-			mapGenerator.resetRanges();
 	}
 
 	public virtual RaceName getRaceName() {
 		return characterSheet.characterSheet.personalInformation.getCharacterRace().raceName;
 	}
+
 
 	public virtual bool hasUncannyKnowledge() {
 		return characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge);
@@ -2605,7 +2600,13 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.skillScores.getScore(skill);
 	}
 
-
+	void resetIntimidate() {
+		useStandard();
+		useMovementIfStarted();
+		mapGenerator.resetAttack(this);
+		if (this == mapGenerator.getCurrentUnit())
+			mapGenerator.resetRanges();
+	}
 	void dealIntimidationDamage() {
 		if (attackEnemy != null) {
 			int sturdy = rollForSkill(Skill.Melee, attackEnemyIsFavoredRace(), 20);
@@ -2615,12 +2616,33 @@ public class Unit : MonoBehaviour {
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
-				attackEnemy.damageComposure(wapoon, this);
+				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control)) {
+					primalControlUnit = attackEnemy;
+					intimidated = true;
+					invoked = false;
+					BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+				}
+				else {
+					resetIntimidate();
+				}
 				attackEnemy.setRotationToCharacter(this);
 			}
 		}
 	}
-
+	void resetInvoke() {
+		//	useMovementIfStarted();
+		useMinor(false);
+		//			minorsLeft--;
+		invokeUsesLeft--;
+		if (invokeUsesLeft == 0 && minorsLeft > 0) {
+			BattleGUI.resetMinorButtons();
+			chooseNextBestActionType();
+		}
+		if (attackEnemy != null) {
+			if (attackEnemy.isTarget) attackEnemy.deselect();
+			attackEnemy = null;
+		}
+	}
 	void dealInvokeDamage() {
 		if (attackEnemy != null) {
 			int political = rollForSkill(Skill.Political, attackEnemyIsFavoredRace(), 20);
@@ -2630,9 +2652,17 @@ public class Unit : MonoBehaviour {
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
-				attackEnemy.damageComposure(wapoon, this);
 				attackEnemy.setRotationToCharacter(this);
-			}
+				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control)) {
+					primalControlUnit = attackEnemy;
+					invoked = true;
+					intimidated = false;
+					BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+				}
+				else {
+					resetInvoke();
+				}
+			}	
 		}
 	}
 
@@ -2640,18 +2670,37 @@ public class Unit : MonoBehaviour {
 	public void instillParanoia(Unit u) {
 		u.paranoidOfUnits.Add(this);
 	}
-	
 
-	public void damageComposure(int damage, Unit u) {
+	public Unit primalControlUnit = null;
+	public bool invoked;
+	public bool intimidated;
+	public void setPrimalControl(int num) {
+		primalControlUnit.primalControl = num;
+		BattleGUI.setPrimalControlWindowShown(primalControlUnit, false);
+		primalControlUnit = null;
+		if (intimidated)
+			resetIntimidate();
+		else if (invoked)
+			resetInvoke();
+		intimidated = false;
+		invoked = false;
+
+
+	}
+
+	public bool damageComposure(int damage, Unit u) {
 		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState()) {
 			crushingHitSFX();
 			characterSheet.combatScores.loseComposure(damage);
 			if (characterSheet.characterSheet.combatScores.isInPrimalState()) {
 				inPrimal = true;
+				primalControl = 0;
 				primalInstigator = u;
 				primalTurnsLeft = u.characterSheet.characterSheet.combatScores.getDominion() + 1;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	void doAttack() {

@@ -17,6 +17,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private EventSystem eventSystem;
     // Let's grab some UI Elements from the editor
 	[SerializeField] private GameObject[] CIPanels = new GameObject[3];
+	[SerializeField] private GameObject[] primalControlWindows = new GameObject[3];
 	[SerializeField] private GameObject loadGameCanvas;
 	[SerializeField] private GameObject pauseMenuCanvas;
 	[SerializeField] private GameObject saveGameCanvas;
@@ -528,6 +529,34 @@ public class BattleGUI : MonoBehaviour {
 		//	battleGUI.eventSystem.SetSelectedGameObject(battleGUI.minorButtons[type].transform.GetChild(0).gameObject);
 		battleGUI.minorButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
+
+	public static void setPrimalControlWindowShown(Unit u, bool shown) {
+		switch (u.getRaceName()) {
+		case RaceName.Berrind:
+			battleGUI.setPrimalControlWindowShown(0, shown);
+			break;
+		case RaceName.Ashpian:
+			battleGUI.setPrimalControlWindowShown(1, shown);
+			break;
+		case RaceName.Rorrul:
+			battleGUI.setPrimalControlWindowShown(2, shown);
+			break;
+		default:
+			break;
+		}
+	}
+
+	public void hidePrimalControlWindow(int i) {
+		setPrimalControlWindowShown(i, false);
+	}
+	public void setPrimalControlWindowShown(int i, bool shown) {
+		primalControlWindows[i].SetActive(shown);
+	}
+
+	public void selectPrimalControl(int i) {
+		mapGenerator.getCurrentUnit().setPrimalControl(i);
+	}
+
 
 	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown) {
 		battleGUI.confirmButtons[(int)confirmButton].SetActive(shown);
