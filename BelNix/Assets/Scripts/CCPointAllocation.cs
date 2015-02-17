@@ -16,6 +16,8 @@ public class CCPointAllocation : MonoBehaviour {
 	int well_versed = 1;
 	int totalPoints = 8;
 
+	public int[] getScores() {return new int[4] {sturdy, perception, technique, well_versed};}
+
 	int athletics = 0;
 	int melee = 0;
 	int ranged = 0;
@@ -25,6 +27,8 @@ public class CCPointAllocation : MonoBehaviour {
 	int historical = 0;
 	int political = 0;
 	int totalSkillPoints = 2;
+
+	public int[] getSkills() {return new int[8] {athletics, melee, ranged, stealth, mechanical, medicinal, historical, political};}
 
 	// Use this for initialization
 	void Start () {
@@ -104,7 +108,7 @@ public class CCPointAllocation : MonoBehaviour {
 		return (int) Mathf.Floor(abilityScore/2);
 	}
 
-	int calculateHealth()
+	public int calculateHealth()
 	{
 		int health = 0;
 
@@ -122,7 +126,7 @@ public class CCPointAllocation : MonoBehaviour {
 		return health;
 	}
 
-	int calculateComposure()
+	public int calculateComposure()
 	{
 		int composure = 0;
 
