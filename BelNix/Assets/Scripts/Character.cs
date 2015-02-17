@@ -248,10 +248,12 @@ public class Character
 
 	
 	public void deleteCharacter() {
+		if (characterId == null) return;
 		Saves.deleteCharacter(characterId);
 	}
 	
 	public void saveCharacter() {
+		if (characterId == null) return;
 		Saves.saveCharacter(characterId, getCharacterString());
 	}
 	
