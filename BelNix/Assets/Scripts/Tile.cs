@@ -255,7 +255,7 @@ public class Tile {
 		}
 	}
 	public static Direction[] directions = new Direction[]{Direction.Down,Direction.Left,Direction.Right,Direction.Up};
-
+	/*
 	public bool shouldTakeAttOppLeaving(Unit u) {
 		foreach (Direction dir in directions) {
 			Tile t = getTile(dir);
@@ -263,7 +263,7 @@ public class Tile {
 		}
 		return false;
 	}
-
+*/
 	public bool canPass(Direction direction, Unit cs, Direction previousDirection) {
 	//	Debug.Log("Can Turn: " + canTurn);
 		switch (direction) {
