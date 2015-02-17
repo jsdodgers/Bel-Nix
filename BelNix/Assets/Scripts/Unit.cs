@@ -565,23 +565,26 @@ public class Unit : MonoBehaviour {
 	
 	public void chooseNextBestActionType() {
 		float closest = closestEnemyDist();
-		if (!usedStandard && closest <= getAttackRange()) {
+		if (!usedStandard && closest <= getAttackRange() && !isProne()) {
 			GameGUI.selectStandardType(StandardType.Attack);
 		}
-		else if (!usedMovement && closest > 1.1f) {
+		else if (!usedMovement && closest > 1.1f && !isProne()) {
 			GameGUI.selectMovementType(MovementType.Move);
 		}
-		else if (!usedMovement && moveDistLeft == maxMoveDist && closest <= 1.1f) {
+		else if (!usedMovement && moveDistLeft == maxMoveDist && closest <= 1.1f && !isProne()) {
 			GameGUI.selectMovementType(MovementType.BackStep);
 		}
 		else if (minorsLeft > 0) {
 			GameGUI.selectMinorType(MinorType.Stealth);
 		}
-		else if (!usedMovement) {
+		else if (!usedMovement && !isProne()) {
 			GameGUI.selectMovementType(MovementType.Move);
 		}
-		else if (!usedStandard) {
+		else if (!usedStandard && !isProne()) {
 			GameGUI.selectStandardType(StandardType.Attack);
+		}
+		else if (!usedMovement) {
+			GameGUI.selectMovementType(MovementType.Recover);
 		}
 		else {
 			mapGenerator.nextPlayer();
@@ -1936,6 +1939,9 @@ public class Unit : MonoBehaviour {
 		}
 		//	affliction ^= Affliction.Prone;
 		//	affliction = Affliction.None;
+		if (!usedStandard) {
+			BattleGUI.showStandardButtons();
+		}
 		useMovement();
 	}
 	
@@ -2505,6 +2511,7 @@ public class Unit : MonoBehaviour {
 			afflictions.Add(Affliction.Prone);
 			proneAnimation(true);
 		}
+		if (!usedStandard) BattleGUI.hideStandardArm(true);
 	}
 	
 	void doGetThrown() {

@@ -903,7 +903,8 @@ public class BattleGUI : MonoBehaviour {
 	//	hideStandardArm(false);
 	//	hideMovementArm(false);
 		showMovementButtons();
-		showStandardButtons();
+		if (!unit.isProne())
+			showStandardButtons();
 		showMinorButtons();
 		unit.chooseNextBestActionType();
     }
