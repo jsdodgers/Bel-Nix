@@ -831,6 +831,8 @@ public class MapGenerator : MonoBehaviour {
 			p.rollInitiative();
 			priorityOrder.Add(p);
 			p.renderer.sortingOrder = playerNormalOrder;
+			player.GetComponent<SpriteRenderer>().color = p.characterSheet.characterSheet.characterColors.characterColor;
+			p.addHair();
 			p.setAllSpritesToRenderingOrder(playerArmorOrder);
 			//		e.deselect();
 			bbb++;
