@@ -1294,7 +1294,7 @@ public class Unit : MonoBehaviour {
 					if (tur != null && isEnemyOf(tur)) {
 						units.Add(tur);
 					}
-				}
+				} 
 				aiMap.setGoalsAndHeuristics(units);
 				AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
 				AStarNode node = ret.finalNode;
