@@ -1234,7 +1234,7 @@ public class GameGUI : MonoBehaviour {
 				}
 			}
 			if (GUI.Button(beginButtonRect(), "Engage", getBeginButtonStyle())) {
-				if (mapGenerator.playerTransform.childCount!=0) {
+				if (mapGenerator.playerTransform.childCount > 3) {
 					mapGenerator.enterPriority();
 					foreach (Unit u in mapGenerator.priorityOrder) {
 						u.setRotationToMostInterestingTile();
