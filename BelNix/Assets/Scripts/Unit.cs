@@ -1280,8 +1280,8 @@ public class Unit : MonoBehaviour {
 			return;
 		}
 		if (Time.time - actionTime < actionDelay) return;
-		float closestDist = closestEnemyDist(false);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
-		Unit enemy = closestEnemy(false);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
+		float closestDist = closestEnemyDist(false, VisibilityMode.None);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
+		Unit enemy = closestEnemy(false, VisibilityMode.None);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
 		if (!usedMovement) {
 			if (isProne()) {
 				recover();
