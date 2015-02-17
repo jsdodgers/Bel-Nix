@@ -14,6 +14,11 @@ public class CCGUI : MonoBehaviour
 	private Dictionary<string, GameObject> passport;
 	[SerializeField] private GameObject[] skinColorList;
 
+	[SerializeField] private Transform hairTransform;
+
+	string characterName;
+	string characterLastName;
+
 	Color primaryColor;
 	Color secondaryColor;
 	Color berrindColor;
@@ -27,6 +32,7 @@ public class CCGUI : MonoBehaviour
 	SpriteRenderer hairSprite;
 	GameObject hairGameObject;
 	GUIStyle[] hairTextures;
+	int hairStyle = 0;
 
 	static Color createColor(float r, float g, float b) {
 		return new Color(r, g, b);
@@ -77,6 +83,7 @@ public class CCGUI : MonoBehaviour
 		shirtSprite.color = primaryColor;
 		pantsSprite.color = secondaryColor;
 		shoesSprite.color = secondaryColor;
+		setHairStyle(0);
 	}
 
 	bool settingPrimary = true;
@@ -88,7 +95,31 @@ public class CCGUI : MonoBehaviour
 		hairColor = createColor(newHairColor.GetComponent<Image>().color.r,
 		                        newHairColor.GetComponent<Image>().color.g,
 		                        newHairColor.GetComponent<Image>().color.b);
+		hairGameObject.GetComponent<SpriteRenderer>().color = hairColor;
+		for(int i = 0; i < hairTransform.childCount; i++)
+		{
+			hairTransform.GetChild(i).GetComponent<Image>().color = hairColor;
+		}
+	}
 
+	public void setHairType(int newHairStyle)
+	{
+		hairStyle = newHairStyle;
+		setHairStyle(newHairStyle);
+	}
+
+	void setHairStyle(int newHairStyle) {
+		if (hairGameObject != null) {
+			GameObject.Destroy(hairGameObject);
+		}
+		hairGameObject = Instantiate(Resources.Load<GameObject>("Units/Hair/" + PersonalInformation.hairTypes[newHairStyle])) as GameObject;
+		hairGameObject.transform.parent = characterSprite.transform;
+		hairGameObject.transform.localPosition = new Vector3(0, 0, 0);
+		hairGameObject.transform.localEulerAngles = new Vector3(0, 0, 0);
+		hairGameObject.transform.localScale = new Vector3(1, 1, 1);
+		hairSprite = hairGameObject.GetComponent<SpriteRenderer>();
+		hairSprite.sortingOrder = 10;
+		hairSprite.color = hairColor;
 	}
 
 	public void setBerrindSkinColor(GameObject newSkinColor)
@@ -344,9 +375,138 @@ public class CCGUI : MonoBehaviour
 		Application.LoadLevel(PlayerPrefs.GetInt("playercreatefrom"));
 	}
 
+	const string delimiter = ";";
+	bool saving = false;
 	public void finishCharacterCreation()
 	{
+		if (saving) return;
+		saving = true;
+		Color raceColor = Color.white;
+		string characterStr = "";
+		//Character first and last name
+		characterStr += characterName + delimiter;
+		characterStr += characterLastName + delimiter;
+		//Character Sex: 0 = Male, 1 = Female
+		if(character.sex == CharacterSex.Male)
+		{
+			characterStr += "0" + delimiter;
+		}
+		else
+		{
+			characterStr += "1" + delimiter;
+		}
+		//Character Race: 0 = Berrind, 1 = Ashpian, 2 = Rorrul
+		switch(character.race.raceName)
+		{
+		case RaceName.Berrind:
+			characterStr += "0" + delimiter;
+			raceColor = berrindColor;
+			break;
+		case RaceName.Ashpian:
+			characterStr += "1" + delimiter;
+			raceColor = ashpianColor;
+			break;
+		case RaceName.Rorrul:
+			characterStr += "1" + delimiter;
+			raceColor = rorrulColor;
+			break;
+		default:
+			break;
+		}
+		//Character Background (contextualized by race): 0 = Fallen Noble | Commoner | Servant, 1 = White Gem | Immigrant | Unknown
+		if(character.background == CharacterBackground.FallenNoble ||
+		   character.background == CharacterBackground.Commoner ||
+		   character.background == CharacterBackground.Servant)
+		{
+			characterStr += "0" + delimiter;
+		}
+		else
+		{
+			characterStr += "1" + delimiter;
+		}
+		//Age, Height, Weight are unused, but still in the character sheet
+		characterStr += "0" + delimiter;
+		characterStr += "0" + delimiter;
+		characterStr += "0" + delimiter;
+		//Character Class: 0 = Ex-Soldier, 1 = Engineer, 2 = Investigator, 3 = Researcher, 4 = Orator
+		switch(character.cClass.getClassName())
+		{
+		case ClassName.ExSoldier:
+			characterStr += "0" + delimiter;
+			break;
+		case ClassName.Engineer:
+			characterStr += "1" + delimiter;
+			break;
+		case ClassName.Investigator:
+			characterStr += "2" + delimiter;
+			break;
+		case ClassName.Researcher:
+			characterStr += "3" + delimiter;
+			break;
+		case ClassName.Orator:
+			characterStr += "4" + delimiter;
+			break;
+		default:
+			break;
+		}
+		int[] scores = gameObject.GetComponent<CCPointAllocation>().getScores();
+		int[] skills = gameObject.GetComponent<CCPointAllocation>().getSkills();
 
+		//Add all Ability Scores and Skills
+		for(int i = 0; i < scores.Length; i++)
+		{
+			characterStr += scores[i] + delimiter;
+		}
+		for(int i = 0; i < skills.Length; i++)
+		{
+			characterStr += skills[i] + delimiter;
+		}
+
+		//Add all colors
+		characterStr += colorString(raceColor);
+		characterStr += colorString(hairColor);
+		characterStr += colorString(primaryColor);
+		characterStr += colorString(secondaryColor);
+		//HairStyle
+		characterStr += hairStyle + delimiter;
+		//Level and Experience
+		characterStr += "1;0;";
+		//Add in any copper the character may start with
+		if(character.background == CharacterBackground.FallenNoble)
+		{
+			characterStr += "50" + delimiter;
+		}
+		else if(character.background == CharacterBackground.Commoner)
+		{
+			characterStr += "10" + delimiter;
+		}
+		else if(character.background == CharacterBackground.Servant)
+		{
+			characterStr += "30" + delimiter;
+		}
+		else
+		{
+			characterStr += "0" + delimiter;
+		}
+		//Add in health and composure
+		characterStr += gameObject.GetComponent<CCPointAllocation>().calculateHealth() + delimiter;
+		characterStr += gameObject.GetComponent<CCPointAllocation>().calculateComposure() + delimiter;
+		//number of chosen features followed by each one.
+		characterStr += "0;";
+		//Weapon Focus:
+		characterStr += "0;";
+		//Number of inventory items followed by that many items.
+		characterStr += "0;";
+		//Favored Race
+		characterStr += "0;";
+		Saves.addCharacter(characterStr);
+
+		Application.LoadLevel(2);
+	}
+
+	static string colorString(Color c)
+	{
+		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
 	}
 
 	public void isNextAvailable()
