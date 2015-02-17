@@ -122,43 +122,46 @@ public class UITooltip : MonoBehaviour {
         switch (UIElement.name)
         {
             // Movement actions
-            case "Button - Move":
-                return "Move: \n" + "Run (up to) five squares.";
+		case "Button - Move":
+			return "Move: \n" + "Run (up to) five squares.";
 		case "Button - Back Step":
-                return "Back Step: \n" + "Safely move one square away from an enemy.";
+			return "Back Step: \n" + "Safely move one square away from an enemy.";
 		case "Button - Recover":
-                return "Recover: \n" + "Stand up after being knocked prone.";
-
-            // Standard actions
+			return "Recover: \n" + "Stand up after being knocked prone.";
+			
+			// Standard actions
 		case "Button - Attack":
-                return "Attack: \n" + "Attack an enemy within range.";
+			return "Attack: \n" + "Attack an enemy within range.";
 		case "Button - Over Clock":
-                return "Over Clock: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Over_Clock);
+			return "Over Clock: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Over_Clock);
 		case "Button - Throw":
-                return "Throw: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Throw);
+			return "Throw: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Throw);
 		case "Button - Intimidate":
-                return "Intimidate: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Intimidate);
+			return "Intimidate: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Intimidate);
 		case "Button - Place Turret":
-                return "Place Turret: \n" + "Place a turret and set its direction.";
+			return "Place Turret: \n" + "Place a turret and set its direction.";
 		case "Button - Lay Trap":
-                return "Lay Trap: \n" + "Lay a trap down.";
+			return "Lay Trap: \n" + "Lay a trap down.";
 		case "Button - Inventory":
-                return "Inventory: \n" + "Take an item out of your bag.";
-
-            // Minor actions
+			return "Inventory: \n" + "Take an item out of your bag.";
+			
+			// Minor actions
 		case "Button - Loot":
-                return "Loot: \n" + "Grab an item from a nearby square.";
+			return "Loot: \n" + "Grab an item from a nearby square.";
 		case "Button - Stealth":
-                return "Stealth: \n" + "Make yourself less visible to enemies.";
+			return "Stealth: \n" + "Make yourself less visible to enemies.";
 		case "Button - Mark":
-                return "Mark: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Mark);
+			return "Mark: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Mark);
 		case "Button - Tempered Hands":
-                return "Tempered Hands: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Tempered_Hands);
+			return "Tempered Hands: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Tempered_Hands);
 		case "Button - Escape":
-                return "Escape: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Escape);
+			return "Escape: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Escape);
 		case "Button - Invoke":
-                return "Invoke: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Invoke);
-            // One of Many goes here.
+			return "Invoke: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Invoke);
+		case "Button - Instill Paranoia":
+			return "Instill Paranoia:\n" + ClassFeatures.getTooltipDescription(ClassFeature.Instill_Paranoia);
+		case "Button - One Of Many":
+			return "One Of Many: \n" + ClassFeatures.getTooltipDescription(ClassFeature.One_Of_Many);
 
             // Class Features
             //case "Text - Class Feature":

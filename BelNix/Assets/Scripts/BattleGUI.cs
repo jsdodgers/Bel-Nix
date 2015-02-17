@@ -17,6 +17,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private EventSystem eventSystem;
     // Let's grab some UI Elements from the editor
 	[SerializeField] private GameObject[] CIPanels = new GameObject[3];
+	[SerializeField] private GameObject[] primalControlWindows = new GameObject[3];
 	[SerializeField] private GameObject loadGameCanvas;
 	[SerializeField] private GameObject pauseMenuCanvas;
 	[SerializeField] private GameObject saveGameCanvas;
@@ -99,7 +100,7 @@ public class BattleGUI : MonoBehaviour {
     // Use this for initialization
 	public void setReferenceResolution() {
 		if (Screen.width >= 1200)
-			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
+			consoleCanvas.transform.parent.gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
 	}
     void Start()
     {
@@ -150,9 +151,9 @@ public class BattleGUI : MonoBehaviour {
         consoleScrollBar = GameObject.Find("Scrollbar - Console").GetComponent<Scrollbar>();
 
         // Initialize the fields relating to Action Buttons
-        MinorType[] minorTypes = new MinorType[] { MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.Invoke };
+        MinorType[] minorTypes = new MinorType[] { MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.OneOfMany, MinorType.Invoke };
         MovementType[] movementTypes = new MovementType[] { MovementType.Move, MovementType.BackStep, MovementType.Recover };
-        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory };
+        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.InstillParanoia, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory };
         minorButtons = new Dictionary<MinorType, GameObject>();
         standardButtons = new Dictionary<StandardType, GameObject>();
         movementButtons = new Dictionary<MovementType, GameObject>();
@@ -315,6 +316,11 @@ public class BattleGUI : MonoBehaviour {
 
 	public static bool armShown(ActionArm arm) {
 		return armsShown[(int)arm];
+	}
+
+
+	public void selectOneOfManyMode(int mode) {
+		mapGenerator.getCurrentUnit().useOneOfMany((OneOfManyMode)mode);
 	}
 
 	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false) {
@@ -524,6 +530,34 @@ public class BattleGUI : MonoBehaviour {
 		battleGUI.minorButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
 
+	public static void setPrimalControlWindowShown(Unit u, bool shown) {
+		switch (u.getRaceName()) {
+		case RaceName.Berrind:
+			battleGUI.setPrimalControlWindowShown(0, shown);
+			break;
+		case RaceName.Ashpian:
+			battleGUI.setPrimalControlWindowShown(1, shown);
+			break;
+		case RaceName.Rorrul:
+			battleGUI.setPrimalControlWindowShown(2, shown);
+			break;
+		default:
+			break;
+		}
+	}
+
+	public void hidePrimalControlWindow(int i) {
+		setPrimalControlWindowShown(i, false);
+	}
+	public void setPrimalControlWindowShown(int i, bool shown) {
+		primalControlWindows[i].SetActive(shown);
+	}
+
+	public void selectPrimalControl(int i) {
+		mapGenerator.getCurrentUnit().setPrimalControl(i);
+	}
+
+
 	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown) {
 		battleGUI.confirmButtons[(int)confirmButton].SetActive(shown);
 	}
@@ -572,6 +606,7 @@ public class BattleGUI : MonoBehaviour {
 	}
 
 	public void setClassFeatureCanvasShown(ClassFeatureCanvas canvas, bool shown) {
+		Debug.Log(canvas + "  " + shown);
 		switch (canvas) {
 		case ClassFeatureCanvas.OneOfMany:
 			oneOfManyCanvas.SetActive(shown);

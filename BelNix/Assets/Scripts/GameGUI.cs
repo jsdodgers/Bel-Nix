@@ -336,11 +336,11 @@ public class GameGUI : MonoBehaviour {
 	public static bool showingConfirm = false;
 	public static bool hasConfirmButton() {
 		return ((selectedMovement && (selectedMovementType == MovementType.BackStep || selectedMovementType == MovementType.Move)) && mapGenerator.getCurrentUnit().currentPath.Count > 1) ||
-			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
+			((selectedStandard && (selectedStandardType == StandardType.Attack || selectedStandardType == StandardType.InstillParanoia || selectedStandardType == StandardType.OverClock || selectedStandardType == StandardType.Throw || selectedStandardType == StandardType.Intimidate)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
 				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
-				((selectedMinor && (selectedMinorType == MinorType.Stealth)));
+				((selectedMinor && (selectedMinorType == MinorType.Stealth || (selectedMinorType == MinorType.OneOfMany && oneOfManyConfirm))));
 	}
 
 	public static bool mouseIsOnGUI() {
@@ -1163,7 +1163,7 @@ public class GameGUI : MonoBehaviour {
 	static float t = 0;
 	static int dir = 1;
 	public static void doGUI() {
-		bool interact = !escapeMenuOpen && !(mapGenerator != null && mapGenerator.getCurrentUnit()!= null && mapGenerator.getCurrentUnit().doingTemperedHands);
+		bool interact = true;// !escapeMenuOpen && !(mapGenerator != null && mapGenerator.getCurrentUnit()!= null && mapGenerator.getCurrentUnit().doingTemperedHands);
 		float speed = 1.0f/3.0f;
 		t += Time.deltaTime * speed * dir;
 		Color start = Color.cyan;
@@ -1957,7 +1957,11 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case MinorType.Mark:
 		case MinorType.Escape:
+			mapGenerator.resetRanges();
+			break;
 		case MinorType.Invoke:
+			if (mapGenerator.getCurrentUnit().primalControlUnit != null)
+				mapGenerator.getCurrentUnit().setPrimalControl(0);
 			mapGenerator.resetRanges();
 			break;
 		default:
@@ -1974,9 +1978,17 @@ public class GameGUI : MonoBehaviour {
 		selectedStandardType = StandardType.None;
 		switch (t) {
 		case StandardType.Attack:
-		case StandardType.Intimidate:
 		case StandardType.OverClock:
 		case StandardType.Throw:
+		case StandardType.InstillParanoia:
+			if (mapGenerator.selectedUnit.attackEnemy) {
+				mapGenerator.selectedUnit.attackEnemy.deselect();
+				mapGenerator.resetAttack();
+			}
+			break;
+		case StandardType.Intimidate:
+			if (mapGenerator.getCurrentUnit().primalControlUnit != null)
+				mapGenerator.getCurrentUnit().setPrimalControl(0);
 			if (mapGenerator.selectedUnit.attackEnemy) {
 				mapGenerator.selectedUnit.attackEnemy.deselect();
 				mapGenerator.resetAttack();
@@ -2010,6 +2022,7 @@ public class GameGUI : MonoBehaviour {
 
 	public static bool looting = false;
 	public static bool inventoryWasOpenLoot = false;
+	public static bool oneOfManyConfirm = false;
 
 	public static void selectMinorType(MinorType t) {
 		if (t != selectedMinorType || (!selectedMinor && t != MinorType.None)) deselectCurrentAction();
@@ -2025,7 +2038,13 @@ public class GameGUI : MonoBehaviour {
 			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.TemperedHands);
 			break;
 		case MinorType.OneOfMany:
-			BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			if (!mapGenerator.selectedUnit.hasOneOfManyHider()) {
+				oneOfManyConfirm = false;
+				BattleGUI.showClassFeatureCanvas(ClassFeatureCanvas.OneOfMany);
+			}
+			else {
+				oneOfManyConfirm = true;
+			}
 			break;
 		case MinorType.Loot:
 			looting = true;
@@ -2089,6 +2108,7 @@ public class GameGUI : MonoBehaviour {
 		case StandardType.OverClock:
 		case StandardType.Throw:
 		case StandardType.Intimidate:
+		case StandardType.InstillParanoia:
 			mapGenerator.resetRanges();
 			break;
 		case StandardType.Place_Turret:
@@ -2124,6 +2144,9 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case "Intimidate":
 			selectStandardType(StandardType.Intimidate);
+			break;
+		case "Instill Paranoia":
+			selectStandardType(StandardType.InstillParanoia);
 			break;
 		case "Place Turret":
 			selectStandardType(StandardType.Place_Turret);

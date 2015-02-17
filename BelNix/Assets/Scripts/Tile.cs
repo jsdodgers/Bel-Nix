@@ -195,21 +195,21 @@ public class Tile {
 		character = null;
 	}
 
-	public bool hasAliveEnemy(Unit cs) {
-		return hasEnemy(cs) && !getCharacter().deadOrDyingOrUnconscious();
+	public bool hasAliveEnemy(Unit cs, bool blocking = false) {
+		return hasEnemy(cs, blocking) && !getCharacter().deadOrDyingOrUnconscious();
 	}
 
-	public bool hasEnemy(Unit cs) {
-		return hasCharacter() && cs.isEnemyOf(character);
+	public bool hasEnemy(Unit cs, bool blocking = false) {
+		return hasCharacter() && (blocking ? character.isEnemyOf(cs) : cs.isEnemyOf(character));
 //		return enemy != null;
 	}
 
-	public bool hasAliveAlly(Unit cs) {
+	public bool hasAliveAlly(Unit cs, bool blocking = false) {
 		return hasAlly(cs) && !getAlly(cs).deadOrDyingOrUnconscious();
 	}
 
-	public bool hasAlly(Unit cs) {
-		return hasCharacter() && cs.isAllyOf(character);
+	public bool hasAlly(Unit cs, bool blocking = false) {
+		return hasCharacter() && (blocking ? character.isAllyOf(cs) : cs.isAllyOf(character));
 	}
 
 	public bool hasCharacter() {
@@ -268,13 +268,13 @@ public class Tile {
 	//	Debug.Log("Can Turn: " + canTurn);
 		switch (direction) {
 		case Direction.Left:
-			return this.leftTile!=null && !this.leftTile.hasAliveEnemy(cs) && this.passableLeft>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.leftTile!=null && !this.leftTile.hasAliveEnemy(cs, true) && this.passableLeft>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Right:
-			return this.rightTile!=null && !this.rightTile.hasAliveEnemy(cs) && this.passableRight>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.rightTile!=null && !this.rightTile.hasAliveEnemy(cs, true) && this.passableRight>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Down:
-			return this.downTile!=null && !this.downTile.hasAliveEnemy(cs) && this.passableDown>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.downTile!=null && !this.downTile.hasAliveEnemy(cs, true) && this.passableDown>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		case Direction.Up:
-			return this.upTile!=null && !this.upTile.hasAliveEnemy(cs) && this.passableUp>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
+			return this.upTile!=null && !this.upTile.hasAliveEnemy(cs, true) && this.passableUp>0 && (this.canTurn || previousDirection == direction || previousDirection == Direction.None);
 		default:
 			return false;
 		}
@@ -319,7 +319,7 @@ public class Tile {
 		List<Unit> units = new List<Unit>();
 		if (singleUnit != null) units.Add(singleUnit);
 		foreach (Unit u in (singleUnit != null ? units : cs.mapGenerator.priorityOrder)) {
-			if (u.team != cs.team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true)) {
+			if (u.isEnemyOf(cs) && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true)) {
 				Tile next = getTile(direction);
 				if (!u.hasLineOfSightToTile(next, cs, u.getAttackRange(), true)) return true;
 			}
