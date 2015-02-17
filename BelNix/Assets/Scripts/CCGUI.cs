@@ -5,14 +5,34 @@ using UnityEngine.UI;
 
 public class CCGUI : MonoBehaviour
 {
-	public enum GUIState {SEX, RACE, /*PHYSICAL_FEATURES,*/ CLASS, ABILITY_SCORES, SKILLS, /*TALENTS,*/ NAME};
+	public enum GUIState {SEX, RACE, PHYSICAL_FEATURES, CLASS, ABILITY_SCORES, SKILLS, /*TALENTS,*/ NAME};
 	[SerializeField] private GameObject[] stateList;
+	[SerializeField] private GameObject[] progressionButtons;
 	private GUIState currentState;
 	private GUIState furthestState;
 	private CCPointAllocation pointAllocator;
 	private Dictionary<string, GameObject> passport;
+	[SerializeField] private GameObject[] skinColorList;
 
-	private struct Character
+	Color primaryColor;
+	Color secondaryColor;
+	Color berrindColor;
+	Color ashpianColor;
+	Color rorrulColor;
+	Color hairColor;
+	SpriteRenderer characterSprite;
+	SpriteRenderer shirtSprite;
+	SpriteRenderer pantsSprite;
+	SpriteRenderer shoesSprite;
+	SpriteRenderer hairSprite;
+	GameObject hairGameObject;
+	GUIStyle[] hairTextures;
+
+	static Color createColor(float r, float g, float b) {
+		return new Color(r, g, b);
+	}
+
+	public struct CharacterCreator
 	{
 		public CharacterSex sex;
 		public CharacterRace race;
@@ -23,7 +43,7 @@ public class CCGUI : MonoBehaviour
 		public CharacterName name;
 	}
 
-	Character character;
+	public CharacterCreator character;
 
 	// Use this for initialization
 	void Start()
@@ -41,12 +61,94 @@ public class CCGUI : MonoBehaviour
 		passport.Add("Ability Scores", GameObject.Find("Text - Ability Scores"));
 		passport.Add("Skills", GameObject.Find("Text - Skills"));
 		passport.Add("Name", GameObject.Find("Text - Name"));
+
+		characterSprite = GameObject.Find("Character").GetComponent<SpriteRenderer>();
+		shirtSprite = GameObject.Find("Shirt").GetComponent<SpriteRenderer>();
+		pantsSprite = GameObject.Find("Pants").GetComponent<SpriteRenderer>();
+		shoesSprite = GameObject.Find("Shoes").GetComponent<SpriteRenderer>();
+
+		hairColor = createColor(100/255.0f, 73/255.0f, 41/255.0f);
+		berrindColor = createColor(246/255.0f, 197/255.0f, 197/255.0f);
+		ashpianColor = createColor(223/255.0f, 180/255.0f, 135/255.0f);
+		rorrulColor = createColor(96/255.0f, 71/255.0f, 56/255.0f);
+		primaryColor = createColor(101/255.0f, 101/255.0f, 101/255.0f);
+		secondaryColor = createColor(30/255.0f, 30/255.0f, 30/255.0f);
+
+		shirtSprite.color = primaryColor;
+		pantsSprite.color = secondaryColor;
+		shoesSprite.color = secondaryColor;
 	}
-	
-	// Update is called once per frame
-	void Update()
+
+	bool settingPrimary = true;
+	public void settingPrimaryColor() {settingPrimary = true;}
+	public void settingSecondaryColor() {settingPrimary = false;}
+
+	public void setHairColor(GameObject newHairColor)
 	{
-	
+		hairColor = createColor(newHairColor.GetComponent<Image>().color.r,
+		                        newHairColor.GetComponent<Image>().color.g,
+		                        newHairColor.GetComponent<Image>().color.b);
+
+	}
+
+	public void setBerrindSkinColor(GameObject newSkinColor)
+	{
+		berrindColor = createColor(newSkinColor.GetComponent<Image>().color.r,
+		                           newSkinColor.GetComponent<Image>().color.g,
+		                           newSkinColor.GetComponent<Image>().color.b);
+		characterSprite.color = berrindColor;
+	}
+
+	public void setAshpianSkinColor(GameObject newSkinColor)
+	{
+		ashpianColor = createColor(newSkinColor.GetComponent<Image>().color.r,
+		                           newSkinColor.GetComponent<Image>().color.g,
+		                           newSkinColor.GetComponent<Image>().color.b);
+		characterSprite.color = ashpianColor;
+	}
+
+	public void setRorrulSkinColor(GameObject newSkinColor)
+	{
+		rorrulColor = createColor(newSkinColor.GetComponent<Image>().color.r,
+		                          newSkinColor.GetComponent<Image>().color.g,
+		                          newSkinColor.GetComponent<Image>().color.b);
+		characterSprite.color = rorrulColor;
+	}
+
+	public void setPrimaryColor(GameObject newPrimaryColor)
+	{
+		if(settingPrimary)
+		{
+			primaryColor = createColor(newPrimaryColor.GetComponent<Image>().color.r,
+			                           newPrimaryColor.GetComponent<Image>().color.g,
+			                           newPrimaryColor.GetComponent<Image>().color.b);
+			shirtSprite.color = primaryColor;
+		}
+		else
+		{
+			secondaryColor = createColor(newPrimaryColor.GetComponent<Image>().color.r,
+			                           newPrimaryColor.GetComponent<Image>().color.g,
+			                           newPrimaryColor.GetComponent<Image>().color.b);
+			pantsSprite.color = secondaryColor;
+			shoesSprite.color = secondaryColor;
+		}
+	}
+
+	public void setProperSkinDisplay()
+	{
+		if(character.race.raceName == RaceName.Berrind)
+		{
+			toggleAllExcept(skinColorList[0]);
+		}
+		else if(character.race.raceName == RaceName.Ashpian)
+		{
+			toggleAllExcept(skinColorList[1]);
+		}
+		else
+		{
+			toggleAllExcept(skinColorList[2]);
+		}
+		skinColorList[3].SetActive(true);
 	}
 
 	public void toggleAllExcept(GameObject thisOne)
@@ -76,9 +178,9 @@ public class CCGUI : MonoBehaviour
 		case GUIState.RACE:
 			toggleAllExcept(stateList[(int)GUIState.RACE]);
 			break;
-		/*case GUIState.PHYSICAL_FEATURES:
+		case GUIState.PHYSICAL_FEATURES:
 			toggleAllExcept(stateList[(int)GUIState.PHYSICAL_FEATURES]);
-			break;*/
+			break;
 		case GUIState.CLASS:
 			toggleAllExcept(stateList[(int)GUIState.CLASS]);
 			break;
@@ -108,6 +210,8 @@ public class CCGUI : MonoBehaviour
 			if(passport.TryGetValue("Sex", out tempObj))
 			{
 				character.sex = (tempObj.GetComponent<Text>().text == "Male") ? CharacterSex.Male : CharacterSex.Female;
+				progressionButtons[1].SetActive(true);
+				progressionButtons[0].SetActive(false);
 			}
 			else
 			{
@@ -120,14 +224,17 @@ public class CCGUI : MonoBehaviour
 				if(tempObj.GetComponent<Text>().text == "Ashpian")
 				{
 					character.race = new Race_Ashpian();
+					characterSprite.color = ashpianColor;
 				}
 				else if(tempObj.GetComponent<Text>().text == "Berrind")
 				{
 					character.race = new Race_Berrind();
+					characterSprite.color = berrindColor;
 				}
 				else
 				{
 					character.race = new Race_Rorrul();
+					characterSprite.color = rorrulColor;
 				}
 			}
 			if(passport.TryGetValue("Background", out tempObj))
@@ -193,6 +300,8 @@ public class CCGUI : MonoBehaviour
 		case GUIState.ABILITY_SCORES:
 			break;
 		case GUIState.SKILLS:
+			progressionButtons[3].SetActive(true);
+			progressionButtons[2].SetActive(false);
 			break;
 		case GUIState.NAME:
 			break;
@@ -212,17 +321,46 @@ public class CCGUI : MonoBehaviour
 
 	public void previousState()
 	{
-		if(currentState != GUIState.SEX)
+		if(currentState == GUIState.NAME)
+		{
+			setState(--currentState);
+			progressionButtons[2].SetActive(true);
+			progressionButtons[3].SetActive(false);
+		}
+		else if(currentState > GUIState.RACE && currentState < GUIState.NAME)
 		{
 			setState(--currentState);
 		}
+		else if (currentState == GUIState.RACE)
+		{
+			setState(--currentState);
+			progressionButtons[0].SetActive(true);
+			progressionButtons[1].SetActive(false);
+		}
+	}
+
+	public void exitCharacterCreation()
+	{
+		Application.LoadLevel(PlayerPrefs.GetInt("playercreatefrom"));
+	}
+
+	public void finishCharacterCreation()
+	{
+
 	}
 
 	public void isNextAvailable()
 	{
 		if(currentState < GUIState.ABILITY_SCORES)
 		{
-			GameObject.Find("Button - Next").GetComponent<Button>().interactable = (currentState < furthestState);
+			progressionButtons[2].GetComponent<Button>().interactable = (currentState < furthestState);
+		}
+		if(currentState == GUIState.PHYSICAL_FEATURES)
+		{
+			setProperSkinDisplay();
+			progressionButtons[2].GetComponent<Button>().interactable = true;
 		}
 	}
+
+
 }
