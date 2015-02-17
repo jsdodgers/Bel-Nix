@@ -87,7 +87,7 @@ public class AStarEnemyMap : AStarMap {
 			Tile g = mapGenerator.tiles[goalParams.x,goalParams.y];
 			//if (Mathf.Abs(goalParams.x-nodeParams.x) + Mathf.Abs(goalParams.y-nodeParams.y)<=(g.hasCharacter()?g.getCharacter().minReachableDistance():1.0f)) {
 			if (t.canStand() || t.getCharacter()==unit) {
-				if (mapGenerator.hasLineOfSight(t, g, (g.hasCharacter()?g.getCharacter().minReachableDistance(unit):1.0f), true)) {
+				if (mapGenerator.hasLineOfSight(t, g, (g.hasCharacter()?g.getCharacter().minReachableDistance(unit):1.0f), true, (unit.getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
 					return true;
 				}
 			}
@@ -106,13 +106,13 @@ public class AStarEnemyMap : AStarMap {
 		float straight = Mathf.Abs(enemyParam.x-enemyParam2.x) + Mathf.Abs(enemyParam.y-enemyParam2.y);
 //		return diag*1.4f + (straight - 2*diag) * 1.0f;
 		Tile t = mapGenerator.tiles[enemyParam.x,enemyParam.y];
-		if (t.shouldTakeAttOppLeaving(unit)) {
-		//	Debug.Log("Take Attack Of Opportunity: " + enemyParam.x + ", " + enemyParam.y + "   " + straight);
-			straight += 3;
-		}
 		Vector2 from = enemyParam.getPos();
 		Vector2 to = enemyParam2.getPos();
 		Direction dir = Tile.directionBetweenTiles(from, to);
+		if (t.provokesOpportunity(dir, unit)) {//.shouldTakeAttOppLeaving(unit)) {
+		//	Debug.Log("Take Attack Of Opportunity: " + enemyParam.x + ", " + enemyParam.y + "   " + straight);
+			straight += 3;
+		}
 		int pass = t.passabilityInDirection(dir);
 		if (pass > 1) {
 			straight += 1 + (pass-1)/5;

@@ -318,19 +318,15 @@ public class Tile {
 //		}
 		List<Unit> units = new List<Unit>();
 		if (singleUnit != null) units.Add(singleUnit);
-		foreach (Unit u in (singleUnit != null ? units : cs.mapGenerator.priorityOrder)) {
-			if (u.isEnemyOf(cs) && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true)) {
+		else units = new List<Unit>(cs.mapGenerator.priorityOrder);
+
+		foreach (Unit u in units) {
+			if (u.isEnemyOf(cs) && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true, u.attackVisibilityMode())) {
 				Tile next = getTile(direction);
-				if (!u.hasLineOfSightToTile(next, cs, u.getAttackRange(), true)) return true;
+				if (!u.hasLineOfSightToTile(next, cs, u.getAttackRange(), true, u.attackVisibilityMode())) return true;
 			}
 		}
 		return false;
-		bool provokesOpportunity = false;
-		if (direction != Direction.Left) provokesOpportunity |= hasAliveEnemyDirection(Direction.Left, cs);
-		if (direction != Direction.Right) provokesOpportunity |= hasAliveEnemyDirection(Direction.Right, cs);
-		if (direction != Direction.Up) provokesOpportunity |= hasAliveEnemyDirection(Direction.Up, cs);
-		if (direction != Direction.Down) provokesOpportunity |= hasAliveEnemyDirection(Direction.Down, cs);
-		return provokesOpportunity;
 	}
 
 	public bool hasAliveEnemyDirection(Direction direction, Unit cs) {
