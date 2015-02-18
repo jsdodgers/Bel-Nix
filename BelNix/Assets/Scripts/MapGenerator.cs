@@ -2807,10 +2807,10 @@ public class MapGenerator : MonoBehaviour {
             {
                 GameObject go = hit.collider.gameObject;
                 Unit uu = go.GetComponent<Unit>();
-                if (uu.team == 0 && uu.transform.parent == mainCamera.transform)
+                if (uu.team == 0)
                 {
-					
-					BattleGUI.setPlayerTurnText("",  Log.greenColor);
+					if (uu.transform.parent == mainCamera.transform)
+						BattleGUI.setPlayerTurnText("",  Log.greenColor);
                     selectedSelectionObject = go;
                     //				selectedUnit = go.GetComponent<Unit>();
                     //				selectedUnit.setSelected();
