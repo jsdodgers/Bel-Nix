@@ -873,6 +873,8 @@ public class MapGenerator : MonoBehaviour {
 		createSelectionArea();
 		createSelectionUnits();
 		setOverlay();
+		BattleGUI.setPlayerTurnText("Place character on starting position --->",  Log.greenColor, 100000.0f);
+
 //		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
@@ -2805,8 +2807,10 @@ public class MapGenerator : MonoBehaviour {
             {
                 GameObject go = hit.collider.gameObject;
                 Unit uu = go.GetComponent<Unit>();
-                if (uu.team == 0)
+                if (uu.team == 0 && uu.transform.parent == mainCamera.transform)
                 {
+					
+					BattleGUI.setPlayerTurnText("",  Log.greenColor);
                     selectedSelectionObject = go;
                     //				selectedUnit = go.GetComponent<Unit>();
                     //				selectedUnit.setSelected();

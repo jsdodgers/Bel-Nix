@@ -483,12 +483,12 @@ public class BattleGUI : MonoBehaviour {
 		playerTurnTextObject.color = playerTurnTextColor;
 	}
 
-	public static void setPlayerTurnText(string text, Color color) {
+	public static void setPlayerTurnText(string text, Color color, float time = 1) {
 		writeToConsole(text, color);
 		battleGUI.playerTurnTextObject.text = text;
 		battleGUI.playerTurnTextColor = color;
 		battleGUI.playerTurnTextColor.a = 1.0f;
-		battleGUI.playerTurnTextStartTime = Time.time;
+		battleGUI.playerTurnTextStartTime = Time.time - 1 + time;
 		battleGUI.doPlayerText = true;
 	}
     //--------------------------------------------------------------------------------
