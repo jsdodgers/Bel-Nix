@@ -4,40 +4,38 @@ using UnityEngine.EventSystems;
 using System.Collections;
 
 public class MapTooltip : MonoBehaviour {
-    public float z = -1.0f;
 
-    [SerializeField]
-    private float updateIntervalInSeconds = 0.25f;
-
+    
     private MapGenerator map;
     private static Vector2 mousePos;
     private Vector3 toolTipPos;
     private Text toolTipText;
     private GameObject tooltipPanel;
     private Unit lastHoveredUnit;
+	RectTransform trans;
 
 
 	// Use this for initialization
 	void Start () {
+		trans = gameObject.GetComponent<RectTransform>();
         map = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
         mousePos = new Vector2();
-        toolTipPos = new Vector3();
+		toolTipPos = trans.anchoredPosition;
         toolTipText = gameObject.GetComponentInChildren<Text>();
         tooltipPanel = GameObject.Find("Panel - Tooltip");
         // Start the update cycle for the tooltip. I'm not doing this with Update() because I only need to check
         //  every quarter of a second or so, so it's wasted CPU cycles.
-        InvokeRepeating("updateTooltip", updateIntervalInSeconds, updateIntervalInSeconds);
-	}
+    }
 
 
 	// Update is called once per frame
 	void Update () {		
-	
+		updateTooltip();
 	}
 
     // Find the tile the mouse is over, place the tooltip above that tile, check for interesting objects inside that tile
     // and display the tooltip with that object's information inside.
-    private void updateTooltip() 
+    void updateTooltip() 
     {
         // Put the tooltip box into position.
         moveTooltipAboveHoveredTile();
@@ -48,7 +46,8 @@ public class MapTooltip : MonoBehaviour {
         if (coordsWithinTileGrid(cursorHoverCoords) && !GameObject.Find("EventSystem").GetComponent<EventSystem>().IsPointerOverGameObject())
         {
             Tile hoveredTile = map.tiles[(int)cursorHoverCoords.x, (int)cursorHoverCoords.y];
-            updateTooltipText(hoveredTile);
+			if (hoveredTile.currentRightClick) gameObject.GetComponent<Canvas>().enabled = false;
+            else updateTooltipText(hoveredTile);
         }
         else gameObject.GetComponent<Canvas>().enabled = false;
     }
@@ -56,7 +55,7 @@ public class MapTooltip : MonoBehaviour {
 
 
 
-    private void updateTooltipText(Tile hoveredTile)
+    void updateTooltipText(Tile hoveredTile)
     {
         // Check if there's a character at the hovered-over tile, and whether they're alive if so.
         if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead() && (hoveredTile.getCharacter().team == 0 || map.hasLineOfSight(hoveredTile.getCharacter())))
@@ -87,17 +86,17 @@ public class MapTooltip : MonoBehaviour {
     }
 
     // Set the tooltip box's coordinates.
-    private void moveTooltipAboveHoveredTile() {
+    void moveTooltipAboveHoveredTile() {
         Vector3 tileCoords = getHoveredTileCoordinates();
         // The tooltip position should be centered one unit above the hovered tile.
-        toolTipPos =  tileCoords + new Vector3(0.5f, -0.5f, z);
+        toolTipPos =  tileCoords + new Vector3(0.5f, -0.5f, toolTipPos.z);
         toolTipPos.y *= -1;
         //gameObject.GetComponent<RectTransform>().position = toolTipPos;
         gameObject.GetComponent<RectTransform>().anchoredPosition = toolTipPos;
     }
 
     // Check the input coordinates against bounds of the 2D array containing all of the tiles.
-    private bool coordsWithinTileGrid(Vector2 coords) {
+    bool coordsWithinTileGrid(Vector2 coords) {
         return  ((int)coords.x > 0) && (int)coords.x < map.tiles.GetLength(0) &&
                 ((int)coords.y > 0) && (int)coords.y < map.tiles.GetLength(1);
     }
@@ -127,10 +126,10 @@ public class MapTooltip : MonoBehaviour {
         else return "Healthy";
     }
 
-    private string getPlayerStatusSummary(Unit playerUnit) {
+    string getPlayerStatusSummary(Unit playerUnit) {
 		return UnitGUI.getSmallCapsString(playerUnit.getStatusSummary(), Mathf.FloorToInt(toolTipText.fontSize * 0.67f));
     }
-    private string getNPCStatusSummary(Unit npcUnit) {
+    string getNPCStatusSummary(Unit npcUnit) {
 		string name = npcUnit.getName();
         float chanceToHit = 0.0f;
         if (map.getCurrentUnit() != null)  {

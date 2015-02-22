@@ -1233,7 +1233,7 @@ public class GameGUI : MonoBehaviour {
 					selectionUnitScrollPosition.y = Mathf.Min(scrollHeight - Screen.height, selectionUnitScrollPosition.y + amount);
 				}
 			}
-			if (mapGenerator.playerTransform.childCount > 3) {
+			if (mapGenerator.playerTransform.childCount > 0) {
 				if (GUI.Button(beginButtonRect(), "Engage", getBeginButtonStyle())) {
 					mapGenerator.enterPriority();
 					foreach (Unit u in mapGenerator.priorityOrder) {
@@ -1957,6 +1957,7 @@ public class GameGUI : MonoBehaviour {
 			break;
 		case MinorType.Mark:
 		case MinorType.Escape:
+			mapGenerator.getCurrentUnit().selectMinorType(MinorType.None);
 			mapGenerator.resetRanges();
 			break;
 		case MinorType.Invoke:
@@ -2013,6 +2014,7 @@ public class GameGUI : MonoBehaviour {
 		BattleGUI.selectMovementType(t, false);
 		switch (t) {
 		default:
+			mapGenerator.getCurrentUnit().selectMovementType(MovementType.None);
 			mapGenerator.resetRanges();
 			mapGenerator.removePlayerPath();
 			break;

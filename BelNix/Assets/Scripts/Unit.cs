@@ -2,13 +2,15 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+public enum UnitMovement {Move, BackStep, Escape, None}
 public enum MovementType {Move, BackStep, Recover, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None}
-public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, None}
+public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 public enum OneOfManyMode {Hidden = 0, Hit, Damage, AC, Movement, None};
 public class Unit : MonoBehaviour {
+	public UnitMovement unitMovement = UnitMovement.None;
 	public MeshGen meshGen;
 	public bool needsOverlay = false;
 	bool doOverlay = false;
@@ -427,11 +429,13 @@ public class Unit : MonoBehaviour {
 	public void selectMinorType(MinorType t) {
 		switch(t) {
 		case MinorType.Escape:
+			unitMovement = UnitMovement.Escape;
 			currentMoveDist = 2;
 			mapGenerator.resetRanges();
 			mapGenerator.removePlayerPath();
 			break;
 		default:
+			unitMovement = UnitMovement.None;
 			currentMoveDist = 0;
 			mapGenerator.removePlayerPath();
 			mapGenerator.resetRanges();
@@ -442,16 +446,19 @@ public class Unit : MonoBehaviour {
 	public void selectMovementType(MovementType t) {
 		switch(t) {
 		case MovementType.BackStep:
+			unitMovement = UnitMovement.BackStep;
 			currentMoveDist = 1;
 			mapGenerator.resetRanges();
 			mapGenerator.removePlayerPath();
 			break;
 		case MovementType.Move:
+			unitMovement = UnitMovement.Move;
 			currentMoveDist = moveDistLeft;
 			mapGenerator.resetRanges();
 			mapGenerator.removePlayerPath();
 			break;
 		default:
+			unitMovement = UnitMovement.None;
 			currentMoveDist = 0;
 			mapGenerator.removePlayerPath();
 			break;
@@ -502,10 +509,14 @@ public class Unit : MonoBehaviour {
 		}
 		else {
 			movementTypes.Add(MovementType.Move);
-			if (moveDistLeft == maxMoveDist) movementTypes.Add(MovementType.BackStep);
+			if (canBackStep()) movementTypes.Add(MovementType.BackStep);
 		}
 		//	movementTypes.Add(MovementType.Cancel);
 		return movementTypes.ToArray();
+	}
+
+	public bool canBackStep() {
+		return moveDistLeft == maxMoveDist;
 	}
 	
 	public virtual bool hasTurret() {
@@ -756,14 +767,15 @@ public class Unit : MonoBehaviour {
 		minorsLeft--;
 		Debug.Log("Minors Used: " + minorsLeft);
 		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
+		if (isPerformingAnAction()) return;
 		if (!changeAtAll && minorsLeft > 0) return;
-		if (changeAnyway || minorsLeft <= 0)
+		if (changeAnyway || (minorsLeft <= 0 && GameGUI.selectedMinor))
 			chooseNextBestActionType();
 	}
 	
 	public void useStandard() {
 		usedStandard = true;
-		if (GameGUI.selectedStandard) {
+		if (GameGUI.selectedStandard && !isPerformingAnAction()) {
 			chooseNextBestActionType();
 		}
 		BattleGUI.hideStandardArm();
@@ -774,7 +786,7 @@ public class Unit : MonoBehaviour {
 		usedMovement = true;
 		currentMoveDist = 0;
 		moveDistLeft = 0;
-		if (GameGUI.selectedMovement) {
+		if (GameGUI.selectedMovement && !isPerformingAnAction()) {
 			chooseNextBestActionType();
 		}
 		BattleGUI.hideMovementArm();
@@ -841,7 +853,8 @@ public class Unit : MonoBehaviour {
 		currentMaxPath = currentPath.Count - 1;
 	}
 	
-	public List<Vector2> addPathTo(Vector2 pos) {
+	public List<Vector2> addPathTo(Vector2 pos, int moveDist = -1) {
+		if (moveDist == -1) moveDist = currentMoveDist;
 		int diff;
 		//	if (currentPath.Count > 0) {
 		Vector2 lastObj = currentPath[currentPath.Count-1];
@@ -862,7 +875,7 @@ public class Unit : MonoBehaviour {
 		//				currentPath.Add(v);
 		//			}
 		//		Debug.Log("AddPathTo: " + currentMoveDist + "  " + currentMaxPath);
-		currentPath = calculatePathSubtractive(new List<Vector2>(currentPath), pos, currentMoveDist - currentMaxPath);
+		currentPath = calculatePathSubtractive(new List<Vector2>(currentPath), pos, moveDist - currentMaxPath);
 		setPathCount();
 		//		}
 		return currentPath;
@@ -880,7 +893,7 @@ public class Unit : MonoBehaviour {
 	
 	List<Vector2> calculatePath(List<Vector2> currentPathFake, Vector2 posFrom,Vector2 posTo, List<Vector2> curr, int maxDist, bool first, int num = 0, Direction dirFrom = Direction.None, int minorsUsed = 0) {
 		//	Debug.Log(posFrom + "  " + posTo + "  " + maxDist);
-		if (minorsUsed > minorsLeft) return curr;
+		if (minorsUsed > minorsLeft - (GameGUI.selectedMinorType == MinorType.Escape ? 1 : 0)) return curr;
 		if (!first) {
 			//	if (!mapGenerator.canStandOn(posFrom.x, posFrom.y)) return curr;
 			if ((exists(currentPathFake, posFrom) || exists(curr, posFrom))) return curr;
@@ -1086,8 +1099,9 @@ public class Unit : MonoBehaviour {
 		return dist;
 	}
 	
-	public float distanceFromUnit(Unit u) {
-		return Mathf.Abs(u.position.x - position.x) + Mathf.Abs(u.position.y - position.y);
+	public float distanceFromUnit(Unit u, bool manhattan = true) {
+		if (manhattan) return Mathf.Abs(u.position.x - position.x) + Mathf.Abs(u.position.y - position.y);
+		return Mathf.Sqrt((u.position.x - position.x) * (u.position.x - position.x) + (u.position.y - position.y) * (u.position.y - position.y));
 	}
 	
 	public static float actionTime;
@@ -1946,7 +1960,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public bool isPerformingAnAction() {
-		return attackAnimating || attacking || throwing || moving || intimidating;
+		return attackAnimating || attacking || throwing || moving || intimidating || rotating || throwAnimating || intimidateAnimating;
 	}
 	
 	public bool hasWeapon() {
@@ -1968,7 +1982,11 @@ public class Unit : MonoBehaviour {
 			useMinor(false);
 		}
 	}
-	
+
+	public bool hasClassFeature(ClassFeature feature) {
+		return characterSheet.characterSheet.characterProgress.hasFeature(feature);
+	}
+
 	public bool hasMarkOn(Unit u) {
 		if (!characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Mark)) return false;
 		return markedUnits.Contains(u);
@@ -1987,7 +2005,7 @@ public class Unit : MonoBehaviour {
 	public void startInstillingParanoia() {
 		if (attackEnemy != null && !instillingParanoia) {
 			instillingParanoia = true;
-			if (mapGenerator.getCurrentUnit() == this)
+			if (mapGenerator.getCurrentUnit() == this && !moving)
 				mapGenerator.moveCameraToSelected(false, 90.0f);
 		}
 	}
@@ -1999,10 +2017,10 @@ public class Unit : MonoBehaviour {
 	
 	public void startAttacking(bool overClocked) {
 		overClockedAttack = overClocked;
-		if (attackEnemy!=null && !moving) {
+		if (attackEnemy!=null && !attacking) {
 			attacking = true;
-			if (mapGenerator.getCurrentUnit()==this)
-				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+			if (mapGenerator.getCurrentUnit()==this && !moving)
+				mapGenerator.moveCameraToSelected(false, 90.0f);
 		}
 	}
 	
@@ -2010,8 +2028,9 @@ public class Unit : MonoBehaviour {
 	public void startThrowing() {
 		if (attackEnemy != null && !throwing) {
 			throwing = true;
-			if (mapGenerator.getCurrentUnit()==this)
-				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+			if (mapGenerator.getCurrentUnit()==this && !moving)
+				mapGenerator.moveCameraToSelected(false, 90.0f);
+				//mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
 			//		if (this == mapGenerator.getCurrentUnit())
 			//			mapGenerator.resetRanges();
 		}
@@ -2021,8 +2040,8 @@ public class Unit : MonoBehaviour {
 	public void startIntimidating() {
 		if (attackEnemy != null && !intimidating) {
 			intimidating = true;
-			if (mapGenerator.getCurrentUnit()==this)
-				mapGenerator.moveCameraToPosition(transform.position, false, 90.0f);
+			if (mapGenerator.getCurrentUnit()==this && !moving)
+				mapGenerator.moveCameraToSelected(false, 90.0f);
 		}
 	}
 	
@@ -2080,7 +2099,7 @@ public class Unit : MonoBehaviour {
 			currentPath.RemoveAt(0);
 			moveDist = moveDist - dist;
 			currentMoveDist--;
-			if (GameGUI.selectedMovementType == MovementType.Move)
+			if (unitMovement == UnitMovement.Move)
 				moveDistLeft--;
 			currentMaxPath = currentPath.Count - 1;
 			mapGenerator.setCurrentUnitTile();
@@ -2094,7 +2113,7 @@ public class Unit : MonoBehaviour {
 			}
 			else {
 				//		Debug.Log("count less than 2");
-				if (attacking && attackEnemy) {
+				if ((attacking || intimidating || throwing || instillingParanoia) && attackEnemy) {
 					//			Debug.Log("Gonna set rotation");
 					//					setRotationFrom(position, attackEnemy.position)
 					setRotationToAttackEnemy();
@@ -2136,7 +2155,7 @@ public class Unit : MonoBehaviour {
 		mapGenerator.resetRanges();
 		mapGenerator.resetPlayerPath();
 		mapGenerator.setPlayerPath(currentPath);
-		mapGenerator.setAroundCharacter(this);
+	//	mapGenerator.setAroundCharacter(this);
 	}
 	
 	float sign(float num) {
@@ -2337,7 +2356,10 @@ public class Unit : MonoBehaviour {
 							becomeProne();
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
-							useMovement();
+							if (unitMovement ==  UnitMovement.BackStep || unitMovement == UnitMovement.Move)
+								useMovement();
+							else if (unitMovement == UnitMovement.Escape)
+								useMinor(false, false);
 							if (team == 0) needsOverlay = true;
 							//	if (team == 0) mapGenerator.setOverlay();
 							
@@ -2364,8 +2386,8 @@ public class Unit : MonoBehaviour {
 				currentPath = new List<Vector2>();
 				lastPath = new List<Vector2>();
 				currentPath.Add(new Vector2(position.x, -position.y));
-				if (GameGUI.selectedMovement) {
-					if (currentMoveDist == 0) useMovement();
+				if (unitMovement == UnitMovement.BackStep || unitMovement == UnitMovement.Move) {
+					if (currentMoveDist <= 0) useMovement();
 					else BattleGUI.resetMovementButtons();
 				}
 				if (!setRotationToMostInterestingTile()) {
@@ -2378,7 +2400,8 @@ public class Unit : MonoBehaviour {
 				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), getAttackRange(), true, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
 					GameGUI.selectStandardType(StandardType.Attack);
 				}
-				if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {
+			//	if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {
+				if (unitMovement == UnitMovement.Escape) {
 					useMinor();
 					//	minorsLeft--;
 					//	GameGUI.selectMinor(MinorType.None);
@@ -2415,13 +2438,9 @@ public class Unit : MonoBehaviour {
 	void doThrow() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (throwing && !moving && !attacking) {
-			throwAnimation();
 			throwAnimating = true;
 			throwing = false;
-			if (moveDistLeft < maxMoveDist) {
-				useMovement();
-			}
-			useStandard();
+			throwAnimation();
 		}
 	}
 	
@@ -2437,8 +2456,11 @@ public class Unit : MonoBehaviour {
 		attackEnemy.setRotationToCharacter(this);
 		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative(), this);
 		mapGenerator.resetAttack(this);
-		if (this == mapGenerator.getCurrentUnit())
-			mapGenerator.resetRanges();
+//		if (this == mapGenerator.getCurrentUnit())
+//			mapGenerator.resetRanges();
+		throwAnimating = false;
+		useStandard();
+		useMovementIfStarted();
 	}
 	
 	void setXYFromDirection(Direction dir, ref int x, ref int y) {
@@ -2538,21 +2560,23 @@ public class Unit : MonoBehaviour {
 	void doInstillParanoia() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (instillingParanoia && !moving && !rotating) {
-			instillParanoiaAnimation();
 			instillParanoiaAnimating = true;
 			instillingParanoia = false;
-			useMovementIfStarted();
-			useStandard();
+			instillParanoiaAnimation();
 			//			minorsLeft--;
 		}
 	}
 	
 	void instillParanoiaAnimation() {
 		instillParanoia(attackEnemy);
-		if (attackEnemy != null) {
+	/*	if (attackEnemy != null) {
 			if (attackEnemy.isTarget) attackEnemy.deselect();
 			attackEnemy = null;
-		}
+		}*/
+		instillParanoiaAnimating = false;
+		useMovementIfStarted();
+		useStandard();
+
 	}
 	
 	
@@ -2560,10 +2584,10 @@ public class Unit : MonoBehaviour {
 	void doInvoke() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (invoking && !moving && !rotating) {
-			invokeAnimation();
 			invokeAnimating = true;
 			invoking = false;
-			
+			invokeAnimation();
+
 		}
 	}
 	
@@ -2575,9 +2599,9 @@ public class Unit : MonoBehaviour {
 	void doIntimidate() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (intimidating && !moving && !rotating) {
-			intimidateAnimation();
 			intimidateAnimating = true;
 			intimidating = false;
+			intimidateAnimation();
 		}
 	}
 	
@@ -2616,6 +2640,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void resetIntimidate() {
+		intimidateAnimating = false;
 		useStandard();
 		useMovementIfStarted();
 		mapGenerator.resetAttack(this);
@@ -2642,10 +2667,14 @@ public class Unit : MonoBehaviour {
 				}
 				attackEnemy.setRotationToCharacter(this);
 			}
+			else {
+				resetIntimidate();
+			}
 		}
 	}
 	void resetInvoke() {
 		//	useMovementIfStarted();
+		invokeAnimating = false;
 		useMinor(false);
 		//			minorsLeft--;
 		invokeUsesLeft--;
@@ -2678,6 +2707,9 @@ public class Unit : MonoBehaviour {
 					resetInvoke();
 				}
 			}	
+			else {
+				resetInvoke();
+			}
 		}
 	}
 	
@@ -2865,6 +2897,7 @@ public class Unit : MonoBehaviour {
 	
 	public void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
+		Debug.Log("Deal Damage: " + attackEnemy);
 		Hit hit = Combat.rollHit(this);
 		int enemyAC = attackEnemy.getAC();
 		Hit critHit = Combat.rollHit(this);
@@ -2954,7 +2987,11 @@ public class Unit : MonoBehaviour {
 	public virtual void loseHealth(int amount) {
 		characterSheet.combatScores.loseHealth(amount);
 	}
-	
+
+	public virtual void gainHealth(int amount) {
+		characterSheet.combatScores.addHealth(amount);
+	}
+
 	public virtual bool givesDecisiveStrike() {
 		return true;
 	}
