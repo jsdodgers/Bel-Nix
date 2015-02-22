@@ -84,6 +84,7 @@ public class CCGUI : MonoBehaviour
 		pantsSprite.color = secondaryColor;
 		shoesSprite.color = secondaryColor;
 		setHairStyle(0);
+        setHairColor(hairColor);
 	}
 
 	public void setFirstName(Text firstName)
@@ -102,15 +103,17 @@ public class CCGUI : MonoBehaviour
 
 	public void setHairColor(GameObject newHairColor)
 	{
-		hairColor = createColor(newHairColor.GetComponent<Image>().color.r,
-		                        newHairColor.GetComponent<Image>().color.g,
-		                        newHairColor.GetComponent<Image>().color.b);
-		hairGameObject.GetComponent<SpriteRenderer>().color = hairColor;
-		for(int i = 0; i < hairTransform.childCount; i++)
-		{
-			hairTransform.GetChild(i).GetComponent<Image>().color = hairColor;
-		}
+        setHairColor(newHairColor.GetComponent<Image>().color);
 	}
+    private void setHairColor(Color newHairColor)
+    {
+        hairColor = newHairColor;
+        hairGameObject.GetComponent<SpriteRenderer>().color = hairColor;
+        for (int i = 0; i < hairTransform.childCount; i++)
+        {
+            hairTransform.GetChild(i).GetComponent<Image>().color = hairColor;
+        }
+    }
 
 	public void setHairType(int newHairStyle)
 	{
