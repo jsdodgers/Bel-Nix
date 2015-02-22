@@ -11,6 +11,9 @@ public class TileAction : IComparable {
 	public List<MovementType> movementTypes;
 	public Tile movementTile;
 	public Tile actualTile;
+	public int percentChance;
+	public bool hasChance;
+
 
 	public int value() {
 		if (standardTypes.Count > 0) {
@@ -36,14 +39,20 @@ public class TileAction : IComparable {
 		movementTypes = new List<MovementType>();
 	}
 
-	public TileAction(MovementType[] movements, StandardType[] standards, MinorType[] minors, Tile tile, Tile mTile = null) : this() {
+	public TileAction(MovementType[] movements, StandardType[] standards, MinorType[] minors, Tile tile, Tile mTile = null, int chance = -1) : this() {
 		if (movements != null) foreach (MovementType t in movements) addAction(t);
 		if (standards != null) foreach (StandardType t in standards) addAction(t);
 		if (minors != null) foreach (MinorType t in minors) addAction(t);
 		movementTile = mTile;
 		actualTile = tile;
+		setPercentChance(chance);
 	}
-	
+
+	public void setPercentChance(int chance) {
+		percentChance = chance;
+		hasChance = (chance >= 0 && chance <= 100);
+	}
+
 	public void addAction(MinorType t) {
 		minorTypes.Add(t);
 	}
@@ -91,6 +100,16 @@ public class TileAction : IComparable {
 			if (has) s += " & ";
 			s += "<color=#139423>" + Unit.getNameOfMinorType(minor) + "</color>";
 			has = true;
+		}
+		if (hasChance) {
+			if (minorTypes.Count > 0) {
+				s += "<color=#139423>";
+			}
+			else {
+				s += "<color=#941313>";
+			}
+			s += " (" + percentChance + "%)";
+			s += "</color>";
 		}
 		return s;
 	}
@@ -311,18 +330,18 @@ public class Tile {
 		bool canLoot = getItems().Count > 0 && u.mapGenerator.isWithinDistance(1.0f, new Vector2(u.position.x, -u.position.y), getPosition(), true);*/
 		List<TileAction> tileActions = new List<TileAction>();
 		if (canAttack) {
-			tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Attack}, null, this));
-			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.OverClock}, null, this));
+			tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Attack}, null, this, null, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
 		}
 		if (canBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, null, this, this));
 		if (canMove ) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, null, this, this));
 		if (canAttackAfterMove) {
-			tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.Attack}, null, this, moveAttackTile));
-			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.OverClock}, null, this, moveAttackTile));
+			tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.Attack}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.OverClock}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canAttackAfterBackStep) {
-			tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.Attack}, null, this, backstepAttackTile));
-			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.OverClock}, null, this, backstepAttackTile));
+			tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.Attack}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Loot}, this));
 		if (canEscape) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Escape}, this, this));
@@ -332,9 +351,9 @@ public class Tile {
 			if (canThrowAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.Throw}, null, this, moveAttackTile));
 		}
 		if (u.hasClassFeature(ClassFeature.Intimidate) && enemy) {
-			if (canThrow) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Intimidate}, null, this));
-			if (canThrowAfterBackStep)tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.Intimidate}, null, this, backstepAttackTile));
-			if (canThrowAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.Intimidate}, null, this, moveAttackTile));
+			if (canThrow) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Intimidate}, null, this, null, u.intimidateHitChance(getCharacter())));
+			if (canThrowAfterBackStep)tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.Intimidate}, null, this, backstepAttackTile, u.intimidateHitChance(getCharacter())));
+			if (canThrowAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.Intimidate}, null, this, moveAttackTile, u.intimidateHitChance(getCharacter())));
 		}
 		if (u.hasClassFeature(ClassFeature.Instill_Paranoia) && enemy && !u.usedStandard) {
 			if (canOrator) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.InstillParanoia}, null, this));
@@ -342,9 +361,9 @@ public class Tile {
 			if (canOratorAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.InstillParanoia}, null, this, moveOratorTile));
 		}
 		if (u.hasClassFeature(ClassFeature.Invoke) && enemy && u.invokeUsesLeft > 0) {
-			if (canOrator) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Invoke}, this));
-			if (canOratorAfterBackStep)tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Invoke}, this, backstepOratorTile));
-			if (canOratorAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {MinorType.Invoke}, this, moveOratorTile));
+			if (canOrator) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Invoke}, this, null, u.invokeHitChance(getCharacter())));
+			if (canOratorAfterBackStep)tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Invoke}, this, backstepOratorTile, u.invokeHitChance(getCharacter())));
+			if (canOratorAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {MinorType.Invoke}, this, moveOratorTile, u.invokeHitChance(getCharacter())));
 		}
 		if (canMark) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Mark}, this));
 		if (canStealth) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Stealth}, this));

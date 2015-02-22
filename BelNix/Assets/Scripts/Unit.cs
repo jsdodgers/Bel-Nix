@@ -2630,7 +2630,7 @@ public class Unit : MonoBehaviour {
 	public virtual bool raceIsFavoredRace(RaceName race) {
 		return race == characterSheet.characterSheet.characterProgress.getFavoredRace() && race != RaceName.None;
 	}
-	
+
 	public virtual int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
 		return characterSheet.rollForSkill(skill, favoredRace, dieType, dieRoll);
 	}
@@ -2894,6 +2894,24 @@ public class Unit : MonoBehaviour {
 		damageDisplay.begin(wapoon, didHit, crit, this);
 		
 	}
+
+
+	public int attackHitChance(Unit u) {
+		int chanceToHit = 5 * (20 + getMeleeScoreWithMods(u) - u.getAC());
+		return Mathf.Clamp(chanceToHit, 0, 100);
+	}
+
+	public int invokeHitChance(Unit u) {
+		int political = getSkill(Skill.Political) + (unitIsFavoredRace(u) ? 1 : 0);
+		int wellV = 10 + u.characterSheet.characterSheet.combatScores.getWellVersedMod();
+		return Mathf.Clamp(5 * (20 + political - wellV), 0, 100);
+	}
+
+	public int intimidateHitChance(Unit u) {
+		int sturdy = getSkill(Skill.Melee) + (unitIsFavoredRace(u) ? 1 : 0);
+		int wellV = 10 + u.characterSheet.characterSheet.combatScores.getWellVersedMod();
+		return Mathf.Clamp(5 * (20 + sturdy - wellV), 0, 100);
+	}
 	
 	public void dealDamage() {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
@@ -2913,7 +2931,6 @@ public class Unit : MonoBehaviour {
 			Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
 			if (w is ItemMechanical) {
 				((WeaponMechanical)w).overClocked = true;
-				GameGUI.selectedStandardType = StandardType.None;
 			}
 		}
 		if (!attackEnemy.moving) {
