@@ -30,6 +30,10 @@ public class CCGUI : MonoBehaviour
 	SpriteRenderer pantsSprite;
 	SpriteRenderer shoesSprite;
 	SpriteRenderer hairSprite;
+    Image paperdollHair;
+    Image paperdollSkin;
+    Image paperdollPrimary;
+    Image paperdollSecondary;
 	GameObject hairGameObject;
 	GUIStyle[] hairTextures;
 	int hairStyle = 0;
@@ -72,6 +76,10 @@ public class CCGUI : MonoBehaviour
 		shirtSprite = GameObject.Find("Shirt").GetComponent<SpriteRenderer>();
 		pantsSprite = GameObject.Find("Pants").GetComponent<SpriteRenderer>();
 		shoesSprite = GameObject.Find("Shoes").GetComponent<SpriteRenderer>();
+        paperdollHair = GameObject.Find("Image - Male Hair").GetComponent<Image>(); ;
+        paperdollSkin = GameObject.Find("Image - Male Skin").GetComponent<Image>(); ;
+        paperdollPrimary = GameObject.Find("Image - Male Primary").GetComponent<Image>(); ;
+        paperdollSecondary = GameObject.Find("Image - Male Secondary").GetComponent<Image>(); ;
 
 		hairColor = createColor(100/255.0f, 73/255.0f, 41/255.0f);
 		berrindColor = createColor(246/255.0f, 197/255.0f, 197/255.0f);
@@ -113,6 +121,7 @@ public class CCGUI : MonoBehaviour
         {
             hairTransform.GetChild(i).GetComponent<Image>().color = hairColor;
         }
+        paperdollHair.color = newHairColor;
     }
 
 	public void setHairType(int newHairStyle)
@@ -140,7 +149,7 @@ public class CCGUI : MonoBehaviour
 		berrindColor = createColor(newSkinColor.GetComponent<Image>().color.r,
 		                           newSkinColor.GetComponent<Image>().color.g,
 		                           newSkinColor.GetComponent<Image>().color.b);
-		characterSprite.color = berrindColor;
+        setSkinColor(berrindColor);
 	}
 
 	public void setAshpianSkinColor(GameObject newSkinColor)
@@ -148,7 +157,7 @@ public class CCGUI : MonoBehaviour
 		ashpianColor = createColor(newSkinColor.GetComponent<Image>().color.r,
 		                           newSkinColor.GetComponent<Image>().color.g,
 		                           newSkinColor.GetComponent<Image>().color.b);
-		characterSprite.color = ashpianColor;
+        setSkinColor(ashpianColor);
 	}
 
 	public void setRorrulSkinColor(GameObject newSkinColor)
@@ -156,8 +165,13 @@ public class CCGUI : MonoBehaviour
 		rorrulColor = createColor(newSkinColor.GetComponent<Image>().color.r,
 		                          newSkinColor.GetComponent<Image>().color.g,
 		                          newSkinColor.GetComponent<Image>().color.b);
-		characterSprite.color = rorrulColor;
+        setSkinColor(rorrulColor);
 	}
+    private void setSkinColor(Color skinColor)
+    {
+        characterSprite.color = skinColor;
+        paperdollSkin.color = skinColor;
+    }
 
 	public void setPrimaryColor(GameObject newPrimaryColor)
 	{
@@ -167,6 +181,7 @@ public class CCGUI : MonoBehaviour
 			                           newPrimaryColor.GetComponent<Image>().color.g,
 			                           newPrimaryColor.GetComponent<Image>().color.b);
 			shirtSprite.color = primaryColor;
+            paperdollPrimary.color = primaryColor;
 		}
 		else
 		{
@@ -175,6 +190,7 @@ public class CCGUI : MonoBehaviour
 			                           newPrimaryColor.GetComponent<Image>().color.b);
 			pantsSprite.color = secondaryColor;
 			shoesSprite.color = secondaryColor;
+            paperdollSecondary.color = secondaryColor;
 		}
 	}
 
