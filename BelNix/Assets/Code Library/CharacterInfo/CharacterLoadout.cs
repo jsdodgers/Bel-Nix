@@ -65,6 +65,7 @@ public class CharacterLoadoutActual {
 	}
 
 	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
+		if (itemSlot == InventorySlot.None) return;
 		removeSprite(getItemInSlot(itemSlot));
 		if (item.spritePrefab != null) {
 			if (colors==null) colors = character.characterSheet.characterColors;

@@ -576,8 +576,8 @@ public class BattleGUI : MonoBehaviour {
 		setTemperedHandsStuff();
 	}
 	public void setTemperedHandsStuff() {
-		plus.interactable = GameGUI.temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
-		minus.interactable = GameGUI.temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+		plus.interactable = GameGUI.temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.characterSheet.combatScores.getTechniqueMod();
+		minus.interactable = GameGUI.temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.characterSheet.combatScores.getTechniqueMod();
 		temperedHandsHitText.text = "" + (-GameGUI.temperedHandsMod);
 		temperedHandsDamageText.text = "" + (GameGUI.temperedHandsMod);
 	}
@@ -946,8 +946,7 @@ public class BattleGUI : MonoBehaviour {
         //Debug.Log(mapGenerator.getCurrentUnit().characterSheet.personalInfo.getCharacterName().fullName());
         for (int i = 0; i < turnOrderPanel.transform.childCount; i++)
         {
-            if (turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text
-            != mapGenerator.getCurrentUnit().characterSheet.personalInfo.getCharacterName().fullName())
+            if (turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text != mapGenerator.getCurrentUnit().characterSheet.characterSheet.personalInformation.getCharacterName().fullName())
             {
                 cycleTurnOrder();
 
@@ -978,7 +977,7 @@ public class BattleGUI : MonoBehaviour {
             // Set turn order number (the box on the left) based on their position in the list of activated units
             turnOrderEntry.transform.GetChild(0).transform.GetChild(0).GetComponent<Text>().text = (activatedCharacters.IndexOf(unit) + 1).ToString();
             // Set the name (the box on the right) to the unit's full name
-            turnOrderEntry.transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text = unit.characterSheet.personalInfo.getCharacterName().fullName();
+			turnOrderEntry.transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text = unit.characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
             if (unit.deadOrDyingOrUnconscious())
                 turnOrderEntry.GetComponent<CanvasGroup>().alpha = 0.5f;
             else

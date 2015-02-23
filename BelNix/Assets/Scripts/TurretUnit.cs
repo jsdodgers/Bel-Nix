@@ -74,7 +74,7 @@ public class TurretUnit : MechanicalUnit {
 	}
 	
 	public override int rollDamage(bool crit) {
-		return turret.rollDamage() + (owner.characterSheet.characterProgress.hasFeature(ClassFeature.Metallic_Affinity) && owner.characterSheet.characterId == turret.creatorId ? 1 : 0);
+		return turret.rollDamage() + (owner.characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Metallic_Affinity) && owner.characterSheet.characterId == turret.creatorId ? 1 : 0);
 	}
 
 	

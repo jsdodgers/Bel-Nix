@@ -12,12 +12,12 @@ public struct Hit {
 
 public class Character
 {
-	public PersonalInformation personalInfo;
-	public CharacterProgress characterProgress;
-	public AbilityScores abilityScores;
-	public CombatScores combatScores;
-	public CharacterLoadout characterLoadout;
-	public SkillScores skillScores;
+	private PersonalInformation personalInfo;
+	private CharacterProgress characterProgress;
+	private AbilityScores abilityScores;
+	private CombatScores combatScores;
+	private CharacterLoadout characterLoadout;
+	private SkillScores skillScores;
 	public CharacterSheet characterSheet;
 	public Unit unit;
 	public string characterId;
@@ -34,6 +34,10 @@ public class Character
 		//int flankY = (pY == eY ? pY : eY - (pY - eY));
 		//return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
 	//}
+
+	public void setCharacterLoadout(CharacterLoadout cl) {
+		characterLoadout = cl;
+	}
 
 	public List<SpriteOrder> getSprites() {
 		return characterSheet.characterLoadout.sprites;
@@ -224,26 +228,89 @@ public class Character
 		combatScores.setComposure(composure);
 		characterProgress.getCharacterClass().chosenFeatures = features;
 		characterProgress.setWeaponFocus(focus);
+		Inventory inv = characterSheet.inventory;
 		for (int n=0;n<numItems;n++) {
 			int slot = int.Parse(components[curr++]);
 			ItemCode code = (ItemCode)int.Parse(components[curr++]);
 			string itemData = components[curr++];
 			Debug.Log(slot + ": " + code + "\n" + itemData);
 			Item i = Item.deserializeItem(code, itemData);
-			Inventory inv = characterSheet.inventory;
-			if (inv.inventory[slot].item!=null) {
-				if(inv.itemCanStackWith(inv.inventory[slot].item, i)) {
-					inv.inventory[slot].item.addToStack(i);
+			if (slot < 100) {
+				if (inv.inventory[slot].item!=null) {
+					if(inv.itemCanStackWith(inv.inventory[slot].item, i)) {
+						inv.inventory[slot].item.addToStack(i);
+					}
+				}
+				else if (inv.canInsertItemInSlot(i, inv.getSlotForIndex(slot))) {
+					inv.insertItemInSlot(i, inv.getSlotForIndex(slot));
 				}
 			}
-			else if (inv.canInsertItemInSlot(i, inv.getSlotForIndex(slot))) {
-				inv.insertItemInSlot(i, inv.getSlotForIndex(slot));
+			else {
+				characterSheet.characterLoadout.setItemInSlot(getArmorSlot(slot), i);
 			}
 				//Inventory stuff
 		}
+		//Right Weapon = 100;
+		//Left Weapon = 110;
+		//Head = 120;
+		//Shoulder = 130;
+		//Chest = 140;
+		//Legs = 150;
+		//Boots = 160;
+		//Gloves = 170;
 		if (curr < components.Length-1)
 			characterProgress.setFavoredRace(int.Parse(components[curr++]));
 
+	}
+
+	InventorySlot getArmorSlot(int i) {
+		switch (i) {
+		case 100:
+			return InventorySlot.RightHand;
+		case 110:
+			return InventorySlot.LeftHand;
+		case 120:
+			return InventorySlot.Head;
+		case 130:
+			return InventorySlot.Shoulder;
+		case 140:
+			return InventorySlot.Chest;
+		case 150:
+			return InventorySlot.Pants;
+		case 160:
+			return InventorySlot.Boots;
+		case 170:
+			return InventorySlot.Glove;
+		case 180:
+			return InventorySlot.Back;
+		default:
+			return InventorySlot.None;
+		}
+	}
+
+	int getArmorSlotIndex (InventorySlot i) {
+		switch (i) {
+		case InventorySlot.RightHand:
+			return 100;
+		case InventorySlot.LeftHand:
+			return 110;
+		case InventorySlot.Head:
+			return 120;
+		case InventorySlot.Shoulder:
+			return 130;
+		case InventorySlot.Chest:
+			return 140;
+		case InventorySlot.Pants:
+			return 150;
+		case InventorySlot.Boots:
+			return 160;
+		case InventorySlot.Glove:
+			return 170;
+		case InventorySlot.Back:
+			return 180;
+		default:
+			return 200;
+		}
 	}
 
 	
@@ -316,6 +383,15 @@ public class Character
 						inventoryString += i.getItemData() + delimiter;
 					}
 				}
+			}
+		}
+		foreach (InventorySlot slot in UnitGUI.armorSlots) {
+			Item i = characterSheet.characterLoadout.getItemInSlot(slot);
+			if (i != null) {
+				inventorySize++;
+				inventoryString += getArmorSlotIndex(slot) + delimiter;
+				inventoryString += i.getItemCode() + delimiter;
+				inventoryString += i.getItemData() + delimiter;
 			}
 		}
 		characterStr += inventorySize + delimiter + inventoryString;

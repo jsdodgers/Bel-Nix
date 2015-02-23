@@ -14,7 +14,6 @@ public class TileAction : IComparable {
 	public int percentChance;
 	public bool hasChance;
 
-
 	public int value() {
 		if (standardTypes.Count > 0) {
 			if (movementTypes.Count > 0) {
@@ -67,6 +66,14 @@ public class TileAction : IComparable {
 
 	public bool hasMovement() {
 		return movementTile != null;
+	}
+
+	public bool hasTrap() {
+		return standardTypes.Contains(StandardType.Lay_Trap);
+	}
+
+	public bool hasTurret() {
+		return standardTypes.Contains(StandardType.Place_Turret);
 	}
 
 	public int getMovementLength() {
@@ -196,6 +203,8 @@ public class Tile {
 		bool canOneOfMany = false;
 		bool canRecover = false;
 		bool canExamine = false;
+		bool canTrap = false;
+		bool canTurret = false;
 		u.mapGenerator.removeAllRanges(false);
 		HashSet<Tile> movements = (u.usedMovement || u.isProne() ? new HashSet<Tile>() : u.mapGenerator.setCharacterCanStand((int)u.position.x, (int)-u.position.y, u.moveDistLeft, 0, u.getAttackRange(), u, false));
 		canMove = canStandCurr && stand;
@@ -262,6 +271,13 @@ public class Tile {
 					}
 				}
 			}
+			if (u.hasTrap() && !hasCharacter() && u.hasLineOfSightToTile(this, null, 1, true)) {
+				canTrap = true;
+			}
+			if (u.hasTurret() && !hasCharacter() && u.hasLineOfSightToTile(this, null, 1, true)) {
+				canTurret = true;
+			}
+
 		}
 		if (u.minorsLeft > 0) {
 			if (u.hasClassFeature(ClassFeature.Mark)) {
@@ -371,6 +387,8 @@ public class Tile {
 	//	if (canTemperedHands) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.TemperedHands}, this));
 		if (canRecover) tileActions.Add(new TileAction(new MovementType[] {MovementType.Recover}, null, null, this));
 		if (canExamine) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Examine}, this));
+//		if (canTurret) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Place_Turret}, null, this));
+//		if (canTrap) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Lay_Trap}, null, this));
 		tileActions.Sort();
 		return tileActions;
 	}
@@ -432,7 +450,7 @@ public class Tile {
 
 	public Tile() {
 		items = new List<Item>();
-		for (int n=0;n<14;n++) {
+	/*	for (int n=0;n<14;n++) {
 			if (UnityEngine.Random.Range(0, 3)==1) {
 				Item i;
 				switch (n%7) {
@@ -460,7 +478,7 @@ public class Tile {
 				}
 				addItem(i);
 			}
-		}
+		}*/
 	//	player = null;
 	//	enemy = null;
 		character = null;

@@ -10,6 +10,7 @@ public class RightClickButton : MonoBehaviour {
 	int maxPath = 0;
 	Tile keysTile;
 	public bool mouseOver;
+	public TrapUnit trap;
 
 	// Use this for initialization
 	void Start () {
@@ -32,6 +33,27 @@ public class RightClickButton : MonoBehaviour {
 			mg.setPlayerPath(mg.getCurrentUnit().currentPath);
 			mg.getCurrentUnit().setPathCount();
 		}
+	/*	if (action.hasTrap()) {
+			GameObject g = Instantiate(mg.trapPrefab) as GameObject;
+			g.renderer.sortingOrder = MapGenerator.trapOrder;
+			g.transform.parent = traps.transform;
+			trap = g.GetComponent<TrapUnit>();
+			trap.owner = mg.getCurrentUnit();
+			trap.trap = GameGUI.selectedTrap;
+			if (currentlySelectedTrap != null)
+				currentlySelectedTrap.unsetSelectedForPlacement();
+			currentlySelectedTrap = tu;
+			tu.setSelectedForPlacement();
+			tu.mapGenerator = this;
+			tu.team = getCurrentUnit().team;
+			tu.fullTrap = currentTrap;
+			currentTrap.Add(tu);
+			t.setTrap(tu);
+			Vector2 v = t.getPosition();
+			v.y *= -1;
+			tu.setPosition(new Vector3(v.x, v.y, 0.0f));
+			resetRanges(false);
+		}*/
 	}
 
 	public void mouseExit() {

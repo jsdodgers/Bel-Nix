@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 
 public enum ItemType {Weapon = 0, Armor, Useable, Ammunition, Mechanical, Misc}
 public enum ItemStackType {Applicator = 0, Gear, Frame, EnergySource, Trigger, Turret, None}
@@ -30,6 +31,7 @@ public class Item {
 	public Texture inventoryTexture;
 	public List<Item> stack;
 	public int layerAdd;
+	public string spritePrefabString;
 	public GameObject spritePrefab;
 	public GameObject sprite;
 	public const string delimiter = ",";
@@ -85,7 +87,13 @@ public class Item {
 		silver = (money/100)%100;
 		copper = money%100;
 		isKeyItem = int.Parse(split[3])==1;
-		inventoryTextureName = split[4];
+		string[] textures = split[4].Split(textureDelim.ToCharArray());
+		inventoryTextureName = (textures.Length > 0 ? textures[0] : "");
+		string s = (textures.Length > 1 ? textures[1] : "");
+		spritePrefabString = s;
+		if (s != "" && s != null) {
+			spritePrefab = Resources.Load<GameObject>(s);
+		}
 		if (inventoryTextureName != "")
 			inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
 		layerAdd = int.Parse(split[5]);
@@ -97,13 +105,16 @@ public class Item {
 	public virtual string getItemData() {
 		return getItemData(delimiter);
 	}
-
+	public string textureDelim = "@";
 	public virtual string getItemData(string delim) {
+
+
 		return (int)itemStackType + delim +
 			itemName + delim +
 				(gold * 10000 + silver*100 + copper) + delim +
 				(isKeyItem ? 1 : 0) + delim +
-				(inventoryTextureName == null ? "" : inventoryTextureName) + delim +
+				(inventoryTextureName == null ? "" : inventoryTextureName) +
+				(spritePrefabString!= null && spritePrefabString!="" ? textureDelim + spritePrefabString : "") + delim +
 				layerAdd;
 	}
 	public virtual Vector2[] getShape() {
@@ -119,6 +130,11 @@ public class Item {
 		this.inventoryTexture = inventoryTexture;
 		this.spritePrefab = spritePrefab;
 		this.layerAdd = layerAdd;
+		string s = AssetDatabase.GetAssetPath(spritePrefab);
+		if (s != null && s.Length >= 17) {
+			s = s.Substring(17, s.Length - 17 - 7);
+		}
+		spritePrefabString = s;
 	}
 	public Vector2 getSize() {
 		int maxWidth = 1;

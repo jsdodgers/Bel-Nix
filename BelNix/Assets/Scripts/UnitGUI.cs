@@ -566,11 +566,11 @@ public class UnitGUI {
 		y = kRect.y + 370.0f;
 		x = 10.0f;
 		GUIStyle statsStyle = getCourierStyle(18);
-		string info = "L" + sizeString12 + "EVEL" + sizeEnd + ":" + sizeString14 + characterSheet.characterProgress.getCharacterLevel() + sizeEnd +
-			"\n" + "E" + sizeString12 + "XPERIENCE" + sizeEnd + ":" + sizeString14 + characterSheet.characterProgress.getCharacterExperience() + "/" + (characterSheet.characterProgress.getCharacterLevel()*100) + sizeEnd +
-				"\n" + getSmallCapsString(characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 12) +
-				"\n" + getSmallCapsString(characterSheet.personalInfo.getCharacterRace().getRaceString(), 12) +
-				"\n" + getSmallCapsString(characterSheet.personalInfo.getCharacterBackground().ToString(), 12);
+		string info = "L" + sizeString12 + "EVEL" + sizeEnd + ":" + sizeString14 + characterSheet.characterSheet.characterProgress.getCharacterLevel() + sizeEnd +
+			"\n" + "E" + sizeString12 + "XPERIENCE" + sizeEnd + ":" + sizeString14 + characterSheet.characterSheet.characterProgress.getCharacterExperience() + "/" + (characterSheet.characterSheet.characterProgress.getCharacterLevel()*100) + sizeEnd +
+				"\n" + getSmallCapsString(characterSheet.characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 12) +
+				"\n" + getSmallCapsString(characterSheet.characterSheet.personalInformation.getCharacterRace().getRaceString(), 12) +
+				"\n" + getSmallCapsString(characterSheet.characterSheet.personalInformation.getCharacterBackground().ToString(), 12);
 		GUIContent infoContent = new GUIContent(info);
 		Vector2 infoSize = statsStyle.CalcSize(infoContent);
 		GUI.Label(new Rect(x, y, infoSize.x, infoSize.y), infoContent, statsStyle);
@@ -619,10 +619,10 @@ public class UnitGUI {
 		GUI.Label(new Rect(x, y, typesSize.x, typesSize.y), typesContent, statsStyle);
 		x += typesSize.x + 20.0f;
 		
-		string statsString = "S" + sizeString + "TURDY" + sizeEnd + "\n" + characterSheet.abilityScores.getSturdy() + " (<size=13>MOD:" + characterSheet.combatScores.getInitiative() + "</size>)" +
-			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.abilityScores.getPerception(0) + " (<size=13>MOD:" + characterSheet.combatScores.getCritical(false) + "</size>)" +
-				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + characterSheet.abilityScores.getTechnique() + " (<size=13>MOD:" + characterSheet.combatScores.getHandling() + "</size>)" +
-				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.combatScores.getDominion() + "</size>)";
+		string statsString = "S" + sizeString + "TURDY" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getSturdy() + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getInitiative() + "</size>)" +
+			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getPerception(0) + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getCritical(false) + "</size>)" +
+				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getTechnique() + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getHandling() + "</size>)" +
+				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getDominion() + "</size>)";
 		GUIContent statsContent = new GUIContent(statsString);
 		Vector2 statsSize = statsStyle.CalcSize(statsContent);
 		GUI.Label(new Rect(x, y, statsSize.x, statsSize.y), statsContent, statsStyle);
@@ -635,10 +635,10 @@ public class UnitGUI {
 		GUIContent skillNamesContent = new GUIContent(skillNamesString);
 		Vector2 skillNamesSize = statsStyle.CalcSize(skillNamesContent);
 		GUI.Label(new Rect(x, y, skillNamesSize.x, skillNamesSize.y), skillNamesContent, statsStyle);
-		string skillStatsString = characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.skillScores.getScore(Skill.Melee) + divString +
-			characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.skillScores.getScore(Skill.Stealth) + divString +
-				characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
-				characterSheet.skillScores.getScore(Skill.Historical)  + "\n" + characterSheet.skillScores.getScore(Skill.Political);
+		string skillStatsString = characterSheet.characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Melee) + divString +
+			characterSheet.characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Stealth) + divString +
+				characterSheet.characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
+				characterSheet.characterSheet.skillScores.getScore(Skill.Historical)  + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Political);
 		GUIContent skillStatsContent = new GUIContent(skillStatsString);
 		Vector2 skillStatsSize = statsStyle.CalcSize(skillStatsContent);
 		x += skillNamesSize.x + 10.0f;
@@ -652,12 +652,12 @@ public class UnitGUI {
 		
 		float tabButtonsY = 0.0f;
 		string playerText = "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
-		string playerName = characterSheet.personalInfo.getCharacterName().fullName();
+		string playerName = characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
 		playerText += getSmallCapsString(playerName, 13);
 		
 		playerText += "\"\n";
-		playerText += "H<size=13>EALTH</size>:\n" + characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.combatScores.getMaxHealth() + "\n";
-		playerText += "C<size=13>OMPOSURE</size>:\n" + characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.combatScores.getMaxComposure() + "\n";
+		playerText += "H<size=13>EALTH</size>:\n" + characterSheet.characterSheet.combatScores.getCurrentHealth() + "/" + characterSheet.characterSheet.combatScores.getMaxHealth() + "\n";
+		playerText += "C<size=13>OMPOSURE</size>:\n" + characterSheet.characterSheet.combatScores.getCurrentComposure() + "/" + characterSheet.characterSheet.combatScores.getMaxComposure() + "\n";
 		
 		GUIContent playerContent = new GUIContent(playerText);
 		Texture[] textures = getPaperDollTexturesHead(characterSheet);

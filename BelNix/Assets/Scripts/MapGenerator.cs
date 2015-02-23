@@ -82,7 +82,7 @@ public class MapGenerator : MonoBehaviour {
 	GameObject arrowPointPrefab;
 	GameObject playerPrefab;
 	GameObject turretPrefab;
-	GameObject trapPrefab;
+	public GameObject trapPrefab;
 	GameObject enemyPrefab;
 	GameObject warningRedPrefab;
 	GameObject warningYellowPrefab;
@@ -694,7 +694,7 @@ public class MapGenerator : MonoBehaviour {
         }
         int individualExpReward = Mathf.FloorToInt( experienceReward / livingPlayers.Count );
         foreach (Unit u in livingPlayers) {
-            u.characterSheet.characterProgress.addExperience(individualExpReward);
+			u.characterSheet.characterSheet.characterProgress.addExperience(individualExpReward);
 			if (u != mainCharacter)
 				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
 		}

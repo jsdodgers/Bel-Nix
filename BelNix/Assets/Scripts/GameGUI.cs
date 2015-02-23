@@ -1376,7 +1376,7 @@ public class GameGUI : MonoBehaviour {
 						selectUnit(player);
 					}
 
-					name = new GUIContent(player.characterSheet.personalInfo.getCharacterName().fullName());
+					name = new GUIContent(player.characterSheet.characterSheet.personalInformation.getCharacterName().fullName());
 					nameSize = st.CalcSize(name);
 					GUI.Label(new Rect(x + 3.0f, y + (turnOrderSectionHeight - nameSize.y)/2.0f, Mathf.Min(nameSize.x, turnOrderNameWidth - 4.0f), nameSize.y), name, getPlayerInfoStyle());
 					x += turnOrderNameWidth - 1.0f;
@@ -1404,9 +1404,9 @@ public class GameGUI : MonoBehaviour {
 				Vector2 arrowSize = new Vector2(20.0f, 20.0f);
 				float ins = 20.0f;
 				float arrowsY = r.y + 30.0f;
-				GUI.enabled = temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+				GUI.enabled = temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.characterSheet.combatScores.getTechniqueMod();
 				if (GUI.Button(new Rect(r.x + ins, arrowsY, arrowSize.x, arrowSize.y), "<")) temperedHandsMod--;
-				GUI.enabled = temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.combatScores.getTechniqueMod();
+				GUI.enabled = temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.characterSheet.combatScores.getTechniqueMod();
 				if (GUI.Button(new Rect(r.x + r.width - arrowSize.x - ins, arrowsY, arrowSize.x, arrowSize.y), ">")) temperedHandsMod++;
 				GUI.enabled = true;
 				float eachWidth = r.width/2.0f - arrowSize.x - ins;

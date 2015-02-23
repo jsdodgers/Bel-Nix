@@ -126,7 +126,7 @@ public class Unit : MonoBehaviour {
 		case OneOfManyMode.Hit:
 		case OneOfManyMode.Damage:
 		case OneOfManyMode.AC:
-			return characterSheet.combatScores.getWellVersedMod();
+			return characterSheet.characterSheet.combatScores.getWellVersedMod();
 		case OneOfManyMode.Movement:
 			return 1;
 		default:
@@ -141,13 +141,13 @@ public class Unit : MonoBehaviour {
 	
 	public int sneakAttackBonus(Unit u) {
 		if (!hasCombatAdvantageOver(u) || !characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Sneak_Attack)) return 0;
-		int perception = characterSheet.abilityScores.getPerception((hasMarkOn(u) ? 2 : 0));
+		int perception = characterSheet.characterSheet.abilityScores.getPerception((hasMarkOn(u) ? 2 : 0));
 		if (distanceFromUnit(u) <= 1.5f) return perception;
 		return perception/2;
 	}
 	
 	public int getBasePerception() {
-		return characterSheet.combatScores.getPerceptionMod(false);
+		return characterSheet.characterSheet.combatScores.getPerceptionMod(false);
 	}
 	
 	public bool hasCombatAdvantageOver(Unit u) {
@@ -199,11 +199,11 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public string getCharacterInfoString() {
-		return UnitGUI.getSmallCapsString("Level",12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterLevel() + "", 14) +
-			"\n" + UnitGUI.getSmallCapsString("Experience", 12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterExperience() + "/" + (characterSheet.characterProgress.getCharacterLevel()*100), 14) +
-				"\n" + UnitGUI.getSmallCapsString(characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 12) +
-				"\n" + UnitGUI.getSmallCapsString(characterSheet.personalInfo.getCharacterRace().getRaceString(), 12) +
-				"\n" + UnitGUI.getSmallCapsString(characterSheet.personalInfo.getCharacterBackground().ToString(), 12);
+		return UnitGUI.getSmallCapsString("Level",12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterSheet.characterProgress.getCharacterLevel() + "", 14) +
+			"\n" + UnitGUI.getSmallCapsString("Experience", 12) + ":" + UnitGUI.getSmallCapsString(characterSheet.characterSheet.characterProgress.getCharacterExperience() + "/" + (characterSheet.characterSheet.characterProgress.getCharacterLevel()*100), 14) +
+				"\n" + UnitGUI.getSmallCapsString(characterSheet.characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 12) +
+				"\n" + UnitGUI.getSmallCapsString(characterSheet.characterSheet.personalInformation.getCharacterRace().getRaceString(), 12) +
+				"\n" + UnitGUI.getSmallCapsString(characterSheet.characterSheet.personalInformation.getCharacterBackground().ToString(), 12);
 		
 	}
 	
@@ -226,10 +226,10 @@ public class Unit : MonoBehaviour {
 		string sizeEnd = "</size>";
 		string divString = "<size=6>\n\n</size>";
 		
-		return "S" + sizeString + "TURDY" + sizeEnd + "\n" + characterSheet.abilityScores.getSturdy() + " (<size=13>MOD:" + characterSheet.combatScores.getInitiative() + "</size>)" +
-			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.abilityScores.getPerception(0) + " (<size=13>MOD:" + characterSheet.combatScores.getCritical(false) + "</size>)" +
-				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + characterSheet.abilityScores.getTechnique() + " (<size=13>MOD:" + characterSheet.combatScores.getHandling() + "</size>)" +
-				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.combatScores.getDominion() + "</size>)";
+		return "S" + sizeString + "TURDY" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getSturdy() + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getInitiative() + "</size>)" +
+			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getPerception(0) + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getCritical(false) + "</size>)" +
+				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getTechnique() + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getHandling() + "</size>)" +
+				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + characterSheet.characterSheet.abilityScores.getWellVersed() + " (<size=13>MOD:" + characterSheet.characterSheet.combatScores.getDominion() + "</size>)";
 	}
 	
 	public string getCharacterStatsString3()
@@ -248,10 +248,10 @@ public class Unit : MonoBehaviour {
 	{
 		string divString = "<size=6>\n\n</size>";
 		
-		return characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.skillScores.getScore(Skill.Melee) + divString +
-			characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.skillScores.getScore(Skill.Stealth) + divString +
-				characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
-				characterSheet.skillScores.getScore(Skill.Historical)  + "\n" + characterSheet.skillScores.getScore(Skill.Political);
+		return characterSheet.characterSheet.skillScores.getScore(Skill.Athletics) + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Melee) + divString +
+			characterSheet.characterSheet.skillScores.getScore(Skill.Ranged) + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Stealth) + divString +
+				characterSheet.characterSheet.skillScores.getScore(Skill.Mechanical)  + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Medicinal) + divString +
+				characterSheet.characterSheet.skillScores.getScore(Skill.Historical)  + "\n" + characterSheet.characterSheet.skillScores.getScore(Skill.Political);
 		
 	}
 	
@@ -264,19 +264,19 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual int getCurrentHealth() {
-		return characterSheet.combatScores.getCurrentHealth();
+		return characterSheet.characterSheet.combatScores.getCurrentHealth();
 	}
 	
 	public virtual int getMaxHealth() {
-		return characterSheet.combatScores.getMaxHealth();
+		return characterSheet.characterSheet.combatScores.getMaxHealth();
 	}
 	
 	public virtual int getCurrentComposure() {
-		return characterSheet.combatScores.getCurrentComposure();
+		return characterSheet.characterSheet.combatScores.getCurrentComposure();
 	}
 	
 	public virtual int getMaxComposure() {
-		return characterSheet.combatScores.getMaxComposure();
+		return characterSheet.characterSheet.combatScores.getMaxComposure();
 	}
 	
 	public string getAtAGlanceString()  {
@@ -530,7 +530,7 @@ public class Unit : MonoBehaviour {
 	public StandardType[] getStandardTypes() {
 		List<StandardType> standardTypes = new List<StandardType>();
 		standardTypes.Add(StandardType.Attack);
-		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
+		ClassFeature[] features = characterSheet.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			StandardType st = getStandardType(feature);
 			if (st != StandardType.None)
@@ -546,7 +546,7 @@ public class Unit : MonoBehaviour {
 		List<MinorType> minorTypes = new List<MinorType>();
 		//	minorTypes.Add(MinorType.Loot);
 		minorTypes.Add(MinorType.Stealth);
-		ClassFeature[] features = characterSheet.characterProgress.getClassFeatures();
+		ClassFeature[] features = characterSheet.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			MinorType mt = getMinorType(feature);
 			if (mt != MinorType.None)
@@ -753,12 +753,12 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void rollInitiative() {
-		initiative = Random.Range(1,21) + characterSheet.combatScores.getInitiative();
+		initiative = Random.Range(1,21) + characterSheet.characterSheet.combatScores.getInitiative();
 	}
 	
 	public void rollStealth() {
 		int roll = Random.Range(1, 11);
-		stealth = roll + characterSheet.skillScores.getScore(Skill.Stealth);
+		stealth = roll + characterSheet.characterSheet.skillScores.getScore(Skill.Stealth);
 		BattleGUI.writeToConsole(getName() + " rolled a " + stealth + "(" + roll + " + " + (stealth-roll) + ") for stealth.");
 		useMinor();
 	}
@@ -2330,7 +2330,7 @@ public class Unit : MonoBehaviour {
 					Tile t = mapGenerator.tiles[(int)from.x,(int)from.y];
 					int passability = t.passabilityInDirection(dir);
 					if (passability > 1) {
-						int athletics = characterSheet.skillScores.getScore(Skill.Athletics);
+						int athletics = characterSheet.characterSheet.skillScores.getScore(Skill.Athletics);
 						int check = rollForSkill(Skill.Athletics);
 						if (check >= passability) {
 							BattleGUI.writeToConsole(getName() + " passed Athletics check with a roll of " + check + " (" + (check - athletics) + " + " + athletics + ")");
@@ -2454,7 +2454,7 @@ public class Unit : MonoBehaviour {
 	
 	void throwAnimation() {
 		attackEnemy.setRotationToCharacter(this);
-		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.combatScores.getInitiative(), this);
+		attackEnemy.getThrown(directionOf(attackEnemy), characterSheet.characterSheet.combatScores.getInitiative(), this);
 		mapGenerator.resetAttack(this);
 //		if (this == mapGenerator.getCurrentUnit())
 //			mapGenerator.resetRanges();
@@ -2652,7 +2652,7 @@ public class Unit : MonoBehaviour {
 			int sturdy = rollForSkill(Skill.Melee, attackEnemyIsFavoredRace(), 20);
 			int wellV = 10 + attackEnemy.characterSheet.characterSheet.combatScores.getWellVersedMod();
 			bool didHit = sturdy >= wellV;
-			int wapoon = Mathf.Max(1, characterSheet.combatScores.getSturdyMod());
+			int wapoon = Mathf.Max(1, characterSheet.characterSheet.combatScores.getSturdyMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
@@ -2692,7 +2692,7 @@ public class Unit : MonoBehaviour {
 			int political = rollForSkill(Skill.Political, attackEnemyIsFavoredRace(), 20);
 			int wellV = 10 + attackEnemy.characterSheet.characterSheet.combatScores.getWellVersedMod();
 			bool didHit = political >= wellV;
-			int wapoon = Mathf.Max(1, characterSheet.combatScores.getWellVersedMod());
+			int wapoon = Mathf.Max(1, characterSheet.characterSheet.combatScores.getWellVersedMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			if (didHit) {
@@ -2738,7 +2738,7 @@ public class Unit : MonoBehaviour {
 	public bool damageComposure(int damage, Unit u) {
 		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState()) {
 			crushingHitSFX();
-			characterSheet.combatScores.loseComposure(damage);
+			characterSheet.characterSheet.combatScores.loseComposure(damage);
 			if (characterSheet.characterSheet.combatScores.isInPrimalState()) {
 				inPrimal = true;
 				primalControl = 0;
@@ -2848,7 +2848,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual string getName() {
-		return characterSheet.personalInfo.getCharacterName().fullName();
+		return characterSheet.characterSheet.personalInformation.getCharacterName().fullName();
 	}
 	
 	
@@ -2877,7 +2877,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual int getUncannyKnowledgeBonus() {
-		if (characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge)) return 1;
+		if (characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Uncanny_Knowledge)) return 1;
 		return 0;
 	}
 	
@@ -2990,11 +2990,11 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual bool deadOrDying() {
-		return characterSheet.combatScores.isDead() || characterSheet.combatScores.isDying();
+		return characterSheet.characterSheet.combatScores.isDead() || characterSheet.characterSheet.combatScores.isDying();
 	}
 	
 	public virtual bool unconscious() {
-		return characterSheet.combatScores.isUnconscious();
+		return characterSheet.characterSheet.combatScores.isUnconscious();
 	}
 	
 	public virtual bool deadOrDyingOrUnconscious() {
@@ -3002,11 +3002,11 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual void loseHealth(int amount) {
-		characterSheet.combatScores.loseHealth(amount);
+		characterSheet.characterSheet.combatScores.loseHealth(amount);
 	}
 
 	public virtual void gainHealth(int amount) {
-		characterSheet.combatScores.addHealth(amount);
+		characterSheet.characterSheet.combatScores.addHealth(amount);
 	}
 
 	public virtual bool givesDecisiveStrike() {
@@ -3032,7 +3032,7 @@ public class Unit : MonoBehaviour {
 	public bool didDeath = false;
 	public bool didActualDeath = false;
 	public virtual bool isDead() {
-		return characterSheet.combatScores.isDead();
+		return characterSheet.characterSheet.combatScores.isDead();
 	}
 	
 	public virtual void doDeath() {
@@ -3071,7 +3071,7 @@ public class Unit : MonoBehaviour {
 	
 	void handleClassFeature(ClassFeature feature) {
 		if (characterSheet==null) return;
-		if (!characterSheet.characterProgress.hasFeature(feature)) return;
+		if (!characterSheet.characterSheet.characterProgress.hasFeature(feature)) return;
 		Debug.Log("Has!!");
 		switch(feature) {
 		case ClassFeature.Decisive_Strike:

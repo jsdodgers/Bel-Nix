@@ -37,7 +37,8 @@ public class CharacterTemplate : MonoBehaviour
 
 	public Character loadData(string textFile2, Unit u) {
 		Character ch = new Character();
-		ch.characterLoadout = characterLoadout;
+	//	ch.characterLoadout = characterLoadout;
+		ch.setCharacterLoadout(characterLoadout);
 		ch.unit = u;
 		if (textFile2 != null && textFile2 != "") textFile = textFile2;
 		if (textFile != null && textFile != "") {
@@ -55,8 +56,8 @@ public class CharacterTemplate : MonoBehaviour
 			ch.loadCharacter(firstName, lastName, mCSex, mCRace, age,
 			              mCBackground, height, weight, mCClass,
 			              mCSturdy, mCPerception, mCTechnique, mCWellVersed, characterColor, headColor, primaryColor, secondaryColor, hairSt);
-			int level = ch.characterProgress.setLevel(mClevel);
-			int experience = ch.characterProgress.setExperience(mCexperience);
+			int level = ch.characterSheet.characterProgress.setLevel(mClevel);
+			int experience = ch.characterSheet.characterProgress.setExperience(mCexperience);
 		}
 		return ch;
 	}

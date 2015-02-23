@@ -208,20 +208,20 @@ public class BaseManager : MonoBehaviour {
 				if ((commandDown && Input.GetKey(KeyCode.Minus)) || Input.GetKeyDown(KeyCode.Minus)) {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
-					displayedCharacter.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterProgress.getCharacterExperience()-100));
+					displayedCharacter.characterSheet.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterSheet.characterProgress.getCharacterExperience()-100));
 					displayedCharacter.saveCharacter();
 				}
 				if ((commandDown && Input.GetKey(KeyCode.Equals)) || Input.GetKeyDown(KeyCode.Equals)) {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
-					displayedCharacter.characterProgress.addExperience(100);
+					displayedCharacter.characterSheet.characterProgress.addExperience(100);
 					displayedCharacter.saveCharacter();
 				}
 				if ((commandDown && Input.GetKey(KeyCode.Alpha9)) || Input.GetKeyDown(KeyCode.Alpha9)) {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
 					//displayedCharacter.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterProgress.getCharacterExperience()-100));
-					displayedCharacter.characterProgress.setLevel(displayedCharacter.characterProgress.getCharacterLevel()-1);
+					displayedCharacter.characterSheet.characterProgress.setLevel(displayedCharacter.characterSheet.characterProgress.getCharacterLevel()-1);
 					displayedCharacter.saveCharacter();
 				}
 			}
@@ -458,7 +458,7 @@ public class BaseManager : MonoBehaviour {
 
 			List<Character> engineerUnits = new List<Character>();
 			foreach (Character c in units) {
-				if (c.characterProgress.getCharacterClass().getClassName()==ClassName.Engineer) {
+				if (c.characterSheet.characterProgress.getCharacterClass().getClassName()==ClassName.Engineer) {
 					engineerUnits.Add(c);
 				}
 			}
@@ -591,19 +591,19 @@ public class BaseManager : MonoBehaviour {
 						levelingUpCharacter = u;
 						abilityScorePointsAvailable = 1;
 						skillPointsAvailable = 1;
-						sturdyScore = u.abilityScores.getSturdy();
-						perceptionScore = u.abilityScores.getPerception(0);
-						techniqueScore = u.abilityScores.getTechnique();
-						wellVersedScore = u.abilityScores.getWellVersed();
-						athleticsSkill = u.skillScores.scores[0];
-						meleeSkill = u.skillScores.scores[1];
-						rangedSkill = u.skillScores.scores[2];
-						stealthSkill = u.skillScores.scores[3];
-						mechanicalSkill = u.skillScores.scores[4];
-						medicinalSkill = u.skillScores.scores[5];
-						historicalSkill = u.skillScores.scores[6];
-						politicalSkill = u.skillScores.scores[7];
-						possibleFeatures = u.characterProgress.getCharacterClass().getPossibleFeatures(u.characterProgress.getCharacterLevel()+1);
+						sturdyScore = u.characterSheet.abilityScores.getSturdy();
+						perceptionScore = u.characterSheet.abilityScores.getPerception(0);
+						techniqueScore = u.characterSheet.abilityScores.getTechnique();
+						wellVersedScore = u.characterSheet.abilityScores.getWellVersed();
+						athleticsSkill = u.characterSheet.skillScores.scores[0];
+						meleeSkill = u.characterSheet.skillScores.scores[1];
+						rangedSkill = u.characterSheet.skillScores.scores[2];
+						stealthSkill = u.characterSheet.skillScores.scores[3];
+						mechanicalSkill = u.characterSheet.skillScores.scores[4];
+						medicinalSkill = u.characterSheet.skillScores.scores[5];
+						historicalSkill = u.characterSheet.skillScores.scores[6];
+						politicalSkill = u.characterSheet.skillScores.scores[7];
+						possibleFeatures = u.characterSheet.characterProgress.getCharacterClass().getPossibleFeatures(u.characterSheet.characterProgress.getCharacterLevel()+1);
 						page = 0;
 						selectedFeature = -1;
 						selectedWeaponFocus = -1;
@@ -1081,7 +1081,7 @@ public class BaseManager : MonoBehaviour {
 		yOrig +=30.0f;
 
 		GUIStyle st = UnitGUI.getCourierStyle(24);
-		string title = UnitGUI.getSmallCapsString(displayedCharacter.personalInfo.getCharacterName().fullName() + ":", 17);
+		string title = UnitGUI.getSmallCapsString(displayedCharacter.characterSheet.personalInformation.getCharacterName().fullName() + ":", 17);
 		GUIContent titleContent = new GUIContent(title);
 		Vector2 titleSize = st.CalcSize(titleContent);
 		float y = yOrig;
@@ -1452,29 +1452,29 @@ public class BaseManager : MonoBehaviour {
 		GUI.enabled = canGoNextPage();
 		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), (page==2?"Finish":"Next"))) {
 			if (page == 2) {
-				levelingUpCharacter.skillScores.scores = new int[]{athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill}; 
-				levelingUpCharacter.abilityScores.setScores(sturdyScore, perceptionScore, techniqueScore, wellVersedScore);
+				levelingUpCharacter.characterSheet.skillScores.scores = new int[]{athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill}; 
+				levelingUpCharacter.characterSheet.abilityScores.setScores(sturdyScore, perceptionScore, techniqueScore, wellVersedScore);
 				if (selectedFeature != -1) {
-					int[] oldFeatures = levelingUpCharacter.characterProgress.getCharacterClass().chosenFeatures;
+					int[] oldFeatures = levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().chosenFeatures;
 					int[] newFeatures = new int[oldFeatures.Length+1];
 					for (int n=0;n<oldFeatures.Length;n++) newFeatures[n] = oldFeatures[n];
 					newFeatures[newFeatures.Length-1] = selectedFeature;
-					levelingUpCharacter.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
+					levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
 				}
 			//	if (possibleFeatures.Length>=1) {
 				ClassFeature feature = getSelectedFeature();
 				switch (feature) {
 				case ClassFeature.Weapon_Focus:
-					levelingUpCharacter.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
+					levelingUpCharacter.characterSheet.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
 					break;
 				case ClassFeature.Favored_Race:
-					levelingUpCharacter.characterProgress.setFavoredRace(selectedRace + 1);
+					levelingUpCharacter.characterSheet.characterProgress.setFavoredRace(selectedRace + 1);
 					break;
 				default:
 					break;
 				}
 			//	}
-				levelingUpCharacter.characterProgress.incrementLevel();
+				levelingUpCharacter.characterSheet.characterProgress.incrementLevel();
 				levelingUpCharacter.saveCharacter();
 				levelingUpCharacter = null;
 			}
@@ -1587,9 +1587,9 @@ public class BaseManager : MonoBehaviour {
 		x += cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Athletics:");
 		x += cellWidth*4;
-		athleticsSkill = setSkillDecreaseButton(athleticsSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[0]);
+		athleticsSkill = setSkillDecreaseButton(athleticsSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[0]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (athleticsSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getAthleticsModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (athleticsSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getAthleticsModifier()).ToString());
 		x += cellWidth*2;
 		athleticsSkill = setSkillIncreaseButton(athleticsSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth;
@@ -1599,27 +1599,27 @@ public class BaseManager : MonoBehaviour {
 		x += cellWidth*2;
 		GUI.Box(new Rect(x, y, cellWidth, cellHeight*2), "=");
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (athleticsSkill + calculateMod(sturdyScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getAthleticsModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (athleticsSkill + calculateMod(sturdyScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getAthleticsModifier()).ToString());
 		y += cellHeight;
 		x = xOrig + cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Melee:");
 		x += cellWidth*4;
-		meleeSkill = setSkillDecreaseButton(meleeSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[1]);
+		meleeSkill = setSkillDecreaseButton(meleeSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[1]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (meleeSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getMeleeModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (meleeSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getMeleeModifier()).ToString());
 		x += cellWidth*2;
 		meleeSkill = setSkillIncreaseButton(meleeSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth*5;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (meleeSkill + calculateMod(sturdyScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getMeleeModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (meleeSkill + calculateMod(sturdyScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getMeleeModifier()).ToString());
 		y += cellHeight;
 		x = xOrig;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight*2), "Prowess:");
 		x += cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Ranged:");
 		x += cellWidth*4;
-		rangedSkill = setSkillDecreaseButton(rangedSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[2]);
+		rangedSkill = setSkillDecreaseButton(rangedSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[2]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (rangedSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getRangedModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (rangedSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getRangedModifier()).ToString());
 		x += cellWidth*2;
 		rangedSkill = setSkillIncreaseButton(rangedSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth;
@@ -1629,27 +1629,27 @@ public class BaseManager : MonoBehaviour {
 		x += cellWidth*2;
 		GUI.Box(new Rect(x, y, cellWidth, cellHeight*2), "=");
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (rangedSkill + calculateMod(perceptionScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getRangedModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (rangedSkill + calculateMod(perceptionScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getRangedModifier()).ToString());
 		x = xOrig + cellWidth*4;
 		y += cellHeight;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Stealth:");
 		x += cellWidth*4;
-		stealthSkill = setSkillDecreaseButton(stealthSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[3]);
+		stealthSkill = setSkillDecreaseButton(stealthSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[3]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (stealthSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getStealthModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (stealthSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getStealthModifier()).ToString());
 		x += cellWidth*2;
 		stealthSkill = setSkillIncreaseButton(stealthSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth*5;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (stealthSkill + calculateMod(perceptionScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getStealthModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (stealthSkill + calculateMod(perceptionScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getStealthModifier()).ToString());
 		y += cellHeight;
 		x = xOrig;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight*2), "Mastery:");
 		x += cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Mechanical:");
 		x += cellWidth*4;
-		mechanicalSkill = setSkillDecreaseButton(mechanicalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[4]);
+		mechanicalSkill = setSkillDecreaseButton(mechanicalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[4]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (mechanicalSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getMechanicalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (mechanicalSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getMechanicalModifier()).ToString());
 		x += cellWidth*2;
 		mechanicalSkill = setSkillIncreaseButton(mechanicalSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth;
@@ -1659,27 +1659,27 @@ public class BaseManager : MonoBehaviour {
 		x += cellWidth*2;
 		GUI.Box(new Rect(x, y, cellWidth, cellHeight*2), "=");
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (mechanicalSkill + calculateMod(techniqueScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getMechanicalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (mechanicalSkill + calculateMod(techniqueScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getMechanicalModifier()).ToString());
 		y += cellHeight;
 		x = xOrig + cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Medicinal:");
 		x += cellWidth*4;
-		medicinalSkill = setSkillDecreaseButton(medicinalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[5]);
+		medicinalSkill = setSkillDecreaseButton(medicinalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[5]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (medicinalSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getMedicinalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (medicinalSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getMedicinalModifier()).ToString());
 		x += cellWidth*2;
 		medicinalSkill = setSkillIncreaseButton(medicinalSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth*5;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (medicinalSkill + calculateMod(techniqueScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getMedicinalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (medicinalSkill + calculateMod(techniqueScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getMedicinalModifier()).ToString());
 		y += cellHeight;
 		x = xOrig;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight*2), "Knowledge:");
 		x += cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Historical:");
 		x += cellWidth*4;
-		historicalSkill = setSkillDecreaseButton(historicalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[6]);
+		historicalSkill = setSkillDecreaseButton(historicalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[6]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (historicalSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getHistoricalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (historicalSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getHistoricalModifier()).ToString());
 		x += cellWidth*2;
 		historicalSkill = setSkillIncreaseButton(historicalSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth;
@@ -1689,18 +1689,18 @@ public class BaseManager : MonoBehaviour {
 		x += cellWidth*2;
 		GUI.Box(new Rect(x, y, cellWidth, cellHeight*2), "=");
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (historicalSkill + calculateMod(wellVersedScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getHistoricalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (historicalSkill + calculateMod(wellVersedScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getHistoricalModifier()).ToString());
 		y += cellHeight;
 		x = xOrig + cellWidth*4;
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), "Political:");
 		x += cellWidth*4;
-		politicalSkill = setSkillDecreaseButton(politicalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.skillScores.scores[7]);
+		politicalSkill = setSkillDecreaseButton(politicalSkill, new Rect(x, y, cellWidth, cellHeight), levelingUpCharacter.characterSheet.skillScores.scores[7]);
 		x += cellWidth;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (politicalSkill + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getPoliticalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (politicalSkill + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getPoliticalModifier()).ToString());
 		x += cellWidth*2;
 		politicalSkill = setSkillIncreaseButton(politicalSkill, new Rect(x, y, cellWidth, cellHeight));
 		x += cellWidth*5;
-		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (politicalSkill + calculateMod(wellVersedScore) + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getPoliticalModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (politicalSkill + calculateMod(wellVersedScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getPoliticalModifier()).ToString());
 	}
 
 	public void drawAbilityScoresGUI(float xOrig, float yOrig) {
@@ -1717,7 +1717,7 @@ public class BaseManager : MonoBehaviour {
 
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Sturdy:");
 		x += cellWidth*5;
-		if(sturdyScore == levelingUpCharacter.abilityScores.getSturdy())
+		if(sturdyScore == levelingUpCharacter.characterSheet.abilityScores.getSturdy())
 		{
 			GUI.enabled = false;
 		}
@@ -1748,7 +1748,7 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Perception:");
 		x += cellWidth*5;
-		if(perceptionScore == levelingUpCharacter.abilityScores.getPerception(0))
+		if(perceptionScore == levelingUpCharacter.characterSheet.abilityScores.getPerception(0))
 		{
 			GUI.enabled = false;
 		}
@@ -1773,13 +1773,13 @@ public class BaseManager : MonoBehaviour {
 		}
 		x += cellWidth;
 		GUI.enabled = true;
-		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), (sturdyScore + perceptionScore + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getHealthModifier() + levelingUpCharacter.personalInfo.getCharacterRace().getHealthModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), (sturdyScore + perceptionScore + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getHealthModifier() + levelingUpCharacter.characterSheet.personalInformation.getCharacterRace().getHealthModifier()).ToString());
 		y += cellHeight;
 		x = xOrig;
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Technique:");
 		x += cellWidth*5;
-		if(techniqueScore == levelingUpCharacter.abilityScores.getTechnique())
+		if(techniqueScore == levelingUpCharacter.characterSheet.abilityScores.getTechnique())
 		{
 			GUI.enabled = false;
 		}
@@ -1810,7 +1810,7 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Well-Versed:");
 		x += cellWidth*5;
-		if(wellVersedScore == levelingUpCharacter.abilityScores.getWellVersed())
+		if(wellVersedScore == levelingUpCharacter.characterSheet.abilityScores.getWellVersed())
 		{
 			GUI.enabled = false;
 		}
@@ -1836,7 +1836,7 @@ public class BaseManager : MonoBehaviour {
 		x += cellWidth;
 		GUI.enabled = true;
 
-		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), (techniqueScore + wellVersedScore + levelingUpCharacter.characterProgress.getCharacterClass().getClassModifiers().getComposureModifier() + levelingUpCharacter.personalInfo.getCharacterRace().getComposureModifier()).ToString());
+		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), (techniqueScore + wellVersedScore + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getComposureModifier() + levelingUpCharacter.characterSheet.personalInformation.getCharacterRace().getComposureModifier()).ToString());
 		y += cellHeight;
 		x = xOrig;
 		
