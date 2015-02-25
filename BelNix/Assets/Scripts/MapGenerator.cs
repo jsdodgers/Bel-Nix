@@ -2061,7 +2061,7 @@ public class MapGenerator : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.V)) {
 			UnitGUI.clickTab(Tab.V);
 		}
-		if (Input.GetKeyDown(KeyCode.I)) {
+		if (Input.GetKeyDown(KeyCode.B)) {
 			UnitGUI.clickTab(Tab.B);
 		}
 		/*
