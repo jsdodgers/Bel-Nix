@@ -11,9 +11,7 @@ public class UITooltip : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		//Debug.Log(getTooltipText(gameObject));
         tooltip = generateTooltip();
-        //Invoke("fitToScreenEdges", 5);
         hideTooltip();
 	}
 	
@@ -80,41 +78,6 @@ public class UITooltip : MonoBehaviour {
         ttPanel.GetComponent<ContentSizeFitter>().verticalFit   = ContentSizeFitter.FitMode.PreferredSize;
 
         return ttPanel;
-    }
-
-    private void fitToScreenEdges()
-    {
-        /*
-        RectTransform ttRect = tooltip.GetComponent<RectTransform>();
-        Vector2 oldV = ttRect.sizeDelta;
-        Vector2 v = new Vector2(ttRect.sizeDelta.x, ttRect.sizeDelta.y * 1000);
-        ttRect.sizeDelta = v;
-        if (RectTransformUtility.RectangleContainsScreenPoint(ttRect, new Vector2(0, 0), Camera.main))
-        {
-            Debug.Log("Whoaaaa!!");
-        }
-        else if (RectTransformUtility.RectangleContainsScreenPoint(ttRect, new Vector2(Screen.width, Screen.height), Camera.main))
-        {
-            Debug.Log("EEEEEEEEEE!!");
-        }
-        ttRect.sizeDelta = oldV;
-         */
-        RectTransform ttRect = tooltip.GetComponent<RectTransform>();
-        Vector3[] corners = new Vector3[4];
-        ttRect.GetWorldCorners(corners);
-        float[] xCoords = new float[4];
-        for (int i = 0; i < corners.Length; i++)// v in corners)
-        {
-            corners[i] = Camera.main.WorldToScreenPoint(corners[i]);
-            xCoords[i] = corners[i].x;
-        }
-        foreach (float f in xCoords)
-        {
-            if (f < 0)
-                Debug.Log("Whoaaaaa");
-            else if (f > Screen.width)
-                Debug.Log(f);//"EEEEEEEEEE");
-        }
     }
 
     private string getTooltipText(GameObject UIElement)

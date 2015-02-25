@@ -61,7 +61,7 @@ public class BattleGUI : MonoBehaviour {
     private Scrollbar featuresScrollBar;
 	private Scrollbar consoleScrollBar;
 	public Scrollbar turretScrollBar;
-	public Scrollbar gameOverUntsScrollBar;
+	public Scrollbar gameOverUnitsScrollBar;
     private Dictionary<MovementType, GameObject> movementButtons;
     private Dictionary<StandardType, GameObject> standardButtons;
     private Dictionary<MinorType, GameObject> minorButtons;
@@ -245,7 +245,7 @@ public class BattleGUI : MonoBehaviour {
 		foreach (Unit u in mapGenerator.deadUnits) {
 			createEndGameObjectFor(u);
 		}
-		gameOverUntsScrollBar.value = 1;
+		gameOverUnitsScrollBar.value = 1;
 	}
 
 	void createEndGameObjectFor(Unit u) {
