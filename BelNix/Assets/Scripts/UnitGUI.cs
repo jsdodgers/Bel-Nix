@@ -45,11 +45,12 @@ public class UnitGUI {
 	
 	public static void clickTab(Tab tab) {
 		if (tab == Tab.B) {
-			if (GameGUI.looting) {
+		/*	if (GameGUI.looting) {
 				GameGUI.selectedMinorType = MinorType.None;
 				GameGUI.selectMinorType(MinorType.None);
 			}
-			else inventoryOpen = !inventoryOpen;
+			else*/ inventoryOpen = !inventoryOpen;
+			BattleGUI.setInventoryShown(inventoryOpen);
 			return;
 		}
 		if (openTab==tab) openTab = Tab.None;

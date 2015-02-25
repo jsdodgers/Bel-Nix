@@ -49,6 +49,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject[] pauseWindows;
 	[SerializeField] private Canvas[] gameOverButtons;
 	[SerializeField] private GameObject[] gameOverWindows;
+	[SerializeField] private GameObject inventoryCanvas;
 	public Text temperedHandsHitText;
 	public Text temperedHandsDamageText;
 	public Button plus;
@@ -278,6 +279,10 @@ public class BattleGUI : MonoBehaviour {
 		else battleGUI.setPauseMenuShown(!pauseMenuOpen);
 		GameGUI.escapeMenuOpen = pauseMenuOpen;
 
+	}
+
+	public static void setInventoryShown(bool shown) {
+		battleGUI.inventoryCanvas.SetActive(shown);
 	}
 
 	public void setPauseMenuShown(bool shown) {
