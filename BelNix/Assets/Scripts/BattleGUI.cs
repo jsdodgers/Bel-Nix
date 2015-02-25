@@ -1031,5 +1031,17 @@ public class BattleGUI : MonoBehaviour {
 		setPauseMenuShown(false);
 		pauseMenuCanvas.GetComponent<CanvasGroup>().alpha = 1.0f;
 	}
-	
+
+	public void mouseHoverEnter(Image overlayObject) {
+		Color c = overlayObject.color;
+		c.a = 103.0f/255.0f;
+		overlayObject.color = c;
+	}
+
+	public void mouseHoverLeave(Image overlayObject) {
+		Color c = overlayObject.color;
+		c.a = 3.0f/255.0f;
+		overlayObject.color = c;
+	}
+
 }
