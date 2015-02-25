@@ -1,7 +1,7 @@
 using System;
 public enum RaceName {Berrind, Ashpian, Rorrul, None}
 public enum PrimalState {Reckless, Passive, Threatened, None}
-public enum CharacterBackground {FallenNoble, WhiteGem, Immigrant, Commoner, Servant, Unknown, None}
+public enum CharacterBackground {FallenNoble = 0, WhiteGem, Immigrant, Commoner, Servant, Unknown, None}
 public abstract class CharacterRace
 {
 

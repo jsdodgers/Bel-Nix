@@ -372,11 +372,11 @@ public class BattleGUI : MonoBehaviour {
 			b.onClick.AddListener(delegate() { selectTrapTurretButton(b.gameObject); });
 			MechanicalPlacementScript scr = tsp.GetComponent<MechanicalPlacementScript>();
 			scr.turret = t;
-			tsp.transform.parent = turretSelectContentPanel.transform;
+			tsp.transform.SetParent(turretSelectContentPanel.transform, false);
 			Text tex = tsp.transform.FindChild("Text").GetComponent<Text>();
 			Image img = tsp.transform.FindChild("Image").GetComponent<Image>();
 			tex.text = turretString(t);
-			img.sprite = Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
+			img.sprite = t.inventoryTexture;//Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
 			if (first) {
 				lastSelected = tsp;
 				setTrapTurretButtonSelected(tsp, true);
@@ -408,7 +408,7 @@ public class BattleGUI : MonoBehaviour {
 			Text tex = tsp.transform.FindChild("Text").GetComponent<Text>();
 			Image img = tsp.transform.FindChild("Image").GetComponent<Image>();
 			tex.text = trapString(t);
-			img.sprite = Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
+			img.sprite = t.inventoryTexture;// Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
 			if (first) {
 				lastSelected = tsp;
 				setTrapTurretButtonSelected(tsp, true);

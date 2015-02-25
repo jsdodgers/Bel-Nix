@@ -12,7 +12,7 @@ public class BaseManager : MonoBehaviour {
         // This has to be updated or added to each time a new character is created
         // This has to be added to whenever a mission ends
         // This has to be subtracted from whenever a purchase is made
-            // (or upkeep is charged)
+	// (or upkeep is charged)
 	public enum BaseState { Save, Mission, Barracks, Infirmary, Engineering, None };
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
@@ -1161,7 +1161,7 @@ public class BaseManager : MonoBehaviour {
 				if (h > r.height) y = r.y + r.height - h;
 				else y = r.y + (r.height - h)/2.0f;
 				x = r.x + (r.width - w)/2.0f;
-				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
+//				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
 			}
 		}
 		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
@@ -1223,7 +1223,7 @@ public class BaseManager : MonoBehaviour {
 				if (h > r.height) y = r.y + r.height - h;
 				else y = r.y + (r.height - h)/2.0f;
 				x = r.x + (r.width - w)/2.0f;
-				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
+//				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
 			}
 		}
 		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
@@ -1243,7 +1243,7 @@ public class BaseManager : MonoBehaviour {
 			if (i == null) continue;
 			Vector2 origin = getInventorySlotPos(slot, inventX, inventY);
 			Vector2 size = i.getSize();
-			GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+//			GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
 			if (i.stackSize()>1) {
 				Vector2 bottomRight = i.getBottomRightCell();
 				bottomRight.x *= inventoryCellSize - inventoryLineThickness;
@@ -1280,7 +1280,7 @@ public class BaseManager : MonoBehaviour {
 			Vector2 pos = selectedItemPos;
 			pos.y += (mousePos.y - selectedMousePos.y);
 			pos.x += (mousePos.x - selectedMousePos.x);
-			GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
+//			GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
 			if (selectedItem.stackSize()>1) {
 				Vector2 bottomRight = selectedItem.getBottomRightCell();
 				bottomRight.x *= inventoryCellSize - inventoryLineThickness;

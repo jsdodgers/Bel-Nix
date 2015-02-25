@@ -263,7 +263,7 @@ public class Character
 
 	}
 
-	InventorySlot getArmorSlot(int i) {
+	public static InventorySlot getArmorSlot(int i) {
 		switch (i) {
 		case 100:
 			return InventorySlot.RightHand;
@@ -288,7 +288,7 @@ public class Character
 		}
 	}
 
-	int getArmorSlotIndex (InventorySlot i) {
+	public static int getArmorSlotIndex (InventorySlot i) {
 		switch (i) {
 		case InventorySlot.RightHand:
 			return 100;
@@ -390,7 +390,7 @@ public class Character
 			if (i != null) {
 				inventorySize++;
 				inventoryString += getArmorSlotIndex(slot) + delimiter;
-				inventoryString += i.getItemCode() + delimiter;
+				inventoryString += (int)i.getItemCode() + delimiter;
 				inventoryString += i.getItemData() + delimiter;
 			}
 		}

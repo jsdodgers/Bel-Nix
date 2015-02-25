@@ -5,7 +5,7 @@ using UnityEditor;
 
 public enum ItemType {Weapon = 0, Armor, Useable, Ammunition, Mechanical, Misc}
 public enum ItemStackType {Applicator = 0, Gear, Frame, EnergySource, Trigger, Turret, None}
-public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical, TriggerM1};
+public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical, TriggerM1, TriggerM2, TriggerM3, TriggerM4, TriggerM5, FrameM1, FrameM2, FrameM3, FrameM4, FrameM5, EnergySourceM1, EnergySourceM2, EnergySourceM3, EnergySourceM4, EnergySourceM5, GearM1, GearM2, GearM3, GearM4, GearM5, Knives, BuzzSaws};
 
 
 public class EditorItem : MonoBehaviour {
@@ -13,7 +13,7 @@ public class EditorItem : MonoBehaviour {
 	public ItemType itemType;
 	public int gold, silver, copper;
 	public bool isKeyItem;
-	public Texture2D inventoryTexture;
+	public Sprite inventoryTexture;
 	public GameObject spritePrefab;
 	public int layerAdd;
 	public virtual Item getItem() {
@@ -28,7 +28,7 @@ public class Item {
 	public int gold, silver, copper;
 	public bool isKeyItem;
 	public string inventoryTextureName = "";
-	public Texture inventoryTexture;
+	public Sprite inventoryTexture;
 	public List<Item> stack;
 	public int layerAdd;
 	public string spritePrefabString;
@@ -74,6 +74,34 @@ public class Item {
 			return new TestApplicator(itemData, delim);
 		case ItemCode.TestGear:
 			return new TestGear(itemData, delim);
+		case ItemCode.TriggerM1:
+			return new TriggerM1(itemData, delim);
+		case ItemCode.TriggerM2:
+			return new TriggerM2(itemData, delim);
+		case ItemCode.TriggerM3:
+			return new TriggerM3(itemData, delim);
+		case ItemCode.FrameM1:
+			return new FrameM1(itemData, delim);
+		case ItemCode.FrameM2:
+			return new FrameM2(itemData, delim);
+		case ItemCode.FrameM3:
+			return new FrameM3(itemData, delim);
+		case ItemCode.EnergySourceM1:
+			return new EnergySourceM1(itemData, delim);
+		case ItemCode.EnergySourceM2:
+			return new EnergySourceM2(itemData, delim);
+		case ItemCode.EnergySourceM3:
+			return new EnergySourceM3(itemData, delim);
+		case ItemCode.GearM1:
+			return new GearM1(itemData, delim);
+		case ItemCode.GearM2:
+			return new GearM2(itemData, delim);
+		case ItemCode.GearM3:
+			return new GearM3(itemData, delim);
+		case ItemCode.BuzzSaws:
+			return new BuzzSaws(itemData, delim);
+		case ItemCode.Knives:
+			return new Knives(itemData, delim);
 		default:
 			return new Item(itemData, delim);
 		}
@@ -88,17 +116,28 @@ public class Item {
 		copper = money%100;
 		isKeyItem = int.Parse(split[3])==1;
 		string[] textures = split[4].Split(textureDelim.ToCharArray());
-		inventoryTextureName = (textures.Length > 0 ? textures[0] : "");
+		setInventoryTextureName(textures.Length > 0 ? textures[0] : "");
 		string s = (textures.Length > 1 ? textures[1] : "");
 		spritePrefabString = s;
 		if (s != "" && s != null) {
 			spritePrefab = Resources.Load<GameObject>(s);
 		}
-		if (inventoryTextureName != "")
-			inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
 		layerAdd = int.Parse(split[5]);
 
 	}
+	public void setInventoryTextureName(string s) {
+		inventoryTextureName = s;
+		if (inventoryTextureName == null) inventoryTexture = null;
+		else if (inventoryTextureName != "") inventoryTexture = Resources.Load<Sprite>(inventoryTextureName);
+	}
+	public void setInventoryTexture(Sprite s) {
+		inventoryTexture = s;
+		inventoryTextureName = AssetDatabase.GetAssetPath(inventoryTexture);
+		if (inventoryTextureName != null && inventoryTextureName.Length >= 17) {
+			inventoryTextureName = inventoryTextureName.Substring(17, inventoryTextureName.Length - 17 - 4);
+		}
+	}
+
 	public virtual ItemCode getItemCode() {
 		return ItemCode.Item;
 	}
@@ -108,7 +147,7 @@ public class Item {
 	public string textureDelim = "@";
 	public virtual string getItemData(string delim) {
 
-
+	//	Debug.Log(spritePrefabString);
 		return (int)itemStackType + delim +
 			itemName + delim +
 				(gold * 10000 + silver*100 + copper) + delim +
@@ -120,14 +159,14 @@ public class Item {
 	public virtual Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0)};
 	}
-	public Item(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd) : this() {
+	public Item(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd) : this() {
 		this.itemName = itemName;
 		this.itemType = itemType;
 		this.gold = gold;
 		this.silver = silver;
 		this.copper = copper;
 		this.isKeyItem = isKeyItem;
-		this.inventoryTexture = inventoryTexture;
+		setInventoryTexture(inventoryTexture);
 		this.spritePrefab = spritePrefab;
 		this.layerAdd = layerAdd;
 		string s = AssetDatabase.GetAssetPath(spritePrefab);
@@ -135,6 +174,7 @@ public class Item {
 			s = s.Substring(17, s.Length - 17 - 7);
 		}
 		spritePrefabString = s;
+
 	}
 	public Vector2 getSize() {
 		int maxWidth = 1;
@@ -192,7 +232,7 @@ public class WeaponMechanical : Weapon, ItemMechanical {
 	{
 		return ItemCode.WeaponMechanical;
 	}
-	public WeaponMechanical(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape)
+	public WeaponMechanical(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape)
 	: base(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape) {
 	}
 	public WeaponMechanical(string itemData, string delim) : base(itemData, delim) {
@@ -259,14 +299,8 @@ public class Weapon : Item {
 	{
 		return ItemCode.Weapon;
 	}
-	public Weapon(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) {
-		this.itemName = itemName;
-		this.itemType = itemType;
-		this.gold = gold;
-		this.silver = silver;
-		this.copper = copper;
-		this.isKeyItem = isKeyItem;
-		this.inventoryTexture = inventoryTexture;
+	public Weapon(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) :
+		base(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd) {
 		this.spritePrefab = spritePrefab;
 		this.layerAdd = layerAdd;
 		this.hit = hit;
@@ -313,7 +347,8 @@ public class Armor : Item {
 		AC = int.Parse(split[curr++]);
 	}
 	public override string getItemData(string delim) {
-		return base.getItemData() + delim +
+	//	return AC + "  " + (int)armorType;
+		return base.getItemData(delim) + delim +
 			(int)armorType + delim +
 				AC;
 	}
@@ -321,16 +356,8 @@ public class Armor : Item {
 	{
 		return ItemCode.Armor;
 	}
-	public Armor(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Texture2D inventoryTexture, GameObject spritePrefab, int layerAdd, ArmorType armorType, int AC) {
-		this.itemName = itemName;
-		this.itemType = itemType;
-		this.gold = gold;
-		this.silver = silver;
-		this.copper = copper;
-		this.isKeyItem = isKeyItem;
-		this.inventoryTexture = inventoryTexture;
-		this.layerAdd = layerAdd;
-		this.spritePrefab = spritePrefab;
+	public Armor(string itemName, ItemType itemType, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd, ArmorType armorType, int AC) :
+	base(itemName, itemType, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd) {
 		this.armorType = armorType;
 		this.AC = AC;
 	}

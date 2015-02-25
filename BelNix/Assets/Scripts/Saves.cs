@@ -98,7 +98,7 @@ public class Saves {
 		File.WriteAllText(getCharacterPath(characterId), characterStr);
 	}
 
-	public static string addCharacter(string character) {
+	public static string getnewCharacterUUID() {
 		int currAdd = 0;
 		string fileDirectory = getCurrentSaveDirectory() + "/";
 		string fileN = System.Guid.NewGuid().ToString();
@@ -110,11 +110,14 @@ public class Saves {
 			fileN2 = fileN + (currAdd>0?"" +currAdd:"");
 			fileName = fileDirectory + fileN2 + ".txt";
 		}
-		
-		//		StreamWriter sr = File.CreateText(fileName);
-		//		sr.WriteLine(characterStr);
-		//		sr.Close();
-		//		File.CreateText(fileName);
+		return fileN2;
+	}
+
+	public static string addCharacter(string character, string fileN2 = null) {
+		string fileDirectory = getCurrentSaveDirectory() + "/";
+		if (fileN2 == null)
+			fileN2 = getnewCharacterUUID();
+		string fileName = fileDirectory + fileN2 + ".txt";
 		if (!Directory.Exists(fileDirectory)) {
 			Directory.CreateDirectory(fileDirectory);
 		}

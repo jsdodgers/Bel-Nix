@@ -743,7 +743,7 @@ public class UnitGUI {
 					if (h > r.height) y = r.y + r.height - h;
 					else y = r.y + (r.height - h)/2.0f;
 					x = r.x + (r.width - w)/2.0f;
-					GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
+//					GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
 				}
 			}
 			foreach (InventorySlot slot in inventorySlots) {
@@ -763,7 +763,7 @@ public class UnitGUI {
 				if (i == null) continue;
 				Vector2 origin = getInventorySlotPos(slot);
 				Vector2 size = i.getSize();
-				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
+//				GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
 				if (i.stackSize()>1) {
 					Vector2 bottomRight = i.getBottomRightCell();
 					bottomRight.x *= inventoryCellSize - inventoryLineThickness;
@@ -789,7 +789,7 @@ public class UnitGUI {
 					if (i.inventoryTexture==null) continue;
 					Vector2 size = i.getSize();
 					if (i!=selectedItem) {
-						GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
+//						GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
 					}
 					y += size.y*inventoryCellSize + div;
 				}
@@ -800,7 +800,7 @@ public class UnitGUI {
 				Vector2 pos = selectedItemPos;
 				pos.y += (mousePos.y - selectedMousePos.y);
 				pos.x += (mousePos.x - selectedMousePos.x);
-				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
+//				GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
 				if (selectedItem.stackSize()>1) {
 					Vector2 bottomRight = selectedItem.getBottomRightCell();
 					bottomRight.x *= inventoryCellSize - inventoryLineThickness;

@@ -8,7 +8,7 @@ public struct 	CharacterName
 	public CharacterName(string fN, string lN) {firstName = fN; lastName = lN;}
 	public string fullName() { return firstName + " " + lastName;}
 }
-public enum 	CharacterSex {Male, Female, Other}
+public enum 	CharacterSex {Male = 0, Female, Other, None}
 
 public struct 	CharacterHeight 
 { 

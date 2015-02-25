@@ -45,6 +45,32 @@ public class ItemMechanicalEditor : EditorItem {
 			return new TestTrigger();
 		case ItemCode.TriggerM1:
 			return new TriggerM1();
+		case ItemCode.TriggerM2:
+			return new TriggerM1();
+		case ItemCode.TriggerM3:
+			return new TriggerM1();
+		case ItemCode.GearM1:
+			return new GearM1();
+		case ItemCode.GearM2:
+			return new GearM2();
+		case ItemCode.GearM3:
+			return new GearM3();
+		case ItemCode.EnergySourceM1:
+			return new EnergySourceM1();
+		case ItemCode.EnergySourceM2:
+			return new EnergySourceM2();
+		case ItemCode.EnergySourceM3:
+			return new EnergySourceM3();
+		case ItemCode.FrameM1:
+			return new FrameM1();
+		case ItemCode.FrameM2:
+			return new FrameM2();
+		case ItemCode.FrameM3:
+			return new FrameM3();
+		case ItemCode.Knives:
+			return new Knives();
+		case ItemCode.BuzzSaws:
+			return new BuzzSaws();
 		default:
 			return null;
 		}
@@ -64,12 +90,23 @@ public class Turret : Item, ItemMechanical {
 	public EnergySource energySource;
 	public string creatorId = "";
 	const int range = 5;
-	public override string getItemData (string delim)
-	{
+	public override string getItemData (string delim) {
+		string s = base.getItemData(delim) + delim;
+			s += (frame == null ? 0 + delim : 
+			 (int)frame.getItemCode() + delim +
+		      frame.getItemData(otherDelimiter) + delim);
+				s += (int)applicator.getItemCode() + delim +
+			applicator.getItemData(otherDelimiter) + delim;
+				s += (int)gear.getItemCode() + delim +
+			gear.getItemData(otherDelimiter) + delim;
+				s += (int)energySource.getItemCode() + delim +
+			energySource.getItemData(otherDelimiter) + delim;
+				s += creatorId;
+		return s;
 		return base.getItemData(delim) + delim +
 			(frame == null ? 0 + delim : 
-			(int)frame.getItemCode() + delim +
-				frame.getItemData(otherDelimiter) + delim) +
+			 (int)frame.getItemCode() + delim +
+			 frame.getItemData(otherDelimiter) + delim) +
 				(int)applicator.getItemCode() + delim +
 				applicator.getItemData(otherDelimiter) + delim +
 				(int)gear.getItemCode() + delim +
@@ -130,8 +167,7 @@ public class Turret : Item, ItemMechanical {
 		applicator = app;
 		gear = g;
 		energySource = es;
-		inventoryTextureName = "Units/Turrets/TurretPlaceholder";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/TurretPlaceholder");
 		creatorId = creator;
 	}
 	public Turret() {
@@ -146,7 +182,7 @@ public class Trap : Item, ItemMechanical {
 	public Gear gear;
 	public Applicator applicator;
 	public Trigger trigger;
-	string creatorId = "";
+	public string creatorId = "";
 	public override string getItemData (string delim)
 	{
 		return base.getItemData(delim) + delim +
@@ -195,8 +231,7 @@ public class Trap : Item, ItemMechanical {
 		applicator = app;
 		gear = g;
 		trigger = tr;
-		inventoryTextureName = "Units/Turrets/Trap";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/Trap");
 		creatorId = creator;
 	}
 	public override Vector2[] getShape() {
@@ -248,7 +283,7 @@ public class Frame : Item, ItemMechanical {
 
 public class TestFrame : Frame {
 	public TestFrame(string itemData, string delim) : base(itemData, delim)  {
-
+		
 	}
 	public override ItemCode getItemCode ()
 	{
@@ -265,8 +300,76 @@ public class TestFrame : Frame {
 	}
 	public TestFrame() {
 		itemName = "Test Frame";
-		inventoryTextureName = "Units/Turrets/Frame";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/Frame");
+	}
+}
+
+public class FrameM1 : Frame {
+	public FrameM1(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.FrameM1;
+	}
+	public override int getDurability() {
+		return 5;
+	}
+	public override int getHardness() {
+		return 5;
+	}
+	public override int getSize () {
+		return 1;
+	}
+	public FrameM1() {
+		itemName = "Frame Mark 1";
+		setInventoryTextureName("Units/Turrets/Frame");
+	}
+}
+
+public class FrameM2 : Frame {
+	public FrameM2(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.FrameM2;
+	}
+	public override int getDurability() {
+		return 7;
+	}
+	public override int getHardness() {
+		return 7;
+	}
+	public override int getSize () {
+		return 2;
+	}
+	public FrameM2() {
+		itemName = "Frame Mark 2";
+		setInventoryTextureName("Units/Turrets/Frame");
+	}
+}
+
+public class FrameM3 : Frame {
+	public FrameM3(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.FrameM3;
+	}
+	public override int getDurability() {
+		return 10;
+	}
+	public override int getHardness() {
+		return 10;
+	}
+	public override int getSize () {
+		return 3;
+	}
+	public FrameM3() {
+		itemName = "Frame Mark 3";
+		setInventoryTextureName("Units/Turrets/Frame");
 	}
 }
 
@@ -317,10 +420,52 @@ public class TestApplicator : Applicator {
 		damageType = DamageType.Piercing;
 		criticalChance = 5;
 		durabilityChance = 70;
-		inventoryTextureName = "Units/Turrets/Applicator";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/Applicator");
 	}
 }
+
+public class Knives : Applicator {
+	public Knives(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.Knives;
+	}
+	public Knives() {
+		itemName = "Knives";
+		copper = 30;
+		range = 1;
+		numberOfDamageDice = 1;
+		diceType = 4;
+		damageType = DamageType.Piercing;
+		criticalChance = 0;
+		durabilityChance = 70;
+		setInventoryTextureName("Units/Turrets/Applicator");
+	}
+}
+
+public class BuzzSaws : Applicator {
+	public BuzzSaws(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.BuzzSaws;
+	}
+	public BuzzSaws() {
+		itemName = "Buzz Saws";
+		copper = 30;
+		range = 1;
+		numberOfDamageDice = 1;
+		diceType = 6;
+		damageType = DamageType.Piercing;
+		criticalChance = 0;
+		durabilityChance = 70;
+		setInventoryTextureName("Units/Turrets/Applicator");
+	}
+}
+
 	
 
 public class EnergySource :  Item, ItemMechanical {
@@ -370,8 +515,58 @@ public class TestEnergySource : EnergySource {
 	}
 	public TestEnergySource() {
 		itemName = "Test Energy Source";
-		inventoryTextureName = "Units/Turrets/EnergySource";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/EnergySource");
+	}
+}
+
+public class EnergySourceM1 : EnergySource {
+	public EnergySourceM1(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.EnergySourceM1;
+	}
+	public override int getMaxTurns() {
+		return 3;
+	}
+	public EnergySourceM1() {
+		itemName = "Energy Source Mark 1";
+		setInventoryTextureName("Units/Turrets/EnergySource");
+	}
+}
+
+public class EnergySourceM2 : EnergySource {
+	public EnergySourceM2(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.EnergySourceM2;
+	}
+	public override int getMaxTurns() {
+		return 5;
+	}
+	public EnergySourceM2() {
+		itemName = "Energy Source Mark 2";
+		setInventoryTextureName("Units/Turrets/EnergySource");
+	}
+}
+
+public class EnergySourceM3 : EnergySource {
+	public EnergySourceM3(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.EnergySourceM3;
+	}
+	public override int getMaxTurns() {
+		return 7;
+	}
+	public EnergySourceM3() {
+		itemName = "Energy Source Mark 3";
+		setInventoryTextureName("Units/Turrets/EnergySource");
 	}
 }
 
@@ -407,8 +602,58 @@ public class TestGear : Gear {
 	}
 	public TestGear() {
 		itemName = "Test Gear";
-		inventoryTextureName = "Units/Turrets/Gear";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/Gear");
+	}
+}
+
+public class GearM1 : Gear {
+	public GearM1(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.GearM1;
+	}
+	public override int additionalDamage() {
+		return 0;
+	}
+	public GearM1() {
+		itemName = "Gear Mark 1";
+		setInventoryTextureName("Units/Turrets/Gear");
+	}
+}
+
+public class GearM2 : Gear {
+	public GearM2(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.GearM2;
+	}
+	public override int additionalDamage() {
+		return 1;
+	}
+	public GearM2() {
+		itemName = "Gear Mark 2";
+		setInventoryTextureName("Units/Turrets/Gear");
+	}
+}
+
+public class GearM3 : Gear {
+	public GearM3(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.GearM3;
+	}
+	public override int additionalDamage() {
+		return 2;
+	}
+	public GearM3() {
+		itemName = "Gear Mark 3";
+		setInventoryTextureName("Units/Turrets/Gear");
 	}
 }
 
@@ -459,8 +704,7 @@ public class TestTrigger : Trigger {
 	}
 	public TestTrigger() {
 		itemName = "Test Trigger";
-		inventoryTextureName = "Units/Turrets/Trigger";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/Trigger");
 	}
 }
 
@@ -477,7 +721,40 @@ public class TriggerM1 : Trigger {
 	}
 	public TriggerM1() {
 		itemName = "Trigger Mark 1";
-		inventoryTextureName = "Units/Turrets/Trigger";
-		inventoryTexture = Resources.Load<Texture>(inventoryTextureName);
+		setInventoryTextureName("Units/Turrets/Trigger");
+	}
+}
+
+public class TriggerM2 : Trigger {
+	public TriggerM2(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.TriggerM2;	
+	}
+	public override int triggerTimes() {
+		return 2;
+	}
+	public TriggerM2() {
+		itemName = "Trigger Mark 2";
+		setInventoryTextureName("Units/Turrets/Trigger");
+	}
+}
+
+public class TriggerM3 : Trigger {
+	public TriggerM3(string itemData, string delim) : base(itemData, delim)  {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.TriggerM3;	
+	}
+	public override int triggerTimes() {
+		return 3;
+	}
+	public TriggerM3() {
+		itemName = "Trigger Mark 3";
+		setInventoryTextureName("Units/Turrets/Trigger");
 	}
 }

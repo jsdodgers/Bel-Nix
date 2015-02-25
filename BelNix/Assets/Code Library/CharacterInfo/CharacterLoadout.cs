@@ -67,7 +67,7 @@ public class CharacterLoadoutActual {
 	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
 		if (itemSlot == InventorySlot.None) return;
 		removeSprite(getItemInSlot(itemSlot));
-		if (item.spritePrefab != null) {
+		if (item.spritePrefab != null && character != null && character.unit != null) {
 			if (colors==null) colors = character.characterSheet.characterColors;
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
 			SpriteRenderer sr = sprite.GetComponent<SpriteRenderer>();
@@ -155,8 +155,11 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public CharacterLoadoutActual(CharacterLoadout loadout, Character character, CharacterColors colors) {
+	public CharacterLoadoutActual() {
 		sprites = new List<SpriteOrder>();
+	}
+
+	public CharacterLoadoutActual(CharacterLoadout loadout, Character character, CharacterColors colors) : this() {
 		this.character = character;
 		if (loadout==null) return;
 		if (loadout.headSlot) setItemInSlot(InventorySlot.Head, loadout.headSlot.getArmor(), colors);

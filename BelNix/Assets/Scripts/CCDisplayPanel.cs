@@ -2,22 +2,22 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class CCDisplayPanel : MonoBehaviour
-{
+public class CCDisplayPanel : MonoBehaviour {
 	// Use this for initialization
-	void Start()
-	{
+	void Start() {
 	
 	}
 	
 	// Update is called once per frame
-	void Update()
-	{
+	void Update() {
 	
 	}
 
-	public void toggleAllExcept(GameObject thisOne)
-	{
+	public void toggleAllExcept(GameObject thisOne) {
 		GameObject.Find("Canvas - Character Creation").GetComponent<CCGUI>().toggleAllExcept(thisOne);
+	}
+
+	public void toggleAllExcept(GameObject[] theseOnes) {
+		GameObject.Find("Canvas - Character Creation").GetComponent<CCGUI>().toggleAllExcept(theseOnes);
 	}
 }
