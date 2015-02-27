@@ -907,6 +907,12 @@ public class MapGenerator : MonoBehaviour {
 		if (isInCharacterPlacement()) removeCharacterPlacementObjects();
 		foreach (Unit u in priorityOrder) {
 			u.rollInitiative();
+			if(u is Player) {
+				Vector3 tempVec = u.transform.position;
+				tempVec.z = 0;
+				u.transform.position = tempVec;
+				u.setAllSpritesRenderQueue(1000);
+			}
 		}
 		sortPriority();
 		nextPlayer();

@@ -345,7 +345,7 @@ public class UnitGUI {
 				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
 					if (selectedItemWasInSlot == InventorySlot.None) {
 						t.removeItem(selectedItem,1);
-						u.useMinor(false, false);
+						u.useMinor(MinorType.Loot, false, false);
 					}
 					characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, v);
 					selectedItem = null;
@@ -357,7 +357,7 @@ public class UnitGUI {
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {
 							t.removeItem(selectedItem,1);
-							u.useMinor(false, false);
+                            u.useMinor(MinorType.Loot, false, false);
 						}
 						characterSheet.characterSheet.inventory.stackItemWith(invSlotItem,selectedItem);
 						selectedItem = null;
@@ -371,7 +371,7 @@ public class UnitGUI {
 			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
-				u.useMinor(false, false);
+                u.useMinor(MinorType.Loot, false, false);
 				//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
 			}
 		}
