@@ -68,6 +68,7 @@ public class BattleGUI : MonoBehaviour {
     private Dictionary<MinorType, GameObject> minorButtons;
 	private Queue consoleText = new Queue();
 	private GameObject[] currentClassFeatures = null;
+    private static Unit previousUnit;
 
 	private const int maxNumMessages = 20;
 	public bool doPlayerText;
@@ -185,7 +186,21 @@ public class BattleGUI : MonoBehaviour {
 		populateSaves();
     }
 
-
+    public static void onFirstMinorUsed(Object source, MinorEventArgs args)
+    {
+        Debug.Log("First minor used!");
+        // Find the first marker
+        GameObject firstMarker = GameObject.Find("Image - Marker 1");
+        // Make it disappear
+        //firstMarker.SetActive(false);
+        firstMarker.GetComponent<ActionMarker>().spark();
+        
+        // Create a spark there
+    }
+    public static void onFinalMinorUsed(Object source, MinorEventArgs args)
+    {
+        Debug.Log("Final minor used!");
+    }
 
     // Update is called once per frame
 	int oldWidth = 0;
@@ -447,6 +462,18 @@ public class BattleGUI : MonoBehaviour {
         if (!battleGUI.mapGenerator.isInCharacterPlacement())
             battleGUI.updateTurnOrderPanel();
 
+        // Update event subscriptions
+        if (previousUnit != null)
+        {
+            previousUnit.finalMinor -= onFinalMinorUsed;
+            previousUnit.firstMinor -= onFirstMinorUsed;
+            
+        }
+        unit.finalMinor += onFinalMinorUsed;
+        unit.firstMinor += onFirstMinorUsed;
+        
+        previousUnit = unit;
+
         // Set CharacterInformation panels
         setAtAGlanceText(unit.getAtAGlanceString());
         setStatsText(0, unit.getCharacterStatsString1());
@@ -456,6 +483,7 @@ public class BattleGUI : MonoBehaviour {
         setCharacterInfoText(unit.getCharacterInfoString());
         setClassFeatures(unit.getClassFeatureStrings());
 //        disableAllButtons();
+        
         hideActionArms();
         if (unit.getTeam() == 0 && !battleGUI.mapGenerator.isInCharacterPlacement())
         {
@@ -902,6 +930,7 @@ public class BattleGUI : MonoBehaviour {
     }
     private void refreshActionArms()
     {
+        GameObject.Find("Image - Marker 1").GetComponent<Image>().enabled = true;
         Unit unit = mapGenerator.getCurrentUnit();
 	//	enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
 	//	hideMinorArm(false);

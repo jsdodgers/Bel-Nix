@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public enum UnitMovement {Move, BackStep, Escape, None}
 public enum MovementType {Move, BackStep, Recover, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None}
-public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, None}
+public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 public enum OneOfManyMode {Hidden = 0, Hit, Damage, AC, Movement, None};
@@ -116,7 +116,7 @@ public class Unit : MonoBehaviour {
 		default:
 			break;
 		}
-		useMinor();
+		useMinor(MinorType.OneOfMany);
 		BattleGUI.resetMinorButtons();
 	}
 	
@@ -293,7 +293,7 @@ public class Unit : MonoBehaviour {
 	public void useTemperedHands(int mod) {
 		temperedHandsUsesLeft--;
 		//		minorsLeft--;
-		useMinor();
+		useMinor(MinorType.TemperedHands);
 		temperedHandsMod += mod;
 		if (temperedHandsUsesLeft == 0) BattleGUI.resetMinorButtons();
 	}
@@ -760,17 +760,39 @@ public class Unit : MonoBehaviour {
 		int roll = Random.Range(1, 11);
 		stealth = roll + characterSheet.characterSheet.skillScores.getScore(Skill.Stealth);
 		BattleGUI.writeToConsole(getName() + " rolled a " + stealth + "(" + roll + " + " + (stealth-roll) + ") for stealth.");
-		useMinor();
+		useMinor(MinorType.Stealth);
 	}
-	
-	public void useMinor(bool changeAnyway = true, bool changeAtAll = true) {
+
+    public delegate void MinorEventHandler(Object source, MinorEventArgs args);
+    public event MinorEventHandler firstMinor;
+    public event MinorEventHandler finalMinor;
+    protected virtual void onFirstMinor(MinorType minorUsed)
+    {
+        if (firstMinor != null)
+            firstMinor(this, new MinorEventArgs() {unit = this, minorType = minorUsed} );
+    }
+    protected virtual void onFinalMinor(MinorType minorUsed)
+    {
+        if(finalMinor != null)
+            finalMinor(this, new MinorEventArgs() { unit = this, minorType = minorUsed });
+    }
+
+	public void useMinor(MinorType usedMinor, bool changeAnyway = true, bool changeAtAll = true) {
 		minorsLeft--;
 		Debug.Log("Minors Used: " + minorsLeft);
 		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
+
+        if (minorsLeft <= 0)
+            onFinalMinor(usedMinor);
+        else
+            onFirstMinor(usedMinor);
+
 		if (isPerformingAnAction()) return;
 		if (!changeAtAll && minorsLeft > 0) return;
 		if (changeAnyway || (minorsLeft <= 0 && GameGUI.selectedMinor))
 			chooseNextBestActionType();
+        
+        
 	}
 	
 	public void useStandard() {
@@ -1979,7 +2001,7 @@ public class Unit : MonoBehaviour {
 			attackEnemy.deselect();
 			attackEnemy.setMarked(true);
 			attackEnemy = null;
-			useMinor(false);
+			useMinor(MinorType.Mark, false);
 		}
 	}
 
@@ -2359,12 +2381,12 @@ public class Unit : MonoBehaviour {
 							if (unitMovement ==  UnitMovement.BackStep || unitMovement == UnitMovement.Move)
 								useMovement();
 							else if (unitMovement == UnitMovement.Escape)
-								useMinor(false, false);
+								useMinor(MinorType.Escape, false, false);
 							if (team == 0) needsOverlay = true;
 							//	if (team == 0) mapGenerator.setOverlay();
 							
 						}
-						useMinor(false, false);
+						useMinor(MinorType.Vault, false, false);
 					}
 				}
 				shouldDoAthleticsCheck = false;
@@ -2402,7 +2424,7 @@ public class Unit : MonoBehaviour {
 				}
 			//	if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {
 				if (unitMovement == UnitMovement.Escape) {
-					useMinor();
+					useMinor(MinorType.Vault);
 					//	minorsLeft--;
 					//	GameGUI.selectMinor(MinorType.None);
 					escapeUsed = true;
@@ -2675,7 +2697,7 @@ public class Unit : MonoBehaviour {
 	void resetInvoke() {
 		//	useMovementIfStarted();
 		invokeAnimating = false;
-		useMinor(false);
+		useMinor(MinorType.Invoke, false);
 		//			minorsLeft--;
 		invokeUsesLeft--;
 		if (invokeUsesLeft == 0 && minorsLeft > 0) {
@@ -3100,4 +3122,10 @@ public class Unit : MonoBehaviour {
 		characterSheet.saveCharacter();
 	}
 	
+}
+
+public class MinorEventArgs : System.EventArgs
+{
+    public Unit unit;
+    public MinorType minorType;
 }
