@@ -48,8 +48,8 @@ public class BaseManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
-		Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
-		Debug.Log(item.getItemCode() + "   " + (int)item.getItemCode() + "   \n" + item.getItemData());
+	//	Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
+	//	Debug.Log(item.getItemCode() + "   " + (int)item.getItemCode() + "   \n" + item.getItemData());
 	//	BinaryFormatter bf = new BinaryFormatter();
 	/*	XmlSerializer bf = new XmlSerializer(item.GetType());
 		using (StringWriter textWriter = new StringWriter()) {
@@ -766,7 +766,7 @@ public class BaseManager : MonoBehaviour {
 				InventoryItemSlot slR = sl.itemSlot;
 				if (slR==null) break;
 				//	Item i = slR.item;
-				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
+				Vector2 itemSlot = Inventory.getSlotForIndex(ind);
 				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
 				if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
@@ -958,7 +958,7 @@ public class BaseManager : MonoBehaviour {
 					return;
 				}
 				else {
-					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[characterSheet.characterSheet.inventory.getIndexForSlot(v2)];
+					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[Inventory.getIndexForSlot(v2)];
 					Item invSlotItem = invSlot.getItem();
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {

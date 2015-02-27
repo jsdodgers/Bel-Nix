@@ -212,11 +212,11 @@ public class Inventory {
 	public Item removeItemFromStackForItem(Item i) {
 		return i.popStack();
 	}
-	public int getIndexForSlot(Vector2 v) {
+	public static int getIndexForSlot(Vector2 v) {
 		if (v.x < 0 || v.y < 0 || v.x > 3 || v.y > 3) return -1;
 		return ((int)v.x) + ((int)v.y)*4;
 	}
-	public Vector2 getSlotForIndex(int slot) {
+	public static Vector2 getSlotForIndex(int slot) {
 		return new Vector2(slot%4,slot/4);
 	}
 	public bool canInsertItemInSlot(Item i, Vector2 slot) {
@@ -247,9 +247,15 @@ public class Inventory {
 			}
 		}
 	}
+
+	public ItemReturn removeItemFromSlot(InventorySlot slot) {
+		return removeItemFromSlot(getSlotForIndex((int)slot - (int)InventorySlot.Zero));
+	}
+
 	public ItemReturn removeItemFromSlot(Vector2 slot) {
 		InventoryItemSlot sl = inventory[getIndexForSlot(slot)];
 		InventoryItemSlot actualSlot = sl.itemSlot;
+		if (actualSlot == null) return new ItemReturn();
 		Vector2 actualSlotVec = getSlotForIndex(actualSlot.index);
 		Item i = actualSlot.getItem();
 		foreach (InventoryItemSlot slots in actualSlot.otherSlots) {

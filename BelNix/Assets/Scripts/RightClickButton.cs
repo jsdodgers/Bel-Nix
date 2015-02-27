@@ -122,6 +122,11 @@ public class RightClickButton : MonoBehaviour {
 	/*	if (action.minorTypes.Contains(MinorType.OneOfMany)) {
 
 		}*/
+		if (action.minorTypes.Contains(MinorType.Loot)) {
+			if (!UnitGUI.inventoryOpen) UnitGUI.clickTab(Tab.B);
+			BattleGUI.clearLootItems();
+			BattleGUI.setLootItems(action.actualTile.getItems());
+		}
 		RightClickMenu.hideMenu(true);
 	}
 }

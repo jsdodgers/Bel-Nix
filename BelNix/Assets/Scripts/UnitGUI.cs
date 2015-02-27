@@ -264,7 +264,6 @@ public class UnitGUI {
 		selectItem(characterSheet, null, null);
 	}
 	public static void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u) {
-		Debug.Log("Select Item");
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		foreach (InventorySlot slot in inventorySlots) {
@@ -277,7 +276,7 @@ public class UnitGUI {
 				InventoryItemSlot slR = sl.itemSlot;
 				if (slR==null) break;
 				//	Item i = slR.item;
-				Vector2 itemSlot = characterSheet.characterSheet.inventory.getSlotForIndex(ind);
+				Vector2 itemSlot = Inventory.getSlotForIndex(ind);
 				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
 				if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
@@ -353,7 +352,7 @@ public class UnitGUI {
 					return;
 				}
 				else {
-					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[characterSheet.characterSheet.inventory.getIndexForSlot(v2)];
+					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[Inventory.getIndexForSlot(v2)];
 					Item invSlotItem = invSlot.getItem();
 					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
 						if (selectedItemWasInSlot == InventorySlot.None) {

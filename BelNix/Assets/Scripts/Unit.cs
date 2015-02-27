@@ -2776,8 +2776,14 @@ public class Unit : MonoBehaviour {
 		anim.SetBool("Move",moving);
 		movementAnimationAllSprites(moving);
 	}
-	
-	void idleAnimation(bool idle) {
+	public void beginIdle() {
+		idleAnimation(true);
+	}
+	public void idleAnimation(bool idle) {
+	/*	bool wasIdle = anim.GetBool("Idle");
+		if (wasIdle && idle) {
+			anim.animation.Stop();
+		}*/
 		anim.SetBool("Idle",idle);
 		idleAnimationAllSprites(idle);
 	}
@@ -2832,6 +2838,12 @@ public class Unit : MonoBehaviour {
 	void setAllSpritesBool(string boolName, bool b) {
 		List<SpriteOrder> sprites = getSprites();
 		foreach (SpriteOrder sprite in sprites) {
+		/*	if (boolName == "Idle") {
+				bool wasIdle = sprite.sprite.GetComponent<Animator>().GetBool("Idle");
+				if (wasIdle && b) {
+					sprite.sprite.GetComponent<Animator>().animation.Stop();
+				}
+			}*/
 			sprite.sprite.GetComponent<Animator>().SetBool(boolName, b);
 		}
 	}

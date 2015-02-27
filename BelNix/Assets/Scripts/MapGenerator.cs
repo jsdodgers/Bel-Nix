@@ -2011,6 +2011,14 @@ public class MapGenerator : MonoBehaviour {
 		handleMouseClicks();
 		handleMouseSelect();
 		handleMouseMovement();
+		if (mouseDown && UnitGUI.inventoryOpen) {
+			if (BattleGUI.battleGUI.overlayObjects.Count > 0) {
+				BattleGUI.selectItem();
+			}
+		}
+		if (mouseUp && UnitGUI.inventoryOpen) {
+			BattleGUI.deselectItem();
+		}
 	}
 	
 

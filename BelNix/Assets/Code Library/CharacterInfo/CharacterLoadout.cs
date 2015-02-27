@@ -64,10 +64,63 @@ public class CharacterLoadoutActual {
 		}
 	}
 
+	public Item removeItemFromSlot(InventorySlot itemSlot) {
+		Item i = getItemInSlot(itemSlot);
+		setItemInSlot(itemSlot, null);
+		return i;
+	}
+
+	public bool canInsertItemInSlot(InventorySlot slot, Item item) {
+		Item i = getItemInSlot(slot);
+		if (i != null) {
+			bool canIns = false;
+			for (int n=0;n<16;n++) {
+				if (character.characterSheet.inventory.canInsertItemInSlot(i, Inventory.getSlotForIndex(n))) {
+					canIns = true;
+					break;
+				}
+			}
+			if (!canIns) return false;
+		}
+		if (item is Armor) {
+			ArmorType type = ((Armor)item).armorType;
+			switch (slot) {
+			case InventorySlot.Head:
+				return type == ArmorType.Head;
+			case InventorySlot.Shoulder:
+				return type == ArmorType.Shoulder;
+			case InventorySlot.Chest:
+				return type == ArmorType.Chest;
+			case InventorySlot.Glove:
+				return type == ArmorType.Gloves;
+			case InventorySlot.Pants:
+				return type == ArmorType.Pants;
+			case InventorySlot.Boots:
+				return type == ArmorType.Boots;
+			default:
+				return false;
+			}
+		}
+		else if (item is Weapon) {
+			switch (slot) {
+			case InventorySlot.RightHand:
+			case InventorySlot.LeftHand:
+			case InventorySlot.Shoulder:
+				return true;
+			default:
+				return false;
+			}
+		}
+		else {
+			return slot == InventorySlot.Shoulder && item.canPlaceInShoulder;
+		}
+		return false;
+	}
+
 	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
 		if (itemSlot == InventorySlot.None) return;
 		removeSprite(getItemInSlot(itemSlot));
-		if (item.spritePrefab != null && character != null && character.unit != null) {
+		if (item != null && item.spritePrefab != null && character != null && character.unit != null) {
 			if (colors==null) colors = character.characterSheet.characterColors;
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
 			SpriteRenderer sr = sprite.GetComponent<SpriteRenderer>();

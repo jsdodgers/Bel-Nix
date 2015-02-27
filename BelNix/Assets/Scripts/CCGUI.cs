@@ -23,6 +23,7 @@ public class CCGUI : MonoBehaviour
 	[SerializeField] private GameObject leatherSpaulder;
 	[SerializeField] private GameObject leatherVest;
 	[SerializeField] private GameObject leatherCap;
+	[SerializeField] private GameObject paddedVest;
 	[SerializeField] private GameObject handAxe;
 	[SerializeField] private GameObject bullyStick;
 	[SerializeField] private GameObject dagger;
@@ -864,7 +865,7 @@ public class CCGUI : MonoBehaviour
 		loadout.setItemInSlot(InventorySlot.Pants, clothPants.GetComponent<ItemArmor>().getItem());
 		switch (character.background) {
 		case CharacterBackground.FallenNoble:
-			loadout.setItemInSlot(InventorySlot.RightHand, shortSword.GetComponent<ItemWeapon>().getItem());
+			loadout.setItemInSlot(InventorySlot.Chest, paddedVest.GetComponent<ItemArmor>().getItem());
 			break;
 		case CharacterBackground.WhiteGem:
 			loadout.setItemInSlot(InventorySlot.RightHand, handAxe.GetComponent<ItemWeapon>().getItem());
