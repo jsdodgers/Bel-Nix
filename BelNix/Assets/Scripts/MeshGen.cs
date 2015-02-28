@@ -350,6 +350,7 @@ public class MeshGen : MonoBehaviour {
 		newMesh.uv = uvs;
 		newMesh.normals = norms;
 		newMesh.triangles = tris;
+		newMesh.RecalculateBounds();
 		//		newMesh.colors = colors;
 	}
 
