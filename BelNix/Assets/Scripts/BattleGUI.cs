@@ -262,6 +262,10 @@ public class BattleGUI : MonoBehaviour {
 		foreach (Unit u in mapGenerator.deadUnits) {
 			createEndGameObjectFor(u);
 		}
+		Invoke("setGameOverScrollBar", .05f);
+	}
+
+	void setGameOverScrollBar() {
 		gameOverUnitsScrollBar.value = 1;
 	}
 
@@ -841,6 +845,10 @@ public class BattleGUI : MonoBehaviour {
 				first = false;
 			}
 		}
+		Invoke("setTurretScrollBar", 0.05f);
+	}
+
+	void setTurretScrollBar() {
 		turretScrollBar.value = 1;
 	}
 	
@@ -873,7 +881,8 @@ public class BattleGUI : MonoBehaviour {
 				first = false;
 			}
 		}
-		turretScrollBar.value = 1;
+		Invoke("setTurretScrollBar", 0.05f);
+//		turretScrollBar.value = 1;
 	}
 
 	string turretString(Turret t) {
@@ -1498,10 +1507,14 @@ public class BattleGUI : MonoBehaviour {
 			newSaveEntry.transform.GetChild(1).GetComponentInChildren<Text>().text = saves[i];
 			newSaveEntry.transform.SetParent(saveGameCanvas.transform);
 		}
-		loadGameScrollBar.value = 1;
+
 		setLoadGameCanvasShown(false);
 		setPauseMenuShown(false);
 		pauseMenuCanvas.GetComponent<CanvasGroup>().alpha = 1.0f;
+		Invoke("setLoadGameScrollBar", 0.05f);
+	}
+	void setLoadGameScrollBar() {
+		loadGameScrollBar.value = 1;
 	}
 
 }

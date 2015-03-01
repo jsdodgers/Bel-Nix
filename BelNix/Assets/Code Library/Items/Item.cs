@@ -1,28 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
+//using UnityEditor;
 
 public enum ItemType {Weapon = 0, Armor, Useable, Ammunition, Mechanical, Misc}
 public enum ItemStackType {Applicator = 0, Gear, Frame, EnergySource, Trigger, Turret, None}
 public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical, TriggerM1, TriggerM2, TriggerM3, TriggerM4, TriggerM5, FrameM1, FrameM2, FrameM3, FrameM4, FrameM5, EnergySourceM1, EnergySourceM2, EnergySourceM3, EnergySourceM4, EnergySourceM5, GearM1, GearM2, GearM3, GearM4, GearM5, Knives, BuzzSaws};
 
-
 public class EditorItem : MonoBehaviour {
 	public string itemName;
+	public string inventoryTextureSpritePrefabName;
 	public bool canPlaceInShoulder;
 	public ItemType itemType;
 	public int gold, silver, copper;
 	public bool isKeyItem;
-	public Sprite inventoryTexture;
-	public GameObject spritePrefab;
+//	public Sprite inventoryTexture;
+//	public GameObject spritePrefab;
 	public int layerAdd;
 	public virtual Item getItem() {
-		return new Item(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd);
+		return new Item(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd);
 	}
 }
 
 public class Item {
+/*	public static Dictionary<string,string> prefabs = new Dictionary<string,string>() {
+		{"Bronze Plank", "Units/Weapons/Male_Base_Shortsword"}
+	};
+	public static Dictionary<string,string> inventoryTextures = new Dictionary<string,string>() {
+		{"Bronze Plank", "Units/Weapons/Male_Base_Shortsword"}
+	};*/
 	public ItemStackType itemStackType = ItemStackType.None;
 	public string itemName;
 	public ItemType itemType;
@@ -33,7 +39,7 @@ public class Item {
 	public Sprite inventoryTexture;
 	public List<Item> stack;
 	public int layerAdd;
-	public string spritePrefabString;
+//	public string spritePrefabString;
 	public GameObject spritePrefab;
 	public GameObject sprite;
 	public const string delimiter = ",";
@@ -119,28 +125,41 @@ public class Item {
 		copper = money%100;
 		Debug.Log(itemName + ":  " + split[4]);
 		isKeyItem = int.Parse(split[4])==1;
-		string[] textures = split[5].Split(textureDelim.ToCharArray());
+	/*	string[] textures = split[5].Split(textureDelim.ToCharArray());
 		setInventoryTextureName(textures.Length > 0 ? textures[0] : "");
 		string s = (textures.Length > 1 ? textures[1] : "");
 		spritePrefabString = s;
 		if (s != "" && s != null) {
 			spritePrefab = Resources.Load<GameObject>(s);
-		}
+		}*/
+		setInventoryTextureName(split[5]);
 		layerAdd = int.Parse(split[6]);
 
 	}
 	public void setInventoryTextureName(string s) {
 		inventoryTextureName = s;
+		ItemTextureObject to = ItemPrefab.getPrefab(s);
+		if (to.name == s) {
+			inventoryTexture = to.texture;
+			spritePrefab = to.sprite;
+		}
+		/*
 		if (inventoryTextureName == null) inventoryTexture = null;
-		else if (inventoryTextureName != "") inventoryTexture = Resources.Load<Sprite>(inventoryTextureName);
+		else if (inventoryTextureName != "") inventoryTexture = Resources.Load<Sprite>(inventoryTextureName);*/
 	}
 	public void setInventoryTexture(Sprite s) {
 		inventoryTexture = s;
-		inventoryTextureName = AssetDatabase.GetAssetPath(inventoryTexture);
+	/*	inventoryTextureName = AssetDatabase.GetAssetPath(inventoryTexture);
 		if (inventoryTextureName != null && inventoryTextureName.Length >= 17) {
 			inventoryTextureName = inventoryTextureName.Substring(17, inventoryTextureName.Length - 17 - 4);
-		}
+		}*/
 	}
+/*	public void setSpritePrefabName(string s) {
+		spritePrefabString = s;
+
+//		if (spritePrefabString == null) spritePrefab = null;
+//		else if (spritePrefabString != "") spritePrefab = Resources.Load<Sprite>(spritePrefabString);
+	}*/
 
 	public virtual ItemCode getItemCode() {
 		return ItemCode.Item;
@@ -157,14 +176,16 @@ public class Item {
 				(canPlaceInShoulder ? 1 : 0) + delim +
 				(gold * 10000 + silver*100 + copper) + delim +
 				(isKeyItem ? 1 : 0) + delim +
-				(inventoryTextureName == null ? "" : inventoryTextureName) +
-				(spritePrefabString!= null && spritePrefabString!="" ? textureDelim + spritePrefabString : "") + delim +
+				(inventoryTextureName == null ? "" : inventoryTextureName) + delim +
+//				(spritePrefabString!= null && spritePrefabString!="" ? textureDelim + spritePrefabString : "") + delim +
 				layerAdd;
 	}
 	public virtual Vector2[] getShape() {
 		return new Vector2[] {new Vector2(0,0)};
 	}
-	public Item(string itemName, ItemType itemType, bool canPlaceShoulder, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd) : this() {
+	public Item(string itemName, ItemType itemType, bool canPlaceShoulder, int gold, int silver, int copper, bool isKeyItem, string inventoryTextureSpritePrefabName, int layerAdd) : this() {
+	//	string inventoryTextureName = inventoryTextures[inventoryTextureSpritePrefabName];
+	//	string spritePrefabName = prefabs[inventoryTextureSpritePrefabName];
 		this.itemName = itemName;
 		this.itemType = itemType;
 		this.canPlaceInShoulder = canPlaceShoulder;
@@ -172,14 +193,18 @@ public class Item {
 		this.silver = silver;
 		this.copper = copper;
 		this.isKeyItem = isKeyItem;
-		setInventoryTexture(inventoryTexture);
-		this.spritePrefab = spritePrefab;
+		setInventoryTextureName(inventoryTextureSpritePrefabName);
+		/*if (inventoryTexture != null)
+			setInventoryTexture(inventoryTexture);
+		if (spritePrefab != null)
+			this.spritePrefab = spritePrefab;*/
+	//	this.spritePrefabString = spritePrefabName;
 		this.layerAdd = layerAdd;
-		string s = AssetDatabase.GetAssetPath(spritePrefab);
+	/*	string s = AssetDatabase.GetAssetPath(spritePrefab);
 		if (s != null && s.Length >= 17) {
 			s = s.Substring(17, s.Length - 17 - 7);
 		}
-		spritePrefabString = s;
+		spritePrefabString = s;*/
 
 	}
 	public Vector2 getSize() {
@@ -238,8 +263,8 @@ public class WeaponMechanical : Weapon, ItemMechanical {
 	{
 		return ItemCode.WeaponMechanical;
 	}
-	public WeaponMechanical(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape)
-	: base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape) {
+	public WeaponMechanical(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, string inventoryTextureSpritePrefabName, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape)
+	: base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape) {
 	}
 	public WeaponMechanical(string itemData, string delim) : base(itemData, delim) {
 
@@ -305,10 +330,9 @@ public class Weapon : Item {
 	{
 		return ItemCode.Weapon;
 	}
-	public Weapon(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) :
-		base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd) {
-		this.spritePrefab = spritePrefab;
-		this.layerAdd = layerAdd;
+	public Weapon(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, string inventoryTextureSpritePrefabName, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) :
+	base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd) {
+		//this.layerAdd = layerAdd;
 		this.hit = hit;
 		this.range = range;
 		this.numberOfDamageDice = numberOfDamageDice;
@@ -362,8 +386,8 @@ public class Armor : Item {
 	{
 		return ItemCode.Armor;
 	}
-	public Armor(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, Sprite inventoryTexture, GameObject spritePrefab, int layerAdd, ArmorType armorType, int AC) :
-	base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd) {
+	public Armor(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, string inventoryTextureSpritePrefabName, int layerAdd, ArmorType armorType, int AC) :
+	base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd) {
 		this.armorType = armorType;
 		this.AC = AC;
 	}

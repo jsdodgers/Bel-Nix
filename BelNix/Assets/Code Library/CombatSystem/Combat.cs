@@ -24,6 +24,7 @@ class Combat {
 	}
 	
 	public static bool flanking(Unit attacker, Unit enemy) {
+		if (attacker == null || enemy == null) return false;
 		// Get the positions on the grid for the attacker and defender
 		Vector3 attackerPosition = attacker.position;
 		Vector3 defenderPosition = enemy.position;
