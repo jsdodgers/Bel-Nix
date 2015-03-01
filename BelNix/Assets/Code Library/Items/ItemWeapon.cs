@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEditor;
 
 public enum DamageType {Crushing, Piercing, Slashing, None}
 
@@ -24,14 +23,14 @@ public class ItemWeapon : EditorItem {
 
 	public virtual Weapon getWeapon() {
 //		if (weapon == null)
-		string s = AssetDatabase.GetAssetPath(spritePrefab);
+	/*	string s = AssetDatabase.GetAssetPath(spritePrefab);
 		if (s != null && s.Length >= 17) {
 			s = s.Substring(17, s.Length - 17 - 7);
 		}
-		Debug.Log("Weapon Asset Path: " + s);
+		Debug.Log("Weapon Asset Path: " + s);*/
 	//	if (s != null && s != "")
 	//		GameObject.Instantiate(Resources.Load<GameObject>(s));
-		return new Weapon(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
+		return new Weapon(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
 //		return weapon;
 	}
 /*

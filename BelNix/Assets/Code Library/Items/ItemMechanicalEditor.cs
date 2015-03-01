@@ -167,7 +167,7 @@ public class Turret : Item, ItemMechanical {
 		applicator = app;
 		gear = g;
 		energySource = es;
-		setInventoryTextureName("Units/Turrets/TurretPlaceholder");
+		setInventoryTextureName("Turret");//"Units/Turrets/TurretPlaceholder");
 		creatorId = creator;
 	}
 	public Turret() {
@@ -231,7 +231,7 @@ public class Trap : Item, ItemMechanical {
 		applicator = app;
 		gear = g;
 		trigger = tr;
-		setInventoryTextureName("Units/Turrets/Trap");
+		setInventoryTextureName("Trap");
 		creatorId = creator;
 	}
 	public override Vector2[] getShape() {
@@ -323,7 +323,7 @@ public class FrameM1 : Frame {
 	}
 	public FrameM1() {
 		itemName = "Frame Mark 1";
-		setInventoryTextureName("Units/Turrets/Frame");
+		setInventoryTextureName("FrameM1");
 	}
 }
 
@@ -346,7 +346,7 @@ public class FrameM2 : Frame {
 	}
 	public FrameM2() {
 		itemName = "Frame Mark 2";
-		setInventoryTextureName("Units/Turrets/Frame");
+		setInventoryTextureName("FrameM2");
 	}
 }
 
@@ -369,7 +369,7 @@ public class FrameM3 : Frame {
 	}
 	public FrameM3() {
 		itemName = "Frame Mark 3";
-		setInventoryTextureName("Units/Turrets/Frame");
+		setInventoryTextureName("FrameM3");
 	}
 }
 
@@ -441,7 +441,7 @@ public class Knives : Applicator {
 		damageType = DamageType.Piercing;
 		criticalChance = 0;
 		durabilityChance = 70;
-		setInventoryTextureName("Units/Turrets/Applicator");
+		setInventoryTextureName("Knives");
 	}
 }
 
@@ -462,7 +462,7 @@ public class BuzzSaws : Applicator {
 		damageType = DamageType.Piercing;
 		criticalChance = 0;
 		durabilityChance = 70;
-		setInventoryTextureName("Units/Turrets/Applicator");
+		setInventoryTextureName("Buzz Saws");
 	}
 }
 
@@ -532,7 +532,7 @@ public class EnergySourceM1 : EnergySource {
 	}
 	public EnergySourceM1() {
 		itemName = "Energy Source Mark 1";
-		setInventoryTextureName("Units/Turrets/EnergySource");
+		setInventoryTextureName("Energy Source M1");
 	}
 }
 
@@ -549,7 +549,7 @@ public class EnergySourceM2 : EnergySource {
 	}
 	public EnergySourceM2() {
 		itemName = "Energy Source Mark 2";
-		setInventoryTextureName("Units/Turrets/EnergySource");
+		setInventoryTextureName("Energy Source M2");
 	}
 }
 
@@ -566,7 +566,7 @@ public class EnergySourceM3 : EnergySource {
 	}
 	public EnergySourceM3() {
 		itemName = "Energy Source Mark 3";
-		setInventoryTextureName("Units/Turrets/EnergySource");
+		setInventoryTextureName("Energy Source M3");
 	}
 }
 
@@ -619,7 +619,7 @@ public class GearM1 : Gear {
 	}
 	public GearM1() {
 		itemName = "Gear Mark 1";
-		setInventoryTextureName("Units/Turrets/Gear");
+		setInventoryTextureName("Gear M1");
 	}
 }
 
@@ -636,7 +636,7 @@ public class GearM2 : Gear {
 	}
 	public GearM2() {
 		itemName = "Gear Mark 2";
-		setInventoryTextureName("Units/Turrets/Gear");
+		setInventoryTextureName("Gear M2");
 	}
 }
 
@@ -653,7 +653,7 @@ public class GearM3 : Gear {
 	}
 	public GearM3() {
 		itemName = "Gear Mark 3";
-		setInventoryTextureName("Units/Turrets/Gear");
+		setInventoryTextureName("Gear M3");
 	}
 }
 
@@ -704,7 +704,7 @@ public class TestTrigger : Trigger {
 	}
 	public TestTrigger() {
 		itemName = "Test Trigger";
-		setInventoryTextureName("Units/Turrets/Trigger");
+		setInventoryTextureName("Trigger M1");
 	}
 }
 
@@ -721,7 +721,7 @@ public class TriggerM1 : Trigger {
 	}
 	public TriggerM1() {
 		itemName = "Trigger Mark 1";
-		setInventoryTextureName("Units/Turrets/Trigger");
+		setInventoryTextureName("Trigger M1");
 	}
 }
 
@@ -738,7 +738,7 @@ public class TriggerM2 : Trigger {
 	}
 	public TriggerM2() {
 		itemName = "Trigger Mark 2";
-		setInventoryTextureName("Units/Turrets/Trigger");
+		setInventoryTextureName("Trigger M2");
 	}
 }
 
@@ -755,6 +755,6 @@ public class TriggerM3 : Trigger {
 	}
 	public TriggerM3() {
 		itemName = "Trigger Mark 3";
-		setInventoryTextureName("Units/Turrets/Trigger");
+		setInventoryTextureName("Trigger M3");
 	}
 }

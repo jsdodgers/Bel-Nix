@@ -17,7 +17,7 @@ public class ItemArmor : EditorItem {
 
 	public Armor getArmor() {
 	//	if (armor == null)
-			return new Armor(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, armorType, AC);
+		return new Armor(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, armorType, AC);
 	//	return armor;
 	}
 }
