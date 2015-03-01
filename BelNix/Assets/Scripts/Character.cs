@@ -241,8 +241,8 @@ public class Character
 						inv.inventory[slot].item.addToStack(i);
 					}
 				}
-				else if (inv.canInsertItemInSlot(i, inv.getSlotForIndex(slot))) {
-					inv.insertItemInSlot(i, inv.getSlotForIndex(slot));
+				else if (inv.canInsertItemInSlot(i, Inventory.getSlotForIndex(slot))) {
+					inv.insertItemInSlot(i, Inventory.getSlotForIndex(slot));
 				}
 			}
 			else {
