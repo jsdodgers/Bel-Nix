@@ -1920,7 +1920,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal && !getWeapon().isRanged && !isProne();
+		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !isProne();
 	}
 	
 	public int attackOfOpp(Vector2 one, Direction dir) {
@@ -2419,7 +2419,7 @@ public class Unit : MonoBehaviour {
 						needsOverlay = false;
 					}*/
 				}
-				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), getAttackRange(), true, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee))) {
+				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), getAttackRange(), true, attackVisibilityMode())) {
 					GameGUI.selectStandardType(StandardType.Attack);
 				}
 			//	if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {

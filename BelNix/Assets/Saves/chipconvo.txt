@@ -1,0 +1,8 @@
+["Watch yourself, rookie.  We've got enemies up ahead."], {1; 2; 3; 4}, False, 0, 0
+["We can take 'em."], {5}, False, 1, 1
+["Thanks, I'll watch my step."], {6}, False, 2, 1
+["Fuck off, I go where I please."], {}, True, 3, 1
+[Remain silent.], {}, True, 4, 1
+["No, we can't." She grimaces. "Now get over here before you get us both killed."], {2; 3; 4}, False, 5, 0
+[She nods at you in approval.], {7}, False, 6, 0
+[End Dialogue.], {}, True, 7, 1
