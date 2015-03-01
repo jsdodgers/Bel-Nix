@@ -8,6 +8,6 @@ public class ItemWeaponMechanical : ItemWeapon {
 	}
 
 	public override Weapon getWeapon() {
-		return new WeaponMechanical(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTexture, spritePrefab, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
+		return new WeaponMechanical(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
 	}
 }
