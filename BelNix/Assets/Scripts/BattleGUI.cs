@@ -189,13 +189,8 @@ public class BattleGUI : MonoBehaviour {
     public static void onFirstMinorUsed(Object source, MinorEventArgs args)
     {
         Debug.Log("First minor used!");
-        // Find the first marker
         GameObject firstMarker = GameObject.Find("Image - Marker 1");
-        // Make it disappear
-        //firstMarker.SetActive(false);
         firstMarker.GetComponent<ActionMarker>().spark();
-        
-        // Create a spark there
     }
     public static void onFinalMinorUsed(Object source, MinorEventArgs args)
     {
