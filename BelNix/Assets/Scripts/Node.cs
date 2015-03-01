@@ -164,22 +164,30 @@ public class Node : MonoBehaviour {
 		
 		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp && (editor.currentWindow != this)){
 			
-			bool pass = false;
+			bool unlink = false;
+			Node nodeToUnlink = null;
 			
 			foreach (int element in editor.currentWindow.nextTextBoxID){
 				
 				if(element == this.windowID){
 					
-					pass = true;
-					Debug.Log("This node is already linked");
+					unlink = true;
+					nodeToUnlink = this;
+					//Debug.Log("This node is already linked");
 					
 				}
 				
 			}
+
+			if(unlink){
+
+				UnlinkNodes(editor.currentWindow, nodeToUnlink);
+
+			}
 			
 			
 			
-			if(!pass){
+			else{
 				
 				LinkNodes(editor.currentWindow, this);
 				
@@ -188,11 +196,17 @@ public class Node : MonoBehaviour {
 		
 		
 		
-		terminatesDialogue = GUI.Toggle (new Rect (100, 25, 140, 20),terminatesDialogue, "Terminates Dialogue");
-		isPlayerResponse = GUI.Toggle (new Rect (100, 40, 140, 20),isPlayerResponse, "isPlayerResponse");
-		
-		
-		
+		terminatesDialogue = GUI.Toggle (new Rect (100, 45, 140, 20),terminatesDialogue, "Terminates Dialogue");
+		isPlayerResponse = GUI.Toggle (new Rect (100, 60, 140, 20),isPlayerResponse, "isPlayerResponse");
+
+
+		if(GUI.Button(new Rect(220, 15, 22, 20), "X ")){
+
+			DestroyNode(this);
+
+		}
+
+
 		if(isCollapsed){
 			
 			isCollapsed = GUI.Toggle(new Rect(10, 25, 100, 25), isCollapsed, "Collapse"); 
@@ -203,15 +217,16 @@ public class Node : MonoBehaviour {
 		
 		else{ 
 			
-			if(GUI.Button(new Rect(10, 60, 140, 25), "Conditionals")){
+			if(GUI.Button(new Rect(10, 60, 90, 25), "Conditionals")){
 				
 				//display conditional GUI.box
 				isConditionalDisplayed = !isConditionalDisplayed;
 				
 			}
 			
-			
-			isCollapsed = GUI.Toggle(new Rect(10, 25, 140, 25), isCollapsed, "Collapse"); 
+
+
+			isCollapsed = GUI.Toggle(new Rect(10, 25, 65, 25), isCollapsed, "Collapse"); 
 			//terminatesDialogue = GUI.Toggle(new Rect(10, 40, 140, 25), terminatesDialogue, "Terminates Dialogue");
 			text = GUI.TextArea(new Rect(10, 90, 230, 100), text);	
 			GUI.DragWindow(new Rect(0,0,1000,20));
@@ -311,6 +326,16 @@ public class Node : MonoBehaviour {
 		editor.currentWindow = null;
 		
 		
+	}
+
+	void UnlinkNodes(Node t1, Node t2){
+
+		t1.nextTextBoxID.Remove (t2.windowID);
+		Debug.Log("Node " + t1.windowID + " has removed node " + t2.windowID);
+		editor.selectedWindow = null;
+		editor.currentWindow = null;
+	
+	
 	}
 	
 	
@@ -470,7 +495,35 @@ public class Node : MonoBehaviour {
 
 
 
+	void DestroyNode(Node n){
 
+		List<Node> nodesToUnlink = new List<Node>();
+
+		foreach (Node m in editor.nodes) {
+
+			foreach(int element in m.nextTextBoxID){
+				
+				if(element == n.windowID){
+					
+					nodesToUnlink.Add(m);
+					
+				}
+				
+			}
+
+		}
+
+		foreach (Node m in nodesToUnlink) {
+				
+			UnlinkNodes(m, n);
+		
+		}
+
+
+		editor.nodes.Remove(n);
+	
+		Destroy (n.gameObject);
+	}
 
 
 

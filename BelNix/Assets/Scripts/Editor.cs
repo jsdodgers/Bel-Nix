@@ -12,7 +12,7 @@ public class Editor : MonoBehaviour {
 	public Camera mainCamera;
 	
 	
-	List<Node> nodes = new List<Node> ();
+	public List<Node> nodes = new List<Node> ();
 	
 	public Node currentWindow; //holds the current window
 	public Node selectedWindow; //tells the editor that a window is being clicked on
@@ -117,7 +117,16 @@ public class Editor : MonoBehaviour {
 			InstantiateTextBox();
 			
 		}
+
+		if (GUI.Button (new Rect (10, 60, 80, 25), "mybutton")) {
+				
+			foreach(Node element in nodes){
+
+				Debug.Log(element.WindowID);
+
+			}
 		
+		}
 		
 		filename = GUI.TextField(new Rect(60, 10, 60, 25), filename);
 		
