@@ -238,10 +238,10 @@ public class Node : MonoBehaviour {
 
 		if(GUI.Button(new Rect(220, 25, 20, 25), "+")){
 			
-			conditionals.Add (new Conditional (type, condition));
+			/*conditionals.Add (new Conditional (type, condition));
 			type = "";
 			condition = "";
-			Debug.Log(conditionals[0].type +", " + conditionals[0].condition);
+			Debug.Log(conditionals[0].type +", " + conditionals[0].condition);*/
 			
 		}
 
@@ -401,7 +401,7 @@ public class Node : MonoBehaviour {
 		string isPlayerResponseString = "";
 		string windowIDString = windowID.ToString();
 		string nextTextBoxIDString = "{";
-		string conditionalsString = "(";
+		//string conditionalsString = "(";
 		
 		foreach(int element in nextTextBoxID){
 			
@@ -436,7 +436,7 @@ public class Node : MonoBehaviour {
 
 
 
-		for (int i = 0; i < conditionals.Count; i++) {
+		/*for (int i = 0; i < conditionals.Count; i++) {
 
 			if(i == conditionals.Count - 1){
 
@@ -456,11 +456,11 @@ public class Node : MonoBehaviour {
 		
 		}
 		
-		conditionalsString = conditionalsString + ")";
+		conditionalsString = conditionalsString + ")";*/
 		
 		
 		
-		compiledString = "[" + text + "], " + nextTextBoxIDString + ", " + terminatesDialogueString + ", " + windowIDString + ", " + isPlayerResponseString + ", " + conditionalsString;
+		compiledString = "[" + text + "]` " + nextTextBoxIDString + "` " + terminatesDialogueString + "` " + windowIDString + "` " + isPlayerResponseString + "` ";// + conditionalsString;
 		
 		return compiledString;
 		

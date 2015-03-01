@@ -258,7 +258,7 @@ public class Conversation : MonoBehaviour {
 		bool terminatesDialogue = false;
 		//List<Conditional> conditionals = new List<Conditional>();
 		
-		firstSplit = n.Split (new char[] {','});
+		firstSplit = n.Split (new char[] {'`'});
 		
 		textArray = firstSplit [0].Split (new char[] {'[',']'}, System.StringSplitOptions.RemoveEmptyEntries);
 		nextWindowsIDArray = firstSplit [1].Split (new char[] {'{','}'}, System.StringSplitOptions.RemoveEmptyEntries);
