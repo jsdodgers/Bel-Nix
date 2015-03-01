@@ -450,30 +450,60 @@ public class Tile {
 
 	public Tile() {
 		items = new List<Item>();
-		for (int n=0;n<14;n++) {
+		for (int n=0;n<17;n++) {
 			if (UnityEngine.Random.Range(0, 3)==1) {
 				Item i;
-				switch (n%7) {
+				switch (n%17) {
 				case 0:
-					i = new TestGear();
+					i = new GearM1();
 					break;
 				case 1:
-					i = new TestApplicator();
+					i = new GearM2();
 					break;
 				case 2:
-					i = new TestFrame();
+					i = new GearM3();
 					break;
 				case 3:
-					i = new TestTrigger();
+					i = new Knives();
 					break;
 				case 4:
-					i = new Turret("", new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+					i = new BuzzSaws();
 					break;
 				case 5:
+					i = new FrameM1();
+					break;
+				case 6:
+					i = new FrameM2();
+					break;
+				case 7:
+					i = new FrameM3();
+					break;
+				case 8:
+					i = new TriggerM1();
+					break;
+				case 9:
+					i = new TriggerM2();
+					break;
+				case 10:
+					i = new TriggerM3();
+					break;
+				case 11:
+					i = new EnergySourceM1();
+					break;
+				case 12:
+					i = new EnergySourceM2();
+					break;
+				case 13:
+					i = new EnergySourceM3();
+					break;
+				case 14:
+					i = new Turret("", new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
+					break;
+				case 15:
 					i = new Trap("", new TestFrame(), new TestApplicator(), new TestGear(), new TestTrigger());
 					break;
 				default:
-					i = new TestEnergySource();
+					i = new Turret("", new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 					break;
 				}
 				addItem(i);

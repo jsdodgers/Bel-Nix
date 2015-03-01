@@ -308,6 +308,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject inventoryBoots;
 	[SerializeField] private Text inventoryAC;
 	[SerializeField] private Transform lootContent;
+	[SerializeField] private GameObject lootOverlay;
 
 	GameObject selectedItem;
 	Vector3 mouseSelectPos = new Vector3();
@@ -333,13 +334,21 @@ public class BattleGUI : MonoBehaviour {
 	}
 
 	public void deselectItem(Image overlayObject) {
-		if (selectedItem == null) return;
+		Debug.Log("deselectItem:");
+		if (selectedItem == null) {
+			setLootInteractable(true);
+			return;
+		}
 		CharacterSheet cs = mapGenerator.selectedUnit.characterSheet.characterSheet;
 		Item i = selectedItem.GetComponent<InventoryItem>().item;
 		InventorySlot insertSlot = originalSlot;
+		Debug.Log(overlayObjects.Count);
 		if (overlayObjects.Count > 0) {
 			InventorySlot sl = overlayObjects[0].GetComponent<InventoryItem>().slot;
-			if (UnitGUI.armorSlots.Contains(sl)) {
+			if (sl == InventorySlot.None) {
+				insertSlot = sl;
+			}
+			else if (UnitGUI.armorSlots.Contains(sl)) {
 				if (cs.characterLoadout.canInsertItemInSlot(sl, i)) {
 					insertSlot = sl;
 				}
@@ -356,6 +365,7 @@ public class BattleGUI : MonoBehaviour {
 				}
 			}
 		}
+		Debug.Log(insertSlot);
 		if (UnitGUI.armorSlots.Contains(insertSlot)) {
 			Item i2 = cs.characterLoadout.getItemInSlot(insertSlot);
 			GameObject oldItem = null;
@@ -431,6 +441,14 @@ public class BattleGUI : MonoBehaviour {
 				GameObject.Destroy(selectedItem);
 			}
 		}
+		if (insertSlot == InventorySlot.None) {
+			currentLootTile.addItem(i);
+			selectedItem.transform.SetParent(lootContent, false);
+			selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
+			selectedItem.GetComponent<LayoutElement>().ignoreLayout = false;
+			selectedItem.GetComponent<CanvasGroup>().blocksRaycasts = true;
+			selectedItem.transform.GetChild(0).gameObject.SetActive(true);
+		}
 		selectedItem = null;
 		List<Image> hoveredCopy = new List<Image>(overlayObjects);
 		foreach (Image im in hoveredCopy) {
@@ -438,6 +456,7 @@ public class BattleGUI : MonoBehaviour {
 			mouseHoverEnter(im);
 		}
 		setACText();
+		setLootInteractable(true);
 	}
 
 	public static void selectItem() {
@@ -448,7 +467,21 @@ public class BattleGUI : MonoBehaviour {
 		InventoryItem ii = overlayObject.GetComponent<InventoryItem>();
 		InventorySlot sl = ii.slot;
 		Item i = null;
-		if (UnitGUI.armorSlots.Contains(sl)) {
+		if (sl == InventorySlot.None) {
+			Debug.Log(overlayObjects.Count);
+			InventoryItem iii = overlayObject.transform.parent.GetComponent<InventoryItem>();
+			if (iii != null) {
+				i = iii.item;
+				currentLootTile.removeItem(i,0);
+				originalSlot = sl;
+				overlayObject.gameObject.SetActive(false);
+				overlayObject.transform.parent.GetComponent<LayoutElement>().ignoreLayout = true;
+				overlayObject.transform.parent.GetComponent<CanvasGroup>().blocksRaycasts = false;
+				mouseHoverLeave(overlayObject);
+				Debug.Log(i);
+			}
+		}
+		else if (UnitGUI.armorSlots.Contains(sl)) {
 			i = mapGenerator.selectedUnit.characterSheet.characterSheet.characterLoadout.removeItemFromSlot(sl);
 			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().sizeDelta= new Vector2(64.0f, 64.0f);
 			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 0.0f);
@@ -487,6 +520,15 @@ public class BattleGUI : MonoBehaviour {
 			}   
 		}
 		setACText();
+		setLootInteractable(false);
+	}
+
+	public void setLootInteractable(bool interactable) {
+		if (interactable && battleGUI.overlayObjects.Contains(battleGUI.lootOverlay.GetComponent<Image>())) {
+			battleGUI.mouseHoverLeave(battleGUI.lootOverlay.GetComponent<Image>());
+		}
+		lootContent.transform.parent.GetComponent<ScrollRect>().vertical = interactable;
+		lootOverlay.SetActive(!interactable && originalSlot != InventorySlot.None);
 	}
 
 	public static void clearLootItems() {
@@ -499,11 +541,13 @@ public class BattleGUI : MonoBehaviour {
 		}
 	}
 
-	public static void setLootItems(List<Item> items) {
-		battleGUI.setLoot(items);
+	public Tile currentLootTile;
+	public static void setLootItems(List<Item> items, Tile t) {
+		battleGUI.setLoot(items, t);
 	}
 	
-	public void setLoot(List<Item> items) {
+	public void setLoot(List<Item> items, Tile t) {
+		currentLootTile = t;
 		Unit u = mapGenerator.selectedUnit;
 		foreach (Item i in items) {
 			if (i.inventoryTexture != null) {
@@ -518,7 +562,10 @@ public class BattleGUI : MonoBehaviour {
 				invP.GetComponent<RectTransform>().anchoredPosition = v;*/
 				invP.GetComponent<InventoryItem>().item = i;
 				invP.GetComponent<InventoryItem>().slot = InventorySlot.None;
+				invP.transform.GetChild(0).gameObject.SetActive(true);
 				LayoutElement loe = invP.GetComponent<LayoutElement>();
+				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
+				cg.blocksRaycasts = true;
 				loe.ignoreLayout = false;
 				loe.preferredHeight = size.y;
 				loe.preferredWidth = size.x;
@@ -565,13 +612,20 @@ public class BattleGUI : MonoBehaviour {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
 				invP.name = "InventoryItem";
 				invP.GetComponent<Image>().sprite = i.inventoryTexture;
-				invP.GetComponent<RectTransform>().sizeDelta = i.getSize() * 32.0f;
+				Vector2 size = i.getSize() * 32.0f;
+				invP.GetComponent<RectTransform>().sizeDelta = size;
 				invP.transform.SetParent(inventorySlots.transform, false);
 				Vector2 v = 32.0f * Inventory.getSlotForIndex(iis.index);
 				v.y *= -1;
 				invP.GetComponent<RectTransform>().anchoredPosition = v;
 				invP.GetComponent<InventoryItem>().item = i;
 				invP.GetComponent<InventoryItem>().slot = UnitGUI.inventorySlots[iis.index];
+				LayoutElement loe = invP.GetComponent<LayoutElement>();
+				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
+				cg.blocksRaycasts = false;
+				loe.ignoreLayout = true;
+				loe.preferredHeight = size.y;
+				loe.preferredWidth = size.x;
 				if (i is Armor) {
 					switch (((Armor)i).armorType) {
 					case ArmorType.Head:
@@ -608,6 +662,12 @@ public class BattleGUI : MonoBehaviour {
 				invP.GetComponent<RectTransform>().anchoredPosition = v;
 				invP.GetComponent<InventoryItem>().item = i;
 				invP.GetComponent<InventoryItem>().slot = slot;
+				LayoutElement loe = invP.GetComponent<LayoutElement>();
+				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
+				cg.blocksRaycasts = false;
+				loe.ignoreLayout = true;
+				loe.preferredHeight = size.y;
+				loe.preferredWidth = size.x;
 				GameObject canv = armourParent.transform.FindChild("Canvas").gameObject;//.FindChild("Overlay");
 				RectTransform rt = canv.GetComponent<RectTransform>();
 				rt.anchoredPosition = v;
