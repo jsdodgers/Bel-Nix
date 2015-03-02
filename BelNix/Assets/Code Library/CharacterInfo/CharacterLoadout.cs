@@ -129,9 +129,12 @@ public class CharacterLoadoutActual {
 	}
 
 	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
+		Debug.Log("setItemInSlot: "+ itemSlot);
 		if (itemSlot == InventorySlot.None) return;
+		Debug.Log("not none");
 		removeSprite(getItemInSlot(itemSlot));
 		if (item != null && item.spritePrefab != null && character != null && character.unit != null) {
+			Debug.Log("Got in here!");
 			if (colors==null) colors = character.characterSheet.characterColors;
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
 			SpriteRenderer sr = sprite.GetComponent<SpriteRenderer>();
@@ -141,17 +144,23 @@ public class CharacterLoadoutActual {
 				sr.color = colors.primaryColor;
 				break;
 			case InventorySlot.Boots:
+				sr.color = new Color(.4f,.8f,.2f);
+				break;
 			case InventorySlot.Pants:
 				sr.color = colors.secondaryColor;
 				break;
 			default:
 				break;
 			}
+			Debug.Log("And Here!");
 			item.sprite = sprite;
 			sprite.transform.parent = character.unit.transform;
 			sprite.transform.localPosition = new Vector3(0,0,0);
 			sprite.transform.localEulerAngles = new Vector3(0, 0, 0);
+			Debug.Log("Add the Sprite");
 			sprites.Add(new SpriteOrder(item.sprite, getOrder(itemSlot)));
+			if (MapGenerator.mg != null && MapGenerator.mg.isInPriority())
+				SetRenderQueue.setRendererQueue(sr.renderer, new int[] {1000});
 		}
 		switch (itemSlot) {
 		case InventorySlot.Head:
