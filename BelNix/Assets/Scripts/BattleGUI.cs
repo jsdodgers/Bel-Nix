@@ -349,23 +349,27 @@ public class BattleGUI : MonoBehaviour {
 				insertSlot = sl;
 			}
 			else if (UnitGUI.armorSlots.Contains(sl)) {
-				if (cs.characterLoadout.canInsertItemInSlot(sl, i)) {
+				if (cs.characterLoadout.canInsertItemInSlot(sl, i, originalSlot)) {
 					insertSlot = sl;
 				}
 			}
 			else if (UnitGUI.inventorySlots.Contains(sl)) {
 				Vector2 vSlot = UnitGUI.getIndexOfSlot(sl);
+				int oSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
 				vSlot -= selectedCell;
 				int iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
-				if (iSlot >= 0 && iSlot < 16) {
-					Item inSlot = cs.inventory.inventory[iSlot].getItem();
-					if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i))) {
-						insertSlot = UnitGUI.getInventorySlotFromIndex(vSlot);
+				if (iSlot >= 0 && iSlot < 16 && cs.inventory.canInsertItemInSlot(i, vSlot)) {
+					insertSlot = UnitGUI.getInventorySlotFromIndex(vSlot);
+				}
+				else if (oSlot >= 0 && oSlot < 16) {
+					Item inSlot = cs.inventory.inventory[oSlot].getItem();
+					if (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)) {
+						insertSlot = sl;
 					}
 				}
 			}
 		}
-		Debug.Log(insertSlot);
+		ActionType at = Inventory.getActionTypeForMovement(originalSlot, insertSlot);
 		if (UnitGUI.armorSlots.Contains(insertSlot)) {
 			Item i2 = cs.characterLoadout.getItemInSlot(insertSlot);
 			GameObject oldItem = null;
@@ -464,6 +468,8 @@ public class BattleGUI : MonoBehaviour {
 		}
 		setACText();
 		setLootInteractable(true);
+		if (at == ActionType.Minor) mapGenerator.selectedUnit.useMinor(MinorType.Loot, false, false);
+		else if (at == ActionType.Standard) mapGenerator.selectedUnit.useStandard();
 	}
 
 	public static void selectItem() {
@@ -483,7 +489,7 @@ public class BattleGUI : MonoBehaviour {
 				originalSlot = sl;
 				overlayObject.gameObject.SetActive(false);
 				overlayObject.transform.parent.GetComponent<LayoutElement>().ignoreLayout = true;
-			//	overlayObject.transform.parent.GetComponent<CanvasGroup>().blocksRaycasts = false;
+				overlayObject.transform.parent.GetComponent<CanvasGroup>().blocksRaycasts = false;
 				mouseHoverLeave(overlayObject);
 				Invoke("resetLootScrollPos",0.05f);
 			}
@@ -535,6 +541,9 @@ public class BattleGUI : MonoBehaviour {
 			battleGUI.mouseHoverLeave(battleGUI.lootOverlay.GetComponent<Image>());
 		}
 		lootContent.transform.parent.GetComponent<ScrollRect>().vertical = interactable;
+		for (int n=lootContent.transform.childCount-1;n>=0;n--) {//lootContent.transform.parent.childCount;n++) {
+			lootContent.transform.GetChild(n).FindChild("Overlay").gameObject.SetActive(interactable);
+		}
 		lootOverlay.SetActive(!interactable && originalSlot != InventorySlot.None);
 	}
 
@@ -770,11 +779,24 @@ public class BattleGUI : MonoBehaviour {
 		}
 		else {
 			Item i = selectedItem.GetComponent<InventoryItem>().item;
+			ActionType at = Inventory.getActionTypeForMovement(slot, originalSlot);
 			if (UnitGUI.inventorySlots.Contains(slot)) {
 				Vector2 currentHighlightSlot = UnitGUI.getIndexOfSlot(slot);
 				Vector2 originSlot = currentHighlightSlot - selectedCell;
-				if (!(originSlot.y >= 0 && originSlot.x >= 0 && originSlot.x < 4 && originSlot.y < 4 && mapGenerator.selectedUnit.characterSheet.characterSheet.inventory.canInsertItemInSlot(i, originSlot))) {
-					c = badColor;
+				Item i2 = mapGenerator.selectedUnit.characterSheet.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].getItem();
+				if (i2 != null) {
+					if (!mapGenerator.selectedUnit.characterSheet.characterSheet.inventory.itemCanStackWith(i2,i) || !canUseActionType(at)) {
+						c = badColor;
+					}
+					else {
+						i = i2;
+						originSlot = UnitGUI.getIndexFromLinearIndex(mapGenerator.selectedUnit.characterSheet.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].itemSlot.index);
+					}
+				}
+				else {
+					if (!canUseActionType(at) || !(originSlot.y >= 0 && originSlot.x >= 0 && originSlot.x < 4 && originSlot.y < 4 && mapGenerator.selectedUnit.characterSheet.characterSheet.inventory.canInsertItemInSlot(i, originSlot))) {
+						c = badColor;
+					}
 				}
 				foreach (Vector2 cell in i.getShape()) {
 					Vector2 cc = originSlot + cell;
@@ -787,9 +809,12 @@ public class BattleGUI : MonoBehaviour {
 				}
 			}
 			else if (UnitGUI.armorSlots.Contains(slot)) {
-				if (!mapGenerator.selectedUnit.characterSheet.characterSheet.characterLoadout.canInsertItemInSlot(slot, i)) {
+				if (!mapGenerator.selectedUnit.characterSheet.characterSheet.characterLoadout.canInsertItemInSlot(slot, i, originalSlot)) {
 					c = badColor;
 				}
+			}
+			else if (!canUseActionType(at)) {
+				c = badColor;
 			}
 		}
 		if (!overlayObjectList.ContainsKey(overlayObject))
@@ -797,6 +822,17 @@ public class BattleGUI : MonoBehaviour {
 		overlayObject.color = c;
 
 		if (!overlayObjects.Contains(overlayObject)) overlayObjects.Add(overlayObject);
+	}
+
+	public bool canUseActionType(ActionType at) {
+		switch (at) {
+		case ActionType.Minor:
+			return mapGenerator.selectedUnit.minorsLeft > 0;
+		case ActionType.Standard:
+			return !mapGenerator.selectedUnit.usedStandard;
+		default:
+			return true;
+		}
 	}
 	
 	public void mouseHoverLeave(Image overlayObject) {

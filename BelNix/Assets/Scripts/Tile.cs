@@ -399,7 +399,13 @@ public class Tile {
 
 	public List<Item> getItems() {
 	//	Debug.Log("getItems: " + items.Count);
-		return items;
+		List<Item> it = new List<Item>(items);
+		if (hasCharacter() && getCharacter().isDead()) {
+			foreach (Item i in getCharacter().droppedItems) {
+				it.Add(i);
+			}
+		}
+		return it;
 	}
 
 	public List<Item> getReachableItems() {
@@ -420,6 +426,14 @@ public class Tile {
 		if (getItems().Contains(i)) {
 			items.Remove(i);
 			return true;
+		}
+		else {
+			if (hasCharacter() && getCharacter().isDead()) {
+				if (getCharacter().droppedItems.Contains(i)) {
+					getCharacter().droppedItems.Remove(i);
+					return true;
+				}
+			}
 		}
 		if (dist <= 0) return false;
 		foreach (Direction dir in directions) {

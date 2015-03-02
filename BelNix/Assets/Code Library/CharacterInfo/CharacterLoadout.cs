@@ -70,9 +70,20 @@ public class CharacterLoadoutActual {
 		return i;
 	}
 
-	public bool canInsertItemInSlot(InventorySlot slot, Item item) {
+
+	public bool canInsertItemInSlot(InventorySlot slot, Item item, InventorySlot fromSlot) {
 		Item i = getItemInSlot(slot);
+		ActionType at = Inventory.getActionTypeForMovement(slot, fromSlot);
+		if (at == ActionType.Minor && character.unit.minorsLeft <= 0) return false;
+		if (at == ActionType.Standard && character.unit.usedStandard) return false;
 		if (i != null) {
+			if (fromSlot == InventorySlot.None) return false;
+			if (slot == InventorySlot.Shoulder) {
+				if (fromSlot == InventorySlot.RightHand || fromSlot == InventorySlot.LeftHand) return false;
+			}
+			else if (slot == InventorySlot.RightHand || slot == InventorySlot.LeftHand) {
+				if (fromSlot == InventorySlot.Shoulder) return false;
+			}
 			bool canIns = false;
 			for (int n=0;n<16;n++) {
 				if (character.characterSheet.inventory.canInsertItemInSlot(i, Inventory.getSlotForIndex(n))) {
