@@ -28,6 +28,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int sortingOrderExtra = 1530*0;
 	public const int gridOrder = 2 + sortingOrderExtra;
 	public const int lineOrder = 3 + sortingOrderExtra;
+    public const int bloodOrder = 19 + sortingOrderExtra;
 	public const int trapOrder = 20 + sortingOrderExtra;
 	public const int circleNormalOrder = 30 + sortingOrderExtra;
 	public const int circleMovingOrder = 31 + sortingOrderExtra;
