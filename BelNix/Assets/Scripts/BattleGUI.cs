@@ -437,6 +437,13 @@ public class BattleGUI : MonoBehaviour {
 				Item inSlot = cs.inventory.inventory[iSlot].getItem();
 				if (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)) {
 					cs.inventory.stackItemWith(inSlot, i);
+					GameObject[] obj = GameObject.FindGameObjectsWithTag("inventoryitem");
+					foreach (GameObject go in obj) {
+						InventoryItem invP = go.GetComponent<InventoryItem>();
+						if (invP.item == inSlot) {
+							invP.transform.FindChild("Text").GetComponent<Text>().text = (inSlot.stackSize() > 1 ? inSlot.stackSize() + "" : "");
+						}
+					}
 				}
 				GameObject.Destroy(selectedItem);
 			}
@@ -447,7 +454,7 @@ public class BattleGUI : MonoBehaviour {
 			selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
 			selectedItem.GetComponent<LayoutElement>().ignoreLayout = false;
 			selectedItem.GetComponent<CanvasGroup>().blocksRaycasts = true;
-			selectedItem.transform.GetChild(0).gameObject.SetActive(true);
+			selectedItem.transform.FindChild("Overlay").gameObject.SetActive(true);
 		}
 		selectedItem = null;
 		List<Image> hoveredCopy = new List<Image>(overlayObjects);
@@ -476,9 +483,9 @@ public class BattleGUI : MonoBehaviour {
 				originalSlot = sl;
 				overlayObject.gameObject.SetActive(false);
 				overlayObject.transform.parent.GetComponent<LayoutElement>().ignoreLayout = true;
-				overlayObject.transform.parent.GetComponent<CanvasGroup>().blocksRaycasts = false;
+			//	overlayObject.transform.parent.GetComponent<CanvasGroup>().blocksRaycasts = false;
 				mouseHoverLeave(overlayObject);
-				Debug.Log(i);
+				Invoke("resetLootScrollPos",0.05f);
 			}
 		}
 		else if (UnitGUI.armorSlots.Contains(sl)) {
@@ -562,7 +569,8 @@ public class BattleGUI : MonoBehaviour {
 				invP.GetComponent<RectTransform>().anchoredPosition = v;*/
 				invP.GetComponent<InventoryItem>().item = i;
 				invP.GetComponent<InventoryItem>().slot = InventorySlot.None;
-				invP.transform.GetChild(0).gameObject.SetActive(true);
+				invP.transform.FindChild("Overlay").gameObject.SetActive(true);
+				invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
 				LayoutElement loe = invP.GetComponent<LayoutElement>();
 				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
 				cg.blocksRaycasts = true;
@@ -593,6 +601,14 @@ public class BattleGUI : MonoBehaviour {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = 1;
 	}
 
+	public void resetLootScrollPos() {
+		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value-.0001f;
+		Invoke("resetLootScrollPos2",0.05f);
+	}
+	public void resetLootScrollPos2() {
+		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value+.0001f;
+	}
+
 	public void setupInventory(Unit u) {
 		GameObject[] inventoryParents = new GameObject[] {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
 /*		GameObject[] oldInventory = GameObject.FindGameObjectsWithTag("inventoryitem");
@@ -620,6 +636,7 @@ public class BattleGUI : MonoBehaviour {
 				invP.GetComponent<RectTransform>().anchoredPosition = v;
 				invP.GetComponent<InventoryItem>().item = i;
 				invP.GetComponent<InventoryItem>().slot = UnitGUI.inventorySlots[iis.index];
+				invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
 				LayoutElement loe = invP.GetComponent<LayoutElement>();
 				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
 				cg.blocksRaycasts = false;
@@ -651,6 +668,7 @@ public class BattleGUI : MonoBehaviour {
 				invP.GetComponent<Image>().sprite = i.inventoryTexture;
 				Vector2 size = i.getSize() * 32.0f;
 				invP.GetComponent<RectTransform>().sizeDelta = size;
+				invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
 				GameObject armourParent = getArmourParent(slot);
 				invP.transform.SetParent(armourParent.transform, false);
 				Vector2 v = new Vector2();

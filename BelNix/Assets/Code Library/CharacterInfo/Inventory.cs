@@ -193,7 +193,11 @@ public class Inventory {
 	public bool itemCanStackWith(Item baseItem, Item additionalItem) {
 //			if (typeof(baseItem)!=typeof(additionalItem)) return false;
 		if (baseItem==null || additionalItem==null) return false;
-		if (baseItem.GetType()!=additionalItem.GetType()) return false;
+		if (!(baseItem is ItemMechanical) || !(additionalItem is ItemMechanical)) return false;
+		ItemMechanical baseMech = baseItem as ItemMechanical;
+		ItemMechanical additionalMech = additionalItem as ItemMechanical;
+		if (baseMech.getStackType()!=additionalMech.getStackType()) return false;
+	//	Debug.Log("Stack Attempt: " + baseItem.stackSize() + "  " + additionalItem.stackSize() + ":  " + getStackabilityOfItem(baseItem));
 		return baseItem.stackSize() + additionalItem.stackSize() <= getStackabilityOfItem(baseItem);
 	}
 	public bool stackItemWith(Item baseItem, Item additionalItem) {
