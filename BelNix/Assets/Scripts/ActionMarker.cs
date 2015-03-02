@@ -19,7 +19,7 @@ public class ActionMarker : MonoBehaviour {
     public void spark()
     {
         //GetComponent<Animator>().SetBool("Explode", true);
-        GameObject sparks = (GameObject) Instantiate(sparkObject);
+        sparks = (GameObject) Instantiate(sparkObject);
         sparks.transform.SetParent(this.transform);
         sparks.transform.localPosition = Vector3.zero;
         sparks.transform.localEulerAngles = Vector3.zero;

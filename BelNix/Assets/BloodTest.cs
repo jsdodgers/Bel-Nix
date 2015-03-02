@@ -3,16 +3,7 @@ using System.Collections;
 
 public class BloodTest : MonoBehaviour {
 	
-	public GameObject blood1;
-	public GameObject blood2;
-	public GameObject blood3;
-	public GameObject blood4;
-	public GameObject blood5;
-	public GameObject blood6;
-	public GameObject blood7;
-	public GameObject blood8;
-	public GameObject blood9;
-	public GameObject blood10;
+    public GameObject blood;
 
 	// Use this for initialization
 	void Start () {
@@ -21,43 +12,17 @@ public class BloodTest : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        // Method signature needs an attack direction
 	
 		if(Input.GetKeyDown(KeyCode.Space))
 		{
-			int bloodNumber = Random.Range(1, 10);
-			switch (bloodNumber)
-			{
-			case 1:
-				GameObject.Instantiate(blood1);
-				break;
-			case 2:
-				GameObject.Instantiate(blood2);
-				break;
-			case 3:
-				GameObject.Instantiate(blood3);
-				break;
-			case 4:
-				GameObject.Instantiate(blood4);
-				break;
-			case 5:
-				GameObject.Instantiate(blood5);
-				break;
-			case 6:
-				GameObject.Instantiate(blood6);
-				break;
-			case 7:
-				GameObject.Instantiate(blood7);
-				break;
-			case 8:
-				GameObject.Instantiate(blood8);
-				break;
-			case 9:
-				GameObject.Instantiate(blood9);
-				break;
-			case 10:
-				GameObject.Instantiate(blood10);
-				break;
-			}
+			int bloodNumber = Random.Range(1, 2);
+            GameObject bloodSplatter = (GameObject) Instantiate(blood, transform.position, transform.rotation);
+            bloodSplatter.transform.SetParent(gameObject.transform); 
+            //bloodSplatter.transform.localPosition = Vector3.zero;
+            // bloodSplatter.transform.localEulerAngles = Vector3.zero /*+ direction */;
+            bloodSplatter.GetComponent<Animator>().SetInteger("BloodOption", bloodNumber);
+            //bloodSplatter.transform.SetParent(null);
 		}
 	}
 }
