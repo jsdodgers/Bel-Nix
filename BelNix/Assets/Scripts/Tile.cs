@@ -177,7 +177,13 @@ public class Tile {
 		bool canAttackAfterBackStep = false;
 		bool canAttackAfterMove = false;
 		bool canMove = false;
-		bool canLoot = u.minorsLeft > 0 && getItems().Count > 0 && u.mapGenerator.isWithinDistance(1.0f, new Vector2(u.position.x, -u.position.y), getPosition(), true);
+		bool canLoot = false;
+		bool canLootAfterBackStep = false;
+		bool canLootAfterMove = false;
+		Tile backstepLootTile = null;
+		Tile moveLootTile = null;
+		float backstepLootTileDist = float.MaxValue;
+		float moveLootTileDist = float.MaxValue;
 		bool canEscape = false;
 		Tile backstepAttackTile = null;
 		Tile moveAttackTile = null;
@@ -295,6 +301,32 @@ public class Tile {
 			if (enemy) {
 				canExamine = true;
 			}
+			canLoot = getItems().Count > 0 && (!enemy || getEnemy(u).isDead()) && u.mapGenerator.hasLineOfSight(u, getPosition(), 1, true);
+			if (!canLoot) {
+				foreach (Tile t in backSteps) {
+					if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
+						canLootAfterBackStep = true;
+						float d = uTile.distanceFromTile(t);
+						if (d < backstepLootTileDist) {
+							backstepLootTile = t;
+							backstepLootTileDist = d;
+						}
+					}
+				}
+			}
+			if (!canLoot && !canLootAfterBackStep) {
+				foreach (Tile t in movements) {
+					if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
+						canLootAfterMove = true;
+						float d = uTile.distanceFromTile(t);
+						if (d < moveLootTileDist) {
+							moveLootTile = t;
+							moveLootTileDist = d;
+						}
+					}
+				}
+			}
+//				u.mapGenerator.isWithinDistance(1.0f, new Vector2(u.position.x, -u.position.y), getPosition(), true);
 		}
 		if (!u.usedMovement) {
 			if (uTile == this) {
@@ -360,6 +392,8 @@ public class Tile {
 			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Loot}, this));
+		if (canLootAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {MinorType.Loot}, this, moveLootTile));
+		if (canLootAfterBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Loot}, backstepLootTile));
 		if (canEscape) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Escape}, this, this));
 		if (u.hasClassFeature(ClassFeature.Throw)) {
 			if (canThrow) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Throw}, null, this));

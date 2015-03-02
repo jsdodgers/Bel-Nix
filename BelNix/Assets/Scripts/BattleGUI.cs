@@ -710,9 +710,9 @@ public class BattleGUI : MonoBehaviour {
 					case ArmorType.Pants:
 						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.secondaryColor;
 						break;
-					case ArmorType.Boots:
-						invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
-						break;
+				//	case ArmorType.Boots:
+				//		invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
+				//		break;
 					default:
 						break;
 					}
