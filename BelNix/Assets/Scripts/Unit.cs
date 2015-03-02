@@ -597,8 +597,8 @@ public class Unit : MonoBehaviour {
 		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.Invoke) && invokeUsesLeft > 0) {
 			GameGUI.selectMinorType(MinorType.Invoke);
 		}
-		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.One_Of_Many) && !oneOfManyUsed) {
-			GameGUI.selectMinorType(MinorType.Stealth);
+		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.One_Of_Many) && !oneOfManyUsed && !BattleGUI.aggressivelyEndTurn) {
+			GameGUI.selectMinorType(MinorType.OneOfMany);
 		}
 /*		else if (!usedMovement && !isProne()) {
 			GameGUI.selectMovementType(MovementType.Move);
@@ -606,10 +606,10 @@ public class Unit : MonoBehaviour {
 		else if (!usedStandard && !isProne()) {
 			GameGUI.selectStandardType(StandardType.Attack);
 		}*/
-		else if (!usedStandard && hasTurret() && !isProne()) {
+		else if (!usedStandard && hasTurret() && !isProne() && !BattleGUI.aggressivelyEndTurn) {
 			GameGUI.selectStandardType(StandardType.Place_Turret);
 		}
-		else if (!usedStandard && hasTrap() && !isProne()) {
+		else if (!usedStandard && hasTrap() && !isProne() && !BattleGUI.aggressivelyEndTurn) {
 			GameGUI.selectStandardType(StandardType.Lay_Trap);
 		}
 		else if (!usedMovement) {

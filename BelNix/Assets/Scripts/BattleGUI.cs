@@ -12,6 +12,7 @@ public enum ActionArm {Movement = 0, Standard, Minor }
 public class BattleGUI : MonoBehaviour {
 
 	public static BattleGUI battleGUI;
+	public static bool aggressivelyEndTurn;
 	private string[] saves;
 	[SerializeField] private GameObject saveEntry;
 	[SerializeField] private EventSystem eventSystem;
@@ -38,6 +39,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject temperedHandsCanvas;
 	[SerializeField] private GameEndMenu gameEndMenu;
 	[SerializeField] private Slider masterVolumeSlider;
+	[SerializeField] private Toggle aggressiveEndTurnToggle;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
@@ -115,6 +117,14 @@ public class BattleGUI : MonoBehaviour {
 		}
 		else {
 			AudioListener.volume = masterVolumeSlider.value = 1;
+		}
+		if (PlayerPrefs.HasKey("aggressiveEndTurn")) {
+			aggressivelyEndTurn = PlayerPrefs.GetInt("aggressiveEndTurn") >= 100;
+			aggressiveEndTurnToggle.isOn = aggressivelyEndTurn;
+		}
+		else {
+			aggressivelyEndTurn = true;
+			aggressiveEndTurnToggle.isOn = true;
 		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
 	 /*     if (Screen.width >= 1920)
@@ -238,6 +248,15 @@ public class BattleGUI : MonoBehaviour {
 	public void setVolume(float value) {
 		PlayerPrefs.SetFloat("globalVolume", value);
 		AudioListener.volume = value;
+	}
+
+	public void setAggressivelyEndTurn(Toggle toggle) {
+		setAggressivelyEndTurn(toggle.isOn);
+	}
+
+	public void setAggressivelyEndTurn(bool agg) {
+		PlayerPrefs.SetInt("aggressiveEndTurn", (agg ? 100 : 50));
+		aggressivelyEndTurn = agg;
 	}
 
 	public static void setEndGameUnits(int c, int exp, bool won) {
