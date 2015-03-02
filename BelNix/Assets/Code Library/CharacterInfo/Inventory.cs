@@ -125,6 +125,64 @@ public class Inventory {
 		inventory[2].addOtherSlot(inventory[7]);*/
 	}
 
+	
+	public static ActionType getActionTypeForMovement(InventorySlot toSlot, InventorySlot fromSlot) {
+		if (toSlot == fromSlot) return ActionType.None;
+		switch (toSlot) {
+		case InventorySlot.Head:
+		case InventorySlot.Chest:
+		case InventorySlot.Glove:
+		case InventorySlot.Pants:
+		case InventorySlot.Boots:
+			return ActionType.Standard;
+		case InventorySlot.RightHand:
+		case InventorySlot.LeftHand:
+			switch (fromSlot) {
+			case InventorySlot.RightHand:
+			case InventorySlot.LeftHand:
+			case InventorySlot.Shoulder:
+				return ActionType.Minor;
+			default:
+				return ActionType.Standard;
+			}
+		case InventorySlot.Shoulder:
+			if (fromSlot == InventorySlot.RightHand || fromSlot == InventorySlot.LeftHand) {
+				return ActionType.Minor;
+			}
+			else return ActionType.Standard;
+		case InventorySlot.None:
+			switch (fromSlot) {
+			case InventorySlot.Head:
+			case InventorySlot.Shoulder:
+			case InventorySlot.Chest:
+			case InventorySlot.Glove:
+			case InventorySlot.RightHand:
+			case InventorySlot.LeftHand:
+			case InventorySlot.Pants:
+			case InventorySlot.Boots:
+				return ActionType.Standard;
+			default:
+				return ActionType.Minor;
+			}
+		default:
+			switch (fromSlot) {
+			case InventorySlot.Head:
+			case InventorySlot.Shoulder:
+			case InventorySlot.Chest:
+			case InventorySlot.Glove:
+			case InventorySlot.RightHand:
+			case InventorySlot.LeftHand:
+			case InventorySlot.Pants:
+			case InventorySlot.Boots:
+				return ActionType.Standard;
+			case InventorySlot.None:
+				return ActionType.Minor;
+			default:
+				return ActionType.None;
+			}
+		}
+	}
+
 	public bool removeItem(Item i) {
 		foreach (InventoryItemSlot slot in inventory) {
 			if (slot.item  == i) {
@@ -193,7 +251,11 @@ public class Inventory {
 	public bool itemCanStackWith(Item baseItem, Item additionalItem) {
 //			if (typeof(baseItem)!=typeof(additionalItem)) return false;
 		if (baseItem==null || additionalItem==null) return false;
-		if (baseItem.GetType()!=additionalItem.GetType()) return false;
+		if (!(baseItem is ItemMechanical) || !(additionalItem is ItemMechanical)) return false;
+		ItemMechanical baseMech = baseItem as ItemMechanical;
+		ItemMechanical additionalMech = additionalItem as ItemMechanical;
+		if (baseMech.getStackType()!=additionalMech.getStackType()) return false;
+	//	Debug.Log("Stack Attempt: " + baseItem.stackSize() + "  " + additionalItem.stackSize() + ":  " + getStackabilityOfItem(baseItem));
 		return baseItem.stackSize() + additionalItem.stackSize() <= getStackabilityOfItem(baseItem);
 	}
 	public bool stackItemWith(Item baseItem, Item additionalItem) {

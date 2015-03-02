@@ -70,9 +70,20 @@ public class CharacterLoadoutActual {
 		return i;
 	}
 
-	public bool canInsertItemInSlot(InventorySlot slot, Item item) {
+
+	public bool canInsertItemInSlot(InventorySlot slot, Item item, InventorySlot fromSlot) {
 		Item i = getItemInSlot(slot);
+		ActionType at = Inventory.getActionTypeForMovement(slot, fromSlot);
+		if (at == ActionType.Minor && character.unit.minorsLeft <= 0) return false;
+		if (at == ActionType.Standard && character.unit.usedStandard) return false;
 		if (i != null) {
+			if (fromSlot == InventorySlot.None) return false;
+			if (slot == InventorySlot.Shoulder) {
+				if (fromSlot == InventorySlot.RightHand || fromSlot == InventorySlot.LeftHand) return false;
+			}
+			else if (slot == InventorySlot.RightHand || slot == InventorySlot.LeftHand) {
+				if (fromSlot == InventorySlot.Shoulder) return false;
+			}
 			bool canIns = false;
 			for (int n=0;n<16;n++) {
 				if (character.characterSheet.inventory.canInsertItemInSlot(i, Inventory.getSlotForIndex(n))) {
@@ -118,9 +129,12 @@ public class CharacterLoadoutActual {
 	}
 
 	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
+		Debug.Log("setItemInSlot: "+ itemSlot);
 		if (itemSlot == InventorySlot.None) return;
+		Debug.Log("not none");
 		removeSprite(getItemInSlot(itemSlot));
 		if (item != null && item.spritePrefab != null && character != null && character.unit != null) {
+			Debug.Log("Got in here!");
 			if (colors==null) colors = character.characterSheet.characterColors;
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
 			SpriteRenderer sr = sprite.GetComponent<SpriteRenderer>();
@@ -130,17 +144,23 @@ public class CharacterLoadoutActual {
 				sr.color = colors.primaryColor;
 				break;
 			case InventorySlot.Boots:
+				sr.color = new Color(.4f,.8f,.2f);
+				break;
 			case InventorySlot.Pants:
 				sr.color = colors.secondaryColor;
 				break;
 			default:
 				break;
 			}
+			Debug.Log("And Here!");
 			item.sprite = sprite;
 			sprite.transform.parent = character.unit.transform;
 			sprite.transform.localPosition = new Vector3(0,0,0);
 			sprite.transform.localEulerAngles = new Vector3(0, 0, 0);
+			Debug.Log("Add the Sprite");
 			sprites.Add(new SpriteOrder(item.sprite, getOrder(itemSlot)));
+			if (MapGenerator.mg != null && MapGenerator.mg.isInPriority())
+				SetRenderQueue.setRendererQueue(sr.renderer, new int[] {1000});
 		}
 		switch (itemSlot) {
 		case InventorySlot.Head:

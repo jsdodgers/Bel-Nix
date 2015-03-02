@@ -2796,12 +2796,10 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if ((isInCharacterPlacement() && mouseDown && !rightDraggin && !middleDraggin)) {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<10);
-            if (hit)
-            {
+            if (hit) {
                 GameObject go = hit.collider.gameObject;
                 Unit uu = go.GetComponent<Unit>();
-                if (uu.team == 0)
-                {
+                if (uu.team == 0) {
 			        selectedSelectionObject = go;
                     //				selectedUnit = go.GetComponent<Unit>();
                     //				selectedUnit.setSelected();
@@ -2816,8 +2814,7 @@ public class MapGenerator : MonoBehaviour {
                     pos.z = 10.0f;
                     pos = Camera.main.ScreenToWorldPoint(pos);
                     selectedSelectionDiff = new Vector2(pos.x - go.transform.localPosition.x, pos.y - go.transform.localPosition.y);
-                    if (lastHit)
-                    {
+                    if (lastHit) {
                         int posX = (int)lastHit.transform.localPosition.x;
                         int posY = -(int)lastHit.transform.localPosition.y;
                         Tile t = tiles[posX, posY];
@@ -2836,8 +2833,7 @@ public class MapGenerator : MonoBehaviour {
                     selectionStartingPos = go.transform.position;
                 }
             }
-            else
-            {
+            else {
                 BattleGUI.setCharacterInfoVisibility(false);
             }
 		}

@@ -5,11 +5,14 @@ using System.Collections.Generic;
 public enum UnitMovement {Move, BackStep, Escape, None}
 public enum MovementType {Move, BackStep, Recover, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None}
+public enum ActionType {None, Movement, Standard, Minor}
 public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 public enum OneOfManyMode {Hidden = 0, Hit, Damage, AC, Movement, None};
 public class Unit : MonoBehaviour {
+	[SerializeField] private EditorItem[] droppedItemsEditor = new EditorItem[] {};
+	public List<Item> droppedItems = new List<Item>();
 	public UnitMovement unitMovement = UnitMovement.None;
 	public MeshGen meshGen;
 	public bool needsOverlay = false;
@@ -2271,6 +2274,9 @@ public class Unit : MonoBehaviour {
 				sr.sortingOrder = MapGenerator.markOrder;
 			}
 			//	getMarkSprite().sortingOrder = MapGenerator.markOrder;
+		}
+		foreach (EditorItem i in droppedItemsEditor) {
+			droppedItems.Add(i.getItem());
 		}
 		paranoidOfUnits = new List<Unit>();
 		aiActive = false;
