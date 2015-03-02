@@ -612,6 +612,9 @@ public class Unit : MonoBehaviour {
 		else if (!usedStandard && hasTrap() && !isProne() && !BattleGUI.aggressivelyEndTurn) {
 			GameGUI.selectStandardType(StandardType.Lay_Trap);
 		}
+		else if (minorsLeft > 0 && !BattleGUI.aggressivelyEndTurn) {
+			GameGUI.selectMinorType(MinorType.Stealth);
+		}
 		else if (!usedMovement) {
 			GameGUI.selectMovementType(MovementType.Recover);
 		}
