@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections;
 
-
+public enum StackType {None, Turret, Trap, Frame, Gear, Trigger, EnergySource, Knives, BuzzSaws};
 public class ItemMechanicalEditor : EditorItem {
 
 	public ItemMechanicalEditor frame;
@@ -80,7 +80,7 @@ public class ItemMechanicalEditor : EditorItem {
 
 
 public interface ItemMechanical {
-
+	StackType getStackType();
 }
 
 public class Turret : Item, ItemMechanical {
@@ -90,6 +90,9 @@ public class Turret : Item, ItemMechanical {
 	public EnergySource energySource;
 	public string creatorId = "";
 	const int range = 5;
+	public StackType getStackType() {
+		return StackType.Turret;
+	}
 	public override string getItemData (string delim) {
 		string s = base.getItemData(delim) + delim;
 			s += (frame == null ? 0 + delim : 
@@ -183,6 +186,9 @@ public class Trap : Item, ItemMechanical {
 	public Applicator applicator;
 	public Trigger trigger;
 	public string creatorId = "";
+	public StackType getStackType() {
+		return StackType.Trap;
+	}
 	public override string getItemData (string delim)
 	{
 		return base.getItemData(delim) + delim +
@@ -241,6 +247,9 @@ public class Trap : Item, ItemMechanical {
 
 public class Frame : Item, ItemMechanical {
 	internal int healthLeft;
+	public StackType getStackType() {
+		return StackType.Frame;
+	}
 	public override string getItemData (string delim)
 	{
 		return base.getItemData(delim) + delim +
@@ -374,6 +383,9 @@ public class FrameM3 : Frame {
 }
 
 public class Applicator :  Weapon, ItemMechanical {
+	public StackType getStackType() {
+		return StackType.None;
+	}
 	public Applicator(string itemData, string delim) : base(itemData, delim)  {
 		
 	}
@@ -425,6 +437,9 @@ public class TestApplicator : Applicator {
 }
 
 public class Knives : Applicator {
+	public StackType getStackType() {
+		return StackType.Knives;
+	}
 	public Knives(string itemData, string delim) : base(itemData, delim)  {
 		
 	}
@@ -446,6 +461,9 @@ public class Knives : Applicator {
 }
 
 public class BuzzSaws : Applicator {
+	public StackType getStackType() {
+		return StackType.BuzzSaws;
+	}
 	public BuzzSaws(string itemData, string delim) : base(itemData, delim)  {
 		
 	}
@@ -469,6 +487,9 @@ public class BuzzSaws : Applicator {
 	
 
 public class EnergySource :  Item, ItemMechanical {
+	public StackType getStackType() {
+		return StackType.EnergySource;
+	}
 	public override string getItemData (string delim)
 	{
 		return base.getItemData (delim) + delim +
@@ -571,6 +592,9 @@ public class EnergySourceM3 : EnergySource {
 }
 
 public class Gear :  Item, ItemMechanical {
+	public StackType getStackType() {
+		return StackType.Gear;
+	}
 	public Gear(string itemData, string delim) : base(itemData, delim)  {
 		
 	}
@@ -658,6 +682,9 @@ public class GearM3 : Gear {
 }
 
 public class Trigger : Item, ItemMechanical {
+	public StackType getStackType() {
+		return StackType.Trigger;
+	}
 	public override string getItemData (string delim)
 	{
 		return base.getItemData (delim) + delim +

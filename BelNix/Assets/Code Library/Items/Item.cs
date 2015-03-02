@@ -259,6 +259,9 @@ public class Item {
 
 public class WeaponMechanical : Weapon, ItemMechanical {
 	public bool overClocked = false;
+	public StackType getStackType() {
+		return StackType.None;
+	}
 	public override ItemCode getItemCode ()
 	{
 		return ItemCode.WeaponMechanical;
