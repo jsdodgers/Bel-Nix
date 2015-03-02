@@ -585,17 +585,35 @@ public class Unit : MonoBehaviour {
 		else if (!usedMovement && closest > 1.1f && !isProne()) {
 			GameGUI.selectMovementType(MovementType.Move);
 		}
-		else if (!usedMovement && moveDistLeft == maxMoveDist && closest <= 1.1f && !isProne()) {
+		else if (!usedMovement && canBackStep() && closest <= 1.1f && !isProne()) {
 			GameGUI.selectMovementType(MovementType.BackStep);
 		}
-		else if (minorsLeft > 0) {
-			GameGUI.selectMinorType(MinorType.Stealth);
+		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.Mark)) {
+			GameGUI.selectMinorType(MinorType.Mark);
 		}
-		else if (!usedMovement && !isProne()) {
+		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.Escape) && !escapeUsed) {
+			GameGUI.selectMinorType(MinorType.Escape);
+		}
+		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.Invoke) && invokeUsesLeft > 0) {
+			GameGUI.selectMinorType(MinorType.Invoke);
+		}
+		else if (minorsLeft > 0 && hasClassFeature(ClassFeature.One_Of_Many) && !oneOfManyUsed && !BattleGUI.aggressivelyEndTurn) {
+			GameGUI.selectMinorType(MinorType.OneOfMany);
+		}
+/*		else if (!usedMovement && !isProne()) {
 			GameGUI.selectMovementType(MovementType.Move);
 		}
 		else if (!usedStandard && !isProne()) {
 			GameGUI.selectStandardType(StandardType.Attack);
+		}*/
+		else if (!usedStandard && hasTurret() && !isProne() && !BattleGUI.aggressivelyEndTurn) {
+			GameGUI.selectStandardType(StandardType.Place_Turret);
+		}
+		else if (!usedStandard && hasTrap() && !isProne() && !BattleGUI.aggressivelyEndTurn) {
+			GameGUI.selectStandardType(StandardType.Lay_Trap);
+		}
+		else if (minorsLeft > 0 && !BattleGUI.aggressivelyEndTurn) {
+			GameGUI.selectMinorType(MinorType.Stealth);
 		}
 		else if (!usedMovement) {
 			GameGUI.selectMovementType(MovementType.Recover);
@@ -606,7 +624,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public int getAttackRange() {
-		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		Weapon w = getWeapon();
 		if (w==null) return 0;
 		return w.range;
 	}
@@ -1102,7 +1120,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public float closestUnitDist(bool enemies, bool friendlies, bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		float dist = 0;
+		float dist = float.MaxValue;
 		foreach (Unit u in mapGenerator.priorityOrder) {
 			if (u!=this && (((enemies && isEnemyOf(u) && u.oneOfManyMode != OneOfManyMode.Hidden) || (friendlies && isAllyOf(u))) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
@@ -1989,8 +2007,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public bool hasWeapon() {
-		if (characterSheet == null) return false;
-		Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+		Weapon w = getWeapon();
 		if (w == null) return false;
 		if (w is WeaponMechanical) {
 			if (((WeaponMechanical)w).overClocked) return false;
@@ -2903,7 +2920,7 @@ public class Unit : MonoBehaviour {
 	
 	
 	public virtual int getCritChance() {
-		return characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
+		return getWeapon().criticalChance;
 	}
 	
 	public virtual int getMeleeScore() {
@@ -2922,7 +2939,9 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual Weapon getWeapon() {
-		return characterSheet.characterSheet.characterLoadout.rightHand;
+		Weapon weap = (characterSheet == null ? null : characterSheet.characterSheet.characterLoadout.rightHand);
+		if (weap == null) weap = mapGenerator.handWeapon;
+		return weap;
 	}
 	
 	public virtual int getUncannyKnowledgeBonus() {
@@ -2983,7 +3002,7 @@ public class Unit : MonoBehaviour {
         }
 		if (overClockedAttack) {
 			Debug.Log("Over Clocked Attack!!!");
-			Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
+			Weapon w = getWeapon();
 			if (w is ItemMechanical) {
 				((WeaponMechanical)w).overClocked = true;
 			}

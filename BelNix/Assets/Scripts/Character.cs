@@ -53,11 +53,11 @@ public class Character
 	}
 
 	public int rollDamage(Unit enemy, bool critical) {
-		return characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : 0) + unit.sneakAttackBonus(enemy);
+		return unit.getWeapon().rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : 0) + unit.sneakAttackBonus(enemy);
 	}
 
 	public int overloadDamage() {
-		return characterSheet.characterLoadout.rightHand.numberOfDamageDice * characterSheet.characterLoadout.rightHand.diceType + characterSheet.combatScores.getHandling();
+		return unit.getWeapon().numberOfDamageDice * unit.getWeapon().diceType + characterSheet.combatScores.getHandling();
 	}
 
 	//public Hit rollHit() {
