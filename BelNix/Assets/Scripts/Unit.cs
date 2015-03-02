@@ -2479,6 +2479,15 @@ public class Unit : MonoBehaviour {
 		else if (u.position.y > position.y) dir = Direction.Up;
 		return dir;
 	}
+
+    public static Direction directionOf(Unit sourceUnit, Unit unitOfInterest)
+    {
+        Direction dir = Direction.Down;
+        if (unitOfInterest.position.x > sourceUnit.position.x) dir = Direction.Right;
+        else if (unitOfInterest.position.x < sourceUnit.position.x) dir = Direction.Left;
+        else if (unitOfInterest.position.y > sourceUnit.position.y) dir = Direction.Up;
+        return dir;
+    }
 	
 	void throwAnimation() {
 		attackEnemy.setRotationToCharacter(this);
@@ -2777,7 +2786,7 @@ public class Unit : MonoBehaviour {
 		}
 		return false;
 	}
-	
+
 	void doAttack() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (attacking && !moving && !rotating) {
@@ -2786,7 +2795,7 @@ public class Unit : MonoBehaviour {
 			attacking = false;
 		}
 	}
-	
+
 	
 	
 	public void crushingSwingSFX() {
@@ -2964,8 +2973,11 @@ public class Unit : MonoBehaviour {
 		bool didHit = hit.hit >= enemyAC || hit.crit;
 		attackEnemy.showDamage(wapoon, didHit, crit);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
-		if (didHit)
-			attackEnemy.damage(wapoon, this);
+        if (didHit)
+        {
+            attackEnemy.damage(wapoon, this);
+            BloodScript.spillBlood(this.gameObject, attackEnemy.gameObject);
+        }
 		if (overClockedAttack) {
 			Debug.Log("Over Clocked Attack!!!");
 			Weapon w = characterSheet.characterSheet.characterLoadout.rightHand;
