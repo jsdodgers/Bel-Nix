@@ -88,6 +88,8 @@ public class MapGenerator : MonoBehaviour {
 	GameObject warningRedPrefab;
 	GameObject warningYellowPrefab;
 	GameObject warningBothPrefab;
+	[SerializeField] ItemWeapon handWeaponEditor;
+	public Weapon handWeapon;
 //	public GameObject selectedPlayer;
 	public Unit selectedUnit;
 	public List<Unit> selectedUnits;
@@ -730,6 +732,7 @@ public class MapGenerator : MonoBehaviour {
 	// Use this for initialization
 	void Start() {
 		mg = this;
+		handWeapon = handWeaponEditor.getWeapon();
 		Debug.Log("Start");
 		GameGUI.mapGenerator = this;
 		GameGUI.resetVars();
