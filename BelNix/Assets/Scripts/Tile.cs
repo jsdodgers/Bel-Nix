@@ -301,27 +301,29 @@ public class Tile {
 			if (enemy) {
 				canExamine = true;
 			}
-			canLoot = getItems().Count > 0 && (!enemy || getEnemy(u).isDead()) && u.mapGenerator.hasLineOfSight(u, getPosition(), 1, true);
-			if (!canLoot) {
-				foreach (Tile t in backSteps) {
-					if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
-						canLootAfterBackStep = true;
-						float d = uTile.distanceFromTile(t);
-						if (d < backstepLootTileDist) {
-							backstepLootTile = t;
-							backstepLootTileDist = d;
+			if (getItems().Count > 0 && (!enemy || getEnemy(u).isDead())) {
+				canLoot = u.mapGenerator.hasLineOfSight(u, this, 1, true);
+				if (!canLoot) {
+					foreach (Tile t in backSteps) {
+						if (t.canStand() && t!=uTile && u.minorsLeft - t.minDistUsedMinors > 0 && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
+							canLootAfterBackStep = true;
+							float d = uTile.distanceFromTile(t);
+							if (d < backstepLootTileDist) {
+								backstepLootTile = t;
+								backstepLootTileDist = d;
+							}
 						}
 					}
 				}
-			}
-			if (!canLoot && !canLootAfterBackStep) {
-				foreach (Tile t in movements) {
-					if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
-						canLootAfterMove = true;
-						float d = uTile.distanceFromTile(t);
-						if (d < moveLootTileDist) {
-							moveLootTile = t;
-							moveLootTileDist = d;
+				if (!canLoot && !canLootAfterBackStep) {
+					foreach (Tile t in movements) {
+						if (t.canStand() && t!=uTile && u.minorsLeft - t.minDistUsedMinors > 0 && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
+							canLootAfterMove = true;
+							float d = uTile.distanceFromTile(t);
+							if (d < moveLootTileDist) {
+								moveLootTile = t;
+								moveLootTileDist = d;
+							}
 						}
 					}
 				}
@@ -393,7 +395,7 @@ public class Tile {
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Loot}, this));
 		if (canLootAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {MinorType.Loot}, this, moveLootTile));
-		if (canLootAfterBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Loot}, backstepLootTile));
+		if (canLootAfterBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Loot}, this, backstepLootTile));
 		if (canEscape) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Escape}, this, this));
 		if (u.hasClassFeature(ClassFeature.Throw)) {
 			if (canThrow) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Throw}, null, this));
@@ -427,8 +429,8 @@ public class Tile {
 		return tileActions;
 	}
 
-	public Vector2 getPosition() {
-		return new Vector2(x, y);
+	public Vector2 getPosition(int mod = 1) {
+		return new Vector2(x*mod, y*mod);
 	}
 
 	public List<Item> getItems() {
