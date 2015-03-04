@@ -2153,7 +2153,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {// && !normalDraggin && !shiftDraggin) {
 			if (UnitGUI.inventoryOpen) {
-				UnitGUI.inventoryOpen = false;
+				UnitGUI.clickTab(Tab.B);
 			}
 			else if (RightClickMenu.shown) {
 				RightClickMenu.hideMenu();

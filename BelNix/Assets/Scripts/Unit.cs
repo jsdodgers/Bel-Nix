@@ -65,6 +65,7 @@ public class Unit : MonoBehaviour {
 	public bool shouldDoAthleticsCheck = false;
 	public bool shouldCancelMovement = false;
 	public bool moving = false;
+	public Tile lootTile;
 	public bool rotating = false;
 	public bool attacking = false;
 	public bool attackAnimating = false;
@@ -2337,12 +2338,22 @@ public class Unit : MonoBehaviour {
 		doIntimidate();
 		doInvoke();
 		doInstillParanoia();
+		doLootAfterMovement();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
 		setMarkPosition();
 		setTrailRendererPosition();
 		setCircleScale();
+	}
+
+	public void doLootAfterMovement() {
+		if (lootTile != null && !moving) {
+			if (!UnitGUI.inventoryOpen) UnitGUI.clickTab(Tab.B);
+			BattleGUI.clearLootItems();
+			BattleGUI.setLootItems(lootTile.getItems(), lootTile);
+			lootTile = null;
+		}
 	}
 	
 	
