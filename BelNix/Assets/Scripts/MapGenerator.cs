@@ -499,6 +499,13 @@ public class MapGenerator : MonoBehaviour {
 		return isWithinDistance(dist*gridSize, fromVec, to, manhattan) && hasLineOfSight(fromVec, to, visMode);
 	}
 
+	public bool hasLineOfSight(Unit fromUnit, Tile to, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
+		if (fromUnit == null) return false;
+		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
+		float dist = (distance == -1 ? fromUnit.getViewRadius() : distance);
+		return hasLineOfSight(from, to, dist, manhattan, visMode);
+	}
+
 	public bool hasLineOfSight(Tile from, Tile to, float dist, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
 		Vector2 fromVec = new Vector2((int)((from.x + 0.5f)*gridSize), -(int)((from.y + 0.5f)*gridSize));
 		Vector2 toCenter = new Vector2((int)((to.x + 0.5f)*gridSize), -(int)((to.y + 0.5f)*gridSize));
@@ -2147,7 +2154,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {// && !normalDraggin && !shiftDraggin) {
 			if (UnitGUI.inventoryOpen) {
-				UnitGUI.inventoryOpen = false;
+				UnitGUI.clickTab(Tab.B);
 			}
 			else if (RightClickMenu.shown) {
 				RightClickMenu.hideMenu();

@@ -65,6 +65,7 @@ public class Unit : MonoBehaviour {
 	public bool shouldDoAthleticsCheck = false;
 	public bool shouldCancelMovement = false;
 	public bool moving = false;
+	public Tile lootTile;
 	public bool rotating = false;
 	public bool attacking = false;
 	public bool attackAnimating = false;
@@ -2337,12 +2338,22 @@ public class Unit : MonoBehaviour {
 		doIntimidate();
 		doInvoke();
 		doInstillParanoia();
+		doLootAfterMovement();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
 		setMarkPosition();
 		setTrailRendererPosition();
 		setCircleScale();
+	}
+
+	public void doLootAfterMovement() {
+		if (lootTile != null && !moving) {
+			if (!UnitGUI.inventoryOpen) UnitGUI.clickTab(Tab.B);
+			BattleGUI.clearLootItems();
+			BattleGUI.setLootItems(lootTile.getItems(), lootTile);
+			lootTile = null;
+		}
 	}
 	
 	
@@ -2807,7 +2818,10 @@ public class Unit : MonoBehaviour {
 	void doAttack() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (attacking && !moving && !rotating) {
-			attackAnimation();
+			if(getWeapon().isRanged)
+				rangedAnimation();
+			else
+				attackAnimation();
 			attackAnimating = true;
 			attacking = false;
 		}
@@ -2857,6 +2871,12 @@ public class Unit : MonoBehaviour {
 		attackAnimationAllSprites();
 		//	attackEnemy = null;
 	}
+
+	void rangedAnimation() {
+		anim.SetTrigger("Ranged");
+		rangedAnimationAllSprites();
+		//	attackEnemy = null;
+	}
 	
 	public void resetAllSprites() {
 		vaultAnimation(false);
@@ -2867,6 +2887,10 @@ public class Unit : MonoBehaviour {
 	
 	void attackAnimationAllSprites() {
 		setAllSpritesTrigger("Attack");
+	}
+
+	void rangedAnimationAllSprites() {
+		setAllSpritesTrigger("Ranged");
 	}
 	
 	void movementAnimationAllSprites(bool move) {
