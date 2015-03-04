@@ -12,6 +12,7 @@ public enum ActionArm {Movement = 0, Standard, Minor }
 public class BattleGUI : MonoBehaviour {
 
 	public static BattleGUI battleGUI;
+	public static bool aggressivelyEndTurn;
 	private string[] saves;
 	[SerializeField] private GameObject saveEntry;
 	[SerializeField] private EventSystem eventSystem;
@@ -38,6 +39,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject temperedHandsCanvas;
 	[SerializeField] private GameEndMenu gameEndMenu;
 	[SerializeField] private Slider masterVolumeSlider;
+	[SerializeField] private Toggle aggressiveEndTurnToggle;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
@@ -116,27 +118,19 @@ public class BattleGUI : MonoBehaviour {
 		else {
 			AudioListener.volume = masterVolumeSlider.value = 1;
 		}
+		if (PlayerPrefs.HasKey("aggressiveEndTurn")) {
+			aggressivelyEndTurn = PlayerPrefs.GetInt("aggressiveEndTurn") >= 100;
+			aggressiveEndTurnToggle.isOn = aggressivelyEndTurn;
+		}
+		else {
+			aggressivelyEndTurn = true;
+			aggressiveEndTurnToggle.isOn = true;
+		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
-	 /*     if (Screen.width >= 1920)
-        {
-            gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
-		}
-		else if (Screen.width >= 1680)
-		{
-			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1680, 1050);
-		}
-		else if (Screen.width >= 1600)
-		{
-			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
-		}
-		else if (Screen.width >= 1366)
-		{
-			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1366, 768);
-		}
-		else if (Screen.width >= 1280)
-		{
-			gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1600, 900);
-		}*/
+        
+        // Add screenshake to the main camera!
+        Camera.main.gameObject.AddComponent<ScreenShaker>();
+
         // Some fancy stuff to make static things work in other classes
         battleGUI = this;
         GameGUI.initialize();
@@ -238,6 +232,15 @@ public class BattleGUI : MonoBehaviour {
 	public void setVolume(float value) {
 		PlayerPrefs.SetFloat("globalVolume", value);
 		AudioListener.volume = value;
+	}
+
+	public void setAggressivelyEndTurn(Toggle toggle) {
+		setAggressivelyEndTurn(toggle.isOn);
+	}
+
+	public void setAggressivelyEndTurn(bool agg) {
+		PlayerPrefs.SetInt("aggressiveEndTurn", (agg ? 100 : 50));
+		aggressivelyEndTurn = agg;
 	}
 
 	public static void setEndGameUnits(int c, int exp, bool won) {
@@ -710,9 +713,9 @@ public class BattleGUI : MonoBehaviour {
 					case ArmorType.Pants:
 						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.secondaryColor;
 						break;
-					case ArmorType.Boots:
-						invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
-						break;
+				//	case ArmorType.Boots:
+				//		invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
+				//		break;
 					default:
 						break;
 					}

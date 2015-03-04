@@ -28,7 +28,7 @@ public class EndGameUnit : MonoBehaviour {
 		Armor s = u.characterSheet.characterSheet.characterLoadout.chestSlot;
 		if (s != null) setShirt(s.spritePrefab.GetComponent<SpriteRenderer>().sprite, u.characterSheet.characterSheet.characterColors.primaryColor);
 		else shirt.gameObject.SetActive(false);
-		Weapon w = u.characterSheet.characterSheet.characterLoadout.rightHand;
+		Weapon w = u.getWeapon();
 		if (w != null) setWeapon(w.spritePrefab.GetComponent<SpriteRenderer>().sprite);
 		else weapon.gameObject.SetActive(false);
 		if (u.hairSprite != null) setHair(u.characterSheet.characterSheet.personalInformation.getCharacterHairStyle().getHairPrefab().GetComponent<SpriteRenderer>().sprite, u.characterSheet.characterSheet.characterColors.headColor);
