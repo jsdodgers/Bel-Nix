@@ -17,6 +17,91 @@ class Combat {
 	public static int rollDamage(Unit attacker, bool critical)  {
 		return 0;   //return attacker.characterSheet.characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? attacker.characterSheet.characterSheet.combatScores.getCritical()
 	}
+    public static int rollDamage(Unit attacker, Unit attackedEnemy, bool crit)
+    {
+        return attacker.characterSheet.rollDamage(attackedEnemy, crit) + attacker.temperedHandsMod + attacker.getOneOfManyBonus(OneOfManyMode.Damage);
+    }
+
+
+    public static AttackHandler getAttackHandler()
+    {
+        try
+        {
+            AttackHandler attackHandler = GameObject.Find("Event Handler").GetComponent<AttackHandler>();
+            return attackHandler;
+        }
+        catch (Exception e)
+        {
+            GameObject eventHandler = new GameObject("Event Handler");
+            eventHandler.transform.SetParent(GameObject.Find("MapGenerator").transform);
+            return eventHandler.AddComponent<AttackHandler>();
+        }
+    }
+    private static void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false)
+    {
+        AttackHandler attackHandler = getAttackHandler();
+        attackHandler.OnAttackHit(attacker, attackedEnemy, damage, ranged, crit, overClockedAttack);
+    }
+    private static void OnAttackMissed(Unit attacker, Unit attackedEnemy, bool ranged = false, bool overClockedAttack = false)
+    {
+        AttackHandler attackHandler = getAttackHandler();
+        attackHandler.OnAttackMissed(attacker, attackedEnemy, ranged, overClockedAttack);
+    }
+
+    public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false)
+    {
+        Debug.Log("Deal Damage: " + attackedEnemy);
+        Hit hit     = Combat.rollHit(attacker);
+        Hit critHit = Combat.rollHit(attacker);
+        int enemyAC = attackedEnemy.getAC();
+        bool crit = hit.crit && critHit.hit >= enemyAC;
+        int weaponDamage = (overClockedAttack ? overClockDamage(attacker) : rollDamage(attacker, attackedEnemy, crit));//.characterLoadout.rightHand.rollDamage();
+        bool didHit = hit.hit >= enemyAC || hit.crit;
+        attackedEnemy.showDamage(weaponDamage, didHit, crit);
+        
+        BattleGUI.writeToConsole(attacker.getName() + 
+            (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + 
+            attackedEnemy.getName() + (didHit ? " with " + 
+            (attacker.getWeapon() == null ? attacker.getGenderString() + " fist " : attacker.getWeapon().itemName + " ") + 
+            "for " + weaponDamage + " damage!" : "!"), (attacker.team == 0 ? Log.greenColor : Color.red));
+
+        if (didHit)
+        {
+            attackedEnemy.damage(weaponDamage, attacker);
+            BloodScript.spillBlood(attacker.gameObject, attackedEnemy.gameObject);
+            OnAttackHit(attacker, attackedEnemy, weaponDamage, false, crit, overClockedAttack);
+        }
+        else
+            OnAttackMissed(attacker, attackedEnemy, false, overClockedAttack);
+        //    attackedEnemy.damage(0, attacker);
+
+        if (overClockedAttack)
+        {
+            Debug.Log("Over Clocked Attack!!!");
+            Weapon weapon = attacker.characterSheet.characterSheet.characterLoadout.rightHand;
+            if (weapon is ItemMechanical)
+            {
+                ((WeaponMechanical)weapon).overClocked = true;
+            }
+        }
+        if (!attackedEnemy.moving)
+        {
+            attackedEnemy.attackedByCharacter = attacker;
+            attackedEnemy.setRotationToAttackedByCharacter();
+            attackedEnemy.beingAttacked = true;
+        }
+        else
+        {
+            attackedEnemy.shouldMove--;
+            if (attackedEnemy.shouldMove < 0) attackedEnemy.shouldMove = 0;
+        }
+        Debug.Log((hit.hit > 4 ? "wapoon: " + weaponDamage : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
+    }
+
+    public static int overClockDamage(Unit attacker)
+    {
+        return attacker.characterSheet.overloadDamage();
+    }
 	
 	// Returns true if the attacker and a teammate are flanking the defender (they are on opposite sides of the defender)
 	public static bool flanking(Unit attacker) {
@@ -47,4 +132,55 @@ class Combat {
 	public static int rollD20() {
 		return UnityEngine.Random.Range(1, 21);
 	}
+}
+
+public class AttackHandler : MonoBehaviour
+{
+    public delegate void attackEventHandler(AttackEventArgs args);
+    public event attackEventHandler attackHit;
+    public event attackEventHandler attackMissed;
+
+     public void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false)
+    {
+        if (attackHit != null)
+        {
+            attackHit(new AttackEventArgs()
+            {
+                attackingUnit = attacker.gameObject,
+                attackedUnit = attackedEnemy.gameObject,
+                missed = false,
+                damageDealt = damage,
+                rangedAttack = ranged,
+                criticalHit = crit,
+                overClockedAttack = overClockedAttack
+            });
+        }
+    }
+    public void OnAttackMissed(Unit attacker, Unit attackedEnemy, bool ranged = false, bool overClockedAttack = false)
+    {
+        if (attackMissed != null)
+        {
+            attackMissed(new AttackEventArgs()
+            {
+                attackingUnit = attacker.gameObject,
+                attackedUnit = attackedEnemy.gameObject,
+                missed = true,
+                damageDealt = 0,
+                rangedAttack = ranged,
+                criticalHit = false,
+                overClockedAttack = overClockedAttack
+            });
+        }
+    }
+}
+
+public class AttackEventArgs : EventArgs
+{
+    public GameObject attackingUnit;
+    public GameObject attackedUnit;
+    public int damageDealt;
+    public bool missed;
+    public bool rangedAttack;
+    public bool criticalHit;
+    public bool overClockedAttack;
 }

@@ -2982,6 +2982,9 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public void dealDamage() {
+        Combat.dealDamage(this, attackEnemy, overClockedAttack);
+
+        /*
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		Debug.Log("Deal Damage: " + attackEnemy);
 		Hit hit = Combat.rollHit(this);
@@ -3015,6 +3018,7 @@ public class Unit : MonoBehaviour {
 		}
 		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
 		//		damageDisplay.begin(
+        */
 	}
 	
 	public int damageNumber = 0;
@@ -3097,6 +3101,12 @@ public class Unit : MonoBehaviour {
 			}
 			if (mapGenerator.getCurrentUnit()==this && deadOrDyingOrUnconscious()) mapGenerator.nextPlayer();
 		}
+        //if (!moving)
+        //{
+        //    attackedByCharacter = u;
+        //    setRotationToAttackedByCharacter();
+        //    beingAttacked = true;
+        //}
 		//	Debug.Log("EndDamage");
 	}
 	
