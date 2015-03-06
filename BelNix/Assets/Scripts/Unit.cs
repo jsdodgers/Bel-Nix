@@ -2,6 +2,41 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+public class KnownUnit {
+	Unit knowingUnit;
+	public Unit knownUnit;
+	//not visible for 4
+	//farther than 15
+	//farther than 12 for 3
+	public int lastVisible = 0;
+	public int lastWithinDist = 0;
+	public KnownUnit(Unit knowing, Unit known) {
+		knowingUnit = knowing;
+		knownUnit = known;
+		lastVisible = 0;
+		lastWithinDist = 0;
+	}
+	public bool startTurn() {
+		bool vis = knowingUnit.hasLineOfSightToUnit(knownUnit);
+		if (vis) lastVisible = 0;
+		else {
+			lastVisible++;
+			if (lastVisible > 2) return true;
+		}
+		float dist = knowingUnit.distanceFromUnit(knownUnit, true);
+		if (dist <= 8) lastWithinDist = 0;
+		else if (dist > 12) {
+			return true;
+		}
+		else {
+			lastWithinDist++;
+			if (lastWithinDist > 1) return true;
+		}
+		return false;
+	}
+}
+
+
 public enum UnitMovement {Move, BackStep, Escape, None}
 public enum MovementType {Move, BackStep, Recover, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None}
@@ -18,11 +53,34 @@ public class Unit : MonoBehaviour {
 	public bool needsOverlay = false;
 	bool doOverlay = false;
 	public List<Unit> markedUnits;
+	public List<KnownUnit> knownEnemies;
+
+	
+	[Header("AI Settings")]
+	[Space(10)]
+	public List<Unit> attackedByUnits;
+	public Unit alertedAlly;
 	public bool playerControlled = true;
+	public bool aiActive = false;
+	public float maxTurnAmount = 40.0f;
+	public List<Vector2> patrolTiles = new List<Vector2>();
+	public int rotateOftenness = 20;
+	public int patrolOftenness = 20;
+	public int nothingOftenness = 60;
+	public int rotateLength = 30;
+	public int patrolLength = 30;
+	public bool attackDowned = false;
+	public bool onlyRetaliate = false;
+	public bool runsAway = true;
+	[Range(0,1)] public float attackWeakOrNear = 1.0f;
+	[Range(0,1)] public float attackComposureOrHealth = 0.5f;
+	[Range(0,1)] public float temperedHandsOftenness = 0.5f;
+
+	
 	public AStarEnemyMap aiMap = null;
 	public Character characterSheet;
+	[Space(20)]
 	public CharacterTemplate characterTemplate;
-	public bool aiActive = false;
 	int initiative;
 	public int stealth;
 	//	public string characterId;
@@ -67,11 +125,14 @@ public class Unit : MonoBehaviour {
 	public bool moving = false;
 	public Tile lootTile;
 	public bool rotating = false;
+	public bool rotating2 = false;
+
 	public bool attacking = false;
 	public bool attackAnimating = false;
 	public Unit attackEnemy = null;
 	public Vector2 rotateFrom;
 	public Vector2 rotateTo;
+	public float rotateToValue;
 	Animator anim;
 	public bool usedMovement;
 	public bool usedStandard;
@@ -161,7 +222,8 @@ public class Unit : MonoBehaviour {
 	public bool isFlanking(Unit u) {
 		return Combat.flanking(this, u);
 	}
-	
+
+	public int noEnemiesTurns = 0;
 	public void beginTurn() {
 		foreach (Unit u in markedUnits) {
 			u.setMarked(true);
@@ -173,10 +235,38 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		idleAnimation(true);
+		if (!playerControlled && aiActive) {
+			List<KnownUnit> oldKnownEnemies = new List<KnownUnit>(knownEnemies);
+			foreach (KnownUnit u in oldKnownEnemies) {
+				if (u.startTurn()) {
+					knownEnemies.Remove(u);
+				}
+			}
+			if (knownEnemies.Count == 0 && alertedAlly == null) {
+				noEnemiesTurns++;
+				if (noEnemiesTurns > 1)
+					setActive(false);
+			}
+			else {
+				noEnemiesTurns = 0;
+			}
+		}
 		//setGUIToThis();
 		BattleGUI.beginTurn(this);
 	}
-	
+
+	public void addKnownUnit(Unit u) {
+		knownEnemies.Add(new KnownUnit(this, u));
+		alertedAlly = null;
+	}
+
+	public bool isAwareOf(Unit u) {
+		if (knownEnemies == null) return false;
+		foreach (KnownUnit ku in knownEnemies) {
+			if (ku.knownUnit == u) return true;
+		}
+		return false;
+	}
 	/*
 	public void setGUIToThis() {
 		BattleGUI.setAtAGlanceText(getAtAGlanceString());
@@ -283,6 +373,13 @@ public class Unit : MonoBehaviour {
 		return characterSheet.characterSheet.combatScores.getMaxComposure();
 	}
 	
+	public virtual float getComposurePercent() {
+		return ((float)getCurrentComposure())/((float)getMaxComposure());
+	}
+	
+	public virtual float getHealthPercent() {
+		return ((float)getCurrentHealth())/((float)getMaxHealth());
+	}
 	public string getAtAGlanceString()  {
 		//		string playerText = Unit "N<size=13>AME</size>/A<size=13>LIAS</size>:\n\"";
 		string playerName = getName();
@@ -314,22 +411,30 @@ public class Unit : MonoBehaviour {
 		temperedHandsMod = 0;
 	}
 	
-	public float getViewRadius() {
+	public float getViewRadius(float angle = -2000.0f) {
+		if (angle != -2000.0f) {
+			float a1 = transform.eulerAngles.z + 90.0f;
+			if (a1 > 360.0f) a1 -= 360.0f;
+			float a2 = angle;
+			if (a1 - a2 > 180.0f) a2+=360.0f;
+			else if (a2 - a1 > 180.0f) a1 += 360.0f;
+			if (Mathf.Abs(a2 - a1) >= 45.0f) return 1.5f;
+		}
 		return mapGenerator.viewRadius - (team==0 ? 0.0f : 2.0f);
 	}
 	
-	public float getViewRadiusToUnit(Unit u) {
-		if (team == 0 || team == u.team) return getViewRadius();
+	public float getViewRadiusToUnit(Unit u, float angle = -2000.0f) {
+		if (team == 0 || team == u.team) return getViewRadius(angle);
 		int perception = getBasePerception() + 10;
 		int st = u.stealth;
 		int diff = Mathf.Max(0, st - perception);
-		float viewRange = (mapGenerator.getCurrentUnit().team != team ? Mathf.Max (0.0f, getViewRadius() - diff) : Mathf.Max(1.0f, getViewRadius() - diff/2));
+		float viewRange = (mapGenerator.getCurrentUnit().team != team ? Mathf.Max (0.0f, getViewRadius(angle) - diff) : Mathf.Max(1.0f, getViewRadius(angle) - diff/2));
 		//	Debug.Log(getName() + " view range to " + u.getName() + ":  " + viewRange);
 		return viewRange;
 	}
 	
 	public bool hasOneOfManyHider() {
-		foreach (Unit u in mapGenerator.players) {
+		foreach (Unit u in (team == 0 ? mapGenerator.players : mapGenerator.enemies)) {
 			if (u == this) continue;
 			if (hasLineOfSightToUnit(u, 3, true)) return true;
 		}
@@ -342,8 +447,8 @@ public class Unit : MonoBehaviour {
 		return mapGenerator.hasLineOfSight(mapGenerator.tiles[(int)position.x,(int)-position.y], t, distance, manhattan, visMode);
 	}
 	
-	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
-		return mapGenerator.hasLineOfSight(this, u, distance, manhattan, visMode);
+	public bool hasLineOfSightToUnit(Unit u, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility, bool withAngle = false) {
+		return mapGenerator.hasLineOfSight(this, u, distance, manhattan, visMode, withAngle);
 	}
 	
 	public List<Unit> lineOfSightUnits(int distance = -1, bool manhattan = false) {
@@ -670,6 +775,7 @@ public class Unit : MonoBehaviour {
 		getTargetSprite().enabled = true;
 		getTargetSprite().color = Color.red;
 		setTargetObjectScale();
+		getTarget().localEulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
 	}
 	
 	public void deselect() {
@@ -1067,22 +1173,66 @@ public class Unit : MonoBehaviour {
 		}
 		return currentPath;
 	}
-	
-	public Unit closestEnemy(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		return closestUnit(true, false, attackUnconscious, vis);
+
+	public struct AIEnemyValues {
+		public Unit u;
+		public float dist;
+		public float healthPercent;
+		public float composurePercent;
+		public AIEnemyValues(Unit u, float dist, float health, float comp) {
+			this.u = u;
+			this.dist = dist;
+			healthPercent = health;
+			composurePercent = comp;
+		}
+	}
+	public AIEnemyValues bestAttackEnemy(bool attackUnconscious = false, bool onlyKnown = true) {
+		Unit best = null;
+		float dist = float.MaxValue;
+		float healthPercent = 100.0f;
+		float composurePercent = 100.0f;
+		float bestVal = float.MaxValue;
+		List<Unit> availableUnits = getAvailableUnits(true, false, attackUnconscious, onlyKnown);
+		foreach (Unit u in availableUnits) {
+			float d = distanceFromUnit(u);
+			float h = getHealthPercent();
+			float c = getComposurePercent();
+			float v = getValue(d, h, c, u);
+			if (v < bestVal) {// && (vis == VisibilityMode.None || mapGenerator.hasLineOfSight(this, u, -1, false, vis))) {
+				bestVal = v;
+				best = u;
+				dist = d;
+				healthPercent = h;
+				composurePercent = c;
+			}
+		}
+		return new AIEnemyValues(best, dist, healthPercent, composurePercent);
+	}
+
+
+	public float getValue(float dist, float healthPercent, float composurePercent, Unit u) {
+		float healthVal = healthPercent * attackComposureOrHealth + composurePercent * (1 - attackComposureOrHealth);
+		return dist * 20.0f * attackWeakOrNear + healthVal * (1 - attackWeakOrNear);
+
 	}
 	
-	public Unit closestFriendly(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		return closestUnit(false, true, attackUnconscious, vis);
+	public Unit closestEnemy(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false) {
+		return closestUnit(true, false, attackUnconscious, vis, onlyKnown);
 	}
 	
-	public Unit closestUnit(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		return closestUnit(true, true, attackUnconscious, vis);
+	public Unit closestFriendly(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false) {
+		return closestUnit(false, true, attackUnconscious, vis, onlyKnown);
 	}
 	
-	public Unit closestUnit(bool enemies, bool friendlies, bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
+	public Unit closestUnit(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false) {
+		return closestUnit(true, true, attackUnconscious, vis, onlyKnown);
+	}
+	
+	public Unit closestUnit(bool enemies, bool friendlies, bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false) {
 		Unit closest = null;
 		float dist = float.MaxValue;
+		List<Unit> availableUnits = getAvailableUnits(enemies, friendlies, attackUnconscious, onlyKnown);
+		/*
 		foreach (Unit u in mapGenerator.priorityOrder) {
 			if (u!=this && (((enemies && isEnemyOf(u) && u.oneOfManyMode != OneOfManyMode.Hidden) || (friendlies && isAllyOf(u))) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
@@ -1103,26 +1253,64 @@ public class Unit : MonoBehaviour {
 					closest = tur;
 				}
 			}
+		}*/
+		foreach (Unit u in availableUnits) {
+			float d = distanceFromUnit(u);
+			if (d < dist && (vis == VisibilityMode.None || mapGenerator.hasLineOfSight(this, u, -1, false, vis))) {
+				dist = d;
+				closest = u;
+			}
 		}
 		return closest;
 	}
-	
-	
-	public float closestEnemyDist(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		return closestUnitDist(true, false, attackUnconscious, vis);
+
+	public List<Unit> getAvailableUnits(bool enemies, bool friendlies, bool attackUnconscious, bool onlyKnown) {
+		List<Unit> possibleUnits = new List<Unit>();
+		if (onlyKnown) {
+			foreach (KnownUnit ku in knownEnemies)
+				possibleUnits.Add(ku.knownUnit);
+		}
+		else {
+			possibleUnits.AddRange(mapGenerator.priorityOrder);
+			for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+				Transform tr = mapGenerator.turrets.transform.GetChild(n);
+				TurretUnit tur = tr.GetComponent<TurretUnit>();
+				if (tur != null)
+					possibleUnits.Add(tur);
+			}
+		}
+		List<Unit> availableUnits = new List<Unit>();
+		foreach (Unit u in possibleUnits) {
+			if (onlyKnown) {
+				if (onlyRetaliate) {
+					if (!attackedByUnits.Contains(u)) continue;
+				}
+			}
+			if (u!=this && (((enemies && isEnemyOf(u) && u.oneOfManyMode != OneOfManyMode.Hidden) || (friendlies && isAllyOf(u))) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
+				availableUnits.Add(u);
+			}
+		}
+		return availableUnits;
 	}
 	
-	public float closestFriendlyDist(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		return closestUnitDist(false, true, attackUnconscious, vis);
+	
+	public float closestEnemyDist(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false, int x = -1, int y = -1) {
+		return closestUnitDist(true, false, attackUnconscious, vis, onlyKnown, x , y);
 	}
 	
-	public float closestUnitDist(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
-		return closestUnitDist(true, true, attackUnconscious, vis);
+	public float closestFriendlyDist(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false, int x = -1, int y = -1) {
+		return closestUnitDist(false, true, attackUnconscious, vis, onlyKnown, x , y);
 	}
 	
-	public float closestUnitDist(bool enemies, bool friendlies, bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility) {
+	public float closestUnitDist(bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false, int x = -1, int y = -1) {
+		return closestUnitDist(true, true, attackUnconscious, vis, onlyKnown, x , y);
+	}
+	
+	public float closestUnitDist(bool enemies, bool friendlies, bool attackUnconscious = false, VisibilityMode vis = VisibilityMode.Visibility, bool onlyKnown = false, int x = -1, int y = -1) {
 		float dist = float.MaxValue;
-		foreach (Unit u in mapGenerator.priorityOrder) {
+		List<Unit> availableUnits = getAvailableUnits(enemies, friendlies, attackUnconscious, onlyKnown);
+	
+		/*foreach (Unit u in mapGenerator.priorityOrder) {
 			if (u!=this && (((enemies && isEnemyOf(u) && u.oneOfManyMode != OneOfManyMode.Hidden) || (friendlies && isAllyOf(u))) && (attackUnconscious ? !u.isDead() :!u.deadOrDyingOrUnconscious()))) {
 				float d = distanceFromUnit(u);
 				if ((d < dist || dist == 0) && (vis == VisibilityMode.None || mapGenerator.hasLineOfSight(this, u, -1, false, vis))) {
@@ -1139,13 +1327,23 @@ public class Unit : MonoBehaviour {
 					dist = d;
 				}
 			}
+		}*/
+		foreach (Unit u in availableUnits) {
+			float d = distanceFromUnit(u, true, x, y);
+			if ((d < dist || dist == 0) && (vis == VisibilityMode.None || mapGenerator.hasLineOfSight(this, u, -1, false, vis))) {
+				dist = d;
+			}
 		}
 		return dist;
 	}
 	
-	public float distanceFromUnit(Unit u, bool manhattan = true) {
-		if (manhattan) return Mathf.Abs(u.position.x - position.x) + Mathf.Abs(u.position.y - position.y);
-		return Mathf.Sqrt((u.position.x - position.x) * (u.position.x - position.x) + (u.position.y - position.y) * (u.position.y - position.y));
+	public float distanceFromUnit(Unit u, bool manhattan = true, int x = -1, int y = -1) {
+		return distance((x == -1 ? new Vector2(position.x, position.y) : new Vector2(x,y)), new Vector2(u.position.x, u.position.y), manhattan);
+	}
+
+	public float distance(Vector2 v1, Vector2 v2, bool manhattan = true) {
+		if (manhattan) return Mathf.Abs(v1.x - v2.x) + Mathf.Abs(v1.y - v2.y);
+		return Mathf.Sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y));
 	}
 	
 	public static float actionTime;
@@ -1331,8 +1529,128 @@ public class Unit : MonoBehaviour {
 		return getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee;
 	}
 	
+	public int getDangerLevel(Vector2 pos) {
+	//	return 10;
+		float healthPercent = getHealthPercent();
+		healthPercent *= 4;
+		int h = (int)healthPercent;
+		int closestDist = (int)closestEnemyDist(attackDowned, VisibilityMode.None, true, (int)pos.x, (int)pos.y);//values.dist;
+		int nearEnemies = knownEnemiesWithinRange(3.1f, true, true, (int)pos.x, (int)pos.y);
+		int nearEnemies2 = knownEnemiesWithinRange(5.1f, true, true, (int)pos.x, (int)pos.y);
+		switch (h) {
+		case 4:
+		case 3:
+			switch (nearEnemies) {
+			case 0:
+				return 0;
+			case 1:
+				return Mathf.Max(3-closestDist, 0);
+			case 2:
+			case 3:
+				if (closestDist == 1) return 4;
+				if (closestDist == 2) return 3;
+				return 1;
+			default:
+				if (closestDist == 1) return 5;
+				if (closestDist == 2) return 4;
+				return 3;
+			}
+		case 2:
+			switch (nearEnemies) {
+			case 0:
+				return 0;
+			case 1:
+				return Mathf.Max(4-closestDist, 0);
+			case 2:
+			case 3:
+				if (closestDist == 1) return 5;
+				if (closestDist == 2) return 4;
+				return 2;
+			default:
+				if (closestDist == 1) return 6;
+				if (closestDist == 2) return 5;
+				return 4;
+			}
+		case 1:
+			switch (nearEnemies2) {
+			case 0:
+				return 0;
+			case 1:
+				return Mathf.Max(6-closestDist, 0);
+			case 2:
+			case 3:
+				if (closestDist == 1) return 7;
+				if (closestDist == 2) return 6;
+				return 4;
+			default:
+				if (closestDist == 1) return 8;
+				if (closestDist == 2) return 7;
+				return 6;
+			}
+		case 0:
+			switch (nearEnemies2) {
+			case 0:
+				return 0;
+			case 1:
+				return Mathf.Max(7-closestDist, 0);
+			case 2:
+			case 3:
+				if (closestDist == 1) return 9;
+				if (closestDist == 2) return 8;
+				return 6;
+			default:
+				if (closestDist == 1) return 10;
+				if (closestDist == 2) return 9;
+				if (closestDist == 3) return 8;
+				return 6;
+			}
+		default:
+			return 0;
+		}
+	}
+	static Vector2 none = new Vector2(-1,-1);
+	public int knownEnemiesWithinRange(float range, bool manhattan = true, bool includeProne = true, int x = -1, int y = -1) {
+		int num = 0;
+		foreach (KnownUnit u in knownEnemies) {
+			if (u.knownUnit.deadOrDyingOrUnconscious() || (!includeProne && u.knownUnit.isProne())) continue;
+			if (distanceFromUnit(u.knownUnit, manhattan, x, y) <= range) {
+				num++;
+			}
+		}
+		return num;
+	}
+
+	public int enemyInactiveRotationTurns;
+	public int enemyInactivePatrolTurns;
+	public bool rotated = false;
+	public bool patrolled = false;
+	public bool inactiveActionSet;
+	public bool turnActionSet = false;
+	public ActionType turnActionType = ActionType.None;
+	public MinorType turnMinorType = MinorType.None;
+	public StandardType turnStandardType = StandardType.None;
+	public MovementType turnMovementType = MovementType.None;
 	public void performAI() {
 		if (!aiActive) {
+			if (isPerformingAnAction() || mapGenerator.movingCamera) {
+				actionTime = Time.time;
+				return;
+			}
+			if (Time.time - actionTime < actionDelay) return;
+			if (!inactiveActionSet) {
+				setInactiveAction();
+			}
+			if (!rotated && enemyInactiveRotationTurns > 0) {
+				inactiveRotation();
+				return;
+			}
+			if (!patrolled && enemyInactivePatrolTurns > 0) {
+				inactivePatrol();
+				return;
+			}
+			inactiveActionSet = false;
+			patrolled = false;
+			rotated = false;
 			mapGenerator.nextPlayer();
 			return;
 		}
@@ -1341,85 +1659,335 @@ public class Unit : MonoBehaviour {
 			return;
 		}
 		if (Time.time - actionTime < actionDelay) return;
-		float closestDist = closestEnemyDist(false, VisibilityMode.None);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
-		Unit enemy = closestEnemy(false, VisibilityMode.None);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
+//		float closestDist = closestEnemyDist(false, VisibilityMode.None, true);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
+//		Unit enemy = closestEnemy(false, VisibilityMode.None, true);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
+		AIEnemyValues aiEnemy = bestAttackEnemy(attackDowned);
+		float closestDist = aiEnemy.dist;
+		Unit enemy = aiEnemy.u;
+		int danger = getDangerLevel(none);
+		Debug.Log("Health: " + getCurrentHealth() + "/" + getMaxHealth() + ":   " + danger);
 		if (!usedMovement) {
 			if (isProne()) {
 				recover();
 				actionTime = Time.time;
 				return;
 			}
-			if (closestDist > getAttackRange()) {
-				currentMoveDist = 5;
-				List<Unit> units = new List<Unit>();
-				foreach (Unit u in mapGenerator.priorityOrder) {
-					if (isEnemyOf(u) && !u.deadOrDyingOrUnconscious() && u.oneOfManyMode != OneOfManyMode.Hidden) {
-						units.Add(u);
-					}
-				}
-				for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
-					Transform tr = mapGenerator.turrets.transform.GetChild(n);
-					TurretUnit tur = tr.GetComponent<TurretUnit>();
-					if (tur != null && isEnemyOf(tur)) {
-						units.Add(tur);
-					}
-				} 
-				aiMap.setGoalsAndHeuristics(units);
-				AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
-				AStarNode node = ret.finalNode;
-				AStarNode no = node;
-				string s = "Path:\n";
-				while (no != null) {
-					s += "\n" + no.parameters.toString();
-					no = no.prev;
-				}
-				Debug.Log(s);
-				node = AStarAlgorithm.reversePath(node);
-				//				currentPath = new ArrayList();
-				resetPath();
-				int d = 0;
-				while (node != null) {
-					if (d != 0) {
-						AStarEnemyParameters param = (AStarEnemyParameters)node.parameters;
-						Vector2 v = new Vector2(param.x, param.y);
-						currentPath.Add(v);
-					}
-					node = node.prev;
-					d++;
-					if (d>5) break;
-				}
-				for (int n=currentPath.Count-1;n>=1;n--) {
-					Vector2 v = currentPath[n];
-					if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
-						currentPath.RemoveAt(n);
-						setPathCount();
-					}
-					else {
-						break;
-					}
-				}
-				mapGenerator.resetPlayerPath();
-				mapGenerator.setPlayerPath(currentPath);
-				startMoving(false);
+			if (closestDist > getAttackRange() && getHealthPercent() > .25f) {
+				aiMoveTowards(enemy);
 				usedMovement = true;
 				return;
 			}
 		}
+		if (!usedStandard) {
+			if (danger > 5 && hasClassFeature(ClassFeature.Throw)) {
+			//	List<Unit> throwUnits = new List<Unit>();
+				foreach (KnownUnit ku in knownEnemies) {
+					float dist = distanceFromUnit(ku.knownUnit, true);
+					if (dist <= 1.1f && !ku.knownUnit.isProne()) {
+			//			throwUnits.Add(ku.knownUnit);
+						aiThrow(ku.knownUnit);
+						return;
+					}
+				}
+			}
+		}
 		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
 		//	usedStandard = true;
+		if (minorsLeft > 0) {
+			if (hasClassFeature(ClassFeature.Mark)) {
+				foreach (KnownUnit ku in knownEnemies) {
+					if (!markedUnits.Contains(ku.knownUnit)) {
+						if (hasLineOfSightToUnit(ku.knownUnit)) {
+							aiMark(ku.knownUnit);
+							return;
+						}
+					}
+				}
+			}
+			if (hasClassFeature(ClassFeature.Invoke) && enemy.getCurrentComposure() > 0) {
+				aiInvoke(enemy);
+			}
+		}
 		if (!usedStandard) {
-			if (closestDist <= getAttackRange()) {
-				usedStandard = true;
-				attackEnemy = enemy;
-				setRotationToAttackEnemy();
-				if (enemy != null) enemy.setTarget();
-				startAttacking();
+			float attack = 1.0f;
+			if (hasClassFeature(ClassFeature.Intimidate) && enemy.getCurrentComposure() > 0) {
+				attack  = Random.Range(0.0f,1.0f);
+			}
+			if (attack < attackComposureOrHealth && hasClassFeature(ClassFeature.Intimidate) && closestDist <= 1.1f) {
+				aiIntimidateUnit(enemy);
+				return;
+			}
+			else if (attackComposureOrHealth > 0.0f && closestDist <= getAttackRange()) {
+				if (minorsLeft > 0) {
+					if ((danger >= 8 || ((aiEnemy.healthPercent <= .25f || attackHitChance(enemy) > .90f) && Random.Range(0.0f, 1.0f) <= temperedHandsOftenness))) {
+						aiTemperedHands(enemy, danger, (int)aiEnemy.healthPercent, (int)attackHitChance(enemy));
+					}
+				}
+				aiAttackUnit(enemy, (danger >= 8 && hasClassFeature(ClassFeature.Over_Clock) && (getWeapon() is ItemMechanical)));
+				return;
+			}
+		}
+		if (minorsLeft > 0) {
+			if (danger > 7 && hasClassFeature(ClassFeature.Escape)) {
+				aiEscape();
+				return;
+			}
+		}
+		if (!usedMovement && (danger > 7 || getHealthPercent() < .25f)) {
+			Debug.Log("Move!");
+			if ((!canBackStep() || knownEnemiesWithinRange(1.0f, true, false) < 1) && runsAway) {
+				Debug.Log("Move Away");
+				aiMoveAway();
+				return;
+			}
+			else if (canBackStep() && (danger > 7 || runsAway)) {
+				aiBackstepAway();
 				return;
 			}
 		}
 		if (isPerformingAnAction() || mapGenerator.movingCamera) return;
-		if ((usedStandard || closestDist > 1.0f) && (usedMovement || closestDist <= 1.0f)) {
+	//	if ((usedStandard || closestDist > 1.0f) && (usedMovement || closestDist <= 1.0f)) {
 			mapGenerator.nextPlayer();
+	//	}
+	}
+
+	public void aiTemperedHands(Unit u, int danger, int healthPercent, int attHitChance) {
+		if (attHitChance > .90f) {
+			while (attackHitChance(u) > .90f && temperedHandsMod < characterSheet.characterSheet.combatScores.getTechniqueMod()) {
+				temperedHandsMod++;
+			}
+		}
+		else {
+			while (attackHitChance(u) < .90f && -temperedHandsMod < characterSheet.characterSheet.combatScores.getTechniqueMod()) {
+				temperedHandsMod--;
+			}
+		}
+		temperedHandsUsesLeft--;
+		//		minorsLeft--;
+		minorsLeft --;
+	}
+
+	public void aiInvoke(Unit u) {
+//		minorsLeft--;
+		attackEnemy = u;
+		setRotationToAttackEnemy();
+		if (u != null) u.setTarget();
+		startInvoking();
+	}
+
+	public void aiMark(Unit u) {
+		attackEnemy = u;
+		markedUnits.Add(attackEnemy);
+		attackEnemy.deselect();
+		attackEnemy.setMarked(true);
+		attackEnemy = null;
+		minorsLeft--;
+	}
+	
+	public void aiEscape() {
+		currentMoveDist = 2;
+		HashSet<Tile> escapeSteps = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, 2, 0, getAttackRange(), this);
+		mapGenerator.removeAllRanges(false);
+		aiRunAway(escapeSteps, true);
+		escapeUsed = true;
+		minorsLeft--;
+	}
+
+	public float getNearestEnemyDist(Tile t) {
+		float dist = float.MaxValue;
+		foreach (KnownUnit u in knownEnemies) {
+			float d = Mathf.Abs(u.knownUnit.position.x - t.getPosition().x) + Mathf.Abs(u.knownUnit.position.y + t.getPosition().y);
+			dist = Mathf.Min(d, dist);
+		}
+		return dist;
+	}
+
+	public void aiMoveAway() {
+		currentMoveDist = 5;
+		HashSet<Tile> movements = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, moveDistLeft, 0, getAttackRange(), this, false);
+		mapGenerator.removeAllRanges(false);
+		aiRunAway(movements);
+		usedMovement = true;
+	}
+	
+	public void aiBackstepAway() {
+		currentMoveDist = 1;
+		Debug.Log("backstep Away");
+		HashSet<Tile> backSteps = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, 1, 0, getAttackRange(), this, false);
+		mapGenerator.removeAllRanges(false);
+		aiRunAway(backSteps, true);
+		usedMovement = true;
+	}
+
+	public void aiRunAway(HashSet<Tile> movements, bool backstep = false) {
+		int danga = int.MaxValue;
+		Tile dangaTile = null;
+		float nearestDist = float.MaxValue;
+		foreach (Tile t in movements) {
+			if (!t.canStand()) continue;
+			int danger = getDangerLevel(new Vector2(t.getPosition().x,-t.getPosition().y));
+			float d = getNearestEnemyDist(t);
+			Debug.Log(t.getPosition()  + ":   " + danga + " " + danger + "    " + nearestDist + " " + d);
+			if (danger < danga) {
+				danga = danger;
+				dangaTile = t;
+				nearestDist = d;
+			}
+			else if (danger == danga) {
+				if (d > nearestDist) {
+					dangaTile = t;
+					nearestDist = d;
+				}
+			}
+		}
+		addPathTo(dangaTile.getPosition());
+		mapGenerator.resetPlayerPath();
+		mapGenerator.setPlayerPath(currentPath);
+		startMoving(backstep);
+//		aiMoveTowards(null, dangaTile, backstep);
+	}
+
+	public void aiThrow(Unit u) {
+		usedStandard = true;
+		attackEnemy = u;
+		setRotationToAttackEnemy();
+		if (u != null) u.setTarget();
+		startThrowing();
+	}
+
+	public void aiIntimidateUnit(Unit u) {
+		usedStandard = true;
+		attackEnemy = u;
+		setRotationToAttackEnemy();
+		if (u != null) u.setTarget();
+		startIntimidating();
+	}
+
+	public void aiAttackUnit(Unit u, bool overClock) {
+		usedStandard = true;
+		attackEnemy = u;
+		setRotationToAttackEnemy();
+		if (u != null) u.setTarget();
+		startAttacking(overClock);
+	}
+	
+	public void aiMoveTowards(Unit u, Tile t = null, bool backstep = false) {
+		currentMoveDist = 5;
+		List<Unit> units = new List<Unit>();
+		List<Tile> tiles = new List<Tile>();
+		if (u != null) {
+			units.Add(u);
+		}
+		else if (t != null) {
+			tiles.Add(t);
+		}
+		else {
+			foreach (Unit u2 in mapGenerator.priorityOrder) {
+				if (isEnemyOf(u2) && (attackDowned ? !u2.isDead() : !u2.deadOrDyingOrUnconscious()) && u.oneOfManyMode != OneOfManyMode.Hidden) {
+					units.Add(u2);
+				}
+			}
+			for (int n=0;n<mapGenerator.turrets.transform.childCount;n++) {
+				Transform tr = mapGenerator.turrets.transform.GetChild(n);
+				TurretUnit tur = tr.GetComponent<TurretUnit>();
+				if (tur != null && isEnemyOf(tur)) {
+					units.Add(tur);
+				}
+			}
+		}
+		aiMap.setGoalsAndHeuristics(units, tiles);
+		AStarReturnObject ret = AStarAlgorithm.findPath(aiMap);
+		AStarNode node = ret.finalNode;
+		
+		node = AStarAlgorithm.reversePath(node);
+		//				currentPath = new ArrayList();
+		resetPath();
+		int d = 0;
+		while (node != null) {
+			if (d != 0) {
+				AStarEnemyParameters param = (AStarEnemyParameters)node.parameters;
+				Vector2 v = new Vector2(param.x, param.y);
+				currentPath.Add(v);
+			}
+			node = node.prev;
+			d++;
+			if (d>5) break;
+		}
+		for (int n=currentPath.Count-1;n>=1;n--) {
+			Vector2 v = currentPath[n];
+			if (!mapGenerator.tiles[(int)v.x,(int)v.y].canStand()) {
+				currentPath.RemoveAt(n);
+				setPathCount();
+			}
+			else {
+				break;
+			}
+		}
+		mapGenerator.resetPlayerPath();
+		mapGenerator.setPlayerPath(currentPath);
+		startMoving(false);
+	}
+	
+	public void inactivePatrol() {
+		List<Vector2> possibleNextTiles = new List<Vector2>();
+		possibleNextTiles.Add(new Vector2(position.x,position.y));
+		foreach (Vector2 v in patrolTiles) {
+			float diff = Mathf.Abs(v.x - position.x) + Mathf.Abs(-v.y - position.y);
+			if (diff <= 1.1f && diff > 0.1f) {
+				possibleNextTiles.Add(v);
+			}
+		}
+		int tile = Random.Range(0,possibleNextTiles.Count);
+		Debug.Log("Tile: " +tile + "  " + possibleNextTiles[tile]);
+		if (tile == 0) {
+			patrolled = true;
+			return;
+		}
+		Vector2 v2 = possibleNextTiles[tile];
+		currentPath.Add(v2);
+		startMoving(false);
+		patrolled = true;
+		usedMovement = true;
+	}
+	
+	public void inactiveRotation() {
+		float val = transform.eulerAngles.z;
+		float randChange = Random.Range(-maxTurnAmount,maxTurnAmount);
+		val += randChange;
+		if (val < 0) val += 360.0f;
+		val %= 360.0f;
+		setRotationByValue(val);
+		rotated = true;
+	}
+	
+	public void setInactiveAction() {
+		inactiveActionSet = true;
+		if (maxTurnAmount > 0.0f && enemyInactiveRotationTurns > 0) {
+			enemyInactiveRotationTurns++;
+			for (int n=0;n<enemyInactiveRotationTurns;n++) {
+				if (Random.Range(0,rotateLength)==0) {
+					enemyInactiveRotationTurns = 0;
+					break;
+				}
+			}
+		}
+		if (patrolTiles.Count > 0 && enemyInactivePatrolTurns > 0) {
+			enemyInactivePatrolTurns++;
+			for (int n=0;n<enemyInactivePatrolTurns;n++) {
+				if (Random.Range(0,patrolLength)==0) {
+					enemyInactivePatrolTurns = 0;
+					break;
+				}
+			}
+		}
+		if (enemyInactiveRotationTurns == 0 && enemyInactivePatrolTurns == 0) {
+			int r = Random.Range(0,patrolOftenness + rotateOftenness + nothingOftenness);
+			if (r < rotateOftenness) {
+				enemyInactiveRotationTurns = 1;
+			}
+			else if (r < rotateOftenness + patrolOftenness) {
+				enemyInactivePatrolTurns = 1;
+			}
 		}
 	}
 	
@@ -1867,6 +2435,13 @@ public class Unit : MonoBehaviour {
 		rotateFrom = from;
 		rotateTo = to;
 		rotating = true;
+		rotating2 = false;
+	}
+
+	public void setRotationByValue(float val) {
+		rotateToValue = val;
+		rotating = true;
+		rotating2 = true;
 	}
 	
 	public void setRotationToCharacter(Unit enemy) {
@@ -1887,7 +2462,23 @@ public class Unit : MonoBehaviour {
 			setRotationToTile(t);
 		return t != null;
 	}
-	
+
+	void rotateBy2(float rotateDist) {
+		Vector3 rot = transform.eulerAngles;
+		float v1 = rotateToValue;
+		if (v1 < rot.z - 180.0f) v1 += 360.0f;
+		if (v1 > rot.z + 180.0f) v1 -= 360.0f;
+		int sign = (v1 >= rot.z ? 1 : -1);
+		float dist = Mathf.Abs(v1 - rot.z);
+		if (dist < rotateDist) {
+			rotateDist = dist;
+			rotating = false;
+			rotating2 = false;
+		}
+		rot.z += rotateDist * sign;
+		transform.eulerAngles = rot;
+	}
+
 	void rotateBy(float rotateDist) {
 		float midSlope = (rotateTo.y - rotateFrom.y)/(rotateTo.x - rotateFrom.x);
 		float rotation = Mathf.Atan(midSlope) + Mathf.PI/2.0f;
@@ -2148,7 +2739,7 @@ public class Unit : MonoBehaviour {
 			mapGenerator.setCurrentUnitTile();
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
-			mapGenerator.activateEnemies();
+			mapGenerator.activateEnemies(this);
 			if (team == 0) mapGenerator.setOverlay(this);
 			if (currentPath.Count >= 2 && !isProne()) {
 				setRotatingPath();
@@ -2296,6 +2887,7 @@ public class Unit : MonoBehaviour {
 		foreach (EditorItem i in droppedItemsEditor) {
 			droppedItems.Add(i.getItem());
 		}
+		knownEnemies = new List<KnownUnit>();
 		paranoidOfUnits = new List<Unit>();
 		aiActive = false;
 		setMarked(false);
@@ -2404,7 +2996,7 @@ public class Unit : MonoBehaviour {
 									position = new Vector3(v.x, -v.y, 0.0f);
 									transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, transform.localPosition.z);
 									mapGenerator.setCurrentUnitTile();
-									mapGenerator.activateEnemies();
+									mapGenerator.activateEnemies(this);
 									if (team == 0) mapGenerator.setOverlay(this);
 									break;
 								}
@@ -2477,15 +3069,24 @@ public class Unit : MonoBehaviour {
 	}
 	
 	void doRotation() {
-		if (rotating) {
+		if (rotating ) {
 			float speed = 180.0f*3.0f;// + 20.0f;
 			float time = Time.deltaTime;
 			float rotateDist = time * speed;
 			//			float rotateGoal = (rotateTo.
-			rotateBy(rotateDist);
+			if (rotating2) {
+				rotateBy2(rotateDist);
+			} 
+			else {
+				rotateBy(rotateDist);
+			}
+
 			Transform targ = getTarget();
 			if (targ!=null) {
 				targ.eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+			}
+			if (team != 0) {
+				mapGenerator.activateEnemies(this);
 			}
 		}
 	}
@@ -2951,7 +3552,7 @@ public class Unit : MonoBehaviour {
 	
 	public virtual Weapon getWeapon() {
 		Weapon weap = (characterSheet == null ? null : characterSheet.characterSheet.characterLoadout.rightHand);
-		if (weap == null) weap = mapGenerator.handWeapon;
+		if (weap == null || (weap is WeaponMechanical && ((WeaponMechanical)weap).overClocked)) weap = mapGenerator.handWeapon;
 		return weap;
 	}
 	
@@ -2971,7 +3572,11 @@ public class Unit : MonoBehaviour {
 	public void showDamage(int wapoon, bool didHit, bool crit) {
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 		damageDisplay.begin(wapoon, didHit, crit, this);
-		
+	}
+
+	public void showHitpoints(int wapoon) {
+		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
+		damageDisplay.begin(wapoon, true, false, this, Color.blue);
 	}
 
 
@@ -3102,6 +3707,11 @@ public class Unit : MonoBehaviour {
 	public void damage(int damage, Unit u) {
 		//	Debug.Log("Damage");
 		if (damage > 0) {
+			if (!playerControlled && !isAwareOf(u)) {
+				addKnownUnit(u);
+				if (!aiActive) setActive(true);
+				mapGenerator.activateNearbyEnemies(this);
+			}
 			crushingHitSFX();
 			//			hitPoints -= damage;
 			//			if (hitPoints <= 0) died = true;
@@ -3164,7 +3774,6 @@ public class Unit : MonoBehaviour {
 	void handleClassFeature(ClassFeature feature) {
 		if (characterSheet==null) return;
 		if (!characterSheet.characterSheet.characterProgress.hasFeature(feature)) return;
-		Debug.Log("Has!!");
 		switch(feature) {
 		case ClassFeature.Decisive_Strike:
 			handleDecisiveStrike();

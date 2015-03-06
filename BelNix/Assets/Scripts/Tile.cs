@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
+public enum GameMasterType {Damage1, Heal1};
 public class TileAction : IComparable {
 
 	public List<MinorType> minorTypes;
 	public List<StandardType> standardTypes;
 	public List<MovementType> movementTypes;
+	public List<GameMasterType> gameMasterTypes;
 	public Tile movementTile;
 	public Tile actualTile;
 	public int percentChance;
@@ -29,6 +31,9 @@ public class TileAction : IComparable {
 			if (minorTypes.Count > 0) return 7;
 			return 2;
 		}
+		else if (minorTypes.Count > 0) {
+			return 1;
+		}
 		else return 0;
 	}
 
@@ -36,6 +41,7 @@ public class TileAction : IComparable {
 		minorTypes = new List<MinorType>();
 		standardTypes = new List<StandardType>();
 		movementTypes = new List<MovementType>();
+		gameMasterTypes = new List<GameMasterType>();
 	}
 
 	public TileAction(MovementType[] movements, StandardType[] standards, MinorType[] minors, Tile tile, Tile mTile = null, int chance = -1) : this() {
@@ -45,6 +51,10 @@ public class TileAction : IComparable {
 		movementTile = mTile;
 		actualTile = tile;
 		setPercentChance(chance);
+	}
+	public TileAction(GameMasterType[] gameMasters, Tile tile) : this() {
+		if (gameMasters != null) foreach (GameMasterType t in gameMasters) addAction(t);
+		actualTile = tile;
 	}
 
 	public void setPercentChance(int chance) {
@@ -59,9 +69,13 @@ public class TileAction : IComparable {
 	public void addAction(MovementType t) {
 		movementTypes.Add(t);
 	}
-
+	
 	public void addAction(StandardType t) {
 		standardTypes.Add(t);
+	}
+	
+	public void addAction(GameMasterType t) {
+		gameMasterTypes.Add(t);
 	}
 
 	public bool hasMovement() {
@@ -108,6 +122,11 @@ public class TileAction : IComparable {
 			s += "<color=#139423>" + Unit.getNameOfMinorType(minor) + "</color>";
 			has = true;
 		}
+		foreach (GameMasterType master in gameMasterTypes) {
+			if (has) s += " & ";
+			s += "<color=#941313>" + Tile.getNameOfGameMaster(master) + "</color>";
+			has = true;
+		}
 		if (hasChance) {
 			if (minorTypes.Count > 0) {
 				s += "<color=#139423>";
@@ -125,6 +144,17 @@ public class TileAction : IComparable {
 public enum Direction {Up, Down, Right, Left, None};
 
 public class Tile {
+
+	public static string getNameOfGameMaster(GameMasterType t) {
+		switch (t) {
+		case GameMasterType.Damage1:
+			return "Deal 1 Damage";
+		case GameMasterType.Heal1:
+			return "Heal 1 Health";
+		default:
+			return t.ToString();
+		}
+	}
 
 	public MeshGen meshGen;
 //	GameObject player;
@@ -425,6 +455,12 @@ public class Tile {
 		if (canExamine) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Examine}, this));
 //		if (canTurret) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Place_Turret}, null, this));
 //		if (canTrap) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Lay_Trap}, null, this));
+		if (MapGenerator.gameMaster) {
+			if (hasCharacter()) {
+				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Damage1}, this));
+				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Heal1}, this));
+			}
+		}
 		tileActions.Sort();
 		return tileActions;
 	}

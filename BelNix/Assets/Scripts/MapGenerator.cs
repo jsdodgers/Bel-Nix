@@ -98,7 +98,7 @@ public class MapGenerator : MonoBehaviour {
 	Unit hoveredCharacter;
 	public List<Unit> players;
 	public List<Unit> deadUnits;
-	public List<Unit> nonAlertEnemies;
+//	public List<Unit> nonAlertEnemies;
 	public List<Unit> enemies;
 	public GameObject turrets;
 	public GameObject traps;
@@ -350,6 +350,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 	public void setOverlay(Unit u, bool print = false) {
 		setOverlay(getMeshPos(u), print);
+//		Debug.Log("Angle: " + u
 	}
 	public void removeOverlay(Unit u) {
 		if (u.meshGen != null) {
@@ -357,13 +358,13 @@ public class MapGenerator : MonoBehaviour {
 			u.meshGen = null;
 		}
 	}
-	public void setOverlay(MeshPos pos, bool print = false) {
+	public void setOverlay(MeshPos pos, bool print = false, Unit u = null) {
 		List<Vector2> points = new List<Vector2>();
 		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/smoothness) {
 			float sin = Mathf.Sin(n);
 			float cos = Mathf.Cos(n);
-			float y = pos.position.y + sin * viewRadius;
-			float x = pos.position.x + cos * viewRadius;
+			float y = pos.position.y + sin * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-90.0f));
+			float x = pos.position.x + cos * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-90.0f));
 			Vector2 v = new Vector2(x, y);
 			CollisionPoint cp = getLineOfSightCollisionPoint(pos.position, v, VisibilityMode.Visibility);
 			if (cp.collides) {
@@ -481,11 +482,11 @@ public class MapGenerator : MonoBehaviour {
 		else return (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
 	}
 
-	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
+	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility, bool withAngle = false) {
 		if (toUnit == null) return false;
 		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
 		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
-		float dist = (distance == -1 ? fromUnit.getViewRadiusToUnit(toUnit) : distance);
+		float dist = (distance == -1 ? (withAngle && fromUnit.team != 0 && fromUnit.team != toUnit.team ? fromUnit.getViewRadiusToUnit(toUnit, getAngle(fromUnit.position,toUnit.position)) : fromUnit.getViewRadiusToUnit(toUnit)) : distance);
 		return hasLineOfSight(from, to, dist, manhattan, visMode);
 	}
 
@@ -795,7 +796,7 @@ public class MapGenerator : MonoBehaviour {
 		priorityOrder = new List<Unit>();
 		players = new List<Unit>();
 		deadUnits = new List<Unit>();
-		nonAlertEnemies = new List<Unit>();
+//		nonAlertEnemies = new List<Unit>();
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
 		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
@@ -873,7 +874,7 @@ public class MapGenerator : MonoBehaviour {
 			e.setMapGenerator(this);
 //			e.mapGenerator = this;
 			enemies.Add(e);
-			nonAlertEnemies.Add(e);
+	//		nonAlertEnemies.Add(e);
 	//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(e);
 			e.loadCharacterSheet();
@@ -938,34 +939,44 @@ public class MapGenerator : MonoBehaviour {
 		priorityOrder.Sort((first, second) => (first.getInitiative() > second.getInitiative() ? -1 : (first.getInitiative() == second.getInitiative() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
 	}
 
-	public void activateEnemies() {
+	public void activateEnemies(Unit un) {
 		bool anyEnemiesActive = false;
-		List<Unit> nonAlertEnemiesCopy = new List<Unit>();
-		foreach (Unit u in nonAlertEnemies) nonAlertEnemiesCopy.Add(u);
-		while (nonAlertEnemiesCopy.Count > 0) {
-			Unit e = nonAlertEnemiesCopy[0];
-			nonAlertEnemiesCopy.RemoveAt(0);
-			foreach (Player p in players) {
-				if (e.hasLineOfSightToUnit(p)) {
-					anyEnemiesActive = true;
-					e.setActive(true);
-					List<Unit> newlyActivatedUnits = new List<Unit>();
-					newlyActivatedUnits.Add(e);
-					nonAlertEnemies.Remove(e);
-					while (newlyActivatedUnits.Count > 0) {
-						Unit curr = newlyActivatedUnits[0];
-						newlyActivatedUnits.RemoveAt(0);
-						for (int m=nonAlertEnemies.Count-1;m>=0;m--) {
-							Unit ee = nonAlertEnemies[m];
-							if (ee.hasLineOfSightToUnit(curr)) {
-								ee.setActive(true);
-								newlyActivatedUnits.Add(ee);
-								nonAlertEnemies.Remove(ee);
-								if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
-							}
-						}
+		List<Unit> enemiesCopy = new List<Unit>();
+		if (un.team == 0)
+			enemiesCopy = new List<Unit>(enemies);
+		else
+			enemiesCopy.Add(un);
+		List<Unit> playersCopy = new List<Unit>();
+		if (un.team == 0)
+			playersCopy.Add(un);
+		else playersCopy = new List<Unit>(players);
+//		foreach (Unit u in nonAlertEnemies) nonAlertEnemiesCopy.Add(u);
+		foreach (Unit e in enemiesCopy) {
+			foreach (Player p in playersCopy) {
+				if (e.isAwareOf(p)) continue;
+				if (e.hasLineOfSightToUnit(p, -1, false, VisibilityMode.Visibility, true)) {
+					bool newlyAware = false;
+					e.addKnownUnit(p);
+					if (!e.aiActive) {
+						newlyAware = true;
+						anyEnemiesActive = true;
+						e.setActive(true);
+						activateNearbyEnemies(e);
 					}
-					break;
+				}
+			}
+			if (e.aiActive && e == un) {
+				List<TurretUnit> turretUnits = new List<TurretUnit>();
+				for (int n=0;n<turrets.transform.childCount;n++) {
+					TurretUnit tu = turrets.transform.GetChild(0).GetComponent<TurretUnit>();
+					if (tu == null) continue;
+					turretUnits.Add(tu);
+				}
+				foreach (TurretUnit tu in turretUnits) {
+					if (e.isAwareOf(tu)) continue;
+					if (e.hasLineOfSightToUnit(tu, -1, false, VisibilityMode.Visibility, true)) {
+						e.addKnownUnit(tu);
+					}
 				}
 			}
 		}
@@ -975,6 +986,26 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
+	public void activateNearbyEnemies(Unit e) {
+		List<Unit> newlyActivatedUnits = new List<Unit>();
+		newlyActivatedUnits.Add(e);
+		while (newlyActivatedUnits.Count > 0) {
+			Unit curr = newlyActivatedUnits[0];
+			newlyActivatedUnits.RemoveAt(0);
+			foreach (Unit ee in enemies) {
+				if (ee.aiActive && (ee.knownEnemies.Count > 0 || ee.alertedAlly != null)) continue;
+				if (ee.hasLineOfSightToUnit(curr)) {
+					if (!ee.aiActive)
+						ee.setActive(true);
+					ee.alertedAlly = e;
+					newlyActivatedUnits.Add(ee);
+					//	nonAlertEnemies.Remove(ee);
+					//	if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
+				}
+			}
+		}
+	}
+	
 	public bool isInCharacterPlacement() {
 		return currentUnit == -1;
 	}
@@ -1252,11 +1283,13 @@ public class MapGenerator : MonoBehaviour {
 					removeCharacter(selectedUnit);
 				}
 			}
-			if (selectedUnit.deadOrDyingOrUnconscious() || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
+			if (selectedUnit.deadOrDyingOrUnconscious()) {// || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
-			BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
-			activateEnemies();
+			else if (!((!selectedUnit.playerControlled && !selectedUnit.aiActive))) {
+				BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
+			}
+			activateEnemies(selectedUnit);
 		//	selectedUnit.chooseNextBestActionType();
 
 			//		editingPath = false;
@@ -2036,6 +2069,7 @@ public class MapGenerator : MonoBehaviour {
 		if (mouseUp && UnitGUI.inventoryOpen) {
 			BattleGUI.deselectItem();
 		}
+		if (altDown && shiftDown) rotatePlayerTowardsMouse();
 	}
 	
 
@@ -2050,7 +2084,7 @@ public class MapGenerator : MonoBehaviour {
 		Camera.main.orthographicSize = Screen.height / 128.0f;
 	}
 	
-	
+	public static bool gameMaster = false;
 	
 	void handleKeys() {
 		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
@@ -2071,6 +2105,9 @@ public class MapGenerator : MonoBehaviour {
 			}
 			else if (Input.GetKeyDown(KeyCode.H)) {
 				getCurrentUnit().gainHealth(1);
+			}
+			else if (Input.GetKeyDown(KeyCode.D)) {
+				gameMaster = !gameMaster;
 			}
 		}
 	/*	if (Input.GetKeyDown(KeyCode.Alpha7)) {

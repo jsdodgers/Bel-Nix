@@ -1532,7 +1532,6 @@ public class GameGUI : MonoBehaviour {
 	public static bool oneOfManyConfirm = false;
 
 	public static void selectMinorType(MinorType t) {
-		Debug.Log("select minor type: " + t);
 		if (t != selectedMinorType || (!selectedMinor && t != MinorType.None)) deselectCurrentAction();
 		selectedMinor = t != MinorType.None;
 		if (t == selectedMinorType) return;
@@ -1604,7 +1603,6 @@ public class GameGUI : MonoBehaviour {
 	public static int selectedTrapIndex = 0;
 	public static int selectedTurretIndex = 0;
 	public static void selectStandardType(StandardType t) {
-		Debug.Log("select standard type: " + t);
 		if (t != selectedStandardType || (!selectedStandard && t != StandardType.None)) deselectCurrentAction();
 		selectedStandard = t != StandardType.None;
 		if (t == selectedStandardType) return;
@@ -1682,7 +1680,6 @@ public class GameGUI : MonoBehaviour {
 	}
 	
 	public static void selectMovementType(MovementType t) {
-		Debug.Log("select movement type: " + t);
 		if (t != selectedMovementType || (!selectedMovement && t != MovementType.None)) deselectCurrentAction();
 		selectedMovement = t != MovementType.None;
 		if (t == selectedMovementType) return;
