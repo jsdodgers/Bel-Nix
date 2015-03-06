@@ -130,6 +130,10 @@ public class RightClickButton : MonoBehaviour {
 	/*	if (action.minorTypes.Contains(MinorType.OneOfMany)) {
 
 		}*/
+		if (action.standardTypes.Contains(StandardType.Heal)) {
+			u.attackEnemy = action.actualTile.getCharacter();
+			u.startHealing();
+		}
 		if (action.minorTypes.Contains(MinorType.Loot)) {
 			u.lootTile = action.actualTile;
 		}

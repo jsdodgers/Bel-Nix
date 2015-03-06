@@ -1612,6 +1612,7 @@ public class GameGUI : MonoBehaviour {
 		Unit p = mapGenerator.selectedUnit;
 		switch (t) {
 		case StandardType.Attack:
+		case StandardType.Heal:
 		case StandardType.OverClock:
 		case StandardType.Throw:
 		case StandardType.Intimidate:
@@ -1642,6 +1643,9 @@ public class GameGUI : MonoBehaviour {
 		{
 		case "Attack":
 			selectStandardType(StandardType.Attack);
+			break;
+		case "Heal":
+			selectStandardType(StandardType.Heal);
 			break;
 		case "Over Clock":
 			selectStandardType(StandardType.OverClock);

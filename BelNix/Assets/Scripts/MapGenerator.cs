@@ -1395,7 +1395,6 @@ public class MapGenerator : MonoBehaviour {
 				wall.transform.parent = walls;
 				Wall w = wall.GetComponent<Wall>();
 				w.parseWall(tilesArr[n], this);
-				Debug.Log(w.visibility + " " + w.transform.position);
 			}
 		}
 		if (positions.Count > 0) {
@@ -1835,6 +1834,19 @@ public class MapGenerator : MonoBehaviour {
         if (canPass(Direction.Down, x, y, cs, dirFrom))
 			ts.UnionWith(setCharacterCanStand(x, y+1, radiusLeft-1, currRadius+1, attackRange, cs, doAttack, minorsUsed + (t.passabilityInDirection(Direction.Down) > 1 ? 1 : 0), Direction.Down));//, tileSet);    //
 		return ts;
+	}
+
+	public void setCharacterCanHeal(Unit u, VisibilityMode vis = VisibilityMode.Visibility) {
+		Tile t = tiles[(int)u.position.x,(int)-u.position.y];
+		foreach (Direction d in Tile.directions) {
+			Tile t1 = t.getTile(d);
+			if (t1 == null) continue;
+			// if(!t1.hasAlly(u)) continue;
+			if (t1.hasEnemy(u)) continue;
+			if (hasLineOfSight(t, t1, 1.1f, true, vis)) {
+				t1.canUseSpecialCurr = true;
+			}
+		}
 	}
 
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs, VisibilityMode vis = VisibilityMode.None) {
@@ -2349,6 +2361,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void performAction() {
 		if (performingAction() || currentUnitIsAI() || !leftClickIsMakingSelection()) return;
+		Debug.Log("Here!");
 		Unit p = selectedUnit;
 		if (((GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && getCurrentUnit().currentPath.Count > 1) {
 			if (lastPlayerPath.Count > 1 && !p.moving) {
@@ -2378,7 +2391,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 
 		
-		else if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
+		else if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
 			if (GameGUI.selectedStandardType == StandardType.Attack) {
 				p.startAttacking();
 			}
@@ -2390,6 +2403,9 @@ public class MapGenerator : MonoBehaviour {
 			}
 			else if (GameGUI.selectedStandardType == StandardType.Intimidate) {
 				p.startIntimidating();
+			}
+			else if (GameGUI.selectedStandardType == StandardType.Heal) {
+				p.startHealing();
 			}
 		}
 
@@ -2620,7 +2636,8 @@ public class MapGenerator : MonoBehaviour {
 						currentlySelectedTrap.unsetSelectedForPlacement();
 					currentlySelectedTrap = t.getTrap();
 					currentlySelectedTrap.setSelectedForPlacement();
-				}}
+				}
+			}
 			else {
 				if (selectedUnit.attackEnemy) {
 					selectedUnit.attackEnemy.deselect();
@@ -2631,6 +2648,11 @@ public class MapGenerator : MonoBehaviour {
 						selectedUnit.attackEnemy = t.getEnemy(selectedUnit);
 					else if (GameGUI.selectedStandardType == StandardType.Throw)
 						selectedUnit.attackEnemy = t.getCharacter();
+					selectedUnit.setRotationToAttackEnemy();
+				}
+				if (t != null && t.canUseSpecialCurr && t != currentUnitTile) {
+					if (GameGUI.selectedStandardType == StandardType.Heal)
+						selectedUnit.attackEnemy = t.getAlly(selectedUnit);
 					selectedUnit.setRotationToAttackEnemy();
 				}
 				if (selectedUnit.attackEnemy)
@@ -2757,7 +2779,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
-		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.InstillParanoia || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
+		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.InstillParanoia || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
 			(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || 
 				performingAction() ||
 				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || (GameGUI.selectedMinorType == MinorType.OneOfMany && GameGUI.oneOfManyConfirm) || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape || GameGUI.selectedMinorType == MinorType.TemperedHands));
@@ -2888,7 +2910,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !isOnGUI && !rightDraggin) {
-			if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
+			if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -2976,6 +2998,11 @@ public class MapGenerator : MonoBehaviour {
 								selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 							else if (GameGUI.selectedStandardType == StandardType.Throw)
 								selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
+							selectedUnit.setRotationToAttackEnemy();
+						}
+						if (tiles[posX,posY].canUseSpecialCurr) {
+							if (GameGUI.selectedStandardType == StandardType.Heal)
+								selectedUnit.attackEnemy = tiles[posX, posY].getAlly(selectedUnit);
 							selectedUnit.setRotationToAttackEnemy();
 						}
 						if (selectedUnit.attackEnemy)
@@ -3148,11 +3175,10 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape)) ||(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType==StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
+				if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape)) ||(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType==StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						Debug.Log("performAction()");
 						performAction();
-
 					}
 				}
 				if (GameGUI.selectedMovement || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) {
@@ -3179,7 +3205,7 @@ public class MapGenerator : MonoBehaviour {
 					currentKeysTile = lastClickTile;
 					if (!currentKeysTile.canStandCurr) currentKeysTile = currentUnitTile;
 				}
-				else if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret))) {
+				else if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret))) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 					currentKeysTile = lastClickTile;
@@ -3360,6 +3386,8 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.getAttackRange(),0, u);
 		else if ((GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u, VisibilityMode.Melee);
+		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Heal))
+			setCharacterCanHeal(u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Place_Turret) && !isOther)
 			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Lay_Trap && GameGUI.selectedTrap!=null && GameGUI.selectedTrapTurret) && !isOther)

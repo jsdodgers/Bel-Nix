@@ -202,6 +202,7 @@ public class Tile {
 		bool enemy = hasEnemy(u);
 		bool ally = hasAlly(u);
 		bool stand = canStand();
+		bool med = u.getWeapon() is Medicinal;
 		bool canAttack = false;
 		bool canBackStep = false;
 		bool canAttackAfterBackStep = false;
@@ -255,8 +256,8 @@ public class Tile {
 		}
 		u.mapGenerator.resetRanges();
 		if (!u.usedStandard) {
-			canAttack = enemy && u.mapGenerator.hasLineOfSight(uTile, this, u.getAttackRange(), true, u.attackVisibilityMode());
-			if (!canAttack && enemy) {
+			canAttack = (med ? ally : enemy) && u.mapGenerator.hasLineOfSight(uTile, this, u.getAttackRange(), true, u.attackVisibilityMode());
+			if (!canAttack && (med ? ally : enemy)) {
 				foreach (Tile t in backSteps) {
 					if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, u.getAttackRange(), true, u.attackVisibilityMode())) {
 						canAttackAfterBackStep = true;
@@ -268,7 +269,7 @@ public class Tile {
 					}
 				}
 			}
-			if (!canAttackAfterBackStep && !canAttack && enemy) {
+			if (!canAttackAfterBackStep && !canAttack && (med ? ally : enemy)) {
 				foreach (Tile t in movements) {
 					if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, u.getAttackRange(), true, u.attackVisibilityMode())) {
 						canAttackAfterMove = true;
@@ -409,19 +410,20 @@ public class Tile {
 		u.mapGenerator.removeAllRanges(false);
 		bool canLoot = getItems().Count > 0 && u.mapGenerator.isWithinDistance(1.0f, new Vector2(u.position.x, -u.position.y), getPosition(), true);*/
 		List<TileAction> tileActions = new List<TileAction>();
+		StandardType att = (med ? StandardType.Heal : StandardType.Attack);
 		if (canAttack) {
-			tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Attack}, null, this, null, u.attackHitChance(getCharacter())));
-			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
+			tileActions.Add(new TileAction(null, new StandardType[] {att}, null, this, null, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
 		}
 		if (canBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, null, this, this));
 		if (canMove ) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, null, this, this));
 		if (canAttackAfterMove) {
-			tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.Attack}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
-			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.OverClock}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
+			tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {att}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.OverClock}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canAttackAfterBackStep) {
-			tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.Attack}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
-			if (u.hasClassFeature(ClassFeature.Over_Clock)) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
+			tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {att}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Loot}, this));
 		if (canLootAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {MinorType.Loot}, this, moveLootTile));

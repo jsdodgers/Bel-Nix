@@ -39,7 +39,7 @@ public class KnownUnit {
 
 public enum UnitMovement {Move, BackStep, Escape, None}
 public enum MovementType {Move, BackStep, Recover, None}
-public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None}
+public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal}
 public enum ActionType {None, Movement, Standard, Minor}
 public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
@@ -577,6 +577,7 @@ public class Unit : MonoBehaviour {
 	public StandardType getStandardType(ClassFeature feature) {
 		switch (feature) {
 		case ClassFeature.Over_Clock:
+			if (getWeapon() is Medicinal) return StandardType.None;
 			return StandardType.OverClock;
 		case ClassFeature.Throw:
 			return StandardType.Throw;
@@ -638,7 +639,10 @@ public class Unit : MonoBehaviour {
 	
 	public StandardType[] getStandardTypes() {
 		List<StandardType> standardTypes = new List<StandardType>();
-		standardTypes.Add(StandardType.Attack);
+		if (getWeapon() is Medicinal)
+			standardTypes.Add(StandardType.Heal);
+		else
+			standardTypes.Add(StandardType.Attack);
 		ClassFeature[] features = characterSheet.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			StandardType st = getStandardType(feature);
@@ -2678,6 +2682,15 @@ public class Unit : MonoBehaviour {
 				mapGenerator.moveCameraToSelected(false, 90.0f);
 		}
 	}
+
+	public bool healing = false;
+	public void startHealing() {
+		if (attackEnemy != null && !healing) {
+			healing = true;
+			if (mapGenerator.getCurrentUnit()==this && !moving)
+				mapGenerator.moveCameraToSelected(false, 90.0f);
+		}
+	}
 	
 	public void startMoving(bool backStepping) {
 		isBackStepping = backStepping;
@@ -2928,6 +2941,7 @@ public class Unit : MonoBehaviour {
 		doThrow();
 		doGetThrown();
 		doIntimidate();
+		doHeal();
 		doInvoke();
 		doInstillParanoia();
 		doLootAfterMovement();
@@ -3260,6 +3274,27 @@ public class Unit : MonoBehaviour {
 	void invokeAnimation() {
 		dealInvokeDamage();
 	}
+
+	public bool healAnimating = false;
+	void doHeal() {
+		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
+		if (healing && !moving && !rotating) {
+			healAnimating = true;
+			healing = false;
+			healAnimation();
+		}
+	}
+
+	void healAnimation() {
+		int gained = rollDamage(false);
+		attackEnemy.gainHealth(gained);
+		attackEnemy.showHitpoints(gained);
+		healAnimating = false;
+		attackEnemy.deselect();
+		attackEnemy = null;
+		useStandard();
+	}
+
 	
 	public bool intimidateAnimating = false;
 	void doIntimidate() {
