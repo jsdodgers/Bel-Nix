@@ -636,13 +636,18 @@ public class Unit : MonoBehaviour {
 	public virtual bool hasTrap() {
 		return characterSheet.characterSheet.inventory.hasTrap();
 	}
+
+	public int getMedKitUses() {
+		if (hasClassFeature(ClassFeature.Trained_Medic)) return 1;
+		return 2;
+	}
 	
 	public StandardType[] getStandardTypes() {
 		List<StandardType> standardTypes = new List<StandardType>();
-		if (getWeapon() is Medicinal)
-			standardTypes.Add(StandardType.Heal);
-		else
+		if (!(getWeapon() is Medicinal))
 			standardTypes.Add(StandardType.Attack);
+		else if ((getWeapon() as Medicinal).numberOfUses < getMedKitUses())
+				standardTypes.Add(StandardType.Heal);
 		ClassFeature[] features = characterSheet.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			StandardType st = getStandardType(feature);
@@ -3292,6 +3297,11 @@ public class Unit : MonoBehaviour {
 		healAnimating = false;
 		attackEnemy.deselect();
 		attackEnemy = null;
+		Medicinal med = (Medicinal)getWeapon();
+		med.numberOfUses-=getMedKitUses();
+		if (med.numberOfUses <= 0) {
+			characterSheet.characterSheet.characterLoadout.removeItemFromSlot(InventorySlot.RightHand);
+		}
 		useStandard();
 	}
 
