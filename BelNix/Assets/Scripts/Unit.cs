@@ -3419,7 +3419,10 @@ public class Unit : MonoBehaviour {
 	void doAttack() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
 		if (attacking && !moving && !rotating) {
-			attackAnimation();
+			if(getWeapon().isRanged)
+				rangedAnimation();
+			else
+				attackAnimation();
 			attackAnimating = true;
 			attacking = false;
 		}
@@ -3469,6 +3472,12 @@ public class Unit : MonoBehaviour {
 		attackAnimationAllSprites();
 		//	attackEnemy = null;
 	}
+
+	void rangedAnimation() {
+		anim.SetTrigger("Ranged");
+		rangedAnimationAllSprites();
+		//	attackEnemy = null;
+	}
 	
 	public void resetAllSprites() {
 		vaultAnimation(false);
@@ -3479,6 +3488,10 @@ public class Unit : MonoBehaviour {
 	
 	void attackAnimationAllSprites() {
 		setAllSpritesTrigger("Attack");
+	}
+
+	void rangedAnimationAllSprites() {
+		setAllSpritesTrigger("Ranged");
 	}
 	
 	void movementAnimationAllSprites(bool move) {

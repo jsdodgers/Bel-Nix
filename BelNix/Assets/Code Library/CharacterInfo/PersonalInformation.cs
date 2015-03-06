@@ -97,5 +97,26 @@ public class PersonalInformation
 	public CharacterWeight getCharacterWeight()			{ return cWeight; }
 	public CharacterAge getCharacterAge()				{ return cAge; }
 	public CharacterHairStyle getCharacterHairStyle()	{ return cHair; }
+
+    public string getCharacterBackgroundString()
+    {
+        switch (getCharacterBackground())
+        {
+            case CharacterBackground.Commoner:
+                return "Commoner";
+            case CharacterBackground.Immigrant:
+                return "Immigrant";
+            case CharacterBackground.FallenNoble:
+                return "Fallen Noble";
+            case CharacterBackground.WhiteGem:
+                return "White Gem";
+            case CharacterBackground.Servant:
+                return "Servant";
+            case CharacterBackground.Unknown:
+                return "Unknown";
+            default:
+                return "None";
+        }
+    }
 }
 

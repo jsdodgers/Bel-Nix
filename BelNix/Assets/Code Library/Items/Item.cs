@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public enum ItemType {Weapon = 0, Armor, Useable, Ammunition, Mechanical, Misc}
 public enum ItemStackType {Applicator = 0, Gear, Frame, EnergySource, Trigger, Turret, None}
-public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical, TriggerM1, TriggerM2, TriggerM3, TriggerM4, TriggerM5, FrameM1, FrameM2, FrameM3, FrameM4, FrameM5, EnergySourceM1, EnergySourceM2, EnergySourceM3, EnergySourceM4, EnergySourceM5, GearM1, GearM2, GearM3, GearM4, GearM5, Knives, BuzzSaws};
+public enum ItemCode {None = 0, Item, Weapon, Armor, Turret, Trap, Frame, EnergySource, Trigger, Applicator, Gear, TestFrame, TestEnergySource, TestTrigger, TestApplicator, TestGear, WeaponMechanical, TriggerM1, TriggerM2, TriggerM3, TriggerM4, TriggerM5, FrameM1, FrameM2, FrameM3, FrameM4, FrameM5, EnergySourceM1, EnergySourceM2, EnergySourceM3, EnergySourceM4, EnergySourceM5, GearM1, GearM2, GearM3, GearM4, GearM5, Knives, BuzzSaws, Medicinal};
 
 public class EditorItem : MonoBehaviour {
 	public string itemName;
@@ -367,6 +367,26 @@ public class Weapon : Item {
 		}
 		
 		return damageDealt;
+	}
+}
+
+public class Medicinal : Weapon {
+	public int numberOfUses = 4;
+
+	public Medicinal(string itemData, string delim) : base(itemData, delim) {
+
+	}
+
+	public Medicinal() {
+		
+	}
+	public override ItemCode getItemCode ()
+	{
+		return ItemCode.Medicinal;
+	}
+	public Medicinal(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, string inventoryTextureSpritePrefabName, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) :
+	base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape) {
+
 	}
 }
 
