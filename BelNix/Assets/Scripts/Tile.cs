@@ -254,7 +254,7 @@ public class Tile {
 			canEscape = canStandCurr && stand;
 			u.mapGenerator.removeAllRanges(false);
 		}
-		u.mapGenerator.resetRanges();
+		u.mapGenerator.resetRanges(false);
 		if (!u.usedStandard) {
 			canAttack = (med ? ally : enemy) && u.mapGenerator.hasLineOfSight(uTile, this, u.getAttackRange(), true, u.attackVisibilityMode());
 			if (!canAttack && (med ? ally : enemy)) {

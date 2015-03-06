@@ -2137,6 +2137,7 @@ public class MapGenerator : MonoBehaviour {
 			UnitGUI.clickTab(Tab.V);
 		}
 		if (Input.GetKeyDown(KeyCode.B)) {
+			RightClickMenu.hideMenu(true);
 			UnitGUI.clickTab(Tab.B);
 		}
 		/*
@@ -2144,20 +2145,11 @@ public class MapGenerator : MonoBehaviour {
 			GameGUI.clickStandard();
 	//		GameGUI.openTab = (GameGUI.openTab==Tab.T ? Tab.None : Tab.T);
 		}*/
-		if (Input.GetKeyDown(KeyCode.L)) {
-			GameGUI.selectMinor(MinorType.Loot);
-		}
-		if (Input.GetKeyDown(KeyCode.P)) {
-			if (getCurrentUnit().getStandardTypes().Contains(StandardType.Place_Turret))
-				GameGUI.selectStandard(StandardType.Place_Turret);
-		}
-		if (Input.GetKeyDown(KeyCode.E)) {
-			GameGUI.clickMovement();
-		}
 		if (Input.GetKeyDown(KeyCode.T)) {
 			GameGUI.clipboardTab = Tab.T;
 		}
 		if (Input.GetKeyDown(KeyCode.Q)) {
+			RightClickMenu.hideMenu(true);
 			GameGUI.clickWait();
 		}
 		/*
@@ -2199,10 +2191,14 @@ public class MapGenerator : MonoBehaviour {
 			GameGUI.selectActionAt(9);
 		}
 		if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) {
+			RightClickMenu.hideMenu(true);
 			deleteCurrentTrap();
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {// && !normalDraggin && !shiftDraggin) {
-			if (UnitGUI.inventoryOpen) {
+			if (RightClickMenu.shown) {
+				RightClickMenu.hideMenu(true);
+			}
+			else if (UnitGUI.inventoryOpen) {
 				UnitGUI.clickTab(Tab.B);
 			}
 			else if (RightClickMenu.shown) {
@@ -2263,9 +2259,11 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)) {
+			RightClickMenu.hideMenu(true);
 			performAction();
 		}
 		if (Input.GetKeyDown(KeyCode.Tab)) {
+			RightClickMenu.hideMenu(true);
 			if (shiftDown) {
 				GameGUI.selectPreviousAction();//.selectPreviousOfType();
 			}
@@ -2362,6 +2360,7 @@ public class MapGenerator : MonoBehaviour {
 	public void performAction() {
 		if (performingAction() || currentUnitIsAI() || !leftClickIsMakingSelection()) return;
 		Debug.Log("Here!");
+		RightClickMenu.hideMenu(true);
 		Unit p = selectedUnit;
 		if (((GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && getCurrentUnit().currentPath.Count > 1) {
 			if (lastPlayerPath.Count > 1 && !p.moving) {
@@ -2508,6 +2507,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void handleKeyInput(Direction dir) {
 		if (performingAction()) return;
+		RightClickMenu.hideMenu(true);
 		Debug.Log("Direction: " + dir);
 		Tile t = null;
 		if (turretBeingPlacedInDirection != Direction.None) {
