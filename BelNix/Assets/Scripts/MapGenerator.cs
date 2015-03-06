@@ -46,6 +46,7 @@ public class MapGenerator : MonoBehaviour {
 	public const int playerSelectPlayerArmorOrder = 1210 + sortingOrderExtra;
 	public const int playerSelectSelectedPlayerOrder = 1300 + sortingOrderExtra;
 	public const int playerSelectSelectedPlayerArmorOrder = 1310 + sortingOrderExtra;
+    public const int uiSpark = 1400 + sortingOrderExtra;
 	public const int mouseOverOrder = 10000 + sortingOrderExtra;
 
 	public float viewRadius;
