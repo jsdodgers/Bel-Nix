@@ -646,8 +646,11 @@ public class Unit : MonoBehaviour {
 		List<StandardType> standardTypes = new List<StandardType>();
 		if (!(getWeapon() is Medicinal))
 			standardTypes.Add(StandardType.Attack);
-		else if ((getWeapon() as Medicinal).numberOfUses < getMedKitUses())
+		else {
+			Debug.Log("Has Mend Kit: " + (getWeapon() as Medicinal).numberOfUses + "  " + getMedKitUses());
+			if ((getWeapon() as Medicinal).numberOfUses >= getMedKitUses())
 				standardTypes.Add(StandardType.Heal);
+		}
 		ClassFeature[] features = characterSheet.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			StandardType st = getStandardType(feature);
@@ -2542,7 +2545,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !isProne();
+		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !(getWeapon() is Medicinal) && !isProne();
 	}
 	
 	public int attackOfOpp(Vector2 one, Direction dir) {
@@ -3610,7 +3613,7 @@ public class Unit : MonoBehaviour {
 	
 	public virtual Weapon getWeapon() {
 		Weapon weap = (characterSheet == null ? null : characterSheet.characterSheet.characterLoadout.rightHand);
-		if (weap == null || (weap is WeaponMechanical && ((WeaponMechanical)weap).overClocked)) weap = mapGenerator.handWeapon;
+		if (weap == null || (weap is WeaponMechanical && ((WeaponMechanical)weap).overClocked) || (weap is Medicinal && ((Medicinal)weap).numberOfUses < getMedKitUses())) weap = mapGenerator.handWeapon;
 		return weap;
 	}
 	
