@@ -126,7 +126,7 @@ public class CombatScores
 	public int getDominion()	{return calculateMod(abilityScores.getWellVersed());}// Dominion is based on Well-Versed
 
 	public int getSturdyMod() { return getInitiative(); }
-	public int getPerceptionMod(bool marked) { return getCritical(marked); }
+	public int getPerceptionMod(bool marked = false) { return getCritical(marked); }
 	public int getTechniqueMod() { return getHandling(); }
 	public int getWellVersedMod() { return getDominion(); }
 

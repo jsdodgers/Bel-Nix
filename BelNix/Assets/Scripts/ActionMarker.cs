@@ -25,21 +25,18 @@ public class ActionMarker : MonoBehaviour {
         sparks.transform.localEulerAngles = Vector3.zero;
         //sparks.AddComponent<SetRenderQueue>();
         //sparks.GetComponent<SpriteRenderer>().sortingOrder = MapGenerator.uiSpark;
-        sparks.GetComponent<Animator>().Play("Action_Marker_On");
-        Invoke("hideMarker", 0.25f);
-        Invoke("stopExploding", 0.51f);
+        //sparks.GetComponent<Animator>().Play("Action_Marker_On");
+        //Invoke("hideMarker", 0.25f);
+        //Invoke("stopExploding", 0.51f);
     }
 
     private void hideMarker()
     {
         GetComponent<Image>().enabled = false;   
     }
-    private void stopExploding()
+    public void stopExploding(GameObject explosion)
     {
         //GetComponent<Animator>().SetBool("Explode", false);
-        if (sparks != null)
-        {
-            Destroy(sparks);
-        }
+        Destroy(explosion);
     }
 }
