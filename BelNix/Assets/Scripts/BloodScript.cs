@@ -1,7 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class BloodScript : MonoBehaviour {
+
+   
+    
+
+    void Start()
+    {
+        //restrictedBloodAnimations ;
+    }
 
     public static void spillBlood(Unit attacker, Unit enemy)
     {
@@ -25,7 +34,19 @@ public class BloodScript : MonoBehaviour {
             blood.transform.localEulerAngles += new Vector3(0, 0, 270);
 
 		blood.transform.localEulerAngles = new Vector3(0, 0, (MapGenerator.getAngle(attacker.transform.position, enemyUnit.transform.position) + 90 + Random.Range(-10, 10)) % 360);
-        int bloodNumber = Random.Range(1, 11);
+        BloodManager bloodManager;
+        try
+        {
+            bloodManager = GameObject.Find("BloodManager").GetComponent<BloodManager>();
+        }
+        catch
+        {
+            Debug.Log("Creating a new BloodManager");
+            GameObject newBloodManager = new GameObject("BloodManager", typeof(BloodManager));
+            bloodManager = newBloodManager.GetComponent<BloodManager>();
+        }
+        int bloodNumber = bloodManager.generateBloodNumber();
+        
 
         // Start the blood animation
         blood.GetComponent<Animator>().SetInteger("BloodOption", bloodNumber);
@@ -57,4 +78,26 @@ public class BloodScript : MonoBehaviour {
 		}
 	}
     */ 
+}
+
+public class BloodManager : MonoBehaviour
+{
+    private const int QUEUE_SIZE = 5;
+    private Queue<int> restrictedBloodAnimations;
+    void Start()
+    {
+        restrictedBloodAnimations = new Queue<int>(QUEUE_SIZE);
+    }
+    public int generateBloodNumber()
+    {
+        int bloodNumber = Random.Range(1, 34);
+        while (restrictedBloodAnimations.Contains(bloodNumber))
+        {
+            bloodNumber = Random.Range(1, 34);
+        }
+        if (restrictedBloodAnimations.Count >= QUEUE_SIZE)
+            restrictedBloodAnimations.Dequeue();
+        restrictedBloodAnimations.Enqueue(bloodNumber);
+        return bloodNumber;
+    }
 }

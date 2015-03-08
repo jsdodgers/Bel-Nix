@@ -16,7 +16,7 @@ public class Conversation : MonoBehaviour {
 	//finds button child of panel prefab and creates buttons list
 	void CreateUIButtonPrefab(GameObject UIPrefab){
 
-		UI_Button_Prefab = UIPrefab.transform.FindChild ("ButtonPrefab").gameObject;
+		UI_Button_Prefab = UIPrefab.transform.FindChild("ButtonPrefab").gameObject;
 		//GameObject buttonChildPrefab = buttonChildPrefabTemp;
 		//Destroy (UI_Button_Prefab);
 		buttons = new List<GameObject> ();
@@ -52,8 +52,8 @@ public class Conversation : MonoBehaviour {
 				
 			GameObject buttonClone = Instantiate(UIButtonPrefab) as GameObject;
 			buttonClone.transform.SetParent(UIParentPrefab.transform, false);
-			RectTransform rect = buttonClone.GetComponent<RectTransform>();
-			rect.position = new Vector3(rect.position.x, rect.position.y - (40 * i), rect.position.z);
+		//	RectTransform rect = buttonClone.GetComponent<RectTransform>();
+		//	rect.position = new Vector3(rect.position.x, rect.position.y - (40 * i), rect.position.z);
 
 			Button button = buttonClone.GetComponent<Button>();
 			button.enabled = true;
