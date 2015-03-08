@@ -4,13 +4,6 @@ using System.Collections.Generic;
 
 public class BloodScript : MonoBehaviour {
 
-   
-    
-
-    void Start()
-    {
-        //restrictedBloodAnimations ;
-    }
 
     public static void spillBlood(Unit attacker, Unit enemy, int damage)
     {
@@ -51,14 +44,10 @@ public class BloodScript : MonoBehaviour {
         GameObject bloodContainer = new GameObject("Blood Container");
         bloodContainer.transform.position = attacker.transform.TransformPoint(enemyPosition) + new Vector3(0.5f, -0.5f, 0.0f);
         bloodContainer.transform.localEulerAngles = attacker.transform.localEulerAngles;
-        //if (damage > -1)
-            //blood.GetComponent<Animator>().SetInteger("SizeOption", damage);
-            //blood.transform.localScale *= (0.3f + (damage/5));
         blood.transform.SetParent(bloodContainer.transform);
 
 
          // Start the blood animation
-        //blood.GetComponent<Animator>().SetInteger("BloodOption", bloodNumber);
         Debug.Log("Dealing " + damage + " damage"); 
         blood.AddComponent<BloodSplash>();
         blood.GetComponent<BloodSplash>().bloodOption = bloodNumber;
@@ -120,12 +109,6 @@ public class BloodSplash : MonoBehaviour
     private Vector3 finalPosition;
     public BloodManager bloodManager;
 
-    void Awake()
-    {
-        
-        
-    }
-
     void Start()
     {
         transform.localPosition = Vector3.zero;
@@ -146,16 +129,8 @@ public class BloodSplash : MonoBehaviour
             currentPosition = Vector3.MoveTowards(currentPosition, finalPosition, timeSoFar);
             transform.localPosition = currentPosition;
 
-            currentScale = Mathf.Lerp(currentScale, sizeOption/*(MAX_SCALE * (sizeOption / 10.0f))*/, timeSoFar);
+            currentScale = Mathf.Lerp(currentScale, sizeOption, timeSoFar);
             transform.localScale = new Vector3(currentScale, currentScale, transform.localScale.z);
-
-            Debug.Log(string.Format("HI, Scaling should be happening right now. Current scale is {0}, and current position is {1}." +
-                "\nThe scale we are moving toward is {2}. The max scale is {3}, the sizeOption is {4}", 
-                transform.localScale, 
-                transform.position, 
-                (MAX_SCALE * (sizeOption / 13.0f)),
-                MAX_SCALE,
-                sizeOption/13.0f));
 
             yield return null;
         }
