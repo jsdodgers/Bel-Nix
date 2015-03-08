@@ -3772,8 +3772,7 @@ public class Unit : MonoBehaviour {
 
     //private static ScreenShaker screenShaker; 
 	public void dealDamage() {
-        Combat.dealDamage(this, attackEnemy, overClockedAttack); 
-        /*
+
 		bool animate = false;
 		if (!damageCalculated) {
 			calculateDamage();
@@ -3790,7 +3789,7 @@ public class Unit : MonoBehaviour {
             BloodScript.spillBlood(this, attackEnemy, wapoon);
             if (crit)
             {
-                screenShaker = new ScreenShaker();
+              	 ScreenShaker screenShaker = new ScreenShaker();
                 screenShaker.shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
             } 
         }
@@ -3811,7 +3810,7 @@ public class Unit : MonoBehaviour {
 			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
 		}
 		//		damageDisplay.begin(
-        */
+        
 	}
 	
 	public int damageNumber = 0;
