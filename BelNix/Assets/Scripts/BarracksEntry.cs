@@ -1,50 +1,46 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class BarracksEntry : MonoBehaviour {
     private struct AtAGlance
     {
         public GameObject panel;
-        public Text description;
-        public Text status;
+        public Text description, status;
     }
     private struct Options
     {
         public GameObject panel;
-        public Button stats;
-        public Button classFeatures;
-        public Button inventory;
-        public Button levelUp;
+        public Button stats, classFeatures, inventory, levelUp;
     }
     private struct Physique
     {
         public GameObject panel;
-        public Text sturdyAndMod;
-        public Text athleticsAndMelee;
+        public Text sturdyAndMod, athleticsAndMelee;
     }
     private struct Prowess
     {
         public GameObject panel;
-        public Text perceptionAndMod;
-        public Text rangedAndStealth;
+        public Text perceptionAndMod, rangedAndStealth;
     }
     private struct Mastery
     {
         public GameObject panel;
-        public Text techniqueAndMod;
-        public Text mechanicalAndMedicinal;
+        public Text techniqueAndMod, mechanicalAndMedicinal;
     }
     private struct Knowledge
     {
         public GameObject panel;
-        public Text wellVersedAndMod;
-        public Text historicalAndPolitical;
+        public Text wellVersedAndMod, historicalAndPolitical;
     }
     
     public Character character;
+
     private AtAGlance atAGlance;
     private Options options;
+    private GameObject statsPanel;
+
     private Physique physique;
     private Prowess prowess;
     private Mastery mastery;
@@ -53,6 +49,10 @@ public class BarracksEntry : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         storeChildren();
+        Debug.Log("Stored Children");
+        hidePanel(statsPanel);
+        hidePanel(options.panel);
+        //hidePanel()
 	}
 	
 	// Update is called once per frame
@@ -71,10 +71,8 @@ public class BarracksEntry : MonoBehaviour {
 
     private void assignAtAGlance()
     {
-        //Unit u = character;
-        string s = character.characterSheet.personalInformation.getCharacterName().fullName();//.characterSheet;
-        Debug.Log(s);
-        CharacterSheet characterSheet = character.characterSheet;
+        Debug.Log(atAGlance.panel.name);
+        var characterSheet = character.characterSheet;
         atAGlance.description.text = string.Format(atAGlance.description.text,
             characterSheet.personalInformation.getCharacterName().fullName(), 
             characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 
@@ -89,40 +87,55 @@ public class BarracksEntry : MonoBehaviour {
             characterSheet.combatScores.getCurrentComposure(),
             characterSheet.combatScores.getMaxComposure());
     }
+
     private void assignStats()
     {
-        CharacterSheet characterSheet = character.characterSheet;
+        var characterStats       = character.characterSheet.abilityScores;
+        var statModifiers        = character.characterSheet.combatScores;
+        var characterSkillScores = character.characterSheet.skillScores;
+
         physique.sturdyAndMod.text = string.Format(physique.sturdyAndMod.text,
-            characterSheet.abilityScores.getSturdy(),
-            characterSheet.combatScores.getSturdyMod());
+            characterStats.getSturdy(),
+            statModifiers.getSturdyMod());
         physique.athleticsAndMelee.text = string.Format(physique.athleticsAndMelee.text,
-            characterSheet.skillScores.getScore(Skill.Athletics),
-            characterSheet.skillScores.getScore(Skill.Melee));
+            characterSkillScores.getScore(Skill.Athletics),
+            characterSkillScores.getScore(Skill.Melee));
 
         prowess.perceptionAndMod.text = string.Format(prowess.perceptionAndMod.text,
-            characterSheet.abilityScores.getPerception(0),
-            characterSheet.combatScores.getPerceptionMod(false));
+            characterStats.getPerception(),
+            statModifiers.getPerceptionMod());
         prowess.rangedAndStealth.text = string.Format(prowess.rangedAndStealth.text,
-            characterSheet.skillScores.getScore(Skill.Ranged),
-            characterSheet.skillScores.getScore(Skill.Stealth));
+            characterSkillScores.getScore(Skill.Ranged),
+            characterSkillScores.getScore(Skill.Stealth));
 
         mastery.techniqueAndMod.text = string.Format(mastery.techniqueAndMod.text,
-            characterSheet.abilityScores.getTechnique(),
-            characterSheet.combatScores.getTechniqueMod());
+            characterStats.getTechnique(),
+            statModifiers.getTechniqueMod());
         mastery.mechanicalAndMedicinal.text = string.Format(mastery.mechanicalAndMedicinal.text,
-            characterSheet.skillScores.getScore(Skill.Mechanical),
-            characterSheet.skillScores.getScore(Skill.Medicinal));
+            characterSkillScores.getScore(Skill.Mechanical),
+            characterSkillScores.getScore(Skill.Medicinal));
 
         knowledge.wellVersedAndMod.text = string.Format(knowledge.wellVersedAndMod.text,
-            characterSheet.abilityScores.getWellVersed(),
-            characterSheet.combatScores.getWellVersedMod());
+            characterStats.getWellVersed(),
+            statModifiers.getWellVersedMod());
         knowledge.historicalAndPolitical.text = string.Format(knowledge.historicalAndPolitical.text,
-            characterSheet.skillScores.getScore(Skill.Historical),
-            characterSheet.skillScores.getScore(Skill.Political));
+            characterSkillScores.getScore(Skill.Historical),
+            characterSkillScores.getScore(Skill.Political));
     }
     private void assignClassFeatures()
     {
-
+        var characterProgress = character.characterSheet.characterProgress;
+        int characterLevel = characterProgress.getCharacterLevel();
+        ClassFeature[] features = characterProgress.getCharacterClass().getPossibleFeatures(characterLevel);
+        GameObject featurePanel = gameObject.transform.FindChild("Panel - Class Features").FindChild("Panel - Feature List").gameObject;
+        GameObject exampleText = featurePanel.transform.GetChild(0).gameObject;
+        foreach (var feature in features)
+        {
+            GameObject newText = (GameObject)Instantiate(exampleText);
+            newText.transform.SetParent(featurePanel.transform);
+            newText.GetComponent<Text>().text = ClassFeatures.getName(feature);
+        }
+        Destroy(exampleText);
     }
     private void assignInventory()
     {
@@ -146,33 +159,48 @@ public class BarracksEntry : MonoBehaviour {
             inventory = optionsPanel.FindChild("Button - Inventory").gameObject.GetComponent<Button>(),
             levelUp = optionsPanel.FindChild("Button - Level Up").gameObject.GetComponent<Button>()
         };
-        Transform physiquePanel = this.gameObject.transform.FindChild("Panel - Character Stats").FindChild("Panel - Physique Stats");
+
+        statsPanel = this.gameObject.transform.FindChild("Panel - Character Stats").gameObject;
+        Transform physiquePanel = statsPanel.transform.FindChild("Panel - Physique Stats");
         physique = new Physique()
         {
             panel = physiquePanel.gameObject,
             sturdyAndMod = physiquePanel.FindChild("Text - Sturdy & Mod").gameObject.GetComponent<Text>(),
             athleticsAndMelee = physiquePanel.FindChild("Text - Athletics & Melee").gameObject.GetComponent<Text>()
         };
-        Transform prowessPanel = this.gameObject.transform.FindChild("Panel - Character Stats").FindChild("Panel - Prowess Stats");
+        Transform prowessPanel = statsPanel.transform.FindChild("Panel - Prowess Stats");
         prowess = new Prowess()
         {
             panel = prowessPanel.gameObject,
             perceptionAndMod = prowessPanel.FindChild("Text - Perception & Mod").gameObject.GetComponent<Text>(),
             rangedAndStealth = prowessPanel.FindChild("Text - Ranged & Stealth").gameObject.GetComponent<Text>()
         };
-        Transform masteryPanel = this.gameObject.transform.FindChild("Panel - Character Stats").FindChild("Panel - Mastery Stats");
+        Transform masteryPanel = statsPanel.transform.FindChild("Panel - Mastery Stats");
         mastery = new Mastery()
         {
             panel = masteryPanel.gameObject,
             techniqueAndMod = masteryPanel.FindChild("Text - Technique & Mod").gameObject.GetComponent<Text>(),
             mechanicalAndMedicinal = masteryPanel.FindChild("Text - Mechanical & Medicinal").gameObject.GetComponent<Text>()
         };
-        Transform knowledgePanel = this.gameObject.transform.FindChild("Panel - Character Stats").FindChild("Panel - Knowledge Stats");
+        Transform knowledgePanel = statsPanel.transform.FindChild("Panel - Knowledge Stats");
         knowledge = new Knowledge()
         {
             panel = knowledgePanel.gameObject,
             wellVersedAndMod = knowledgePanel.FindChild("Text - Well-Versed & Mod").gameObject.GetComponent<Text>(),
             historicalAndPolitical = knowledgePanel.FindChild("Text - Historical & Political").gameObject.GetComponent<Text>()
         };
+    }
+
+    public void hidePanel(GameObject panel)
+    {
+        panel.SetActive(false);
+    }
+    public void showPanel(GameObject panel)
+    {
+        panel.SetActive(true);
+    }
+    public void togglePanel(GameObject panel)
+    {
+        panel.SetActive(!panel.activeSelf);
     }
 }
