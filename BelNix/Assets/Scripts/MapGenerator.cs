@@ -2088,6 +2088,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleInput() {
+		if (Conversation.conversationOpen) return;
 		handleKeys();
 		if (GameGUI.escapeMenuOpen) return;
 		if (currentUnitIsPrimal()) {
