@@ -2772,7 +2772,7 @@ public class Unit : MonoBehaviour {
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			mapGenerator.activateEnemies(this);
-			if (newTile.hasConversation()) {
+			if (newTile.hasConversation() && team == 0) {
 				shouldCancelMovement = true;
 				shouldDoAthleticsCheck = false;
 				newTile.playConversation();
