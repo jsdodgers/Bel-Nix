@@ -2988,7 +2988,7 @@ public class Unit : MonoBehaviour {
 	
 	void doMovement() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
-		if (moving && shouldMove == 0 && shouldMove <= 0) {// && !beingAttacked) {
+		if (moving && shouldMove == 0 /*&& !flinching*/) {// && !beingAttacked) {
 			//	if (wasBeingAttacked) {
 			//		setRotatingPath();
 			//	}
@@ -3460,6 +3460,7 @@ public class Unit : MonoBehaviour {
 				rangedAnimation();
 			else
 				attackAnimation();
+			//attackEnemy.flinchAnimation();
 			attackAnimating = true;
 			attacking = false;
 		}
