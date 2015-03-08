@@ -3026,7 +3026,7 @@ public class Unit : MonoBehaviour {
 								}
 							}
 							attacking = false;
-							doLootAfterMovement = false;
+							lootTile = null;
 							intimidating = false;
 							invoking = false;
 							becomeProne();
