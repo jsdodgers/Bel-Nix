@@ -646,8 +646,11 @@ public class Unit : MonoBehaviour {
 		List<StandardType> standardTypes = new List<StandardType>();
 		if (!(getWeapon() is Medicinal))
 			standardTypes.Add(StandardType.Attack);
-		else if ((getWeapon() as Medicinal).numberOfUses < getMedKitUses())
+		else {
+			Debug.Log("Has Mend Kit: " + (getWeapon() as Medicinal).numberOfUses + "  " + getMedKitUses());
+			if ((getWeapon() as Medicinal).numberOfUses >= 1)
 				standardTypes.Add(StandardType.Heal);
+		}
 		ClassFeature[] features = characterSheet.characterSheet.characterProgress.getClassFeatures();
 		foreach (ClassFeature feature in features) {
 			StandardType st = getStandardType(feature);
@@ -2542,7 +2545,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual bool canAttOpp() {
-		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !isProne();
+		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !(getWeapon() is Medicinal) && !isProne();
 	}
 	
 	public int attackOfOpp(Vector2 one, Direction dir) {
@@ -2961,8 +2964,8 @@ public class Unit : MonoBehaviour {
 	public void doLootAfterMovement() {
 		if (lootTile != null && !moving) {
 			if (!UnitGUI.inventoryOpen) UnitGUI.clickTab(Tab.B);
-			BattleGUI.clearLootItems();
-			BattleGUI.setLootItems(lootTile.getItems(), lootTile);
+			InventoryGUI.clearLootItems();
+			InventoryGUI.setLootItems(lootTile.getItems(), lootTile);
 			lootTile = null;
 		}
 	}
@@ -3291,18 +3294,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	void healAnimation() {
-		int gained = rollDamage(false);
-		attackEnemy.gainHealth(gained);
-		attackEnemy.showHitpoints(gained);
-		healAnimating = false;
-		attackEnemy.deselect();
-		attackEnemy = null;
-		Medicinal med = (Medicinal)getWeapon();
-		med.numberOfUses-=getMedKitUses();
-		if (med.numberOfUses <= 0) {
-			characterSheet.characterSheet.characterLoadout.removeItemFromSlot(InventorySlot.RightHand);
-		}
-		useStandard();
+		dealHealDamage();
 	}
 
 	
@@ -3641,14 +3633,22 @@ public class Unit : MonoBehaviour {
 		damageDisplay.begin(wapoon, didHit, crit, this);
 	}
 
-	public void showHitpoints(int wapoon) {
+	public void showHitpoints(int wapoon, bool didHit) {
 		DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
-		damageDisplay.begin(wapoon, true, false, this, Color.blue);
+		damageDisplay.begin(wapoon, didHit, false, this, Color.blue);
 	}
 
 
 	public int attackHitChance(Unit u) {
 		int chanceToHit = 5 * (20 + getMeleeScoreWithMods(u) - u.getAC());
+		return Mathf.Clamp(chanceToHit, 0, 100);
+	}
+
+	public int healHitChance(Unit u) {
+		int max = u.getMaxHealth();
+		int curr = u.getCurrentHealth();
+		int healthToHeal = Mathf.Min(getMaxHit(), (curr > 0 ? max - curr : -curr));
+		int chanceToHit = 10 * (5 + getSkill(Skill.Medicinal) - healthToHeal);
 		return Mathf.Clamp(chanceToHit, 0, 100);
 	}
 
@@ -3663,11 +3663,34 @@ public class Unit : MonoBehaviour {
 		int wellV = 10 + u.characterSheet.characterSheet.combatScores.getWellVersedMod();
 		return Mathf.Clamp(5 * (20 + sturdy - wellV), 0, 100);
 	}
-	
-	public void dealDamage() {
-        Combat.dealDamage(this, attackEnemy, overClockedAttack);
 
-        /*
+	public int getMaxHit() {
+		return getWeapon().diceType * getWeapon().numberOfDamageDice;
+	}
+	public void dealHealDamage() {
+		int max = attackEnemy.getMaxHealth();
+		int curr = attackEnemy.getCurrentHealth();
+		int healthToHeal = Mathf.Min(getMaxHit(), (curr > 0 ? max - curr : -curr));
+		bool kitHit = rollForSkill(Skill.Medicinal) >= 5 + healthToHeal;
+		int gained = rollDamage(false);
+		if (kitHit) {
+			attackEnemy.gainHealth(gained);
+			Medicinal med = (Medicinal)getWeapon();
+			med.numberOfUses-=getMedKitUses();
+			if (med.numberOfUses <= 0) {
+				characterSheet.characterSheet.characterLoadout.removeItemFromSlot(InventorySlot.RightHand);
+			}
+		}
+		attackEnemy.showHitpoints(gained, kitHit);
+		healAnimating = false;
+		attackEnemy.deselect();
+		attackEnemy = null;
+		useStandard();
+	}
+	public void dealDamage() {
+     //   Combat.dealDamage(this, attackEnemy, overClockedAttack);
+
+        
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		Debug.Log("Deal Damage: " + attackEnemy);
 		Hit hit = Combat.rollHit(this);
@@ -3681,7 +3704,7 @@ public class Unit : MonoBehaviour {
         if (didHit)
         {
             attackEnemy.damage(wapoon, this);
-            BloodScript.spillBlood(this.gameObject, attackEnemy.gameObject);
+            BloodScript.spillBlood(this, attackEnemy);
         }
 		if (overClockedAttack) {
 			Debug.Log("Over Clocked Attack!!!");
@@ -3701,7 +3724,7 @@ public class Unit : MonoBehaviour {
 		}
 		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
 		//		damageDisplay.begin(
-        */
+
 	}
 	
 	public int damageNumber = 0;

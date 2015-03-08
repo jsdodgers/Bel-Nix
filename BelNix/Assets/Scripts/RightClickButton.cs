@@ -125,7 +125,7 @@ public class RightClickButton : MonoBehaviour {
 		}
 		if (action.gameMasterTypes.Contains(GameMasterType.Heal1)) {
 			action.actualTile.getCharacter().gainHealth(1);
-			action.actualTile.getCharacter().showHitpoints(1);
+			action.actualTile.getCharacter().showHitpoints(1, true);
 		}
 	/*	if (action.minorTypes.Contains(MinorType.OneOfMany)) {
 
