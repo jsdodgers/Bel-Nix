@@ -6,6 +6,7 @@ public class TurretUnit : MechanicalUnit {
 	public Turret turret;
 	public Direction direction;
 	public Unit owner;
+	public bool isOn = true;
 
 	// Use this for initialization
 	void Start () {
@@ -61,7 +62,7 @@ public class TurretUnit : MechanicalUnit {
 	}
 
 	public override int getMeleeScore() {
-		return 0;
+		return owner == null ? 0 : owner.getSkill(Skill.Mechanical);
 	}
 
 	public override int getCritChance() {
@@ -83,8 +84,8 @@ public class TurretUnit : MechanicalUnit {
 
 	
 	public override int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
-		int roll = Random.Range(1, dieType + 1);
-		return (skill==Skill.Melee ? getMeleeScore() : 0) + (favoredRace?1:0) + roll;
+		if (dieRoll == -1) dieRoll = Random.Range(1, dieType + 1);
+		return (skill==Skill.Melee ? getMeleeScore() : 0) + (favoredRace?1:0) + dieRoll;
 	}
 
 	public override bool hasWeaponFocus() {
@@ -199,9 +200,9 @@ public class TurretUnit : MechanicalUnit {
 
 	public bool fireOnTile(Tile t, int distLeft) {
 		if (t==null) return false;
-		if (t.hasEnemy(this)) {
+		if (t.hasCharacter() && t.getCharacter() != this) {//.hasEnemy(this)) {
 			Debug.Log("Has Enemy");
-			attackEnemy = t.getEnemy(this);
+			attackEnemy = t.getCharacter();//.getEnemy(this);
 			if (attackEnemy)
 				attackEnemy.setTarget();
 			attacking = true;
@@ -213,8 +214,9 @@ public class TurretUnit : MechanicalUnit {
 
 	public void fire() {
 		Debug.Log("Turret Fire");
-		if (!fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5))
-			turret.use();
+		if (!isOn) return;
+		fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5);
+		turret.use();
 	}
 
 }

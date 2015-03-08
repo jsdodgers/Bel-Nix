@@ -2623,6 +2623,7 @@ public class MapGenerator : MonoBehaviour {
 						g = Instantiate(turretPrefab) as GameObject;
 						g.transform.parent = turrets.transform;
 						tu = g.GetComponent<TurretUnit>();
+						tu.isOn = BattleGUI.turretOn();
 						tu.mapGenerator = this;
 						tu.team = getCurrentUnit().team;
 						turretBeingPlaced = tu;
@@ -2964,6 +2965,7 @@ public class MapGenerator : MonoBehaviour {
 								g = Instantiate(turretPrefab) as GameObject;
 								g.transform.parent = turrets.transform;
 								tu = g.GetComponent<TurretUnit>();
+								tu.isOn = BattleGUI.turretOn();
 								tu.mapGenerator = this;
 								tu.team = getCurrentUnit().team;
 								turretBeingPlaced = tu;

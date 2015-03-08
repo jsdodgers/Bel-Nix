@@ -79,7 +79,7 @@ public class TrapUnit : MechanicalUnit {
 	}
 	
 	public override int getMeleeScore() {
-		return 0;
+		return owner == null ? 0 : owner.getSkill(Skill.Mechanical);
 	}
 	
 	public override int getCritChance() {

@@ -41,7 +41,7 @@ public enum UnitMovement {Move, BackStep, Escape, None}
 public enum MovementType {Move, BackStep, Recover, None}
 public enum StandardType {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal}
 public enum ActionType {None, Movement, Standard, Minor}
-public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None}
+public enum MinorType {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None, TurretOn, TurretOff}
 public enum Affliction {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
 public enum InventorySlot {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
 public enum OneOfManyMode {Hidden = 0, Hit, Damage, AC, Movement, None};
@@ -124,6 +124,7 @@ public class Unit : MonoBehaviour {
 	public bool shouldCancelMovement = false;
 	public bool moving = false;
 	public Tile lootTile;
+	public Tile turretTile;
 	public bool rotating = false;
 	public bool rotating2 = false;
 
@@ -530,6 +531,10 @@ public class Unit : MonoBehaviour {
 			return "Tempered Hands";
 		case MinorType.OneOfMany:
 			return "One Of Many";
+		case MinorType.TurretOff:
+			return "Turn Off Turret";
+		case MinorType.TurretOn:
+			return "Turn On Turret";
 		default:
 			return minor.ToString();
 		}
@@ -2966,6 +2971,7 @@ public class Unit : MonoBehaviour {
 		doInvoke();
 		doInstillParanoia();
 		doLootAfterMovement();
+		doTurretAfterMovement();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
@@ -2980,6 +2986,17 @@ public class Unit : MonoBehaviour {
 			InventoryGUI.clearLootItems();
 			InventoryGUI.setLootItems(lootTile.getItems(), lootTile);
 			lootTile = null;
+		}
+	}
+
+	public void doTurretAfterMovement() {
+		if (turretTile != null && !moving) {
+			Unit u = turretTile.getCharacter();
+			if (u is TurretUnit) {
+				TurretUnit tu = (TurretUnit)u;
+				tu.isOn = !tu.isOn;
+				useMinor(tu.isOn ? MinorType.TurretOn : MinorType.TurretOff, false, false);
+			}
 		}
 	}
 	
@@ -3038,6 +3055,7 @@ public class Unit : MonoBehaviour {
 							}
 							attacking = false;
 							lootTile = null;
+							turretTile = null;
 							intimidating = false;
 							invoking = false;
 							becomeProne();
@@ -3075,7 +3093,9 @@ public class Unit : MonoBehaviour {
 				currentPath.Add(new Vector2(position.x, -position.y));
 				mapGenerator.resetPlayerPath();
 				mapGenerator.resetRanges();
-				if (currentPath.Count > 1) mapGenerator.lastPlayerPath = currentPath;
+				mapGenerator.lastPlayerPath = currentPath;
+				currentMoveDist = moveDistLeft;
+				currentMaxPath = 0;
 				if (unitMovement == UnitMovement.BackStep || unitMovement == UnitMovement.Move) {
 					if (currentMoveDist <= 0) useMovement();
 					else BattleGUI.resetMovementButtons();
@@ -3528,6 +3548,7 @@ public class Unit : MonoBehaviour {
 	//bool flinching = false;
 	void flinchAnimation() {
 		//flinching = true;
+		if (this is TurretUnit) return;
 		anim.SetTrigger("Flinch");
 		flinchAnimationAllSprites();
 	}
@@ -3629,7 +3650,7 @@ public class Unit : MonoBehaviour {
 	}
 	
 	public virtual int getMeleeScore() {
-		return characterSheet.characterSheet.skillScores.getScore(Skill.Melee);
+		return characterSheet.characterSheet.skillScores.getScore((getWeapon().isRanged ? Skill.Ranged : Skill.Melee));
 	}
 	public virtual int getMeleeScoreWithMods(Unit u) {
 		return getMeleeScore() + (unitIsFavoredRace(u) ? 1 : 0) + (Combat.flanking(this,u) ? 2 : 0) + (hasUncannyKnowledge() ? 1 : 0) + (hasWeaponFocus() ? 2 : 0) + getOneOfManyBonus(OneOfManyMode.Hit) - temperedHandsMod;
@@ -3847,7 +3868,7 @@ public class Unit : MonoBehaviour {
 	public void damage(int damage, Unit u, bool animate = false) {
 		//	Debug.Log("Damage");
 		if (damage > 0) {
-			if (!playerControlled && !isAwareOf(u)) {
+			if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit)) {
 				addKnownUnit(u);
 				if (!aiActive) setActive(true);
 				mapGenerator.activateNearbyEnemies(this);
