@@ -787,7 +787,7 @@ public class Unit : MonoBehaviour {
 		getTargetSprite().enabled = true;
 		getTargetSprite().color = Color.red;
 		setTargetObjectScale();
-		getTarget().localEulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+		getTarget().eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
 	}
 	
 	public void deselect() {

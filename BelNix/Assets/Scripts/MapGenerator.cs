@@ -8,9 +8,10 @@ using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 public enum VisibilityMode {Visibility, Melee, Ranged, None}
 
+[System.Serializable]
 public struct ConversationTrigger {
-	List<Vector2> conversationTiles;
-	string conversationTextFile;
+	public List<Vector2> conversationTiles;
+	public string conversationTextFile;
 }
 
 public class MapGenerator : MonoBehaviour {
@@ -25,10 +26,10 @@ public class MapGenerator : MonoBehaviour {
 	public float timeScale = 0.05f;
 	public GameObject overlayObject;
 	Texture2D[,] mapOverlays;
-//	Texture2D mapOverlay;
-	[Header("Tile Properties")]
+	//	Texture2D mapOverlay;
 	[Space(20)]
-	List<ConversationTrigger> conversations = new List<ConversationTrigger>();
+	[Header("Tile Properties")]
+	public List<ConversationTrigger> conversations = new List<ConversationTrigger>();
 	public List<Vector2> itemPositions = new List<Vector2>();
 	public List<EditorItem> items = new List<EditorItem>();
 	[Space(20)]
