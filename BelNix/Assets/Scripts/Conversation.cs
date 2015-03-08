@@ -12,6 +12,7 @@ public class Conversation : MonoBehaviour {
 	public Canvas canvas;
 	GameObject UI_Button_Prefab;
 	List<GameObject> buttons;
+	public static Conversation conversation;
 
 	//finds button child of panel prefab and creates buttons list
 	void CreateUIButtonPrefab(GameObject UIPrefab){
@@ -399,13 +400,17 @@ public class Conversation : MonoBehaviour {
 	}
 	
 	
-	
-	void InitiateConversation(){
+	public static void beginConversation(TextAsset file) {
+		conversation.initiateConversation(file);
+	}
+
+	void initiateConversation(TextAsset file){
+		gameObject.SetActive(true);
+		textFile = file;
 		canvas.enabled = true;
 		CreateUIButtonPrefab (UI_Panel_Prefab);
 		ReadTextFile ();
 		DisplayTextBox (FindTextBox (0));
-		
 	
 	
 	}
@@ -415,7 +420,7 @@ public class Conversation : MonoBehaviour {
 		textBoxes.Clear();
 		DestroyButtons();
 		canvas.enabled = false;
-
+		gameObject.SetActive(false);
 	}
 	
 
@@ -429,7 +434,7 @@ public class Conversation : MonoBehaviour {
 		//AssignText (UI_Panel_Prefab, "Hello");
 		//InstantiateButtons (UI_Panel_Prefab, UI_Button_Prefab, 1);
 		//DestroyButtons ();
-		InitiateConversation ();
+	//	InitiateConversation ();
 		
 	}
 	

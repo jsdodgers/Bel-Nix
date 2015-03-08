@@ -20,6 +20,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject[] CIPanels = new GameObject[3];
 	[SerializeField] private GameObject[] primalControlWindows = new GameObject[3];
 	[SerializeField] private InventoryGUI inventoryCanvas;
+	[SerializeField] private Conversation conversationCanvas;
 	[SerializeField] private GameObject loadGameCanvas;
 	[SerializeField] private GameObject pauseMenuCanvas;
 	[SerializeField] private GameObject saveGameCanvas;
@@ -109,6 +110,7 @@ public class BattleGUI : MonoBehaviour {
     void Start()
     {
 		InventoryGUI.inventoryGUI = inventoryCanvas;
+		Conversation.conversation = conversationCanvas;
         //Some audiovisual setup
         //gameObject.GetComponent<Canvas>().enabled = false;
         //Invoke("cameraDebug", 0.01f);
