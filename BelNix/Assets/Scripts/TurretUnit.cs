@@ -31,6 +31,10 @@ public class TurretUnit : MechanicalUnit {
 		return 0;
 	}
 
+	public override float getComposurePercent() {
+		return 100.0f;
+	}
+
 	public override void loseHealth(int amount) {
 		turret.takeDamage(amount);
 	}

@@ -3,21 +3,25 @@ using System.Collections;
 
 public class BloodScript : MonoBehaviour {
 
-    public static void spillBlood(GameObject attacker, GameObject enemy)
+    public static void spillBlood(Unit attacker, Unit enemy)
     {
         // Create and place the blood prefab
         GameObject blood = (GameObject)Instantiate(Resources.Load<GameObject>("Effects/Blood/blood_splatter"));
-        blood.GetComponent<SpriteRenderer>().sortingOrder = MapGenerator.bloodOrder;
+		SpriteRenderer bloodSR = blood.GetComponent<SpriteRenderer>();
+		bloodSR.sortingOrder = MapGenerator.bloodOrder;
         blood.transform.SetParent(attacker.transform);
-        Unit enemyUnit = enemy.GetComponent<Unit>();
+		if (enemy is TurretUnit) {
+			bloodSR.color = Color.black;
+		}
+        Unit enemyUnit = enemy;
         Vector3 enemyPosition = attacker.transform.InverseTransformPoint(enemyUnit.position);
         blood.transform.localPosition = Vector3.zero + new Vector3(0, 1, 0) + enemyPosition;
         blood.transform.localEulerAngles = attacker.transform.localEulerAngles;
-        if (Unit.directionOf(attacker.GetComponent<Unit>(), enemyUnit) == Direction.Down)
+        if (Unit.directionOf(attacker, enemyUnit) == Direction.Down)
             blood.transform.localEulerAngles += new Vector3(0, 0, 180);
-        if (Unit.directionOf(attacker.GetComponent<Unit>(), enemyUnit) == Direction.Right)
+        if (Unit.directionOf(attacker, enemyUnit) == Direction.Right)
             blood.transform.localEulerAngles += new Vector3(0, 0, 90);
-        if (Unit.directionOf(attacker.GetComponent<Unit>(), enemyUnit) == Direction.Left)
+        if (Unit.directionOf(attacker, enemyUnit) == Direction.Left)
             blood.transform.localEulerAngles += new Vector3(0, 0, 270);
         int bloodNumber = Random.Range(1, 11);
 

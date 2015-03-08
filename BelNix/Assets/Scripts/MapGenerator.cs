@@ -99,7 +99,7 @@ public class MapGenerator : MonoBehaviour {
 	Unit hoveredCharacter;
 	public List<Unit> players;
 	public List<Unit> deadUnits;
-	public List<Unit> nonAlertEnemies;
+//	public List<Unit> nonAlertEnemies;
 	public List<Unit> enemies;
 	public GameObject turrets;
 	public GameObject traps;
@@ -351,6 +351,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 	public void setOverlay(Unit u, bool print = false) {
 		setOverlay(getMeshPos(u), print);
+//		Debug.Log("Angle: " + u
 	}
 	public void removeOverlay(Unit u) {
 		if (u.meshGen != null) {
@@ -358,13 +359,13 @@ public class MapGenerator : MonoBehaviour {
 			u.meshGen = null;
 		}
 	}
-	public void setOverlay(MeshPos pos, bool print = false) {
+	public void setOverlay(MeshPos pos, bool print = false, Unit u = null) {
 		List<Vector2> points = new List<Vector2>();
 		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/smoothness) {
 			float sin = Mathf.Sin(n);
 			float cos = Mathf.Cos(n);
-			float y = pos.position.y + sin * viewRadius;
-			float x = pos.position.x + cos * viewRadius;
+			float y = pos.position.y + sin * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-90.0f));
+			float x = pos.position.x + cos * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-90.0f));
 			Vector2 v = new Vector2(x, y);
 			CollisionPoint cp = getLineOfSightCollisionPoint(pos.position, v, VisibilityMode.Visibility);
 			if (cp.collides) {
@@ -482,11 +483,11 @@ public class MapGenerator : MonoBehaviour {
 		else return (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) <= distance * distance;
 	}
 
-	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility) {
+	public bool hasLineOfSight(Unit fromUnit, Unit toUnit, int distance = -1, bool manhattan = false, VisibilityMode visMode = VisibilityMode.Visibility, bool withAngle = false) {
 		if (toUnit == null) return false;
 		Tile from = tiles[(int)fromUnit.position.x, (int)-fromUnit.position.y];
 		Tile to = tiles[(int)toUnit.position.x, (int)-toUnit.position.y];
-		float dist = (distance == -1 ? fromUnit.getViewRadiusToUnit(toUnit) : distance);
+		float dist = (distance == -1 ? (withAngle && fromUnit.team != 0 && fromUnit.team != toUnit.team ? fromUnit.getViewRadiusToUnit(toUnit, getAngle(fromUnit.position,toUnit.position)) : fromUnit.getViewRadiusToUnit(toUnit)) : distance);
 		return hasLineOfSight(from, to, dist, manhattan, visMode);
 	}
 
@@ -796,7 +797,7 @@ public class MapGenerator : MonoBehaviour {
 		priorityOrder = new List<Unit>();
 		players = new List<Unit>();
 		deadUnits = new List<Unit>();
-		nonAlertEnemies = new List<Unit>();
+//		nonAlertEnemies = new List<Unit>();
 		//		playerPrefab = (GameObject)Resources.Load("Units/Jackie/JackieAnimPrefab");
 		playerPrefab = (GameObject)Resources.Load("Units/Male_Base/Male_Base_Unit");
 		turretPrefab = (GameObject)Resources.Load("Units/Turrets/TurretPrefab");
@@ -874,7 +875,7 @@ public class MapGenerator : MonoBehaviour {
 			e.setMapGenerator(this);
 //			e.mapGenerator = this;
 			enemies.Add(e);
-			nonAlertEnemies.Add(e);
+	//		nonAlertEnemies.Add(e);
 	//		enemy.renderer.sortingOrder = 3;
 			tiles[x,-y].setCharacter(e);
 			e.loadCharacterSheet();
@@ -939,34 +940,44 @@ public class MapGenerator : MonoBehaviour {
 		priorityOrder.Sort((first, second) => (first.getInitiative() > second.getInitiative() ? -1 : (first.getInitiative() == second.getInitiative() && po1.IndexOf(first) < po1.IndexOf(second) ? -1 : 1)));
 	}
 
-	public void activateEnemies() {
+	public void activateEnemies(Unit un) {
 		bool anyEnemiesActive = false;
-		List<Unit> nonAlertEnemiesCopy = new List<Unit>();
-		foreach (Unit u in nonAlertEnemies) nonAlertEnemiesCopy.Add(u);
-		while (nonAlertEnemiesCopy.Count > 0) {
-			Unit e = nonAlertEnemiesCopy[0];
-			nonAlertEnemiesCopy.RemoveAt(0);
-			foreach (Player p in players) {
-				if (e.hasLineOfSightToUnit(p)) {
-					anyEnemiesActive = true;
-					e.setActive(true);
-					List<Unit> newlyActivatedUnits = new List<Unit>();
-					newlyActivatedUnits.Add(e);
-					nonAlertEnemies.Remove(e);
-					while (newlyActivatedUnits.Count > 0) {
-						Unit curr = newlyActivatedUnits[0];
-						newlyActivatedUnits.RemoveAt(0);
-						for (int m=nonAlertEnemies.Count-1;m>=0;m--) {
-							Unit ee = nonAlertEnemies[m];
-							if (ee.hasLineOfSightToUnit(curr)) {
-								ee.setActive(true);
-								newlyActivatedUnits.Add(ee);
-								nonAlertEnemies.Remove(ee);
-								if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
-							}
-						}
+		List<Unit> enemiesCopy = new List<Unit>();
+		if (un.team == 0)
+			enemiesCopy = new List<Unit>(enemies);
+		else
+			enemiesCopy.Add(un);
+		List<Unit> playersCopy = new List<Unit>();
+		if (un.team == 0)
+			playersCopy.Add(un);
+		else playersCopy = new List<Unit>(players);
+//		foreach (Unit u in nonAlertEnemies) nonAlertEnemiesCopy.Add(u);
+		foreach (Unit e in enemiesCopy) {
+			foreach (Player p in playersCopy) {
+				if (e.isAwareOf(p)) continue;
+				if (e.hasLineOfSightToUnit(p, -1, false, VisibilityMode.Visibility, true)) {
+					bool newlyAware = false;
+					e.addKnownUnit(p);
+					if (!e.aiActive) {
+						newlyAware = true;
+						anyEnemiesActive = true;
+						e.setActive(true);
+						activateNearbyEnemies(e);
 					}
-					break;
+				}
+			}
+			if (e.aiActive && e == un) {
+				List<TurretUnit> turretUnits = new List<TurretUnit>();
+				for (int n=0;n<turrets.transform.childCount;n++) {
+					TurretUnit tu = turrets.transform.GetChild(0).GetComponent<TurretUnit>();
+					if (tu == null) continue;
+					turretUnits.Add(tu);
+				}
+				foreach (TurretUnit tu in turretUnits) {
+					if (e.isAwareOf(tu)) continue;
+					if (e.hasLineOfSightToUnit(tu, -1, false, VisibilityMode.Visibility, true)) {
+						e.addKnownUnit(tu);
+					}
 				}
 			}
 		}
@@ -976,6 +987,26 @@ public class MapGenerator : MonoBehaviour {
 		}
 	}
 
+	public void activateNearbyEnemies(Unit e) {
+		List<Unit> newlyActivatedUnits = new List<Unit>();
+		newlyActivatedUnits.Add(e);
+		while (newlyActivatedUnits.Count > 0) {
+			Unit curr = newlyActivatedUnits[0];
+			newlyActivatedUnits.RemoveAt(0);
+			foreach (Unit ee in enemies) {
+				if (ee.aiActive && (ee.knownEnemies.Count > 0 || ee.alertedAlly != null)) continue;
+				if (ee.hasLineOfSightToUnit(curr)) {
+					if (!ee.aiActive)
+						ee.setActive(true);
+					ee.alertedAlly = e;
+					newlyActivatedUnits.Add(ee);
+					//	nonAlertEnemies.Remove(ee);
+					//	if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
+				}
+			}
+		}
+	}
+	
 	public bool isInCharacterPlacement() {
 		return currentUnit == -1;
 	}
@@ -1253,11 +1284,13 @@ public class MapGenerator : MonoBehaviour {
 					removeCharacter(selectedUnit);
 				}
 			}
-			if (selectedUnit.deadOrDyingOrUnconscious() || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
+			if (selectedUnit.deadOrDyingOrUnconscious()) {// || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
-			BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
-			activateEnemies();
+			else if (!((!selectedUnit.playerControlled && !selectedUnit.aiActive))) {
+				BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
+			}
+			activateEnemies(selectedUnit);
 		//	selectedUnit.chooseNextBestActionType();
 
 			//		editingPath = false;
@@ -1362,7 +1395,6 @@ public class MapGenerator : MonoBehaviour {
 				wall.transform.parent = walls;
 				Wall w = wall.GetComponent<Wall>();
 				w.parseWall(tilesArr[n], this);
-				Debug.Log(w.visibility + " " + w.transform.position);
 			}
 		}
 		if (positions.Count > 0) {
@@ -1804,6 +1836,19 @@ public class MapGenerator : MonoBehaviour {
 		return ts;
 	}
 
+	public void setCharacterCanHeal(Unit u, VisibilityMode vis = VisibilityMode.Visibility) {
+		Tile t = tiles[(int)u.position.x,(int)-u.position.y];
+		foreach (Direction d in Tile.directions) {
+			Tile t1 = t.getTile(d);
+			if (t1 == null) continue;
+			// if(!t1.hasAlly(u)) continue;
+			if (t1.hasEnemy(u)) continue;
+			if (hasLineOfSight(t, t1, 1.1f, true, vis)) {
+				t1.canUseSpecialCurr = true;
+			}
+		}
+	}
+
 	public void setCharacterCanAttack(int x, int y, int radiusLeft, int currRadius, Unit cs, VisibilityMode vis = VisibilityMode.None) {
 	if (x < 0 || y < 0 || x >= actualWidth || y >= actualHeight) return;
 		Tile t = tiles[x,y];
@@ -2037,6 +2082,7 @@ public class MapGenerator : MonoBehaviour {
 		if (mouseUp && UnitGUI.inventoryOpen) {
 			BattleGUI.deselectItem();
 		}
+		if (altDown && shiftDown) rotatePlayerTowardsMouse();
 	}
 	
 
@@ -2051,7 +2097,7 @@ public class MapGenerator : MonoBehaviour {
 		Camera.main.orthographicSize = Screen.height / 128.0f;
 	}
 	
-	
+	public static bool gameMaster = false;
 	
 	void handleKeys() {
 		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
@@ -2073,6 +2119,9 @@ public class MapGenerator : MonoBehaviour {
 			else if (Input.GetKeyDown(KeyCode.H)) {
 				getCurrentUnit().gainHealth(1);
 			}
+			else if (Input.GetKeyDown(KeyCode.D)) {
+				gameMaster = !gameMaster;
+			}
 		}
 	/*	if (Input.GetKeyDown(KeyCode.Alpha7)) {
 			setOverlay();
@@ -2088,6 +2137,7 @@ public class MapGenerator : MonoBehaviour {
 			UnitGUI.clickTab(Tab.V);
 		}
 		if (Input.GetKeyDown(KeyCode.B)) {
+			RightClickMenu.hideMenu(true);
 			UnitGUI.clickTab(Tab.B);
 		}
 		/*
@@ -2095,20 +2145,11 @@ public class MapGenerator : MonoBehaviour {
 			GameGUI.clickStandard();
 	//		GameGUI.openTab = (GameGUI.openTab==Tab.T ? Tab.None : Tab.T);
 		}*/
-		if (Input.GetKeyDown(KeyCode.L)) {
-			GameGUI.selectMinor(MinorType.Loot);
-		}
-		if (Input.GetKeyDown(KeyCode.P)) {
-			if (getCurrentUnit().getStandardTypes().Contains(StandardType.Place_Turret))
-				GameGUI.selectStandard(StandardType.Place_Turret);
-		}
-		if (Input.GetKeyDown(KeyCode.E)) {
-			GameGUI.clickMovement();
-		}
 		if (Input.GetKeyDown(KeyCode.T)) {
 			GameGUI.clipboardTab = Tab.T;
 		}
 		if (Input.GetKeyDown(KeyCode.Q)) {
+			RightClickMenu.hideMenu(true);
 			GameGUI.clickWait();
 		}
 		/*
@@ -2150,10 +2191,14 @@ public class MapGenerator : MonoBehaviour {
 			GameGUI.selectActionAt(9);
 		}
 		if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) {
+			RightClickMenu.hideMenu(true);
 			deleteCurrentTrap();
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {// && !normalDraggin && !shiftDraggin) {
-			if (UnitGUI.inventoryOpen) {
+			if (RightClickMenu.shown) {
+				RightClickMenu.hideMenu(true);
+			}
+			else if (UnitGUI.inventoryOpen) {
 				UnitGUI.clickTab(Tab.B);
 			}
 			else if (RightClickMenu.shown) {
@@ -2214,9 +2259,11 @@ public class MapGenerator : MonoBehaviour {
 			}
 		}
 		if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)) {
+			RightClickMenu.hideMenu(true);
 			performAction();
 		}
 		if (Input.GetKeyDown(KeyCode.Tab)) {
+			RightClickMenu.hideMenu(true);
 			if (shiftDown) {
 				GameGUI.selectPreviousAction();//.selectPreviousOfType();
 			}
@@ -2312,6 +2359,8 @@ public class MapGenerator : MonoBehaviour {
 
 	public void performAction() {
 		if (performingAction() || currentUnitIsAI() || !leftClickIsMakingSelection()) return;
+		Debug.Log("Here!");
+		RightClickMenu.hideMenu(true);
 		Unit p = selectedUnit;
 		if (((GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && getCurrentUnit().currentPath.Count > 1) {
 			if (lastPlayerPath.Count > 1 && !p.moving) {
@@ -2341,7 +2390,7 @@ public class MapGenerator : MonoBehaviour {
 		}
 
 		
-		else if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
+		else if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && getCurrentUnit().attackEnemy != null) {
 			if (GameGUI.selectedStandardType == StandardType.Attack) {
 				p.startAttacking();
 			}
@@ -2353,6 +2402,9 @@ public class MapGenerator : MonoBehaviour {
 			}
 			else if (GameGUI.selectedStandardType == StandardType.Intimidate) {
 				p.startIntimidating();
+			}
+			else if (GameGUI.selectedStandardType == StandardType.Heal) {
+				p.startHealing();
 			}
 		}
 
@@ -2455,6 +2507,7 @@ public class MapGenerator : MonoBehaviour {
 
 	public void handleKeyInput(Direction dir) {
 		if (performingAction()) return;
+		RightClickMenu.hideMenu(true);
 		Debug.Log("Direction: " + dir);
 		Tile t = null;
 		if (turretBeingPlacedInDirection != Direction.None) {
@@ -2583,7 +2636,8 @@ public class MapGenerator : MonoBehaviour {
 						currentlySelectedTrap.unsetSelectedForPlacement();
 					currentlySelectedTrap = t.getTrap();
 					currentlySelectedTrap.setSelectedForPlacement();
-				}}
+				}
+			}
 			else {
 				if (selectedUnit.attackEnemy) {
 					selectedUnit.attackEnemy.deselect();
@@ -2594,6 +2648,11 @@ public class MapGenerator : MonoBehaviour {
 						selectedUnit.attackEnemy = t.getEnemy(selectedUnit);
 					else if (GameGUI.selectedStandardType == StandardType.Throw)
 						selectedUnit.attackEnemy = t.getCharacter();
+					selectedUnit.setRotationToAttackEnemy();
+				}
+				if (t != null && t.canUseSpecialCurr && t != currentUnitTile) {
+					if (GameGUI.selectedStandardType == StandardType.Heal)
+						selectedUnit.attackEnemy = t.getAlly(selectedUnit);
 					selectedUnit.setRotationToAttackEnemy();
 				}
 				if (selectedUnit.attackEnemy)
@@ -2720,7 +2779,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	bool guiSelectionType() {
-		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.InstillParanoia || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
+		return (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.InstillParanoia || (GameGUI.selectedStandardType==StandardType.Lay_Trap && (GameGUI.selectedTrap!=null || true)) || GameGUI.selectedStandardType==StandardType.Place_Turret)) ||
 			(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.Move || GameGUI.selectedMovementType == MovementType.BackStep)) || 
 				performingAction() ||
 				(GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Stealth || (GameGUI.selectedMinorType == MinorType.OneOfMany && GameGUI.oneOfManyConfirm) || GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType == MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape || GameGUI.selectedMinorType == MinorType.TemperedHands));
@@ -2851,7 +2910,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		
 		if (mouseDown && !isOnGUI && !rightDraggin) {
-			if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
+			if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType==MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
 				if (lastHit) {
 					int posX = (int)lastHit.transform.localPosition.x;
 					int posY = -(int)lastHit.transform.localPosition.y;
@@ -2939,6 +2998,11 @@ public class MapGenerator : MonoBehaviour {
 								selectedUnit.attackEnemy = tiles[posX,posY].getEnemy(selectedUnit);
 							else if (GameGUI.selectedStandardType == StandardType.Throw)
 								selectedUnit.attackEnemy = tiles[posX,posY].getCharacter();
+							selectedUnit.setRotationToAttackEnemy();
+						}
+						if (tiles[posX,posY].canUseSpecialCurr) {
+							if (GameGUI.selectedStandardType == StandardType.Heal)
+								selectedUnit.attackEnemy = tiles[posX, posY].getAlly(selectedUnit);
 							selectedUnit.setRotationToAttackEnemy();
 						}
 						if (selectedUnit.attackEnemy)
@@ -3111,11 +3175,10 @@ public class MapGenerator : MonoBehaviour {
 
 				int posX = (int)lastHit.transform.localPosition.x;
 				int posY = -(int)lastHit.transform.localPosition.y;
-				if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape)) ||(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType==StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
+				if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke || GameGUI.selectedMinorType == MinorType.Escape)) ||(GameGUI.selectedMovement && (GameGUI.selectedMovementType == MovementType.BackStep || GameGUI.selectedMovementType == MovementType.Move)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType==StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret || GameGUI.selectedStandardType == StandardType.Lay_Trap))) {
 					if (Time.time - lastClickTime <= doubleClickTime && tiles[posX, posY] == lastClickTile) {
 						Debug.Log("performAction()");
 						performAction();
-
 					}
 				}
 				if (GameGUI.selectedMovement || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) {
@@ -3142,7 +3205,7 @@ public class MapGenerator : MonoBehaviour {
 					currentKeysTile = lastClickTile;
 					if (!currentKeysTile.canStandCurr) currentKeysTile = currentUnitTile;
 				}
-				else if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret))) {
+				else if ((GameGUI.selectedMinor && (GameGUI.selectedMinorType == MinorType.Mark || GameGUI.selectedMinorType==MinorType.Invoke)) || (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Heal || GameGUI.selectedStandardType == StandardType.InstillParanoia || GameGUI.selectedStandardType == StandardType.Attack || GameGUI.selectedStandardType == StandardType.OverClock || GameGUI.selectedStandardType == StandardType.Intimidate || GameGUI.selectedStandardType == StandardType.Place_Turret))) {
 					lastClickTile = tiles[posX, posY];
 					lastClickTime = Time.time;
 					currentKeysTile = lastClickTile;
@@ -3323,6 +3386,8 @@ public class MapGenerator : MonoBehaviour {
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, u.getAttackRange(),0, u);
 		else if ((GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Throw || GameGUI.selectedStandardType == StandardType.Intimidate) && !isOther))
 			setCharacterCanAttack((int)u.position.x, (int)-u.position.y, 1, 0, u, VisibilityMode.Melee);
+		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Heal))
+			setCharacterCanHeal(u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Place_Turret) && !isOther)
 			setCharacterCanPlaceTurret((int)u.position.x, (int)-u.position.y, 1, 0, u);
 		else if ((GameGUI.selectedStandard && GameGUI.selectedStandardType == StandardType.Lay_Trap && GameGUI.selectedTrap!=null && GameGUI.selectedTrapTurret) && !isOther)

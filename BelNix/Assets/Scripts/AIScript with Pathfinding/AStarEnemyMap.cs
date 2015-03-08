@@ -21,11 +21,19 @@ public class AStarEnemyMap : AStarMap {
 		startNode.setDistance(heuristic);
 	}
 	
-	public void setGoalsAndHeuristics(List<Unit> goalUnits) {
+	public void setGoalsAndHeuristics(List<Unit> goalUnits, List<Tile> goalTiles = null) {
 		ArrayList arr = new ArrayList();
-		foreach (Unit u in goalUnits) {
-			AStarEnemyParameters parameters = new AStarEnemyParameters((int)u.position.x,(int)-u.position.y, mapGenerator.tiles[(int)u.position.x,(int)-u.position.y]);
-			arr.Add(new AStarEnemyNode(parameters,0.0f));
+		if (goalUnits != null) {
+			foreach (Unit u in goalUnits) {
+				AStarEnemyParameters parameters = new AStarEnemyParameters((int)u.position.x,(int)-u.position.y, mapGenerator.tiles[(int)u.position.x,(int)-u.position.y]);
+				arr.Add(new AStarEnemyNode(parameters,0.0f));
+			}
+		}
+		if (goalTiles != null) {
+			foreach (Tile t in goalTiles) {
+				AStarEnemyParameters parameters = new AStarEnemyParameters((int)t.getPosition().x,(int)t.getPosition().y, t);
+				arr.Add(new AStarEnemyNode(parameters, 0.0f));
+			}
 		}
 		setGoalNodes(arr);
 		setStartNode();
