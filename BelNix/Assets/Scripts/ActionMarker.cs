@@ -20,9 +20,9 @@ public class ActionMarker : MonoBehaviour {
     {
         //GetComponent<Animator>().SetBool("Explode", true);
         sparks = (GameObject) Instantiate(sparkObject);
-        sparks.transform.SetParent(this.transform);
-        sparks.transform.localPosition = Vector3.zero;
-        sparks.transform.localEulerAngles = Vector3.zero;
+        sparks.transform.SetParent(gameObject.transform, false);
+        //sparks.transform.localPosition = Vector3.zero;
+        //sparks.transform.localEulerAngles = Vector3.zero;
         //sparks.AddComponent<SetRenderQueue>();
         //sparks.GetComponent<SpriteRenderer>().sortingOrder = MapGenerator.uiSpark;
         //sparks.GetComponent<Animator>().Play("Action_Marker_On");

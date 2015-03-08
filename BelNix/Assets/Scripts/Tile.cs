@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-public enum GameMasterType {Damage1, Heal1};
+public enum GameMasterType {Damage1, Heal1, Heal10};
 public class TileAction : IComparable {
 
 	public List<MinorType> minorTypes;
@@ -151,6 +151,8 @@ public class Tile {
 			return "Deal 1 Damage";
 		case GameMasterType.Heal1:
 			return "Heal 1 Health";
+		case GameMasterType.Heal10:
+			return "Heal 10 Health";
 		default:
 			return t.ToString();
 		}
@@ -410,20 +412,20 @@ public class Tile {
 		u.mapGenerator.removeAllRanges(false);
 		bool canLoot = getItems().Count > 0 && u.mapGenerator.isWithinDistance(1.0f, new Vector2(u.position.x, -u.position.y), getPosition(), true);*/
 		List<TileAction> tileActions = new List<TileAction>();
-		bool addAttacks = !med || (u.getWeapon() as Medicinal).numberOfUses >= u.getMedKitUses();
+		bool addAttacks = !med || (u.getWeapon() as Medicinal).numberOfUses >= 1;
 		StandardType att = (med ? StandardType.Heal : StandardType.Attack);
 		if (canAttack && addAttacks) {
-			tileActions.Add(new TileAction(null, new StandardType[] {att}, null, this, null, u.attackHitChance(getCharacter())));
+			tileActions.Add(new TileAction(null, new StandardType[] {att}, null, this, null, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
 			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
 		}
 		if (canBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, null, this, this));
 		if (canMove ) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, null, this, this));
 		if (canAttackAfterMove && addAttacks) {
-			tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {att}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
+			tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {att}, null, this, moveAttackTile, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
 			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, new StandardType[] {StandardType.OverClock}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canAttackAfterBackStep && addAttacks) {
-			tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {att}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
+			tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {att}, null, this, backstepAttackTile, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
 			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, new StandardType[] {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Loot}, this));
@@ -462,6 +464,7 @@ public class Tile {
 			if (hasCharacter()) {
 				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Damage1}, this));
 				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Heal1}, this));
+				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Heal10}, this));
 			}
 		}
 		tileActions.Sort();

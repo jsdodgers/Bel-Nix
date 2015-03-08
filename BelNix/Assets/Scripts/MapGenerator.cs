@@ -2075,12 +2075,12 @@ public class MapGenerator : MonoBehaviour {
 		handleMouseSelect();
 		handleMouseMovement();
 		if (mouseDown && UnitGUI.inventoryOpen) {
-			if (BattleGUI.battleGUI.overlayObjects.Count > 0) {
-				BattleGUI.selectItem();
+			if (InventoryGUI.inventoryGUI.overlayObjects.Count > 0) {
+				InventoryGUI.selectItem();
 			}
 		}
 		if (mouseUp && UnitGUI.inventoryOpen) {
-			BattleGUI.deselectItem();
+			InventoryGUI.deselectItem();
 		}
 		if (altDown && shiftDown) rotatePlayerTowardsMouse();
 	}
