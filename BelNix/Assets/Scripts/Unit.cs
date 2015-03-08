@@ -3741,7 +3741,7 @@ public class Unit : MonoBehaviour {
         if (didHit)
         {
             attackEnemy.damage(wapoon, this, animate);
-            BloodScript.spillBlood(this, attackEnemy);
+            BloodScript.spillBlood(this, attackEnemy, wapoon);
         }
 		if (overClockedAttack) {
 			Debug.Log("Over Clocked Attack!!!");

@@ -12,7 +12,7 @@ public class BloodScript : MonoBehaviour {
         //restrictedBloodAnimations ;
     }
 
-    public static void spillBlood(Unit attacker, Unit enemy, int damage = -1)
+    public static void spillBlood(Unit attacker, Unit enemy, int damage)
     {
         // Create and place the blood prefab
         GameObject blood = (GameObject)Instantiate(Resources.Load<GameObject>("Effects/Blood/blood_splatter"));
@@ -46,18 +46,25 @@ public class BloodScript : MonoBehaviour {
             bloodManager = newBloodManager.GetComponent<BloodManager>();
         }
         int bloodNumber = bloodManager.generateBloodNumber();
-        
-
-        // Start the blood animation
-        blood.GetComponent<Animator>().SetInteger("BloodOption", bloodNumber);
-        GameObject bloodContainer = new GameObject("Blood Container");
 
         // Put the blood in its final position
+        GameObject bloodContainer = new GameObject("Blood Container");
         bloodContainer.transform.position = attacker.transform.TransformPoint(enemyPosition) + new Vector3(0.5f, -0.5f, 0.0f);
         bloodContainer.transform.localEulerAngles = attacker.transform.localEulerAngles;
-        if (damage > -1)
-            blood.transform.localScale *= (0.3f + (damage/5));
+        //if (damage > -1)
+            //blood.GetComponent<Animator>().SetInteger("SizeOption", damage);
+            //blood.transform.localScale *= (0.3f + (damage/5));
         blood.transform.SetParent(bloodContainer.transform);
+
+
+         // Start the blood animation
+        //blood.GetComponent<Animator>().SetInteger("BloodOption", bloodNumber);
+        Debug.Log("Dealing " + damage + " damage"); 
+        blood.AddComponent<BloodSplash>();
+        blood.GetComponent<BloodSplash>().bloodOption = bloodNumber;
+        blood.GetComponent<BloodSplash>().bloodManager = bloodManager;
+        blood.GetComponent<BloodSplash>().sizeOption = damage;
+        
     }
 }
 
@@ -65,9 +72,24 @@ public class BloodManager : MonoBehaviour
 {
     private const int QUEUE_SIZE = 5;
     private Queue<int> restrictedBloodAnimations;
+    private List<Sprite> bloodSprites;
     void Start()
     {
         restrictedBloodAnimations = new Queue<int>(QUEUE_SIZE);
+
+        bloodSprites = new List<Sprite>();
+        for (int i = 1; i < 34; i++)
+        {
+            string numberAsString;
+            if (i < 10)
+                numberAsString = "0" + i;
+            else
+                numberAsString = i.ToString();
+
+            bloodSprites.Add(Resources.Load<Sprite>("Materials/Particles/blood_splatter_image" + numberAsString));
+        }
+
+        Debug.Log(bloodSprites.Count + "Sprites loaded");
     }
     public int generateBloodNumber()
     {
@@ -80,5 +102,62 @@ public class BloodManager : MonoBehaviour
             restrictedBloodAnimations.Dequeue();
         restrictedBloodAnimations.Enqueue(bloodNumber);
         return bloodNumber;
+    }
+
+    public Sprite getSprite(int bloodNumber)
+    {
+        return bloodSprites[bloodNumber - 1];
+    }
+}
+
+public class BloodSplash : MonoBehaviour
+{
+    public int sizeOption = 5;
+    public int bloodOption = 1;
+    private const int SPEED = 2;
+    private const int MAX_SCALE = 8;
+    private const float DURATION = 1.0f;
+    private Vector3 finalPosition;
+    public BloodManager bloodManager;
+
+    void Awake()
+    {
+        
+        
+    }
+
+    void Start()
+    {
+        transform.localPosition = Vector3.zero;
+        finalPosition = new Vector3(0,1,0);
+        StartCoroutine("scaleBlood");
+    }
+
+    private IEnumerator scaleBlood()
+    {
+        GetComponent<SpriteRenderer>().sprite = bloodManager.getSprite(bloodOption);
+        float currentScale = 1;
+        Vector3 currentPosition = transform.localPosition;
+        float timeSoFar = 0;
+        while (timeSoFar < DURATION)
+        {
+            timeSoFar += Time.deltaTime * SPEED;
+
+            currentPosition = Vector3.MoveTowards(currentPosition, finalPosition, timeSoFar);
+            transform.localPosition = currentPosition;
+
+            currentScale = Mathf.Lerp(currentScale, sizeOption/*(MAX_SCALE * (sizeOption / 10.0f))*/, timeSoFar);
+            transform.localScale = new Vector3(currentScale, currentScale, transform.localScale.z);
+
+            Debug.Log(string.Format("HI, Scaling should be happening right now. Current scale is {0}, and current position is {1}." +
+                "\nThe scale we are moving toward is {2}. The max scale is {3}, the sizeOption is {4}", 
+                transform.localScale, 
+                transform.position, 
+                (MAX_SCALE * (sizeOption / 13.0f)),
+                MAX_SCALE,
+                sizeOption/13.0f));
+
+            yield return null;
+        }
     }
 }

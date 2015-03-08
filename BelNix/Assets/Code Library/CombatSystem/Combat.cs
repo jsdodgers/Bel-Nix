@@ -67,7 +67,7 @@ class Combat {
         if (didHit)
         {
             attackedEnemy.damage(weaponDamage, attacker);
-            BloodScript.spillBlood(attacker, attackedEnemy);
+            BloodScript.spillBlood(attacker, attackedEnemy, weaponDamage);
             OnAttackHit(attacker, attackedEnemy, weaponDamage, false, crit, overClockedAttack);
         }
         else
