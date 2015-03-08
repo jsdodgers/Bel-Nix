@@ -9,18 +9,20 @@ public class ScreenShaker : MonoBehaviour {
     private float decceleration = 0.1f;
     private float currentRadius;
     private Vector3 startingPosition;
+    private MapGenerator map;
+
+    //public bool cameraPanning = false;
 
 	// Use this for initialization
 	void Start () {
         // Subscribe the screenshaker to the attackHit event, triggered when damage is calculated.
         Combat.getAttackHandler().attackHit += OnAttackHit;
+        map = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
 	}
 
     void OnAttackHit(AttackEventArgs args)
     {
         if (args.criticalHit)
-            shake(Camera.main.gameObject, 1f, 20, 0.9f);
-        else
             shake(Camera.main.gameObject, 0.2f, 5, 0.2f);
     }
 	
@@ -57,6 +59,8 @@ public class ScreenShaker : MonoBehaviour {
             Vector2 currentPos = transform.position;
             while (currentPos != targetPoint)
             {
+                if (map.movingCamera)
+                    yield break;
                 currentPos = setPos(transform, Vector2.MoveTowards(currentPos, targetPoint, stepSize));
                 yield return null;
             }
@@ -72,8 +76,8 @@ public class ScreenShaker : MonoBehaviour {
 
     private Vector2 setPos(Transform transform, Vector2 newPosition)
     {
-        transform.position = newPosition;
-        transform.position = new Vector3(transform.position.x, transform.position.y, startingPosition.z);
+        //transform.position = newPosition;
+        transform.position = new Vector3(newPosition.x, newPosition.y, startingPosition.z);
         return newPosition;
     }
     private int coinFlip()
