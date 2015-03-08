@@ -20,7 +20,7 @@ public class GasLightBehavior : MonoBehaviour {
 
 	void Awake()
 	{
-		Debug.Log("Lamp start!");
+		//Debug.Log("Lamp start!");
 		int starter = Random.Range(0, 2);
 		if(starter == 0)
 		{
@@ -70,6 +70,6 @@ public class GasLightBehavior : MonoBehaviour {
 			newAlpha = maxAlpha;
 		}
 		gasLamp.color = new Color (gasLamp.color.r, gasLamp.color.g, gasLamp.color.b, newAlpha/255);
-		Debug.Log ("newAlpha: " + newAlpha);
+		//Debug.Log ("newAlpha: " + newAlpha);
 	}
 }
