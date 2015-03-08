@@ -1658,8 +1658,12 @@ public class MapGenerator : MonoBehaviour {
 
 	}
 
+	public bool playerOrCanBeSeen() {
+		return selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit));// return;
+	}
+
 	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
-		if (selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit))) return;
+		if (playerOrCanBeSeen()) return;
 		Vector3 sel = selectedUnit.transform.position;
 		moveCameraToPosition(sel, instantly, speed);
 	}

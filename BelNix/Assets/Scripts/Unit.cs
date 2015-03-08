@@ -1372,7 +1372,8 @@ public class Unit : MonoBehaviour {
 	
 	public void performPrimal() {
 		if (isPerformingAnAction() || mapGenerator.movingCamera) {
-			actionTime = Time.time;
+			if (mapGenerator.playerOrCanBeSeen())
+				actionTime = Time.time;
 			return;
 		}
 		if (Time.time - actionTime < actionDelay) return;
@@ -1650,7 +1651,8 @@ public class Unit : MonoBehaviour {
 	public void performAI() {
 		if (!aiActive) {
 			if (isPerformingAnAction() || mapGenerator.movingCamera) {
-				actionTime = Time.time;
+				if (mapGenerator.playerOrCanBeSeen())
+					actionTime = Time.time;
 				return;
 			}
 			if (Time.time - actionTime < actionDelay) return;
@@ -1672,7 +1674,8 @@ public class Unit : MonoBehaviour {
 			return;
 		}
 		if (isPerformingAnAction() || mapGenerator.movingCamera) {
-			actionTime = Time.time;
+			if (mapGenerator.playerOrCanBeSeen())
+				actionTime = Time.time;
 			return;
 		}
 		if (Time.time - actionTime < actionDelay) return;
@@ -1686,7 +1689,8 @@ public class Unit : MonoBehaviour {
 		if (!usedMovement) {
 			if (isProne()) {
 				recover();
-				actionTime = Time.time;
+				if (mapGenerator.playerOrCanBeSeen())
+					actionTime = Time.time;
 				return;
 			}
 			if (closestDist > getAttackRange() && getHealthPercent() > .25f) {
