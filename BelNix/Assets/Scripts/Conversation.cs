@@ -13,6 +13,7 @@ public class Conversation : MonoBehaviour {
 	GameObject UI_Button_Prefab;
 	List<GameObject> buttons;
 	public static Conversation conversation;
+	public static bool conversationOpen;
 
 	//finds button child of panel prefab and creates buttons list
 	void CreateUIButtonPrefab(GameObject UIPrefab){
@@ -405,6 +406,7 @@ public class Conversation : MonoBehaviour {
 	}
 
 	void initiateConversation(TextAsset file){
+		conversationOpen = true;
 		gameObject.SetActive(true);
 		textFile = file;
 		canvas.enabled = true;
@@ -416,7 +418,7 @@ public class Conversation : MonoBehaviour {
 	}
 
 	void TerminateConversation(){
-
+		conversationOpen = false;
 		textBoxes.Clear();
 		DestroyButtons();
 		canvas.enabled = false;

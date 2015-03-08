@@ -141,6 +141,9 @@ public class RightClickButton : MonoBehaviour {
 		if (action.minorTypes.Contains(MinorType.Loot)) {
 			u.lootTile = action.actualTile;
 		}
+		if (action.minorTypes.Contains(MinorType.TurretOn) || action.minorTypes.Contains(MinorType.TurretOff)) {
+			u.turretTile = action.actualTile;
+		}
 		RightClickMenu.hideMenu(true);
 	}
 }
