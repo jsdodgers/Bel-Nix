@@ -714,7 +714,7 @@ public class Trigger : Item, ItemMechanical {
 		return 0;
 	}
 	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+		return new Vector2[] {new Vector2(0,0)};
 	}
 }
 

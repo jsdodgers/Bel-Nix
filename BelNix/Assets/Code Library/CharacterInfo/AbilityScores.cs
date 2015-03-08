@@ -16,7 +16,7 @@ public class AbilityScores
 	}
 
 	public int getSturdy()			{return sturdy;}
-	public int getPerception(int additional)		{return perception + additional;}
+	public int getPerception(int additional = 0)		{return perception + additional;}
 	public int getTechnique()		{return technique;}
 	public int getWellVersed()		{return well_versed;}
 }

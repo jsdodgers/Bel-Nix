@@ -59,7 +59,6 @@ public class UITooltip : MonoBehaviour {
         ttText.GetComponent<Text>().font = Resources.Load<Font>("Fonts/Courier New");
         ttText.GetComponent<Text>().alignment = TextAnchor.MiddleCenter;
         ttText.GetComponent<Text>().color = Color.black;
-        Debug.Log("Line spacing is: " + ttText.GetComponent<Text>().lineSpacing);
 
 		ttPanel.GetComponent<Canvas>().overrideSorting = true;
 		ttPanel.GetComponent<Canvas>().sortingOrder = 5;

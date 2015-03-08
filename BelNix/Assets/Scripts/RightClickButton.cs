@@ -119,9 +119,21 @@ public class RightClickButton : MonoBehaviour {
 		if (action.movementTypes.Contains(MovementType.Recover)) {
 			u.recover();
 		}
+		if (action.gameMasterTypes.Contains(GameMasterType.Damage1)) {
+			action.actualTile.getCharacter().damage(1, MapGenerator.mg.selectedUnit);
+			action.actualTile.getCharacter().showDamage(1, true, false);
+		}
+		if (action.gameMasterTypes.Contains(GameMasterType.Heal1)) {
+			action.actualTile.getCharacter().gainHealth(1);
+			action.actualTile.getCharacter().showHitpoints(1);
+		}
 	/*	if (action.minorTypes.Contains(MinorType.OneOfMany)) {
 
 		}*/
+		if (action.standardTypes.Contains(StandardType.Heal)) {
+			u.attackEnemy = action.actualTile.getCharacter();
+			u.startHealing();
+		}
 		if (action.minorTypes.Contains(MinorType.Loot)) {
 			u.lootTile = action.actualTile;
 		}
