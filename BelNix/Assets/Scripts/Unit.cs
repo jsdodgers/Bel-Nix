@@ -410,6 +410,10 @@ public class Unit : MonoBehaviour {
 		idleAnimation(false);
 		doTurrets();
 		temperedHandsMod = 0;
+		Tile t = mapGenerator.tiles[(int)position.x,(int)-position.y];
+		if (t.triggerBitSet(2)) {
+			mapGenerator.setGameState(GameState.Won);
+		}
 	}
 	
 	public float getViewRadius(float angle = -2000.0f) {
@@ -1372,11 +1376,11 @@ public class Unit : MonoBehaviour {
 	
 	public void performPrimal() {
 		if (isPerformingAnAction() || mapGenerator.movingCamera) {
-			if (mapGenerator.playerOrCanBeSeen())
+			if (!mapGenerator.playerOrCanBeSeen())
 				actionTime = Time.time;
 			return;
 		}
-		if (Time.time - actionTime < actionDelay) return;
+		if (Time.time - actionTime < actionDelay && !mapGenerator.playerOrCanBeSeen()) return;
 		PrimalState ps = getPrimalState();
 		if (ps == PrimalState.Threatened || (ps == PrimalState.Passive && primalControl == 1)) {
 			//	float closestDist = closestEnemyDist();
@@ -1651,11 +1655,11 @@ public class Unit : MonoBehaviour {
 	public void performAI() {
 		if (!aiActive) {
 			if (isPerformingAnAction() || mapGenerator.movingCamera) {
-				if (mapGenerator.playerOrCanBeSeen())
+				if (!mapGenerator.playerOrCanBeSeen())
 					actionTime = Time.time;
 				return;
 			}
-			if (Time.time - actionTime < actionDelay) return;
+			if (Time.time - actionTime < actionDelay && !mapGenerator.playerOrCanBeSeen()) return;
 			if (!inactiveActionSet) {
 				setInactiveAction();
 			}
@@ -1674,11 +1678,11 @@ public class Unit : MonoBehaviour {
 			return;
 		}
 		if (isPerformingAnAction() || mapGenerator.movingCamera) {
-			if (mapGenerator.playerOrCanBeSeen())
+			if (!mapGenerator.playerOrCanBeSeen())
 				actionTime = Time.time;
 			return;
 		}
-		if (Time.time - actionTime < actionDelay) return;
+		if (Time.time - actionTime < actionDelay && !mapGenerator.playerOrCanBeSeen()) return;
 //		float closestDist = closestEnemyDist(false, VisibilityMode.None, true);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
 //		Unit enemy = closestEnemy(false, VisibilityMode.None, true);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
 		AIEnemyValues aiEnemy = bestAttackEnemy(attackDowned);
@@ -1689,7 +1693,7 @@ public class Unit : MonoBehaviour {
 		if (!usedMovement) {
 			if (isProne()) {
 				recover();
-				if (mapGenerator.playerOrCanBeSeen())
+				if (!mapGenerator.playerOrCanBeSeen())
 					actionTime = Time.time;
 				return;
 			}
@@ -1959,7 +1963,6 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		int tile = Random.Range(0,possibleNextTiles.Count);
-		Debug.Log("Tile: " +tile + "  " + possibleNextTiles[tile]);
 		if (tile == 0) {
 			patrolled = true;
 			return;
@@ -3081,6 +3084,7 @@ public class Unit : MonoBehaviour {
 			if (currentPath.Count >= 2 && !shouldCancelMovement) {
 				float speed = 2.0f;
 				speed = 4.0f;
+				if (mapGenerator.playerOrCanBeSeen()) speed = 10000.0f;
 				float time = Time.deltaTime;
 				float moveDist = time * speed;
 				moveBy(moveDist, true);
@@ -3098,8 +3102,6 @@ public class Unit : MonoBehaviour {
 				mapGenerator.resetPlayerPath();
 				mapGenerator.resetRanges();
 				mapGenerator.lastPlayerPath = currentPath;
-				currentMoveDist = moveDistLeft;
-				currentMaxPath = 0;
 				if (unitMovement == UnitMovement.BackStep || unitMovement == UnitMovement.Move) {
 					if (currentMoveDist <= 0) useMovement();
 					else BattleGUI.resetMovementButtons();
@@ -3111,12 +3113,14 @@ public class Unit : MonoBehaviour {
 						needsOverlay = false;
 					}*/
 				}
+				currentMoveDist = moveDistLeft;
+				currentMaxPath = 0;
 				if (!usedStandard && hasLineOfSightToUnit(closestEnemy(), getAttackRange(), true, attackVisibilityMode())) {
 					GameGUI.selectStandardType(StandardType.Attack);
 				}
 			//	if (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape) {
 				if (unitMovement == UnitMovement.Escape) {
-					useMinor(MinorType.Vault);
+					useMinor(MinorType.Escape);
 					//	minorsLeft--;
 					//	GameGUI.selectMinor(MinorType.None);
 					escapeUsed = true;
@@ -3137,6 +3141,7 @@ public class Unit : MonoBehaviour {
 	void doRotation() {
 		if (rotating ) {
 			float speed = 180.0f*3.0f;// + 20.0f;
+			if (mapGenerator.playerOrCanBeSeen()) speed = 100000.0f;
 			float time = Time.deltaTime;
 			float rotateDist = time * speed;
 			//			float rotateGoal = (rotateTo.

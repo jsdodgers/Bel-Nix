@@ -193,7 +193,13 @@ public class Tile {
 	public bool currentRightClick = false;
 	public static List<TextAsset> playedConversations = new List<TextAsset>();
 	public TextAsset conversationText = null;
+
 	
+	
+	public bool triggerBitSet(int bit) {
+		return ((1 << bit) & trigger) != 0;
+	}
+
 	public bool hasConversation() {
 		return conversationText != null && !playedConversations.Contains(conversationText);
 	}

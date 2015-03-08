@@ -1249,7 +1249,6 @@ public class MapGenerator : MonoBehaviour {
 			getCurrentUnit().removeCurrent();
 			getCurrentUnit().endTurn();
 		}
-		Unit.actionTime = Time.time;
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
@@ -1316,6 +1315,8 @@ public class MapGenerator : MonoBehaviour {
 					removeCharacter(selectedUnit);
 				}
 			}
+			if (!playerOrCanBeSeen())
+				Unit.actionTime = Time.time;
 			if (selectedUnit.deadOrDyingOrUnconscious()) {// || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
@@ -1659,7 +1660,9 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public bool playerOrCanBeSeen() {
-		return selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit));// return;
+		bool can = selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit));// return;
+		Debug.Log(selectedUnit.getName() + ": " + can + "                 " + Time.time);
+		return can;
 	}
 
 	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
