@@ -6,7 +6,6 @@ using System;
 
 public enum GameMasterType {Damage1, Heal1, Heal10};
 public class TileAction : IComparable {
-
 	public List<MinorType> minorTypes;
 	public List<StandardType> standardTypes;
 	public List<MovementType> movementTypes;
@@ -192,6 +191,17 @@ public class Tile {
 	public int y;
 	List<Item> items;
 	public bool currentRightClick = false;
+	public static List<TextAsset> playedConversations = new List<TextAsset>();
+	public TextAsset conversationText = null;
+	
+	public bool hasConversation() {
+		return conversationText != null && !playedConversations.Contains(conversationText);
+	}
+
+	public void playConversation() {
+		playedConversations.Add(conversationText);
+		Conversation.beginConversation(conversationText);
+	}
 
 
 	public float distanceFromTile(Tile t, bool manhattan = true) {

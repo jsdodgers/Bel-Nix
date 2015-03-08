@@ -11,7 +11,14 @@ public enum VisibilityMode {Visibility, Melee, Ranged, None}
 [System.Serializable]
 public struct ConversationTrigger {
 	public List<Vector2> conversationTiles;
-	public string conversationTextFile;
+	public TextAsset conversationTextFile;
+}
+
+[System.Serializable]
+public struct GroundItem {
+	public Vector2 position;
+	public List<EditorItem> items;
+	public int cash;
 }
 
 public class MapGenerator : MonoBehaviour {
@@ -30,8 +37,9 @@ public class MapGenerator : MonoBehaviour {
 	[Space(20)]
 	[Header("Tile Properties")]
 	public List<ConversationTrigger> conversations = new List<ConversationTrigger>();
-	public List<Vector2> itemPositions = new List<Vector2>();
-	public List<EditorItem> items = new List<EditorItem>();
+	public List<GroundItem> items = new List<GroundItem>();
+//	public List<Vector2> itemPositions = new List<Vector2>();
+//	public List<EditorItem> items = new List<EditorItem>();
 	[Space(20)]
 	public List<Unit> selectionUnits;
 	public List<Unit> outOfGameUnits;
@@ -908,6 +916,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		importGrid();
 		addItemsToMap();
+		addConversationsToMap();
 		createSelectionArea();
 		createSelectionUnits();
 		setOverlay();
@@ -919,13 +928,23 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void addItemsToMap() {
-		if (itemPositions == null || items == null) return;
-		for (int n=0;n<Mathf.Min(itemPositions.Count, items.Count);n++) {
-			Vector2 pos = itemPositions[n];
-			Debug.Log("Map Item");
-			Item i = items[n].getItem();
-			Debug.Log("End Map Item");
-			tiles[(int)pos.x,(int)pos.y].addItem(i);
+		if (items == null) return;
+		foreach (GroundItem item in items) {
+			Vector2 pos = item.position;
+			foreach (EditorItem ei in item.items) {
+				Item i = ei.getItem();
+				tiles[(int)pos.x,(int)pos.y].addItem(i);
+			}
+		}
+	}
+
+	public void addConversationsToMap() {
+		if (conversations == null) return;
+		foreach (ConversationTrigger convo in conversations) {
+			TextAsset s = convo.conversationTextFile;
+			foreach (Vector2 pos in convo.conversationTiles) {
+				tiles[(int)pos.x,(int)pos.y].conversationText = s;
+			}
 		}
 	}
 

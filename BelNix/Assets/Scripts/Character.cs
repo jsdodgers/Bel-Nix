@@ -53,7 +53,7 @@ public class Character
 	}
 
 	public int rollDamage(Unit enemy, bool critical) {
-		return unit.getWeapon().rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : 0) + unit.sneakAttackBonus(enemy);
+		return unit.getWeapon().rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : unit.sneakAttackBonus(enemy));
 	}
 
 	public int overloadDamage() {

@@ -2738,11 +2738,11 @@ public class Unit : MonoBehaviour {
 		float directionY = -sign(one.y - zero.y);
 		//				directionX = Mathf.s
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
-		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
+	/*	if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
 			Vector2 two = currentPath[2];
 			shouldMove = attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
 			doAttOpp = false;
-		}
+		}*/
 		//		float distX = one.x - zero.x;
 		//		float distY = one.y - zero.y;
 		if (Mathf.Abs(dist - moveDist) <= 0.001f || moveDist >= dist) {
@@ -2763,6 +2763,17 @@ public class Unit : MonoBehaviour {
 			shouldDoAthleticsCheck = true;
 			doAttOpp = true;
 			mapGenerator.activateEnemies(this);
+			if (newTile.hasConversation()) {
+				shouldCancelMovement = true;
+				shouldDoAthleticsCheck = false;
+				newTile.playConversation();
+
+			}
+			if (!isBackStepping && currentPath.Count >= 2) {// && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
+			//	Vector2 two = currentPath[2];
+				shouldMove = attackOfOpp(currentPath[0], MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)currentPath[0].x,(int)currentPath[0].y],mapGenerator.tiles[(int)currentPath[1].x,(int)currentPath[1].y]));
+				doAttOpp = false;
+			}
 			if (team == 0) mapGenerator.setOverlay(this);
 			if (currentPath.Count >= 2 && !isProne()) {
 				setRotatingPath();
@@ -3062,6 +3073,9 @@ public class Unit : MonoBehaviour {
 				currentPath = new List<Vector2>();
 				lastPath = new List<Vector2>();
 				currentPath.Add(new Vector2(position.x, -position.y));
+				mapGenerator.resetPlayerPath();
+				mapGenerator.resetRanges();
+				if (currentPath.Count > 1) mapGenerator.lastPlayerPath = currentPath;
 				if (unitMovement == UnitMovement.BackStep || unitMovement == UnitMovement.Move) {
 					if (currentMoveDist <= 0) useMovement();
 					else BattleGUI.resetMovementButtons();
