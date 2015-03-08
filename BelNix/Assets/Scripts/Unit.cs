@@ -3025,6 +3025,7 @@ public class Unit : MonoBehaviour {
 									break;
 								}
 							}
+							attacking = false;
 							becomeProne();
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
