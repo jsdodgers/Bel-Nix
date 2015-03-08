@@ -1895,7 +1895,7 @@ public class Unit : MonoBehaviour {
 		}
 		else {
 			foreach (Unit u2 in mapGenerator.priorityOrder) {
-				if (isEnemyOf(u2) && (attackDowned ? !u2.isDead() : !u2.deadOrDyingOrUnconscious()) && u.oneOfManyMode != OneOfManyMode.Hidden) {
+				if (isEnemyOf(u2) && (attackDowned ? !u2.isDead() : !u2.deadOrDyingOrUnconscious()) && u2.oneOfManyMode != OneOfManyMode.Hidden) {
 					units.Add(u2);
 				}
 			}
@@ -2583,11 +2583,13 @@ public class Unit : MonoBehaviour {
 		foreach (Unit u in mapGenerator.priorityOrder) {
 			//	if (u.team != team && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToUnit(this, u.getAttackRange(), true)) {
 			if (t.provokesOpportunity(dir, this, u)) {
-				move++;
 				u.attackEnemy = this;
 				u.setRotationToTile(new Vector2(one.x,-one.y));
-				u.attackAnimation();
+				u.attackAnimation(true);
 				u.attackAnimating = true;
+				if (u.didHit) {
+					move++;
+				}
 			}
 		}
 		return move;
@@ -2738,7 +2740,7 @@ public class Unit : MonoBehaviour {
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
 		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
 			Vector2 two = currentPath[2];
-			attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
+			shouldMove = attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
 			doAttOpp = false;
 		}
 		//		float distX = one.x - zero.x;
@@ -2988,7 +2990,7 @@ public class Unit : MonoBehaviour {
 	
 	void doMovement() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
-		if (moving && shouldMove == 0) {// && !beingAttacked) {
+		if (moving && shouldMove == 0 /*&& !flinching*/) {// && !beingAttacked) {
 			//	if (wasBeingAttacked) {
 			//		setRotatingPath();
 			//	}
@@ -3460,6 +3462,7 @@ public class Unit : MonoBehaviour {
 				rangedAnimation();
 			else
 				attackAnimation();
+			//attackEnemy.flinchAnimation();
 			attackAnimating = true;
 			attacking = false;
 		}
@@ -3503,10 +3506,28 @@ public class Unit : MonoBehaviour {
 		anim.SetTrigger("Death");
 		deathAnimationAllSprites();
 	}
+
+	//bool flinching = false;
+	void flinchAnimation() {
+		//flinching = true;
+		anim.SetTrigger("Flinch");
+		flinchAnimationAllSprites();
+	}
+
+	void endFlinch()
+	{
+		//flinching = false;
+	}
 	
-	void attackAnimation() {
+	void attackAnimation(bool flinch = false) {
 		anim.SetTrigger("Attack");
 		attackAnimationAllSprites();
+		if (flinch) {
+			calculateDamage();
+			if (didHit && attackEnemy.getCurrentHealth() - wapoon > 0) {
+				attackEnemy.flinchAnimation();
+			}
+		}
 		//	attackEnemy = null;
 	}
 
@@ -3545,6 +3566,10 @@ public class Unit : MonoBehaviour {
 	
 	void deathAnimationAllSprites() {
 		setAllSpritesTrigger("Death");
+	}
+
+	void flinchAnimationAllSprites() {
+		setAllSpritesTrigger("Flinch");
 	}
 	
 	void vaultAnimationAllSprites(bool vaulting) {
@@ -3678,23 +3703,40 @@ public class Unit : MonoBehaviour {
 		attackEnemy = null;
 		useStandard();
 	}
+
+	Hit hit;
+	Hit critHit;
+	bool crit;
+	int wapoon;
+	bool damageCalculated;
+	bool didHit;
+
+	public void calculateDamage() {
+		hit = Combat.rollHit(this);
+		int enemyAC = attackEnemy.getAC();
+		critHit = Combat.rollHit(this);
+		crit = hit.crit && critHit.hit  >= enemyAC;
+		wapoon = (overClockedAttack ?  overClockDamage() : rollDamage(crit));//.characterLoadout.rightHand.rollDamage();
+		didHit = hit.hit >= enemyAC || hit.crit;
+		damageCalculated = true;
+		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
+	}
+
 	public void dealDamage() {
      //   Combat.dealDamage(this, attackEnemy, overClockedAttack);
-
-        
+		bool animate = false;
+		if (!damageCalculated) {
+			calculateDamage();
+			animate = true;
+		}
+		damageCalculated = false;
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		Debug.Log("Deal Damage: " + attackEnemy);
-		Hit hit = Combat.rollHit(this);
-		int enemyAC = attackEnemy.getAC();
-		Hit critHit = Combat.rollHit(this);
-		bool crit = hit.crit && critHit.hit  >= enemyAC;
-		int wapoon = (overClockedAttack ?  overClockDamage() : rollDamage(crit));//.characterLoadout.rightHand.rollDamage();
-		bool didHit = hit.hit >= enemyAC || hit.crit;
 		attackEnemy.showDamage(wapoon, didHit, crit);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
         if (didHit)
         {
-            attackEnemy.damage(wapoon, this);
+            attackEnemy.damage(wapoon, this, animate);
             BloodScript.spillBlood(this, attackEnemy);
         }
 		if (overClockedAttack) {
@@ -3713,7 +3755,6 @@ public class Unit : MonoBehaviour {
 			attackEnemy.shouldMove--;
 			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
 		}
-		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
 		//		damageDisplay.begin(
 
 	}
@@ -3785,7 +3826,7 @@ public class Unit : MonoBehaviour {
 		return true;
 	}
 	
-	public void damage(int damage, Unit u) {
+	public void damage(int damage, Unit u, bool animate = false) {
 		//	Debug.Log("Damage");
 		if (damage > 0) {
 			if (!playerControlled && !isAwareOf(u)) {
@@ -3798,6 +3839,10 @@ public class Unit : MonoBehaviour {
 			//			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
 			loseHealth(damage);
+			if(animate && !deadOrDyingOrUnconscious())
+			{
+				flinchAnimation();
+			}
 			if (!d && deadOrDyingOrUnconscious() && u) {
 				u.killedEnemy(this, givesDecisiveStrike());
 			}
