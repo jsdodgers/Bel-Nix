@@ -3511,6 +3511,11 @@ public class Unit : MonoBehaviour {
 		anim.SetTrigger("Death");
 		deathAnimationAllSprites();
 	}
+
+	void flinchAnimation() {
+		anim.SetTrigger("Flinch");
+		flinchAnimationAllSprites();
+	}
 	
 	void attackAnimation() {
 		anim.SetTrigger("Attack");
@@ -3553,6 +3558,10 @@ public class Unit : MonoBehaviour {
 	
 	void deathAnimationAllSprites() {
 		setAllSpritesTrigger("Death");
+	}
+
+	void flinchAnimationAllSprites() {
+		setAllSpritesTrigger("Flinch");
 	}
 	
 	void vaultAnimationAllSprites(bool vaulting) {
