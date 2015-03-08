@@ -771,6 +771,9 @@ public class MapGenerator : MonoBehaviour {
 		//	gridPrefab = (GameObject)Resources.Load("Sprite/Square_70");
 		//	lines = GameObject.Find("Lines");
 		//		0.02857
+
+        GameObject bloodManager = new GameObject("BloodManager", typeof(BloodManager));
+        bloodManager.transform.SetParent(gameObject.transform, false); 
 		
 		gridPrefab = (GameObject)Resources.Load("Materials/Square_70");
 		map = GameObject.Find("Map");

@@ -41,6 +41,7 @@ public class BloodScript : MonoBehaviour {
         }
         catch
         {
+            Debug.Log("Creating a new BloodManager");
             GameObject newBloodManager = new GameObject("BloodManager", typeof(BloodManager));
             bloodManager = newBloodManager.GetComponent<BloodManager>();
         }
