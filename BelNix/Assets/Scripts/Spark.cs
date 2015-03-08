@@ -6,7 +6,7 @@ public class Spark : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+        //SetRenderQueue.setRendererQueue(GetComponent<Image>(), new int[] { 1000 }); 
 	}
 	
 	// Update is called once per frame
@@ -22,7 +22,7 @@ public class Spark : MonoBehaviour {
 
     public void deleteSelf()
     {
-        Debug.Log("This is supposed to be shown shortly before deleting this object.");
+        //Debug.Log("This is supposed to be shown shortly before deleting this object.");
         //Destroy(this);
         gameObject.transform.parent.gameObject.GetComponent<ActionMarker>().stopExploding(gameObject);
     }
