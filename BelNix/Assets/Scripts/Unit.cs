@@ -3024,7 +3024,7 @@ public class Unit : MonoBehaviour {
 									if (team == 0) mapGenerator.setOverlay(this);
 									break;
 								}
-							}
+							} 
 							attacking = false;
 							lootTile = null;
 							intimidating = false;

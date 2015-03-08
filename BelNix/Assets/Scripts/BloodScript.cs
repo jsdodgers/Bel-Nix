@@ -12,7 +12,7 @@ public class BloodScript : MonoBehaviour {
         //restrictedBloodAnimations ;
     }
 
-    public static void spillBlood(Unit attacker, Unit enemy)
+    public static void spillBlood(Unit attacker, Unit enemy, int damage = -1)
     {
         // Create and place the blood prefab
         GameObject blood = (GameObject)Instantiate(Resources.Load<GameObject>("Effects/Blood/blood_splatter"));
@@ -55,29 +55,10 @@ public class BloodScript : MonoBehaviour {
         // Put the blood in its final position
         bloodContainer.transform.position = attacker.transform.TransformPoint(enemyPosition) + new Vector3(0.5f, -0.5f, 0.0f);
         bloodContainer.transform.localEulerAngles = attacker.transform.localEulerAngles;
+        if (damage > -1)
+            blood.transform.localScale *= (0.3f + (damage/5));
         blood.transform.SetParent(bloodContainer.transform);
     }
-
-
-    /*
-	public int x = 0;
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-		while(x <= 60)
-		{
-			transform.localScale += new Vector3(3.0f*Time.deltaTime, 3.0f*Time.deltaTime, 0.0f);
-			transform.Translate(0.0f, 1.0f*Time.deltaTime, -0.001f);
-			Debug.Log("Spawn");
-			x += 1;
-		}
-	}
-    */ 
 }
 
 public class BloodManager : MonoBehaviour
