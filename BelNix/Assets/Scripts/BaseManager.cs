@@ -45,6 +45,7 @@ public class BaseManager : MonoBehaviour {
 	Vector3 lastPos = new Vector3();
 	static Texture2D barracksTexture;
 	static Texture2D bottomSheetTexture;
+    Character charizard;
 	// Use this for initialization
 	void Start () {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
@@ -64,10 +65,16 @@ public class BaseManager : MonoBehaviour {
 			ch.loadCharacterFromTextFile(chars[n]);
 			ch.characterId = chars[n];
 			units.Add(ch);
+            if (n == 0)
+            {
+                charizard = ch;
+                Invoke("waitJustAMoment", 0.01f);
+            }
 		}
 		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 		tooltips = new Dictionary<string, string>();
+        Debug.Log("WHAT'S UP ROOSEVELT?!!!");
 		tooltips.Add("barracks", "Barracks");
 		tooltips.Add("engineering", "Create Traps and Turrets");
 		tooltips.Add("exit", "Exit to Main Menu");
@@ -80,6 +87,11 @@ public class BaseManager : MonoBehaviour {
 			saveName = "Save " + nn;
 		} while (Saves.hasSaveFileNamed(saveName));
 	}
+
+    private void waitJustAMoment()
+    {
+        GameObject.Find("Panel - Barracks Entry").GetComponent<BarracksEntry>().assignCharacter(charizard);
+    }
 
 
 	// Update is called once per frame
@@ -284,9 +296,15 @@ public class BaseManager : MonoBehaviour {
 				hoveredObject.transform.localScale = new Vector3(scale, scale, scale);
 			}
 		}
-		if (go != null)
-			tooltip = tooltips[go.tag];
-		else tooltip = "";
+        if (go != null)
+        {
+            //Dictionary<string, string> dict = tooltips;
+            //GameObject gam = go;
+            //string tag = gam.tag;
+            //Debug.Log(dict);
+            tooltip = tooltips[go.tag];
+        }
+        else tooltip = "";
 		if (go==null && !old) handleMouseMovement();
 	}
 
@@ -591,18 +609,23 @@ public class BaseManager : MonoBehaviour {
 						levelingUpCharacter = u;
 						abilityScorePointsAvailable = 1;
 						skillPointsAvailable = 1;
-						sturdyScore = u.characterSheet.abilityScores.getSturdy();
-						perceptionScore = u.characterSheet.abilityScores.getPerception(0);
-						techniqueScore = u.characterSheet.abilityScores.getTechnique();
-						wellVersedScore = u.characterSheet.abilityScores.getWellVersed();
-						athleticsSkill = u.characterSheet.skillScores.scores[0];
-						meleeSkill = u.characterSheet.skillScores.scores[1];
-						rangedSkill = u.characterSheet.skillScores.scores[2];
-						stealthSkill = u.characterSheet.skillScores.scores[3];
-						mechanicalSkill = u.characterSheet.skillScores.scores[4];
-						medicinalSkill = u.characterSheet.skillScores.scores[5];
-						historicalSkill = u.characterSheet.skillScores.scores[6];
-						politicalSkill = u.characterSheet.skillScores.scores[7];
+
+                        AbilityScores unitAbilityScores = u.characterSheet.abilityScores;
+                        sturdyScore = unitAbilityScores.getSturdy();
+                        perceptionScore = unitAbilityScores.getPerception(0);
+                        techniqueScore  = unitAbilityScores.getTechnique();
+                        wellVersedScore = unitAbilityScores.getWellVersed();
+
+                        SkillScores unitSkillScores = u.characterSheet.skillScores;
+                        athleticsSkill  = unitSkillScores.scores[0];
+                        meleeSkill      = unitSkillScores.scores[1];
+                        rangedSkill     = unitSkillScores.scores[2];
+                        stealthSkill    = unitSkillScores.scores[3];
+                        mechanicalSkill = unitSkillScores.scores[4];
+                        medicinalSkill  = unitSkillScores.scores[5];
+                        historicalSkill = unitSkillScores.scores[6];
+                        politicalSkill  = unitSkillScores.scores[7];
+
 						possibleFeatures = u.characterSheet.characterProgress.getCharacterClass().getPossibleFeatures(u.characterSheet.characterProgress.getCharacterLevel()+1);
 						page = 0;
 						selectedFeature = -1;
