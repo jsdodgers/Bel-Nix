@@ -2738,7 +2738,7 @@ public class Unit : MonoBehaviour {
 		float dist = Mathf.Max(Mathf.Abs(one.x - zero.x),Mathf.Abs(one.y - zero.y));
 		if (!isBackStepping && dist <= 0.5f && doAttOpp && currentPath.Count >= 3 && attopp) {
 			Vector2 two = currentPath[2];
-			attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
+			shouldMove = attackOfOpp(one, MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)one.x,(int)one.y],mapGenerator.tiles[(int)two.x,(int)two.y]));
 			doAttOpp = false;
 		}
 		//		float distX = one.x - zero.x;
@@ -2988,7 +2988,7 @@ public class Unit : MonoBehaviour {
 	
 	void doMovement() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
-		if (moving && shouldMove == 0 && !flinching) {// && !beingAttacked) {
+		if (moving && shouldMove == 0 && shouldMove <= 0) {// && !beingAttacked) {
 			//	if (wasBeingAttacked) {
 			//		setRotatingPath();
 			//	}
@@ -3504,16 +3504,16 @@ public class Unit : MonoBehaviour {
 		deathAnimationAllSprites();
 	}
 
-	bool flinching = false;
+	//bool flinching = false;
 	void flinchAnimation() {
-		flinching = true;
+		//flinching = true;
 		anim.SetTrigger("Flinch");
 		flinchAnimationAllSprites();
 	}
 
 	void endFlinch()
 	{
-		flinching = false;
+		//flinching = false;
 	}
 	
 	void attackAnimation() {

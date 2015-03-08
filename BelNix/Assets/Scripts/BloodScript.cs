@@ -24,7 +24,7 @@ public class BloodScript : MonoBehaviour {
         if (Unit.directionOf(attacker, enemyUnit) == Direction.Left)
             blood.transform.localEulerAngles += new Vector3(0, 0, 270);
 
-		blood.transform.localEulerAngles = new Vector3(0, 0, MapGenerator.getAngle(attacker.transform.position, enemyUnit.transform.position));
+		blood.transform.localEulerAngles = new Vector3(0, 0, (MapGenerator.getAngle(attacker.transform.position, enemyUnit.transform.position) + 90 + Random.Range(-10, 10)) % 360);
         int bloodNumber = Random.Range(1, 11);
 
         // Start the blood animation
