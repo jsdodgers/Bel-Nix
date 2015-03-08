@@ -48,7 +48,9 @@ public class RightClickMenu : MonoBehaviour {
 	}
 
 	void hide() {
+		if (!shown) return;
 		shown = false;
+		pointerExit();
 		gameObject.SetActive(false);
 		for (int n = rightClickActionButtonContainer.childCount-1;n>=0;n--) {
 			RightClickButton b = rightClickActionButtonContainer.GetChild(n).GetComponent<RightClickButton>();

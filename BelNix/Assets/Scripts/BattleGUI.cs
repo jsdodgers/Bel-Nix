@@ -149,7 +149,7 @@ public class BattleGUI : MonoBehaviour {
         // Initialize the fields relating to Action Buttons
         MinorType[] minorTypes = new MinorType[] { MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.OneOfMany, MinorType.Invoke };
         MovementType[] movementTypes = new MovementType[] { MovementType.Move, MovementType.BackStep, MovementType.Recover };
-        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.InstillParanoia, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory };
+        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.InstillParanoia, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory, StandardType.Heal };
         minorButtons = new Dictionary<MinorType, GameObject>();
         standardButtons = new Dictionary<StandardType, GameObject>();
         movementButtons = new Dictionary<MovementType, GameObject>();
@@ -401,7 +401,6 @@ public class BattleGUI : MonoBehaviour {
 				InventorySlot sl = originalSlot;
 				Vector2 vSlot = UnitGUI.getIndexOfSlot(sl);
 			//	vSlot -= selectedCell;
-				Animator a;
 				sl = UnitGUI.getInventorySlotFromIndex(vSlot);
 				int iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
 				Debug.Log("Drop has item: " + sl + "  " + vSlot + "   " + iSlot + "  " + selectedCell);
@@ -1549,18 +1548,16 @@ public class BattleGUI : MonoBehaviour {
         }
     }
     
-    private void addToPlayerOrder(Unit unit)
-	{
+    private void addToPlayerOrder(Unit unit) {
         GameObject turnOrderPanel = GameObject.Find("Panel - Character Entries");
-        List<Unit> activatedCharacters = new List<Unit>(mapGenerator.priorityOrder);
+      	 List<Unit> activatedCharacters = new List<Unit>(mapGenerator.priorityOrder);
         // If the unit is not participating in combat (they're not activated), take it out.
-        foreach (Unit enemy in mapGenerator.nonAlertEnemies)
-        {
+        foreach (Unit enemy in mapGenerator.enemies) {
+			if (enemy.playerControlled || enemy.aiActive) continue;
             activatedCharacters.Remove(enemy);
         }
         // If it wasn't taken out, add it to the turn order.
-        if (activatedCharacters.Contains(unit))
-        {
+        if (activatedCharacters.Contains(unit)) {
             GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
             
 

@@ -19,7 +19,7 @@ class Combat {
 	}
     public static int rollDamage(Unit attacker, Unit attackedEnemy, bool crit)
     {
-        return attacker.characterSheet.rollDamage(attackedEnemy, crit) + attacker.temperedHandsMod + attacker.getOneOfManyBonus(OneOfManyMode.Damage);
+        return attacker.rollDamage(crit);
     }
 
 
@@ -50,7 +50,6 @@ class Combat {
 
     public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false)
     {
-        Debug.Log("Deal Damage: " + attackedEnemy);
         Hit hit     = Combat.rollHit(attacker);
         Hit critHit = Combat.rollHit(attacker);
         int enemyAC = attackedEnemy.getAC();
@@ -68,7 +67,7 @@ class Combat {
         if (didHit)
         {
             attackedEnemy.damage(weaponDamage, attacker);
-            BloodScript.spillBlood(attacker.gameObject, attackedEnemy.gameObject);
+            BloodScript.spillBlood(attacker, attackedEnemy);
             OnAttackHit(attacker, attackedEnemy, weaponDamage, false, crit, overClockedAttack);
         }
         else
