@@ -17,9 +17,13 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameObject saveEntry;
 	[SerializeField] private EventSystem eventSystem;
     // Let's grab some UI Elements from the editor
+//	[SerializeField] private Button[] turretActiveButtons = new Button[2];
+	public Button turretActiveButton = null;
+	public GameObject turretButtonsArea;
 	[SerializeField] private GameObject[] CIPanels = new GameObject[3];
 	[SerializeField] private GameObject[] primalControlWindows = new GameObject[3];
 	[SerializeField] private InventoryGUI inventoryCanvas;
+	[SerializeField] private Conversation conversationCanvas;
 	[SerializeField] private GameObject loadGameCanvas;
 	[SerializeField] private GameObject pauseMenuCanvas;
 	[SerializeField] private GameObject saveGameCanvas;
@@ -109,6 +113,7 @@ public class BattleGUI : MonoBehaviour {
     void Start()
     {
 		InventoryGUI.inventoryGUI = inventoryCanvas;
+		Conversation.conversation = conversationCanvas;
         //Some audiovisual setup
         //gameObject.GetComponent<Canvas>().enabled = false;
         //Invoke("cameraDebug", 0.01f);
@@ -342,6 +347,14 @@ public class BattleGUI : MonoBehaviour {
 		mapGenerator.getCurrentUnit().useOneOfMany((OneOfManyMode)mode);
 	}
 
+
+	public void selectTurretActiveButton(Button b) {
+		turretActiveButton.animator.SetBool("Selected", false);
+		turretActiveButton = b;
+		turretActiveButton.animator.SetBool("Selected", true);
+	}
+	
+
 	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false) {
 		battleGUI.hideTurretSelectActually(hide, selectCurrent);
 	}
@@ -351,6 +364,7 @@ public class BattleGUI : MonoBehaviour {
 		if (selectCurrent && lastSelected != null) {
 			setTrapTurretButtonSelected(lastSelected, true);
 		}
+		selectTurretActiveButton(turretActiveButton);
 	}
 
 	public void selectTrapOrTurret() {
@@ -377,7 +391,6 @@ public class BattleGUI : MonoBehaviour {
 	public static void turnOnTurretSelect(Unit u) {
 		battleGUI.turnOnTurretSelectActually(u);
 	}
-	
 	public void turnOnTurretSelectActually(Unit u) {
 		List<Turret> turrets = u.getTurrets();
 		hideTurretSelectActually(false);
@@ -403,7 +416,13 @@ public class BattleGUI : MonoBehaviour {
 				first = false;
 			}
 		}
+		turretSelectContentPanel.GetComponent<LayoutElement>().minHeight = 272;
+		turretButtonsArea.SetActive(true);
+		selectTurretActiveButton(turretActiveButton);
 		Invoke("setTurretScrollBar", 0.05f);
+	}
+	public static bool turretOn() {
+		return battleGUI.turretActiveButton.name.Equals("On");
 	}
 
 	void setTurretScrollBar() {
@@ -439,6 +458,8 @@ public class BattleGUI : MonoBehaviour {
 				first = false;
 			}
 		}
+		turretSelectContentPanel.GetComponent<LayoutElement>().minHeight = 302;
+		turretButtonsArea.SetActive(false);
 		Invoke("setTurretScrollBar", 0.05f);
 //		turretScrollBar.value = 1;
 	}

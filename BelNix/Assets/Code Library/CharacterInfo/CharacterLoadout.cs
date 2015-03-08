@@ -142,7 +142,7 @@ public class CharacterLoadoutActual {
 				sr.color = colors.primaryColor;
 				break;
 			case InventorySlot.Boots:
-				sr.color = new Color(.4f,.8f,.2f);
+			//	sr.color = new Color(.4f,.8f,.2f);
 				break;
 			case InventorySlot.Pants:
 				sr.color = colors.secondaryColor;

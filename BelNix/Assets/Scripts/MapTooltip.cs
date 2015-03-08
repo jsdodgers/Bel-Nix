@@ -61,7 +61,7 @@ public class MapTooltip : MonoBehaviour {
         if (hoveredTile.hasCharacter() && !hoveredTile.getCharacter().isDead() && (hoveredTile.getCharacter().team == 0 || map.hasLineOfSight(hoveredTile.getCharacter())))
         {
             Unit hoveredUnit = hoveredTile.getCharacter();
-            
+
             // Update the tooltip's text if you're hovering over a new unit
             if (lastHoveredUnit == null || hoveredUnit != lastHoveredUnit)
             {
@@ -82,7 +82,11 @@ public class MapTooltip : MonoBehaviour {
         }
         // An if-else ladder could go here to check for things besides characters, such as traps/chests/etc.
         //  However, if none of these checks return true, then there's nothing interesting to view, so no tooltip.
-        else gameObject.GetComponent<Canvas>().enabled = false;
+        else
+        {
+            gameObject.GetComponent<Canvas>().enabled = false;
+            lastHoveredUnit = null;
+        }
     }
 
     // Set the tooltip box's coordinates.

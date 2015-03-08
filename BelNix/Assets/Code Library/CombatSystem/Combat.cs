@@ -9,7 +9,7 @@ class Combat {
 	public static Hit rollHit(Unit attacker) {
 		int dieRoll = rollD20();
 		int criticalHitChance = attacker.getCritChance();//attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
-		return new Hit(attacker.rollForSkill(Skill.Melee, attacker.attackEnemyIsFavoredRace(), 20, dieRoll) + (flanking(attacker) ? 2 : 0) + (attacker.hasUncannyKnowledge() ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0) + attacker.getOneOfManyBonus(OneOfManyMode.Hit) - attacker.temperedHandsMod, (dieRoll * 5) > (100 - criticalHitChance));
+		return new Hit(attacker.rollForSkill((attacker.getWeapon().isRanged ? Skill.Ranged : Skill.Melee), attacker.attackEnemyIsFavoredRace(), 20, dieRoll) + (flanking(attacker) ? 2 : 0) + (attacker.hasUncannyKnowledge() ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0) + attacker.getOneOfManyBonus(OneOfManyMode.Hit) - attacker.temperedHandsMod, (dieRoll * 5) > (100 - criticalHitChance));
 	}
 	
 	
@@ -48,8 +48,19 @@ class Combat {
         attackHandler.OnAttackMissed(attacker, attackedEnemy, ranged, overClockedAttack);
     }
 
+
+
     public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false)
     {
+
+        bool animate = false;
+        if (!attacker.damageCalculated)
+        {
+            attacker.calculateDamage();
+            animate = true;
+        }
+        attacker.damageCalculated = false;
+
         Hit hit     = Combat.rollHit(attacker);
         Hit critHit = Combat.rollHit(attacker);
         int enemyAC = attackedEnemy.getAC();
@@ -64,10 +75,10 @@ class Combat {
             (attacker.getWeapon() == null ? attacker.getGenderString() + " fist " : attacker.getWeapon().itemName + " ") + 
             "for " + weaponDamage + " damage!" : "!"), (attacker.team == 0 ? Log.greenColor : Color.red));
 
-        if (didHit)
+        if (didHit) 
         {
-            attackedEnemy.damage(weaponDamage, attacker);
-            BloodScript.spillBlood(attacker, attackedEnemy);
+            attackedEnemy.damage(weaponDamage, attacker, animate);
+            BloodScript.spillBlood(attacker, attackedEnemy, weaponDamage);
             OnAttackHit(attacker, attackedEnemy, weaponDamage, false, crit, overClockedAttack);
         }
         else
@@ -94,7 +105,7 @@ class Combat {
             attackedEnemy.shouldMove--;
             if (attackedEnemy.shouldMove < 0) attackedEnemy.shouldMove = 0;
         }
-        Debug.Log((hit.hit > 4 ? "wapoon: " + weaponDamage : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
+        //Debug.Log((hit.hit > 4 ? "wapoon: " + weaponDamage : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
     }
 
     public static int overClockDamage(Unit attacker)

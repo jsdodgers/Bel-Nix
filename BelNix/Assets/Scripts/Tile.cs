@@ -6,7 +6,6 @@ using System;
 
 public enum GameMasterType {Damage1, Heal1, Heal10};
 public class TileAction : IComparable {
-
 	public List<MinorType> minorTypes;
 	public List<StandardType> standardTypes;
 	public List<MovementType> movementTypes;
@@ -192,6 +191,23 @@ public class Tile {
 	public int y;
 	List<Item> items;
 	public bool currentRightClick = false;
+	public static List<TextAsset> playedConversations = new List<TextAsset>();
+	public TextAsset conversationText = null;
+
+	
+	
+	public bool triggerBitSet(int bit) {
+		return ((1 << bit) & trigger) != 0;
+	}
+
+	public bool hasConversation() {
+		return conversationText != null && !playedConversations.Contains(conversationText);
+	}
+
+	public void playConversation() {
+		playedConversations.Add(conversationText);
+		Conversation.beginConversation(conversationText);
+	}
 
 
 	public float distanceFromTile(Tile t, bool manhattan = true) {
@@ -211,7 +227,7 @@ public class Tile {
 		bool canAttackAfterMove = false;
 		bool canMove = false;
 		bool canLoot = false;
-		bool canLootAfterBackStep = false;
+	//	bool canLootAfterBackStep = false;
 		bool canLootAfterMove = false;
 		Tile backstepLootTile = null;
 		Tile moveLootTile = null;
@@ -244,6 +260,10 @@ public class Tile {
 		bool canExamine = false;
 		bool canTrap = false;
 		bool canTurret = false;
+		bool canActivateTurret = false;
+		bool canActivateTurretAfterMove = false;
+		Tile moveTurretTile = null;
+		float moveTurretTileDist = float.MaxValue;
 		u.mapGenerator.removeAllRanges(false);
 		HashSet<Tile> movements = (u.usedMovement || u.isProne() ? new HashSet<Tile>() : u.mapGenerator.setCharacterCanStand((int)u.position.x, (int)-u.position.y, u.moveDistLeft, 0, u.getAttackRange(), u, false));
 		canMove = canStandCurr && stand;
@@ -336,7 +356,7 @@ public class Tile {
 			}
 			if (getItems().Count > 0 && (!enemy || getEnemy(u).isDead())) {
 				canLoot = u.mapGenerator.hasLineOfSight(u, this, 1, true);
-				if (!canLoot) {
+			/*	if (!canLoot) {
 					foreach (Tile t in backSteps) {
 						if (t.canStand() && t!=uTile && u.minorsLeft - t.minDistUsedMinors > 0 && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
 							canLootAfterBackStep = true;
@@ -347,8 +367,8 @@ public class Tile {
 							}
 						}
 					}
-				}
-				if (!canLoot && !canLootAfterBackStep) {
+				}*/
+				if (!canLoot) {// && !canLootAfterBackStep) {
 					foreach (Tile t in movements) {
 						if (t.canStand() && t!=uTile && u.minorsLeft - t.minDistUsedMinors > 0 && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
 							canLootAfterMove = true;
@@ -356,6 +376,21 @@ public class Tile {
 							if (d < moveLootTileDist) {
 								moveLootTile = t;
 								moveLootTileDist = d;
+							}
+						}
+					}
+				}
+			}
+			if (hasCharacter() && getCharacter() is TurretUnit) {
+				canActivateTurret = u.mapGenerator.hasLineOfSight(u, this, 1, true);
+				if (!canActivateTurret) {
+					foreach (Tile t in movements) {
+						if (t.canStand() && t!=uTile && u.minorsLeft - t.minDistUsedMinors > 0 && u.mapGenerator.hasLineOfSight(t, this, 1, true)) {
+							canActivateTurretAfterMove = true;
+							float d = uTile.distanceFromTile(t);
+							if (d < moveTurretTileDist) {
+								moveTurretTile = t;
+								moveTurretTileDist = d;
 							}
 						}
 					}
@@ -414,6 +449,11 @@ public class Tile {
 		List<TileAction> tileActions = new List<TileAction>();
 		bool addAttacks = !med || (u.getWeapon() as Medicinal).numberOfUses >= 1;
 		StandardType att = (med ? StandardType.Heal : StandardType.Attack);
+		if (hasCharacter() && getCharacter() is TurretUnit) {
+			MinorType turretActivationType = (getCharacter() as TurretUnit).isOn ? MinorType.TurretOff : MinorType.TurretOn;
+			if (canActivateTurret) tileActions.Add(new TileAction(null, null, new MinorType[] {turretActivationType}, this));
+			if (canActivateTurretAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {turretActivationType}, this, moveTurretTile));
+		}
 		if (canAttack && addAttacks) {
 			tileActions.Add(new TileAction(null, new StandardType[] {att}, null, this, null, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
 			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
@@ -430,7 +470,7 @@ public class Tile {
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Loot}, this));
 		if (canLootAfterMove) tileActions.Add(new TileAction(new MovementType[] {MovementType.Move}, null, new MinorType[] {MinorType.Loot}, this, moveLootTile));
-		if (canLootAfterBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Loot}, this, backstepLootTile));
+//		if (canLootAfterBackStep) tileActions.Add(new TileAction(new MovementType[] {MovementType.BackStep}, null, new MinorType[] {MinorType.Loot}, this, backstepLootTile));
 		if (canEscape) tileActions.Add(new TileAction(null, null, new MinorType[] {MinorType.Escape}, this, this));
 		if (u.hasClassFeature(ClassFeature.Throw)) {
 			if (canThrow) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.Throw}, null, this));

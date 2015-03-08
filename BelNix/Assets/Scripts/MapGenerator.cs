@@ -11,7 +11,14 @@ public enum VisibilityMode {Visibility, Melee, Ranged, None}
 [System.Serializable]
 public struct ConversationTrigger {
 	public List<Vector2> conversationTiles;
-	public string conversationTextFile;
+	public TextAsset conversationTextFile;
+}
+
+[System.Serializable]
+public struct GroundItem {
+	public Vector2 position;
+	public List<EditorItem> items;
+	public int cash;
 }
 
 public class MapGenerator : MonoBehaviour {
@@ -30,15 +37,16 @@ public class MapGenerator : MonoBehaviour {
 	[Space(20)]
 	[Header("Tile Properties")]
 	public List<ConversationTrigger> conversations = new List<ConversationTrigger>();
-	public List<Vector2> itemPositions = new List<Vector2>();
-	public List<EditorItem> items = new List<EditorItem>();
+	public List<GroundItem> items = new List<GroundItem>();
+//	public List<Vector2> itemPositions = new List<Vector2>();
+//	public List<EditorItem> items = new List<EditorItem>();
 	[Space(20)]
 	public List<Unit> selectionUnits;
 	public List<Unit> outOfGameUnits;
 	public const int sortingOrderExtra = 1530*0;
-	public const int gridOrder = 2 + sortingOrderExtra;
-	public const int lineOrder = 3 + sortingOrderExtra;
-    public const int bloodOrder = 19 + sortingOrderExtra;
+    public const int bloodOrder = 3 + sortingOrderExtra;
+    public const int gridOrder = 4 + sortingOrderExtra;
+	public const int lineOrder = 6 + sortingOrderExtra;
 	public const int trapOrder = 20 + sortingOrderExtra;
 	public const int circleNormalOrder = 30 + sortingOrderExtra;
 	public const int circleMovingOrder = 31 + sortingOrderExtra;
@@ -908,6 +916,7 @@ public class MapGenerator : MonoBehaviour {
 	
 		importGrid();
 		addItemsToMap();
+		addConversationsToMap();
 		createSelectionArea();
 		createSelectionUnits();
 		setOverlay();
@@ -919,13 +928,23 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	public void addItemsToMap() {
-		if (itemPositions == null || items == null) return;
-		for (int n=0;n<Mathf.Min(itemPositions.Count, items.Count);n++) {
-			Vector2 pos = itemPositions[n];
-			Debug.Log("Map Item");
-			Item i = items[n].getItem();
-			Debug.Log("End Map Item");
-			tiles[(int)pos.x,(int)pos.y].addItem(i);
+		if (items == null) return;
+		foreach (GroundItem item in items) {
+			Vector2 pos = item.position;
+			foreach (EditorItem ei in item.items) {
+				Item i = ei.getItem();
+				tiles[(int)pos.x,(int)pos.y].addItem(i);
+			}
+		}
+	}
+
+	public void addConversationsToMap() {
+		if (conversations == null) return;
+		foreach (ConversationTrigger convo in conversations) {
+			TextAsset s = convo.conversationTextFile;
+			foreach (Vector2 pos in convo.conversationTiles) {
+				tiles[(int)pos.x,(int)pos.y].conversationText = s;
+			}
 		}
 	}
 
@@ -1230,7 +1249,6 @@ public class MapGenerator : MonoBehaviour {
 			getCurrentUnit().removeCurrent();
 			getCurrentUnit().endTurn();
 		}
-		Unit.actionTime = Time.time;
 		currentUnit++;
 		currentUnit%=priorityOrder.Count;
 		resetPlayerPath();
@@ -1297,6 +1315,8 @@ public class MapGenerator : MonoBehaviour {
 					removeCharacter(selectedUnit);
 				}
 			}
+			if (!playerOrCanBeSeen())
+				Unit.actionTime = Time.time;
 			if (selectedUnit.deadOrDyingOrUnconscious()) {// || (!selectedUnit.playerControlled && !selectedUnit.aiActive)) {
 				return nextPlayer();
 			}
@@ -1639,8 +1659,14 @@ public class MapGenerator : MonoBehaviour {
 
 	}
 
+	public bool playerOrCanBeSeen() {
+		bool can = selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit));// return;
+		Debug.Log(selectedUnit.getName() + ": " + can + "                 " + Time.time);
+		return can;
+	}
+
 	public void moveCameraToSelected(bool instantly = false, float speed = 32.0f) {
-		if (selectedUnit == null || (selectedUnit.team != 0 && !hasLineOfSight(selectedUnit))) return;
+		if (playerOrCanBeSeen()) return;
 		Vector3 sel = selectedUnit.transform.position;
 		moveCameraToPosition(sel, instantly, speed);
 	}
@@ -2069,6 +2095,7 @@ public class MapGenerator : MonoBehaviour {
 	}
 
 	void handleInput() {
+		if (Conversation.conversationOpen) return;
 		handleKeys();
 		if (GameGUI.escapeMenuOpen) return;
 		if (currentUnitIsPrimal()) {
@@ -2604,6 +2631,7 @@ public class MapGenerator : MonoBehaviour {
 						g = Instantiate(turretPrefab) as GameObject;
 						g.transform.parent = turrets.transform;
 						tu = g.GetComponent<TurretUnit>();
+						tu.isOn = BattleGUI.turretOn();
 						tu.mapGenerator = this;
 						tu.team = getCurrentUnit().team;
 						turretBeingPlaced = tu;
@@ -2945,6 +2973,7 @@ public class MapGenerator : MonoBehaviour {
 								g = Instantiate(turretPrefab) as GameObject;
 								g.transform.parent = turrets.transform;
 								tu = g.GetComponent<TurretUnit>();
+								tu.isOn = BattleGUI.turretOn();
 								tu.mapGenerator = this;
 								tu.team = getCurrentUnit().team;
 								turretBeingPlaced = tu;
