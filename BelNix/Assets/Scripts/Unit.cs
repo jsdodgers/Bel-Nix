@@ -1895,7 +1895,7 @@ public class Unit : MonoBehaviour {
 		}
 		else {
 			foreach (Unit u2 in mapGenerator.priorityOrder) {
-				if (isEnemyOf(u2) && (attackDowned ? !u2.isDead() : !u2.deadOrDyingOrUnconscious()) && u.oneOfManyMode != OneOfManyMode.Hidden) {
+				if (isEnemyOf(u2) && (attackDowned ? !u2.isDead() : !u2.deadOrDyingOrUnconscious()) && u2.oneOfManyMode != OneOfManyMode.Hidden) {
 					units.Add(u2);
 				}
 			}
@@ -2988,7 +2988,7 @@ public class Unit : MonoBehaviour {
 	
 	void doMovement() {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
-		if (moving && shouldMove == 0) {// && !beingAttacked) {
+		if (moving && shouldMove == 0 && !flinching) {// && !beingAttacked) {
 			//	if (wasBeingAttacked) {
 			//		setRotatingPath();
 			//	}
@@ -3504,9 +3504,16 @@ public class Unit : MonoBehaviour {
 		deathAnimationAllSprites();
 	}
 
+	bool flinching = false;
 	void flinchAnimation() {
+		flinching = true;
 		anim.SetTrigger("Flinch");
 		flinchAnimationAllSprites();
+	}
+
+	void endFlinch()
+	{
+		flinching = false;
 	}
 	
 	void attackAnimation() {
@@ -3807,6 +3814,10 @@ public class Unit : MonoBehaviour {
 			//			if (hitPoints <= 0) died = true;
 			bool d = deadOrDyingOrUnconscious();
 			loseHealth(damage);
+			if(!deadOrDyingOrUnconscious())
+			{
+				flinchAnimation();
+			}
 			if (!d && deadOrDyingOrUnconscious() && u) {
 				u.killedEnemy(this, givesDecisiveStrike());
 			}
