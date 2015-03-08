@@ -8,6 +8,11 @@ using System.Threading;
 public enum GameState {Playing, Won, Lost, None}
 public enum VisibilityMode {Visibility, Melee, Ranged, None}
 
+public struct ConversationTrigger {
+	List<Vector2> conversationTiles;
+	string conversationTextFile;
+}
+
 public class MapGenerator : MonoBehaviour {
 	public static MapGenerator mg;
 	Vector3 cameraPos;
@@ -21,10 +26,14 @@ public class MapGenerator : MonoBehaviour {
 	public GameObject overlayObject;
 	Texture2D[,] mapOverlays;
 //	Texture2D mapOverlay;
-	public List<Unit> selectionUnits;
-	public List<Unit> outOfGameUnits;
+	[Header("Tile Properties")]
+	[Space(20)]
+	List<ConversationTrigger> conversations = new List<ConversationTrigger>();
 	public List<Vector2> itemPositions = new List<Vector2>();
 	public List<EditorItem> items = new List<EditorItem>();
+	[Space(20)]
+	public List<Unit> selectionUnits;
+	public List<Unit> outOfGameUnits;
 	public const int sortingOrderExtra = 1530*0;
 	public const int gridOrder = 2 + sortingOrderExtra;
 	public const int lineOrder = 3 + sortingOrderExtra;
