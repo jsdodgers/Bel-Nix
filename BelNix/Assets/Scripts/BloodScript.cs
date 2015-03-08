@@ -4,15 +4,8 @@ using System.Collections.Generic;
 
 public class BloodScript : MonoBehaviour {
 
-   
-    
 
-    void Start()
-    {
-        //restrictedBloodAnimations ;
-    }
-
-    public static void spillBlood(Unit attacker, Unit enemy)
+    public static void spillBlood(Unit attacker, Unit enemy, int damage)
     {
         // Create and place the blood prefab
         GameObject blood = (GameObject)Instantiate(Resources.Load<GameObject>("Effects/Blood/blood_splatter"));
@@ -46,47 +39,46 @@ public class BloodScript : MonoBehaviour {
             bloodManager = newBloodManager.GetComponent<BloodManager>();
         }
         int bloodNumber = bloodManager.generateBloodNumber();
-        
-
-        // Start the blood animation
-        blood.GetComponent<Animator>().SetInteger("BloodOption", bloodNumber);
-        GameObject bloodContainer = new GameObject("Blood Container");
 
         // Put the blood in its final position
+        GameObject bloodContainer = new GameObject("Blood Container");
         bloodContainer.transform.position = attacker.transform.TransformPoint(enemyPosition) + new Vector3(0.5f, -0.5f, 0.0f);
         bloodContainer.transform.localEulerAngles = attacker.transform.localEulerAngles;
         blood.transform.SetParent(bloodContainer.transform);
+
+
+         // Start the blood animation
+        Debug.Log("Dealing " + damage + " damage"); 
+        blood.AddComponent<BloodSplash>();
+        blood.GetComponent<BloodSplash>().bloodOption = bloodNumber;
+        blood.GetComponent<BloodSplash>().bloodManager = bloodManager;
+        blood.GetComponent<BloodSplash>().sizeOption = damage;
+        
     }
-
-
-    /*
-	public int x = 0;
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-		while(x <= 60)
-		{
-			transform.localScale += new Vector3(3.0f*Time.deltaTime, 3.0f*Time.deltaTime, 0.0f);
-			transform.Translate(0.0f, 1.0f*Time.deltaTime, -0.001f);
-			Debug.Log("Spawn");
-			x += 1;
-		}
-	}
-    */ 
 }
 
 public class BloodManager : MonoBehaviour
 {
     private const int QUEUE_SIZE = 5;
     private Queue<int> restrictedBloodAnimations;
+    private List<Sprite> bloodSprites;
     void Start()
     {
         restrictedBloodAnimations = new Queue<int>(QUEUE_SIZE);
+
+        bloodSprites = new List<Sprite>();
+        for (int i = 1; i < 34; i++)
+        {
+            string numberAsString;
+            if (i < 10)
+                numberAsString = "0" + i;
+            else
+                numberAsString = i.ToString();
+
+            bloodSprites.Add(Resources.Load<Sprite>("Materials/Particles/blood_splatter_image" + numberAsString));
+        }
+
+        Debug.Log(bloodSprites.Count + "Sprites loaded");
     }
     public int generateBloodNumber()
     {
@@ -99,5 +91,48 @@ public class BloodManager : MonoBehaviour
             restrictedBloodAnimations.Dequeue();
         restrictedBloodAnimations.Enqueue(bloodNumber);
         return bloodNumber;
+    }
+
+    public Sprite getSprite(int bloodNumber)
+    {
+        return bloodSprites[bloodNumber - 1];
+    }
+}
+
+public class BloodSplash : MonoBehaviour
+{
+    public int sizeOption = 5;
+    public int bloodOption = 1;
+    private const int SPEED = 2;
+    private const int MAX_SCALE = 8;
+    private const float DURATION = 1.0f;
+    private Vector3 finalPosition;
+    public BloodManager bloodManager;
+
+    void Start()
+    {
+        transform.localPosition = Vector3.zero;
+        finalPosition = new Vector3(0,1,0);
+        StartCoroutine("scaleBlood");
+    }
+
+    private IEnumerator scaleBlood()
+    {
+        GetComponent<SpriteRenderer>().sprite = bloodManager.getSprite(bloodOption);
+        float currentScale = 1;
+        Vector3 currentPosition = transform.localPosition;
+        float timeSoFar = 0;
+        while (timeSoFar < DURATION)
+        {
+            timeSoFar += Time.deltaTime * SPEED;
+
+            currentPosition = Vector3.MoveTowards(currentPosition, finalPosition, timeSoFar);
+            transform.localPosition = currentPosition;
+
+            currentScale = Mathf.Lerp(currentScale, sizeOption, timeSoFar);
+            transform.localScale = new Vector3(currentScale, currentScale, transform.localScale.z);
+
+            yield return null;
+        }
     }
 }

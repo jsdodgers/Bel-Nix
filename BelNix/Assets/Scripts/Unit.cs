@@ -3052,7 +3052,7 @@ public class Unit : MonoBehaviour {
 									if (team == 0) mapGenerator.setOverlay(this);
 									break;
 								}
-							}
+							} 
 							attacking = false;
 							lootTile = null;
 							turretTile = null;
@@ -3747,7 +3747,7 @@ public class Unit : MonoBehaviour {
 	Hit critHit;
 	bool crit;
 	int wapoon;
-	bool damageCalculated;
+	public bool damageCalculated;
 	bool didHit;
 
 	public void calculateDamage() {
@@ -3761,8 +3761,10 @@ public class Unit : MonoBehaviour {
 		Debug.Log((hit.hit > 4 ? "wapoon: " + wapoon : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
 	}
 
+    //private static ScreenShaker screenShaker; 
 	public void dealDamage() {
-     //   Combat.dealDamage(this, attackEnemy, overClockedAttack);
+        Combat.dealDamage(this, attackEnemy, overClockedAttack); 
+        /*
 		bool animate = false;
 		if (!damageCalculated) {
 			calculateDamage();
@@ -3770,13 +3772,18 @@ public class Unit : MonoBehaviour {
 		}
 		damageCalculated = false;
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
-		Debug.Log("Deal Damage: " + attackEnemy);
+		//Debug.Log("Deal Damage: " + attackEnemy);
 		attackEnemy.showDamage(wapoon, didHit, crit);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
         if (didHit)
         {
             attackEnemy.damage(wapoon, this, animate);
-            BloodScript.spillBlood(this, attackEnemy);
+            BloodScript.spillBlood(this, attackEnemy, wapoon);
+            if (crit)
+            {
+                screenShaker = new ScreenShaker();
+                screenShaker.shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
+            } 
         }
 		if (overClockedAttack) {
 			Debug.Log("Over Clocked Attack!!!");
@@ -3795,7 +3802,7 @@ public class Unit : MonoBehaviour {
 			if (attackEnemy.shouldMove<0) attackEnemy.shouldMove = 0;
 		}
 		//		damageDisplay.begin(
-
+        */
 	}
 	
 	public int damageNumber = 0;

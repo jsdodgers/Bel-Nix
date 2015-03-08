@@ -48,8 +48,19 @@ class Combat {
         attackHandler.OnAttackMissed(attacker, attackedEnemy, ranged, overClockedAttack);
     }
 
+
+
     public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false)
     {
+
+        bool animate = false;
+        if (!attacker.damageCalculated)
+        {
+            attacker.calculateDamage();
+            animate = true;
+        }
+        attacker.damageCalculated = false;
+
         Hit hit     = Combat.rollHit(attacker);
         Hit critHit = Combat.rollHit(attacker);
         int enemyAC = attackedEnemy.getAC();
@@ -64,10 +75,10 @@ class Combat {
             (attacker.getWeapon() == null ? attacker.getGenderString() + " fist " : attacker.getWeapon().itemName + " ") + 
             "for " + weaponDamage + " damage!" : "!"), (attacker.team == 0 ? Log.greenColor : Color.red));
 
-        if (didHit)
+        if (didHit) 
         {
-            attackedEnemy.damage(weaponDamage, attacker);
-            BloodScript.spillBlood(attacker, attackedEnemy);
+            attackedEnemy.damage(weaponDamage, attacker, animate);
+            BloodScript.spillBlood(attacker, attackedEnemy, weaponDamage);
             OnAttackHit(attacker, attackedEnemy, weaponDamage, false, crit, overClockedAttack);
         }
         else
@@ -94,7 +105,7 @@ class Combat {
             attackedEnemy.shouldMove--;
             if (attackedEnemy.shouldMove < 0) attackedEnemy.shouldMove = 0;
         }
-        Debug.Log((hit.hit > 4 ? "wapoon: " + weaponDamage : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
+        //Debug.Log((hit.hit > 4 ? "wapoon: " + weaponDamage : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
     }
 
     public static int overClockDamage(Unit attacker)
