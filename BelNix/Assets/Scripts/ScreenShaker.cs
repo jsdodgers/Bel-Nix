@@ -23,7 +23,7 @@ public class ScreenShaker : MonoBehaviour {
     void OnAttackHit(AttackEventArgs args)
     {
         if (args.criticalHit)
-            shake(Camera.main.gameObject, 0.2f, 5, 0.2f);
+            shake(Camera.main.gameObject, 0.4f, 12, 0.2f);
     }
 	
 	// Update is called once per frame
@@ -70,8 +70,8 @@ public class ScreenShaker : MonoBehaviour {
 
     private Vector2 nextPoint(Vector2 rootPosition)
     {
-        float radius = currentRadius--;
-        return new Vector2(startingPosition.x, startingPosition.y) + ((radius <= 0) ? Vector2.zero : (new Vector2(Random.Range(0.1f, radius*10)/10 * coinFlip(), Random.Range(0.1f, radius*10)/10 * coinFlip())));
+        currentRadius -= 0.1f;
+        return new Vector2(startingPosition.x, startingPosition.y) + ((currentRadius <= 0) ? Vector2.zero : (new Vector2(Random.Range(0.2f, currentRadius*10)/10 * coinFlip(), Random.Range(0.2f, currentRadius*10)/10 * coinFlip())));
     }
 
     private Vector2 setPos(Transform transform, Vector2 newPosition)
