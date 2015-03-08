@@ -50,7 +50,7 @@ public class UnitGUI {
 				GameGUI.selectMinorType(MinorType.None);
 			}
 			else*/ inventoryOpen = !inventoryOpen;
-			BattleGUI.setInventoryShown(inventoryOpen);
+			InventoryGUI.setInventoryShown(inventoryOpen);
 			return;
 		}
 		if (openTab==tab) openTab = Tab.None;

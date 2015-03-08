@@ -623,7 +623,6 @@ public class GridManager : MonoBehaviour {
 					//Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
 				}
 			}
-//			Debug.Log(text);
 		}
 	}
 
