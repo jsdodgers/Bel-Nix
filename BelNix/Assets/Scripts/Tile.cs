@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-public enum GameMasterType {Damage1, Heal1};
+public enum GameMasterType {Damage1, Heal1, Heal10};
 public class TileAction : IComparable {
 
 	public List<MinorType> minorTypes;
@@ -151,6 +151,8 @@ public class Tile {
 			return "Deal 1 Damage";
 		case GameMasterType.Heal1:
 			return "Heal 1 Health";
+		case GameMasterType.Heal10:
+			return "Heal 10 Health";
 		default:
 			return t.ToString();
 		}
@@ -462,6 +464,7 @@ public class Tile {
 			if (hasCharacter()) {
 				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Damage1}, this));
 				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Heal1}, this));
+				tileActions.Add(new TileAction(new GameMasterType[] {GameMasterType.Heal10}, this));
 			}
 		}
 		tileActions.Sort();
