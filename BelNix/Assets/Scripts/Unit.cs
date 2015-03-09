@@ -2573,10 +2573,17 @@ public class Unit : MonoBehaviour  {
 		//		rotating = false;
 	}
 	
-	public virtual bool canAttOpp()  {
-		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !(getWeapon() is Medicinal) && !isProne();
+	public virtual bool canAttOpp(Unit u)  {
+		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !(getWeapon() is Medicinal) && !isProne() && (playerControlled || (aiActive && knowsUnit(u) && (!onlyRetaliate || attackedByUnits.Contains(u))));
 	}
-	
+
+
+	public bool knowsUnit(Unit u) {
+		foreach (KnownUnit ku in knownEnemies) {
+			if (ku.knownUnit == u) return true;
+		}
+		return false;
+	}
 	public int attackOfOpp(Vector2 one, Direction dir)  {
 		int move = 0;
 		/*for (int n=-1;n<=1;n++)  {
@@ -3920,6 +3927,7 @@ public class Unit : MonoBehaviour  {
 			if (!aiActive) setActive(true);
 			mapGenerator.activateNearbyEnemies(this);
 		}
+		attackEnemy.attackedByUnits.Add(this);
 	}
 	
 	public void damage(int damage, Unit u, bool animate = false)  {
