@@ -76,6 +76,7 @@ public class MapGenerator : MonoBehaviour  {
     public int experienceReward = 0;
     public int copperReward = 0;
 	public List<EditorItem> rewardItems = new List<EditorItem>();
+	[Space(20)]
 	public string tileMapName;
 	public int gridSize = 64;
 	public string goalText = "";
@@ -923,9 +924,11 @@ public class MapGenerator : MonoBehaviour  {
 		if (items == null) return;
 		foreach (GroundItem item in items)  {
 			Vector2 pos = item.position;
+			Tile t = tiles[(int)pos.x,(int)pos.y];
+			t.setMoney(item.cash);
 			foreach (EditorItem ei in item.items)  {
 				Item i = ei.getItem();
-				tiles[(int)pos.x,(int)pos.y].addItem(i);
+				t.addItem(i);
 			}
 		}
 	}
@@ -2201,8 +2204,10 @@ public class MapGenerator : MonoBehaviour  {
 			UnitGUI.clickTab(Tab.V);
 		}
 		if (Input.GetKeyDown(KeyCode.B))  {
+			Debug.Log("B Pressed.");
 			RightClickMenu.hideMenu(true);
-			UnitGUI.clickTab(Tab.B);
+			InventoryGUI.setInventoryShown(!InventoryGUI.isShown);
+		//	UnitGUI.clickTab(Tab.B);
 		}
 		/*
 		if (Input.GetKeyDown(KeyCode.R))  {
@@ -2262,8 +2267,9 @@ public class MapGenerator : MonoBehaviour  {
 			if (RightClickMenu.shown)  {
 				RightClickMenu.hideMenu(true);
 			}
-			else if (UnitGUI.inventoryOpen)  {
-				UnitGUI.clickTab(Tab.B);
+			else if (InventoryGUI.isShown) {//UnitGUI.inventoryOpen)  {
+			//	UnitGUI.clickTab(Tab.B);
+				InventoryGUI.setInventoryShown(false);
 			}
 			else if (RightClickMenu.shown)  {
 				RightClickMenu.hideMenu();
@@ -2574,7 +2580,7 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	public void handleKeyInput(Direction dir)  {
-		if (performingAction()) return;
+		if (performingAction() || isInPriority()) return;
 		RightClickMenu.hideMenu(true);
 		Debug.Log("Direction: " + dir);
 		Tile t = null;
@@ -2927,12 +2933,7 @@ public class MapGenerator : MonoBehaviour  {
 			t2 = tiles[(int)transform2.localPosition.x,(int)-transform2.localPosition.y];
 		}
 
-		if (isOnGUI && mouseDown && !rightDraggin && !middleDraggin && !shiftDraggin)  {
-			if (UnitGUI.inventoryOpen && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit())  {
-				UnitGUI.selectItem(selectedUnit.characterSheet, this, selectedUnit);
-		//		selectedUnit.selectItem();
-			}
-		}
+
 		if ((isInCharacterPlacement() && mouseDown && !rightDraggin && !middleDraggin))  {
 			RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<10);
             if (hit)  {
@@ -3168,12 +3169,7 @@ public class MapGenerator : MonoBehaviour  {
 	public int selectionCurrentIndex = -1;
 	Vector3 selectionStartingPos;
 	void handleMouseUp()  {
-		if (mouseUp && !rightDraggin && !middleDraggin && !shiftDraggin)  {
-			if (UnitGUI.inventoryOpen && selectedUnit != null && selectedUnits.Count==0 && selectedUnit == getCurrentUnit())  {
-//				selectedUnit.deselectItem();
-				UnitGUI.deselectItem(selectedUnit.characterSheet, this, selectedUnit);
-			}
-		}
+
 		if (mouseUp && isInCharacterPlacement() && !rightDraggin && !middleDraggin)  {
 			if (selectedSelectionObject)  {
 				rightDragginCancelled = true;

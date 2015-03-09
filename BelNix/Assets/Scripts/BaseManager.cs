@@ -76,6 +76,8 @@ public class BaseManager : MonoBehaviour  {
 	Vector2 barracksScrollPos = new Vector2();
 
 	GameObject hoveredObject;
+	[SerializeField] private GameObject barracks;
+	[SerializeField] private GameObject barracksEntryTemplate;
 
 	string tooltip = "";
 	Dictionary<string, string> tooltips = null;
@@ -161,6 +163,27 @@ public class BaseManager : MonoBehaviour  {
 	}
 
 
+
+
+
+
+	public bool barracksShown = false;
+	public void enableBarracks() {
+		barracksShown = true;
+		barracks.SetActive(true);
+	}
+	public void disableBarracks() {
+		barracksShown = false;
+		barracks.SetActive(false);
+	}
+	public void initializeBarracks(List<Character> characterList) {
+		enableBarracks();
+		barracks.GetComponent<BarracksManager>().fillBarracks(barracksEntryTemplate, characterList);
+		disableBarracks();
+	}
+
+
+
 	void Start ()  {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 	//	Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
@@ -190,7 +213,7 @@ public class BaseManager : MonoBehaviour  {
 		setCanAffordItems();
         //InventoryGUI.setupInvent();
         //InventoryGUI.setInventoryShown(false)
-        baseGUI.GetComponent<BaseGUI>().initializeBarracks(units);
+        initializeBarracks(units);
 		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 		tooltips = new Dictionary<string, string>();
@@ -243,7 +266,7 @@ public class BaseManager : MonoBehaviour  {
 					//barracksScrollPos = new Vector2();
 					//displayedCharacter = null;
 					//baseState = BaseState.Barracks;
-                    GameObject.Find("Canvas - Base GUI").GetComponent<BaseGUI>().enableBarracks();
+                   enableBarracks();
 				}
 				else if (hoveredObject.tag=="newcharacter")  {
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
@@ -274,16 +297,16 @@ public class BaseManager : MonoBehaviour  {
 			deselectItem(displayedCharacter);
 		}
 		if (UnitGUI.containsMouse(mouse) && Input.GetMouseButtonDown(0) && !rightDraggin && !middleDraggin)  {
-			if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
+		/*	if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
 				UnitGUI.selectItem(displayedCharacter);
 				//		selectedUnit.selectItem();
-			}
+			}*/
 		}
 		if (Input.GetMouseButtonUp(0) && !rightDraggin && !middleDraggin)  {
-			if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
+		/*	if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
 				//				selectedUnit.deselectItem();
 				UnitGUI.deselectItem(displayedCharacter);
-			}
+			}*/
 		}
 	}
 
@@ -376,6 +399,16 @@ public class BaseManager : MonoBehaviour  {
 				expChanged.saveCharacter();
 				expChanged = null;
 			}
+		}
+		if (Input.GetKeyDown(KeyCode.Escape)) {
+			if (InventoryGUI.isShown) {
+				InventoryGUI.selectedCharacter.saveCharacter();
+				InventoryGUI.setInventoryShown(false);
+			}
+			else if (barracksShown) {
+				disableBarracks();
+			}
+
 		}
 	}
 
@@ -667,13 +700,13 @@ public class BaseManager : MonoBehaviour  {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
-
+			/*
 			if (displayedCharacter != null)  {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
 			}
 			else if (hoveredCharacter != null)  {
 				UnitGUI.drawGUI(hoveredCharacter, null, null);
-			}
+			}*/
 			if (displayedCharacter != null)  {
 			//	UnitGUI.drawGUI(displayedCharacter, null, null);
 				drawWorkbenchGUI();
@@ -784,9 +817,9 @@ public class BaseManager : MonoBehaviour  {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
-			if (displayedCharacter != null)  {
+		/*	if (displayedCharacter != null)  {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
-			}
+			}*/
 			if (levelingUpCharacter != null)  {
 				drawLevelUpGUI();
 			}

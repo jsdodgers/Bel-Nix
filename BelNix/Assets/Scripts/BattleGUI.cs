@@ -111,7 +111,8 @@ public class BattleGUI : MonoBehaviour  {
 			consoleCanvas.transform.parent.gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
 	}
     void Start() {
-		InventoryGUI.inventoryGUI = inventoryCanvas;
+		InventoryGUI.setInventoryGUI(inventoryCanvas);
+	//	InventoryGUI.inventoryGUI = inventoryCanvas;
 		Conversation.conversation = conversationCanvas;
         //Some audiovisual setup
         //gameObject.GetComponent<Canvas>().enabled = false;
