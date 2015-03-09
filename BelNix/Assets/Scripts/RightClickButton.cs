@@ -144,6 +144,12 @@ public class RightClickButton : MonoBehaviour  {
 		if (action.minorTypes.Contains(MinorType.TurretOn) || action.minorTypes.Contains(MinorType.TurretOff))  {
 			u.turretTile = action.actualTile;
 		}
+		if (action.standardTypes.Contains(StandardType.PickUpTrap)) {
+			u.pickUpTrapTile = action.actualTile;// (action.actualTile.getCharacter() as TrapUnit).trap;
+		}
+		if (action.standardTypes.Contains(StandardType.PickUpTurret)) {
+			u.pickUpTurretTile = action.actualTile;//(action.actualTile.getCharacter() as TurretUnit).turret;
+		}
 		RightClickMenu.hideMenu(true);
 	}
 }

@@ -277,17 +277,18 @@ public class Tile  {
 		Turret tur = null;
 		if (hasCharacter()) {
 			Unit u2 = getCharacter();
-			if (u2 is TrapUnit) {
-				tr = ((TrapUnit)u2).trap;
-				hasTrapTurret = ((TrapUnit)u2).owner == u;
-				trapTurretType = StandardType.PickUpTrap;
-			}
-			else if (u2 is TurretUnit) {
+			if (u2 is TurretUnit) {
 				tur = ((TurretUnit)u2).turret;
 				hasTrapTurret = ((TurretUnit)u2).owner == u;
 				trapTurretType = StandardType.PickUpTurret;
 			}
 		}
+		if (hasTrap()) {
+			tr = getTrap().trap;
+			hasTrapTurret = getTrap().owner == u;
+			trapTurretType = StandardType.PickUpTrap;
+		}
+		Debug.Log("HasTrapTurret: " + hasTrapTurret + "  " + trapTurretType);
 		u.mapGenerator.removeAllRanges(false);
 		HashSet<Tile> movements = (u.usedMovement || u.isProne() ? new HashSet<Tile>() : u.mapGenerator.setCharacterCanStand((int)u.position.x, (int)-u.position.y, u.moveDistLeft, 0, u.getAttackRange(), u, false));
 		canMove = canStandCurr && stand;
@@ -525,13 +526,13 @@ public class Tile  {
 				bool canPutInv = false;
 				foreach (InventorySlot sl in UnitGUI.inventorySlots) {
 					InventoryItemSlot slot = u.characterSheet.characterSheet.inventory.inventory[sl - InventorySlot.Zero];
-					if (slot.item != null && (u.characterSheet.characterSheet.inventory.itemCanStackWith(slot.item, (tr != null ? (Item)tr: (Item)tur))) || u.characterSheet.characterSheet.inventory.canInsertItemInSlot((tr != null?(Item)tr:(Item)tur), UnitGUI.getIndexOfSlot(sl))) {
+					if ((slot.item != null && u.characterSheet.characterSheet.inventory.itemCanStackWith(slot.item, (tr != null ? (Item)tr: (Item)tur))) || u.characterSheet.characterSheet.inventory.canInsertItemInSlot((tr != null?(Item)tr:(Item)tur), UnitGUI.getIndexOfSlot(sl))) {
 						canPutInv = true;
 						break;
 					}
 				}
 				if (canPutInv) {
-					if (canPickUpTrapTurret) tileActions.Add(new TileAction(null, new StandardType[]  {trapTurretType}, null, this, null, u.intimidateHitChance(getCharacter())));
+					if (canPickUpTrapTurret) tileActions.Add(new TileAction(null, new StandardType[]  {trapTurretType}, null, this, null));
 					if (canPickUpTrapTurretAfterBackstep)tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {trapTurretType}, null, this, backstepTrapTurretTile));
 					if (canPickUpTrapTurretAfterMove) tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, new StandardType[]  {trapTurretType}, null, this, moveTrapTurretTile));
 				}
