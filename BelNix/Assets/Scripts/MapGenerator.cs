@@ -929,6 +929,8 @@ public class MapGenerator : MonoBehaviour  {
 			foreach (EditorItem ei in item.items)  {
 				Item i = ei.getItem();
 				t.addItem(i);
+				Debug.Log("Add to map: " + i.itemName + "   ");
+				Debug.Log(i.getItemData());
 			}
 		}
 	}
@@ -2580,7 +2582,7 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	public void handleKeyInput(Direction dir)  {
-		if (performingAction() || isInPriority()) return;
+		if (performingAction() || !isInPriority()) return;
 		RightClickMenu.hideMenu(true);
 		Debug.Log("Direction: " + dir);
 		Tile t = null;

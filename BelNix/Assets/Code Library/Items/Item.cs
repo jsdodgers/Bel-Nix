@@ -108,6 +108,8 @@ public class Item  {
 			return new BuzzSaws(itemData, delim);
 		case ItemCode.Knives:
 			return new Knives(itemData, delim);
+		case ItemCode.Medicinal:
+			return new Medicinal(itemData, delim);
 		default:
 			return new Item(itemData, delim);
 		}
@@ -178,6 +180,7 @@ public class Item  {
 	}
 	public string textureDelim = "@";
 	public virtual string getItemData(string delim)  {
+		Debug.Log("Item Get Data: " + itemName);
 
 	//	Debug.Log(spritePrefabString);
 		return (int)itemStackType + delim +
@@ -317,6 +320,7 @@ public class Weapon : Item  {
 		return itemName + "\n" + numberOfDamageDice + "d" + diceType + " " + (isRanged ? "Ranged" : "Melee") + " Damage" + "\nRange: " + range + "\nCrit: " + criticalChance + "%";
 	}
 	public override string getItemData(string delim)  {
+		Debug.Log("Weapon Get Data: " + itemName);
 		string shapeString = "0";
 		if (shape != null)  {
 			shapeString = shape.Length.ToString();
