@@ -224,7 +224,7 @@ public class BarracksEntry : MonoBehaviour  {
     }
     public void onStopHovering()
     {
-        if (statsPanel.activeSelf || featuresPanel.activeSelf)
+        if (statsPanel.activeSelf || featuresPanel.activeSelf || pointAllocationPanel.activeSelf)
             return;
         else
         {
