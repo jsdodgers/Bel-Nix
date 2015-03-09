@@ -15,6 +15,11 @@ public class BasePointAllocation : AbstractPointAllocation {
         technique = abilityScores.getTechnique();
         well_versed = abilityScores.getWellVersed();
 
+        minSturdy       = sturdy;
+        minPerception   = perception;
+        minTechnique    = technique;
+        minWellVersed   = well_versed;
+
         var skillScores = character.characterSheet.skillScores;
         athletics   = skillScores.getScore(Skill.Athletics);
         melee       = skillScores.getScore(Skill.Melee);
@@ -24,6 +29,15 @@ public class BasePointAllocation : AbstractPointAllocation {
         medicinal   = skillScores.getScore(Skill.Medicinal);
         historical  = skillScores.getScore(Skill.Historical);
         political   = skillScores.getScore(Skill.Political);
+
+        minAthletics    = athletics;
+        minMelee        = melee;
+        minRanged       = ranged;
+        minStealth      = stealth;
+        minMechanical   = mechanical;
+        minMedicinal    = medicinal;
+        minHistorical   = historical;
+        minPolitical    = political;
     }
 
     protected override int calculateSkill(int skill, int abilityScore, int skillNumber)
