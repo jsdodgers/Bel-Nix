@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -54,7 +55,8 @@ public class BaseManager : MonoBehaviour  {
 	Vector3 lastPos = new Vector3();
 	static Texture2D barracksTexture;
 	static Texture2D bottomSheetTexture;
-    Character charizard;
+    [SerializeField]
+    private GameObject baseGUI;
 	// Use this for initialization
 
 	
@@ -81,15 +83,11 @@ public class BaseManager : MonoBehaviour  {
 			ch.loadCharacterFromTextFile(chars[n]);
 			ch.characterId = chars[n];
 			units.Add(ch);
-            if (n == 0) {
-                charizard = ch;
-                Invoke("waitJustAMoment", 0.01f);
-            }
 		}
+        baseGUI.GetComponent<BaseGUI>().initializeBarracks(units);
 		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 		tooltips = new Dictionary<string, string>();
-        Debug.Log("WHAT'S UP ROOSEVELT?!!!");
 		tooltips.Add("barracks", "Barracks");
 		tooltips.Add("engineering", "Create Traps and Turrets");
 		tooltips.Add("exit", "Exit to Main Menu");
@@ -103,11 +101,6 @@ public class BaseManager : MonoBehaviour  {
 		} while (Saves.hasSaveFileNamed(saveName));
 	}
 
-    private void waitJustAMoment() {
-        GameObject.Find("Panel - Barracks Entry").GetComponent<BarracksEntry>().assignCharacter(charizard);
-    }
-
-
 	// Update is called once per frame
 	void Update ()  {
 		handleInput();
@@ -118,12 +111,14 @@ public class BaseManager : MonoBehaviour  {
 		handleKeys();
 		handleDrag();
 		handleKeyPan();
-		handleMouseMovement();
-		handleMouseClick();
+        handleMouseMovement();
+        handleMouseClick();
 	}
 
 	void handleMouseClick()  {
-		Vector2 mouse = Input.mousePosition;
+        if(EventSystem.current.IsPointerOverGameObject())
+            return;
+        Vector2 mouse = Input.mousePosition;
 		mouse.y = Screen.height - mouse.y;
 		if (Input.GetMouseButtonDown(0))  {
 			if (hoveredObject != null)  {
@@ -134,9 +129,10 @@ public class BaseManager : MonoBehaviour  {
 					baseState = BaseState.Mission;
 				}
 				else if (hoveredObject.tag=="barracks")  {
-					barracksScrollPos = new Vector2();
-					displayedCharacter = null;
-					baseState = BaseState.Barracks;
+					//barracksScrollPos = new Vector2();
+					//displayedCharacter = null;
+					//baseState = BaseState.Barracks;
+                    GameObject.Find("Canvas - Base GUI").GetComponent<BaseGUI>().enableBarracks();
 				}
 				else if (hoveredObject.tag=="newcharacter")  {
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
@@ -295,7 +291,13 @@ public class BaseManager : MonoBehaviour  {
 	float scale = 1.1f;
 
 	void handleMouseMovement()  {
-		bool old = hoveredObject==null;
+        if (hoveredObject != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            hoveredObject.transform.localScale = new Vector3(1, 1, 1);
+            return;
+        }
+
+        bool old = hoveredObject==null;
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<13);
 		//		Physics2D.Ray
 		GameObject go = null;
