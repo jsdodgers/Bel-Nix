@@ -3022,7 +3022,8 @@ public class Unit : MonoBehaviour  {
 
 	public void doLootAfterMovement()  {
 		if (lootTile != null && !moving)  {
-			if (!UnitGUI.inventoryOpen) UnitGUI.clickTab(Tab.B);
+//			if (!UnitGUI.inventoryOpen) UnitGUI.clickTab(Tab.B);
+			InventoryGUI.setInventoryShown(true);
 			InventoryGUI.clearLootItems();
 			InventoryGUI.setLootItems(lootTile.getItems(), lootTile);
 			lootTile = null;

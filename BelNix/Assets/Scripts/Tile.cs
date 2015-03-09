@@ -193,7 +193,23 @@ public class Tile  {
 	public bool currentRightClick = false;
 	public static List<TextAsset> playedConversations = new List<TextAsset>();
 	public TextAsset conversationText = null;
+	public int groundMoney;
 
+	public void setMoney(int money) {
+		groundMoney = money;
+	}
+
+	public int getMoney() {
+		return groundMoney;
+	}
+
+	public string getMoneyString() {
+		return Purse.moneyString(getMoney());
+	}
+
+	public void removeMoney() {
+		groundMoney = 0;
+	}
 	
 	
 	public bool triggerBitSet(int bit)  {

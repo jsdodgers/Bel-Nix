@@ -1402,12 +1402,12 @@ public class GameGUI : MonoBehaviour  {
 	}
 
 	static void deselectMinor()  {
-		if (looting)  {
+	/*	if (looting)  {
 			looting = false;
 			UnitGUI.inventoryOpen = inventoryWasOpenLoot;
 //			openTab = previouslyOpenTab;
 		}
-		selectedMinor = false;
+		selectedMinor = false;*/
 
 	}
 
@@ -1524,8 +1524,8 @@ public class GameGUI : MonoBehaviour  {
 
 	}
 
-	public static bool looting = false;
-	public static bool inventoryWasOpenLoot = false;
+//	public static bool looting = false;
+//	public static bool inventoryWasOpenLoot = false;
 	public static bool oneOfManyConfirm = false;
 
 	public static void selectMinorType(MinorType t)  {
@@ -1551,9 +1551,9 @@ public class GameGUI : MonoBehaviour  {
 			}
 			break;
 		case MinorType.Loot:
-			looting = true;
-			inventoryWasOpenLoot = UnitGUI.inventoryOpen;
-			UnitGUI.inventoryOpen = true;
+//			looting = true;
+//			inventoryWasOpenLoot = UnitGUI.inventoryOpen;
+//			UnitGUI.inventoryOpen = true;
 			break;
 		case MinorType.Mark:
 		case MinorType.Invoke:

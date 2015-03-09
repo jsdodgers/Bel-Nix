@@ -55,6 +55,9 @@ public class InventoryGUI : MonoBehaviour  {
 	[SerializeField] private Text inventoryAC;
 	[SerializeField] private Transform lootContent;
 	[SerializeField] private GameObject lootOverlay;
+	[SerializeField] private Button lootMoneyButton;
+	[SerializeField] private Text lootMoneyText;
+	[SerializeField] private Text moneyText;
 	
 	GameObject selectedItem;
 	Vector3 mouseSelectPos = new Vector3();
@@ -332,6 +335,9 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public void clearLoot()  {
+		
+		lootMoneyText.gameObject.SetActive(false);
+		lootMoneyButton.gameObject.SetActive(false);
 		for (int n = lootContent.childCount-1;n>=0;n--)  {
 			GameObject.Destroy(lootContent.GetChild(n).gameObject);
 		}
@@ -342,10 +348,30 @@ public class InventoryGUI : MonoBehaviour  {
 	public static void setLootItems(List<Item> items, Tile t, Stash s = null)  {
 		inventoryGUI.setLoot(items, t, s);
 	}
+
+	public void pickUpMoney() {
+		if (currentLootTile != null && selectedCharacter != null) {
+			selectedCharacter.characterSheet.inventory.purse.receiveMoney(currentLootTile.getMoney());
+			currentLootTile.removeMoney();
+		}
+		lootMoneyText.gameObject.SetActive(false);
+		lootMoneyButton.gameObject.SetActive(false);
+		setupInventory(selectedUnit, selectedCharacter);
+	}
 	
 	public void setLoot(List<Item> items, Tile t, Stash s = null)  {
 		currentLootTile = t;
 		currentStash = s;
+		if (currentStash != null) {
+			moneyText.text = currentStash.moneyString().ToUpper();
+		}
+		else if (t != null) {
+			lootMoneyText.text = t.getMoneyString();
+			if (t.getMoney() > 0) {
+				lootMoneyText.gameObject.SetActive(true);
+				lootMoneyButton.gameObject.SetActive(true);
+			}
+		}
 		foreach (Item i in items)  {
 			if (i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
@@ -409,6 +435,8 @@ public class InventoryGUI : MonoBehaviour  {
 
 	
 	public void setupInventory(Unit u, Character cs)  {
+		lootMoneyText.gameObject.SetActive(false);
+		lootMoneyButton.gameObject.SetActive(false);
 		selectedUnit = u;
 		selectedCharacter = cs;
 		if (cs == null && u != null) selectedCharacter = u.characterSheet;
@@ -418,6 +446,9 @@ public class InventoryGUI : MonoBehaviour  {
 			Debug.Log("Destroy " + n);
 			GameObject.Destroy(oldInventory[n]);
 		}*/
+		if (selectedUnit != null) {
+			moneyText.text = selectedUnit.characterSheet.characterSheet.inventory.purse.moneyString().ToUpper();
+		}
 		foreach (GameObject g in inventoryParents)  {
 			for (int n=g.transform.childCount-1;n>=0;n--)  {
 				GameObject g2 = g.transform.GetChild(n).gameObject;

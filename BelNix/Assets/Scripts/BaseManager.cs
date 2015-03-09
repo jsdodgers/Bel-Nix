@@ -274,16 +274,16 @@ public class BaseManager : MonoBehaviour  {
 			deselectItem(displayedCharacter);
 		}
 		if (UnitGUI.containsMouse(mouse) && Input.GetMouseButtonDown(0) && !rightDraggin && !middleDraggin)  {
-			if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
+		/*	if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
 				UnitGUI.selectItem(displayedCharacter);
 				//		selectedUnit.selectItem();
-			}
+			}*/
 		}
 		if (Input.GetMouseButtonUp(0) && !rightDraggin && !middleDraggin)  {
-			if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
+		/*	if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
 				//				selectedUnit.deselectItem();
 				UnitGUI.deselectItem(displayedCharacter);
-			}
+			}*/
 		}
 	}
 
@@ -667,13 +667,13 @@ public class BaseManager : MonoBehaviour  {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
-
+			/*
 			if (displayedCharacter != null)  {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
 			}
 			else if (hoveredCharacter != null)  {
 				UnitGUI.drawGUI(hoveredCharacter, null, null);
-			}
+			}*/
 			if (displayedCharacter != null)  {
 			//	UnitGUI.drawGUI(displayedCharacter, null, null);
 				drawWorkbenchGUI();
@@ -784,9 +784,9 @@ public class BaseManager : MonoBehaviour  {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
-			if (displayedCharacter != null)  {
+		/*	if (displayedCharacter != null)  {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
-			}
+			}*/
 			if (levelingUpCharacter != null)  {
 				drawLevelUpGUI();
 			}
