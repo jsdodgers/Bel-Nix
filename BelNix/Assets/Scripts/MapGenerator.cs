@@ -3095,11 +3095,13 @@ public class MapGenerator : MonoBehaviour  {
 
 			
 			Tile t = (x >=0 && -y >= 0 ? tiles[x,-y] : null);
-
-			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0 && isSelectionTile(t))  {
+	//		if (!Unit.vectorsEqual(v, lastArrowPos)) {
+	//			Debug.Log("Test it: " + selectedUnit + "       "  + !Unit.vectorsEqual(v, lastArrowPos) + "   " + x + "   " + (-y) + "   " + isSelectionTile(t));
+	//		}
+			if (selectedUnit && !Unit.vectorsEqual(v, lastArrowPos) && x>=0 && -y>=0 && t != null)  {
 				//	Player p = selectedPlayer.GetComponent<Player>();
 				//Debug.Log(p.currentMoveDist + "     aaa!!");
-				if (GameGUI.selectedMovement || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape))  {
+				if ((GameGUI.selectedMovement || (GameGUI.selectedMinor && GameGUI.selectedMinorType == MinorType.Escape)) && isSelectionTile(t))  {
 					resetPlayerPath();
 					if (!lastPlayerPathContains(v))  {
 						lastPlayerPath = selectedUnit.addPathTo(v);
@@ -3111,6 +3113,7 @@ public class MapGenerator : MonoBehaviour  {
 						setPlayerPath(lastPlayerPath);
 				}
 				else if (GameGUI.selectedStandard && GameGUI.selectedStandardType==StandardType.Place_Turret && turretBeingPlaced!=null)  {
+//					Debug.Log("Yeeeup!");
 					Direction dir = Direction.None;
 					foreach (Direction direc in Tile.directions)  {
 						Tile t12 = tiles[(int)turretBeingPlaced.position.x,(int)-turretBeingPlaced.position.y].getTile(direc);
