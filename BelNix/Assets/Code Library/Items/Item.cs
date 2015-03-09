@@ -391,9 +391,6 @@ public class Medicinal : Weapon  {
 	public override ItemCode getItemCode ()  {
 		return ItemCode.Medicinal;
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 
 
 	public Medicinal(string itemData, string delim) : base(itemData, delim)  {

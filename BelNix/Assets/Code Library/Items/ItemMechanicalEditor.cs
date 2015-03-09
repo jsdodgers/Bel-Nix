@@ -301,9 +301,6 @@ public class TestFrame : Frame  {
 	public TestFrame(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TestFrame;
 	}
@@ -325,9 +322,6 @@ public class TestFrame : Frame  {
 public class FrameM1 : Frame  {
 	public FrameM1(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.FrameM1;
@@ -351,9 +345,6 @@ public class FrameM2 : Frame  {
 	public FrameM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.FrameM2;
 	}
@@ -376,9 +367,6 @@ public class FrameM3 : Frame  {
 	public FrameM3(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.FrameM3;
 	}
@@ -400,9 +388,6 @@ public class FrameM3 : Frame  {
 public class Applicator :  Weapon, ItemMechanical  {
 	public virtual StackType getStackType()  {
 		return StackType.None;
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public Applicator(string itemData, string delim) : base(itemData, delim)   {
 		
@@ -542,9 +527,6 @@ public class TestEnergySource : EnergySource  {
 	public TestEnergySource(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TestEnergySource;
 	}
@@ -560,9 +542,6 @@ public class TestEnergySource : EnergySource  {
 public class EnergySourceM1 : EnergySource  {
 	public EnergySourceM1(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySourceM1;
@@ -580,9 +559,6 @@ public class EnergySourceM2 : EnergySource  {
 	public EnergySourceM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySourceM2;
 	}
@@ -598,9 +574,6 @@ public class EnergySourceM2 : EnergySource  {
 public class EnergySourceM3 : EnergySource  {
 	public EnergySourceM3(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySourceM3;
@@ -627,10 +600,7 @@ public class Gear :  Item, ItemMechanical  {
 	public override string getBlackMarketText() {
 		return itemName + "\n" + additionalDamage() + " Additional Damage";
 	}
-	
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
+
 	public override ItemCode getItemCode ()  {
 		return ItemCode.Gear;
 	}
@@ -645,9 +615,6 @@ public class Gear :  Item, ItemMechanical  {
 public class TestGear : Gear  {
 	public TestGear(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TestGear;
@@ -665,9 +632,6 @@ public class GearM1 : Gear  {
 	public GearM1(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.GearM1;
 	}
@@ -684,9 +648,6 @@ public class GearM2 : Gear  {
 	public GearM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.GearM2;
 	}
@@ -702,9 +663,6 @@ public class GearM2 : Gear  {
 public class GearM3 : Gear  {
 	public GearM3(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.GearM3;
@@ -760,9 +718,6 @@ public class TestTrigger : Trigger  {
 	public TestTrigger(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TestTrigger;	
 	}
@@ -778,9 +733,6 @@ public class TestTrigger : Trigger  {
 public class TriggerM1 : Trigger  {
 	public TriggerM1(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TriggerM1;	
@@ -798,9 +750,6 @@ public class TriggerM2 : Trigger  {
 	public TriggerM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
-	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TriggerM2;	
 	}
@@ -816,9 +765,6 @@ public class TriggerM2 : Trigger  {
 public class TriggerM3 : Trigger  {
 	public TriggerM3(string itemData, string delim) : base(itemData, delim)   {
 		
-	}
-	public override string getItemData(string delim) {
-		return base.getItemData(delim);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.TriggerM3;	
