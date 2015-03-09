@@ -78,6 +78,7 @@ public class BaseManager : MonoBehaviour  {
 	GameObject hoveredObject;
 	[SerializeField] private GameObject barracks;
 	[SerializeField] private GameObject barracksEntryTemplate;
+    [SerializeField] private GameObject newClassFeaturesPrompt;
 
 	string tooltip = "";
 	Dictionary<string, string> tooltips = null;
@@ -181,6 +182,26 @@ public class BaseManager : MonoBehaviour  {
 		barracks.GetComponent<BarracksManager>().fillBarracks(barracksEntryTemplate, characterList);
 		disableBarracks();
 	}
+
+    public bool newClassFeaturesPromptShown = false;
+    private BarracksEntry entryWaitingOnFeatureSelection;
+    public void enableNewClassFeaturePrompt(ClassFeature[] newFeatures, BarracksEntry originator)
+    {
+        entryWaitingOnFeatureSelection = originator;
+        newClassFeaturesPromptShown = true;
+        newClassFeaturesPrompt.SetActive(true);
+        if (newFeatures.Length > 1)
+            newClassFeaturesPrompt.GetComponent<NewClassFeature>().format(newFeatures[0], newFeatures[1]);
+        else
+            newClassFeaturesPrompt.GetComponent<NewClassFeature>().format(newFeatures[0]);
+    }
+
+    public void disableNewClassFeaturePrompt(ClassFeature selectedFeature)
+    {
+        newClassFeaturesPromptShown = false;
+        newClassFeaturesPrompt.SetActive(false);
+        entryWaitingOnFeatureSelection.receiveClassFeatureChoice(selectedFeature);
+    }
 
 
 

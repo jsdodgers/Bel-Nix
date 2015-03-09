@@ -235,9 +235,24 @@ public class BarracksEntry : MonoBehaviour  {
         }
     }
 
+    private LevelUpContainer levelUp;
     public void submitLevelUp()
     {
         int[] abilityScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getScores();
         int[] skillScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getSkills();
+        levelUp = new LevelUpContainer(){newAbilityScores=abilityScores, newSkillScores=skillScores};
+        ClassFeature[] potentialFeatures = character.characterSheet.characterProgress.getCharacterClass().getPossibleFeatures(character.characterSheet.characterProgress.getCharacterLevel() + 1);
+        GameObject.Find("Base").GetComponent<BaseManager>().enableNewClassFeaturePrompt(potentialFeatures, this);
+    }
+    public void receiveClassFeatureChoice(ClassFeature chosenFeature)
+    {
+        levelUp.newClassFeature = chosenFeature;
+    }
+
+    private struct LevelUpContainer
+    {
+        public int[] newAbilityScores;
+        public int[] newSkillScores;
+        public ClassFeature newClassFeature;
     }
 }
