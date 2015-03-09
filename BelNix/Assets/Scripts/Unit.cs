@@ -3424,6 +3424,7 @@ public class Unit : MonoBehaviour  {
 			int wapoon = Mathf.Max(1, characterSheet.characterSheet.combatScores.getSturdyMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			attackEnemy.activateAITo(this);
 			if (didHit)  {
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
 					primalControlUnit = attackEnemy;
@@ -3464,6 +3465,7 @@ public class Unit : MonoBehaviour  {
 			int wapoon = Mathf.Max(1, characterSheet.characterSheet.combatScores.getWellVersedMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			attackEnemy.activateAITo(this);
 			if (didHit)  {
 				attackEnemy.setRotationToCharacter(this);
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
@@ -3505,7 +3507,6 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public bool damageComposure(int damage, Unit u)  {
-		activateAITo(thrownBy);
 		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState())  {
 			crushingHitSFX();
 			characterSheet.characterSheet.combatScores.loseComposure(damage);
