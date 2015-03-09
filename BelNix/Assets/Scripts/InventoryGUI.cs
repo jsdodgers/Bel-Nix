@@ -70,7 +70,6 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public void deselectItem(Image overlayObject)  {
-		Debug.Log("deselectItem:");
 		if (selectedItem == null)  {
 			setLootInteractable(true);
 			return;
@@ -78,7 +77,6 @@ public class InventoryGUI : MonoBehaviour  {
 		CharacterSheet cs = selectedUnit.characterSheet.characterSheet;
 		Item i = selectedItem.GetComponent<InventoryItem>().item;
 		InventorySlot insertSlot = originalSlot;
-		Debug.Log(overlayObjects.Count);
 		if (overlayObjects.Count > 0)  {
 			InventorySlot sl = overlayObjects[0].GetComponent<InventoryItem>().slot;
 			if (sl == InventorySlot.None)  {
@@ -206,15 +204,27 @@ public class InventoryGUI : MonoBehaviour  {
 		if (at == ActionType.Minor) selectedUnit.useMinor(MinorType.Loot, false, false);
 		else if (at == ActionType.Standard) selectedUnit.useStandard();
 		if (!selectedUnit.usedStandard) {
-			BattleGUI.resetStandardButtons();
+			StandardType[] standards = selectedUnit.getStandardTypes();
+			if (!sameAsOldStandards(standards)) {
+				BattleGUI.resetStandardButtons();
+			}
 		}
+	}
+
+	public bool sameAsOldStandards(StandardType[] standards) {
+		if (standards == null || beforeItemStandards == null) return true;
+		foreach (StandardType st in standards) if (!beforeItemStandards.Contains(st)) return false;
+		foreach (StandardType st in beforeItemStandards) if (!standards.Contains(st)) return false;
+		return true;
 	}
 	
 	public static void selectItem()  {
 		inventoryGUI.selectItem((inventoryGUI.overlayObjects.Count > 0 ? inventoryGUI.overlayObjects[0] : null));
 	}
-	
+
+	StandardType[] beforeItemStandards = null;
 	public void selectItem(Image overlayObject)  {
+		beforeItemStandards = selectedUnit.getStandardTypes();
 		InventoryItem ii = overlayObject.GetComponent<InventoryItem>();
 		InventorySlot sl = ii.slot;
 		Item i = null;
@@ -508,8 +518,9 @@ public class InventoryGUI : MonoBehaviour  {
 		List<Image> otherImages = new List<Image>();
 		if (selectedItem == null)  {
 			if (UnitGUI.inventorySlots.Contains(slot))  {
-				InventoryItemSlot iis = selectedUnit.characterSheet.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero];
-				if (iis.hasItem())  {
+				Debug.Log(slot);
+				InventoryItemSlot iis = (selectedUnit == null ? null : selectedUnit.characterSheet.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero]);
+				if (iis != null && iis.hasItem())  {
 					List<InventoryItemSlot> sllls = new List<InventoryItemSlot>();
 					if (iis.itemSlot != iis) sllls.Add(iis.itemSlot);
 					foreach (InventoryItemSlot iis2 in iis.itemSlot.otherSlots)  {

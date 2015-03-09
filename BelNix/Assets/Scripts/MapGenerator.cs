@@ -2093,7 +2093,7 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	void handleInput()  {
-		if (Conversation.conversationOpen) return;
+		if (Conversation.conversationOpen || gameState != GameState.Playing) return;
 		handleKeys();
 		if (GameGUI.escapeMenuOpen) return;
 		if (currentUnitIsPrimal())  {

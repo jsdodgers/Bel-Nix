@@ -184,8 +184,10 @@ public class MyGUI : MonoBehaviour {
 
 		
 		int oldMapMode = mapMode;
-		mapMode = GUI.SelectionGrid(new Rect(loadButtonX, editTypeY, loadButtonWidth, loadButtonHeight), mapMode, new string[]{"Tiles","Vis", "Doors"}, 3);
+		mapMode = GUI.SelectionGrid(new Rect(loadButtonX, editTypeY, loadButtonWidth, loadButtonHeight), mapMode, new string[]{"Tiles","Visibility"}, 2);
 		if (mapMode != oldMapMode) {
+			gridManager.shiftDraggin = false;
+			gridManager.wasShiftDraggin = false;
 			if (mapMode == 0) {
 				gridManager.showGrids();
 			} 

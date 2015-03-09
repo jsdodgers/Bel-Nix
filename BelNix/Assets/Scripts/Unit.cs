@@ -3999,6 +3999,7 @@ public class Unit : MonoBehaviour  {
 		usedDecisiveStrike = true;
 		usedStandard = false;
 		BattleGUI.resetStandardButtons();
+		chooseNextBestActionType();
 	//	BattleGUI.hideStandardArm(false);
 	}
 	

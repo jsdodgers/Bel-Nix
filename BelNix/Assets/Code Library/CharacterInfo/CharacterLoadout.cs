@@ -128,7 +128,6 @@ public class CharacterLoadoutActual  {
 	}
 
 	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null)  {
-		Debug.Log("setItemInSlot: "+ itemSlot);
 		if (itemSlot == InventorySlot.None) return;
 		removeSprite(getItemInSlot(itemSlot));
 		if (item != null && item.spritePrefab != null && character != null && character.unit != null)  {
