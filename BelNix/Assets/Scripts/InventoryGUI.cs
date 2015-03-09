@@ -205,6 +205,9 @@ public class InventoryGUI : MonoBehaviour  {
 		setLootInteractable(true);
 		if (at == ActionType.Minor) selectedUnit.useMinor(MinorType.Loot, false, false);
 		else if (at == ActionType.Standard) selectedUnit.useStandard();
+		if (!selectedUnit.usedStandard) {
+			BattleGUI.resetStandardButtons();
+		}
 	}
 	
 	public static void selectItem()  {
