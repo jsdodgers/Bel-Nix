@@ -70,8 +70,12 @@ public class MapGenerator : MonoBehaviour  {
 	public float viewRadius;
 	public Unit mainUnit;
 	public GameState gameState = GameState.Playing;
-    public int experienceReward;
-    public int copperReward;
+
+	[Space(10)]
+	[Header("Rewards")]
+    public int experienceReward = 0;
+    public int copperReward = 0;
+	public List<EditorItem> rewardItems = new List<EditorItem>();
 	public string tileMapName;
 	public int gridSize = 64;
 	public string goalText = "";
@@ -188,6 +192,7 @@ public class MapGenerator : MonoBehaviour  {
 	int screenHeight = 0;
 
 	public List<Unit> priorityOrder;
+	public Stash stash;
 
 	public int currentUnit;
 
@@ -717,15 +722,20 @@ public class MapGenerator : MonoBehaviour  {
         int individualExpReward = Mathf.FloorToInt( experienceReward / livingPlayers.Count );
         foreach (Unit u in livingPlayers)  {
 			u.characterSheet.characterSheet.characterProgress.addExperience(individualExpReward);
-			if (u != mainCharacter)
-				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+			stash.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+	//		if (u != mainCharacter)
+	//			mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
 		}
 		foreach (Unit u in outOfGameUnits)  {
-			if (u != mainCharacter)
-				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+			stash.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
+//			if (u != mainCharacter)
+//				mainCharacter.characterSheet.characterSheet.inventory.purse.takeAllMoney(u.characterSheet.characterSheet.inventory.purse);
 		}
-        mainCharacter.characterSheet.characterSheet.inventory.purse.receiveMoney(copperReward, 0, 0);
-
+//        mainCharacter.characterSheet.characterSheet.inventory.purse.receiveMoney(copperReward, 0, 0);
+		stash.addMoney(copperReward);
+		foreach (EditorItem item in rewardItems) {
+			stash.addItem(item.getItem());
+		}
     }
 
 	public static float getAngle(Vector3 start, Vector3 end)  {
@@ -752,20 +762,9 @@ public class MapGenerator : MonoBehaviour  {
 	void Start()  {
 		mg = this;
 		handWeapon = handWeaponEditor.getWeapon();
-		Debug.Log("Start");
-		GameGUI.mapGenerator = this;
-		GameGUI.resetVars();
-		RenderTexture tex = new RenderTexture(100, 100, 1);
-		tex.Create();
-		Debug.Log("Starting Tests!");
-		Debug.Log(hasLineOfSight(new Vector2(17, -28), new Vector2(17, -35)));
-		Debug.Log(hasLineOfSight(new Vector2(17, -35), new Vector2(17, -28)));
-		Debug.Log("Angle Tests");
-		Debug.Log(getAngle(new Vector2(0,0), new Vector2(1,0)));
-		Debug.Log(getAngle(new Vector2(0,0), new Vector2(0,1)));
-		Debug.Log(getAngle(new Vector2(0,0), new Vector2(0,-1)));
-		Debug.Log(getAngle(new Vector2(0,0), new Vector2(-1,0)));
-		Debug.Log("Ended Tests!");
+
+		stash = new Stash();
+		stash.loadStash();
 		Time.timeScale = 1;
 		if (testAnimations) Time.timeScale = timeScale;
 		GameObject mainCameraObj = GameObject.Find("Main Camera");

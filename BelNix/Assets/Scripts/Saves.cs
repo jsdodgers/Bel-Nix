@@ -71,6 +71,15 @@ public class Saves  {
 		return File.ReadAllText(getCharacterPath(characterId));
 	}
 
+	public static string getStashPath() {
+		return getCurrentSaveDirectory() + "/Stash.txt";
+	}
+
+	public static string getStashString() {
+		if (!File.Exists(getStashPath())) return "0;0";
+		return File.ReadAllText(getStashPath());
+	}
+
 	public static string[] getCharacterList()  {
 		string text = File.ReadAllText(getCharactersListFilePath());
 		return text.Split(new char[] {';'});
@@ -96,6 +105,10 @@ public class Saves  {
 
 		}
 		File.WriteAllText(getCharacterPath(characterId), characterStr);
+	}
+
+	public static void saveStash(string stashStr) {
+		File.WriteAllText(getStashPath(), stashStr);
 	}
 
 	public static string getnewCharacterUUID()  {
