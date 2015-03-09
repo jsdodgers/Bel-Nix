@@ -31,6 +31,9 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        
+        subClassStart();
+
         abilityScorePointList[1].GetComponent<Text>().text = sturdy.ToString();
         abilityScorePointList[2].GetComponent<Text>().text = perception.ToString();
         abilityScorePointList[3].GetComponent<Text>().text = technique.ToString();
@@ -54,7 +57,6 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
         skillScorePointList[7].GetComponent<Text>().text = calculateSkill(historical, well_versed, 6).ToString();
         skillScorePointList[8].GetComponent<Text>().text = calculateSkill(political, well_versed, 7).ToString();
         skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
-        subClassStart();
 	}
 
     protected abstract void subClassStart();

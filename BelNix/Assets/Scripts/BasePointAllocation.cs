@@ -28,8 +28,11 @@ public class BasePointAllocation : AbstractPointAllocation {
 
     protected override int calculateSkill(int skill, int abilityScore, int skillNumber)
     {
-
-        throw new System.NotImplementedException();
+        int skillTotal = 0;
+        skillTotal += character.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getSkillModifiers()[skillNumber];
+        skillTotal += skill;
+        skillTotal += calculateMod(abilityScore);
+        return skillTotal;
     }
     public override int calculateHealth()
     {
@@ -43,6 +46,12 @@ public class BasePointAllocation : AbstractPointAllocation {
     }
     public override int calculateComposure()
     {
-        throw new System.NotImplementedException();
+        int composure = 0;
+
+        composure += character.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getComposureModifier();
+        composure += character.characterSheet.personalInformation.getCharacterRace().getComposureModifier();
+        composure += technique;
+        composure += well_versed;
+        return composure;
     }
 }
