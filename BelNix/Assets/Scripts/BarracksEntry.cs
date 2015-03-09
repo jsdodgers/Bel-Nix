@@ -34,6 +34,7 @@ public class BarracksEntry : MonoBehaviour  {
     private AtAGlance atAGlance;
     private Options options;
     private GameObject statsPanel;
+    private GameObject featuresPanel;
 
     private Physique physique;
     private Prowess prowess;
@@ -41,12 +42,12 @@ public class BarracksEntry : MonoBehaviour  {
     private Knowledge knowledge;
 
 	// Use this for initialization
-	void Start ()  {
+	void Awake ()  { 
         storeChildren();
-        Debug.Log("Stored Children");
+
         hidePanel(statsPanel);
+        hidePanel(featuresPanel);
         hidePanel(options.panel);
-        //hidePanel()
 	}
 	
 	// Update is called once per frame
@@ -63,11 +64,11 @@ public class BarracksEntry : MonoBehaviour  {
     }
 
     private void assignAtAGlance() {
-        Debug.Log(atAGlance.panel.name);
+        //Debug.Log(atAGlance.panel.name);
         var characterSheet = character.characterSheet;
         atAGlance.description.text = string.Format(atAGlance.description.text,
             characterSheet.personalInformation.getCharacterName().fullName(), 
-            characterSheet.characterProgress.getCharacterClass().getClassName().ToString(), 
+            characterSheet.characterProgress.getCharacterClass().getClassName().ToString(),
             characterSheet.personalInformation.getCharacterRace().getRaceString(), 
             characterSheet.personalInformation.getCharacterBackgroundString());
         atAGlance.status.text = string.Format(atAGlance.status.text,
@@ -117,11 +118,11 @@ public class BarracksEntry : MonoBehaviour  {
         var characterProgress = character.characterSheet.characterProgress;
         int characterLevel = characterProgress.getCharacterLevel();
         ClassFeature[] features = characterProgress.getCharacterClass().getPossibleFeatures(characterLevel);
-        GameObject featurePanel = gameObject.transform.FindChild("Panel - Class Features").FindChild("Panel - Feature List").gameObject;
-        GameObject exampleText = featurePanel.transform.GetChild(0).gameObject;
+        GameObject featureList = featuresPanel.transform.FindChild("Panel - Feature List").gameObject;
+        GameObject exampleText = featureList.transform.GetChild(0).gameObject;
         foreach (var feature in features) {
             GameObject newText = (GameObject)Instantiate(exampleText);
-            newText.transform.SetParent(featurePanel.transform);
+            newText.transform.SetParent(featureList.transform);
             newText.GetComponent<Text>().text = ClassFeatures.getName(feature);
         }
         Destroy(exampleText);
@@ -144,7 +145,7 @@ public class BarracksEntry : MonoBehaviour  {
             inventory = optionsPanel.FindChild("Button - Inventory").gameObject.GetComponent<Button>(),
             levelUp = optionsPanel.FindChild("Button - Level Up").gameObject.GetComponent<Button>()
         };
-
+        featuresPanel = gameObject.transform.FindChild("Panel - Class Features").gameObject;
         statsPanel = this.gameObject.transform.FindChild("Panel - Character Stats").gameObject;
         Transform physiquePanel = statsPanel.transform.FindChild("Panel - Physique Stats");
         physique = new Physique() {
@@ -176,9 +177,26 @@ public class BarracksEntry : MonoBehaviour  {
         panel.SetActive(false);
     }
     public void showPanel(GameObject panel) {
+        if (panel == statsPanel)
+            hidePanel(featuresPanel);
+        if (panel == featuresPanel)
+            hidePanel(statsPanel);
         panel.SetActive(true);
     }
     public void togglePanel(GameObject panel) {
-        panel.SetActive(!panel.activeSelf);
+        if (panel.activeSelf)
+            hidePanel(panel);
+        else
+            showPanel(panel);
+//        panel.SetActive(!panel.activeSelf);
+    }
+    public void onStopHovering()
+    {
+        if (statsPanel.activeSelf || featuresPanel.activeSelf)
+            return;
+        else
+        {
+            hidePanel(options.panel);
+        }
     }
 }
