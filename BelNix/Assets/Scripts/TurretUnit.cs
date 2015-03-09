@@ -147,7 +147,7 @@ public class TurretUnit : MechanicalUnit  {
 		return turret.frame.getHardness();
 	}
 
-	public override bool canAttOpp()  {
+	public override bool canAttOpp(Unit u)  {
 		return false;
 	}
 

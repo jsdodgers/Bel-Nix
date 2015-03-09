@@ -1005,8 +1005,12 @@ public class MapGenerator : MonoBehaviour  {
 			}
 		}
 		if(anyEnemiesActive)  {
-			aManager.invokeFadeInMusic();
+			fadeInMusic();
 		}
+	}
+
+	public void fadeInMusic() {
+		aManager.invokeFadeInMusic();
 	}
 
 	public void activateNearbyEnemies(Unit e)  {

@@ -202,6 +202,7 @@ public class Unit : MonoBehaviour  {
 	
 	public void setActive(bool active)  {
 		aiActive = active;
+		if (active) mapGenerator.fadeInMusic();
 		BattleGUI.writeToConsole(getName() + " has been " + (active?"":"de") + "activated!");
 	}
 	
@@ -2572,10 +2573,17 @@ public class Unit : MonoBehaviour  {
 		//		rotating = false;
 	}
 	
-	public virtual bool canAttOpp()  {
-		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !(getWeapon() is Medicinal) && !isProne();
+	public virtual bool canAttOpp(Unit u)  {
+		return !deadOrDyingOrUnconscious() && !inPrimal && getWeapon() != null && !getWeapon().isRanged && !(getWeapon() is Medicinal) && !isProne() && (playerControlled || (aiActive && knowsUnit(u) && (!onlyRetaliate || attackedByUnits.Contains(u))));
 	}
-	
+
+
+	public bool knowsUnit(Unit u) {
+		foreach (KnownUnit ku in knownEnemies) {
+			if (ku.knownUnit == u) return true;
+		}
+		return false;
+	}
 	public int attackOfOpp(Vector2 one, Direction dir)  {
 		int move = 0;
 		/*for (int n=-1;n<=1;n++)  {
@@ -3237,6 +3245,7 @@ public class Unit : MonoBehaviour  {
 	bool gettingThrown = false;
 	Vector3 gettingThrownPosition;
 	void getThrown(Direction dir, int distance, Unit thrownBy)  {
+		activateAITo(thrownBy);
 		Debug.Log("getThrown(" + dir + ", " + distance + ")");
 		int x = (int)position.x;
 		int y = (int)-position.y;
@@ -3422,6 +3431,7 @@ public class Unit : MonoBehaviour  {
 			int wapoon = Mathf.Max(1, characterSheet.characterSheet.combatScores.getSturdyMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			attackEnemy.activateAITo(this);
 			if (didHit)  {
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
 					primalControlUnit = attackEnemy;
@@ -3462,6 +3472,7 @@ public class Unit : MonoBehaviour  {
 			int wapoon = Mathf.Max(1, characterSheet.characterSheet.combatScores.getWellVersedMod());
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
+			attackEnemy.activateAITo(this);
 			if (didHit)  {
 				attackEnemy.setRotationToCharacter(this);
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
@@ -3813,6 +3824,7 @@ public class Unit : MonoBehaviour  {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		//Debug.Log("Deal Damage: " + attackEnemy);
 		attackEnemy.showDamage(wapoon, didHit, crit);
+		attackEnemy.activateAITo(this);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
         if (didHit) {
             attackEnemy.damage(wapoon, this, animate);
@@ -3908,15 +3920,19 @@ public class Unit : MonoBehaviour  {
 	public virtual bool givesDecisiveStrike()  {
 		return true;
 	}
+
+	public void activateAITo(Unit u) {
+		if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit))  {
+			addKnownUnit(u);
+			if (!aiActive) setActive(true);
+			mapGenerator.activateNearbyEnemies(this);
+		}
+		attackEnemy.attackedByUnits.Add(this);
+	}
 	
 	public void damage(int damage, Unit u, bool animate = false)  {
 		//	Debug.Log("Damage");
 		if (damage > 0)  {
-			if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit))  {
-				addKnownUnit(u);
-				if (!aiActive) setActive(true);
-				mapGenerator.activateNearbyEnemies(this);
-			}
 			crushingHitSFX();
 			//			hitPoints -= damage;
 			//			if (hitPoints <= 0) died = true;
