@@ -33,6 +33,7 @@ public class BaseManager : MonoBehaviour  {
 	[Header("Black Market")]
 	public List<BlackMarketSection> blackMarket = new List<BlackMarketSection>();
 	public GameObject blackMarketItemPrefab;
+	public RectTransform blackMarketScrollRect;
 	public Transform blackMarketScrollContent;
 	public Scrollbar blackMarketScrollBar;
 	public GameObject blackMarketCanvas;
@@ -133,6 +134,10 @@ public class BaseManager : MonoBehaviour  {
 			container.setUp(item, this);
 			newItem.transform.SetParent(blackMarketScrollContent, false);
 		}
+		setBlackMarketContentLayoutMinSize();
+	}
+	public void setBlackMarketContentLayoutMinSize() {
+		blackMarketScrollContent.GetComponent<LayoutElement>().minHeight = blackMarketScrollRect.sizeDelta.y;
 		blackMarketScrollBar.value = 0.9990f;
 		Invoke("setBlackMarketScrollBar", 0.0108f);
 	}
@@ -145,6 +150,7 @@ public class BaseManager : MonoBehaviour  {
 		stash.addItem(i);
 		setCanAffordItems();
 	}
+
 
 	void Start ()  {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
@@ -191,10 +197,15 @@ public class BaseManager : MonoBehaviour  {
 		} while (Saves.hasSaveFileNamed(saveName));
 	}
 
+	int height = 0;
 	// Update is called once per frame
 	void Update ()  {
 		handleInput();
 		UnitGUI.doTabs();
+		if (height != (int)blackMarketScrollRect.sizeDelta.y) {
+			height = (int)blackMarketScrollRect.sizeDelta.y;
+			setBlackMarketContentLayoutMinSize();
+		}
 	}
 
 	void handleInput()  {

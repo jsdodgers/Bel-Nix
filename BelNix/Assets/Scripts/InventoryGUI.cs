@@ -65,8 +65,8 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	void setACText()  {
-		if (selectedUnit == null) return;
-		inventoryAC.text = "AC: " + selectedUnit.getAC();
+		if (selectedCharacter == null && selectedUnit == null) return;
+		inventoryAC.text = "AC: " + (selectedUnit != null ? selectedUnit.getAC() :selectedCharacter.characterSheet.characterLoadout.getAC());
 	}
 	
 	public void moveSelectedItem()  {
@@ -83,7 +83,7 @@ public class InventoryGUI : MonoBehaviour  {
 			setLootInteractable(true);
 			return;
 		}
-		CharacterSheet cs = selectedUnit.characterSheet.characterSheet;
+		CharacterSheet cs = selectedCharacter.characterSheet;
 		Item i = selectedItem.GetComponent<InventoryItem>().item;
 		InventorySlot insertSlot = originalSlot;
 		if (overlayObjects.Count > 0)  {
@@ -113,6 +113,10 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 		ActionType at = Inventory.getActionTypeForMovement(originalSlot, insertSlot);
+		if (!canUseActionType(at)) insertSlot = originalSlot;
+//		if (selectedUnit != null) {
+//			if ((at == ActionType.Minor && selectedUnit.minorsLeft <= 0) || (at == ActionType.Standard && selectedUnit.usedStandard) || (at == ActionType.Movement && selectedUnit.usedMovement)) return;
+//		}
 		if (UnitGUI.armorSlots.Contains(insertSlot))  {
 			Item i2 = cs.characterLoadout.getItemInSlot(insertSlot);
 			GameObject oldItem = null;
@@ -164,8 +168,10 @@ public class InventoryGUI : MonoBehaviour  {
 				Debug.Log("Drop has item2: " + insertSlot + "  " + vSlot + "   " + iSlot + "  " + selectedCell);
 				selectedCell = new Vector2(0,0);
 			}
-			selectedUnit.idleAnimation(false);
-			selectedUnit.Invoke("beginIdle",0.05f);
+			if (selectedUnit != null) {
+				selectedUnit.idleAnimation(false);
+				selectedUnit.Invoke("beginIdle",0.05f);
+			}
 			
 		}
 		if (UnitGUI.inventorySlots.Contains(insertSlot))  {
@@ -210,12 +216,14 @@ public class InventoryGUI : MonoBehaviour  {
 		}
 		setACText();
 		setLootInteractable(true);
-		if (at == ActionType.Minor) selectedUnit.useMinor(MinorType.Loot, false, false);
-		else if (at == ActionType.Standard) selectedUnit.useStandard();
-		if (!selectedUnit.usedStandard) {
-			StandardType[] standards = selectedUnit.getStandardTypes();
-			if (!sameAsOldStandards(standards)) {
-				BattleGUI.resetStandardButtons();
+		if (selectedUnit != null) {
+			if (at == ActionType.Minor) selectedUnit.useMinor(MinorType.Loot, false, false);
+			else if (at == ActionType.Standard) selectedUnit.useStandard();
+			if (!selectedUnit.usedStandard) {
+				StandardType[] standards = selectedUnit.getStandardTypes();
+				if (!sameAsOldStandards(standards)) {
+					BattleGUI.resetStandardButtons();
+				}
 			}
 		}
 	}
@@ -233,7 +241,7 @@ public class InventoryGUI : MonoBehaviour  {
 
 	StandardType[] beforeItemStandards = null;
 	public void selectItem(Image overlayObject)  {
-		beforeItemStandards = selectedUnit.getStandardTypes();
+		beforeItemStandards = (selectedUnit != null ? selectedUnit.getStandardTypes() : new StandardType[0]);
 		InventoryItem ii = overlayObject.GetComponent<InventoryItem>();
 		InventorySlot sl = ii.slot;
 		Item i = null;
@@ -252,13 +260,13 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 		else if (UnitGUI.armorSlots.Contains(sl))  {
-			i = selectedUnit.characterSheet.characterSheet.characterLoadout.removeItemFromSlot(sl);
+			i = selectedCharacter.characterSheet.characterLoadout.removeItemFromSlot(sl);
 			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().sizeDelta= new Vector2(64.0f, 64.0f);
 			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 0.0f);
 			originalSlot = sl;
 		}
 		else if (UnitGUI.inventorySlots.Contains(sl))  {
-			ItemReturn i2 = selectedUnit.characterSheet.characterSheet.inventory.removeItemFromSlot(sl);
+			ItemReturn i2 = selectedCharacter.characterSheet.inventory.removeItemFromSlot(sl);
 			i = i2.item;
 			originalSlot = UnitGUI.getInventorySlotFromIndex(UnitGUI.getIndexOfSlot(sl) - i2.slot);
 		}
@@ -321,7 +329,6 @@ public class InventoryGUI : MonoBehaviour  {
 	
 	public void setLoot(List<Item> items, Tile t)  {
 		currentLootTile = t;
-		Unit u = selectedUnit;
 		foreach (Item i in items)  {
 			if (i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
@@ -348,11 +355,11 @@ public class InventoryGUI : MonoBehaviour  {
 					case ArmorType.Head:
 					case ArmorType.Chest:
 					case ArmorType.Shoulder:
-						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.primaryColor;
+						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
 						break;
 					case ArmorType.Gloves:
 					case ArmorType.Pants:
-						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.secondaryColor;
+						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
 						break;
 					default:
 						break;
@@ -362,7 +369,7 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 	}
-	
+
 	public void setLootScrollBar()  {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = 1;
 	}
@@ -537,7 +544,7 @@ public class InventoryGUI : MonoBehaviour  {
 		if (selectedItem == null)  {
 			if (UnitGUI.inventorySlots.Contains(slot))  {
 				Debug.Log(slot);
-				InventoryItemSlot iis = (selectedUnit == null ? null : selectedUnit.characterSheet.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero]);
+				InventoryItemSlot iis = (selectedCharacter == null ? null : selectedCharacter.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero]);
 				if (iis != null && iis.hasItem())  {
 					List<InventoryItemSlot> sllls = new List<InventoryItemSlot>();
 					if (iis.itemSlot != iis) sllls.Add(iis.itemSlot);
@@ -560,18 +567,18 @@ public class InventoryGUI : MonoBehaviour  {
 			if (UnitGUI.inventorySlots.Contains(slot))  {
 				Vector2 currentHighlightSlot = UnitGUI.getIndexOfSlot(slot);
 				Vector2 originSlot = currentHighlightSlot - selectedCell;
-				Item i2 = selectedUnit.characterSheet.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].getItem();
+				Item i2 = selectedCharacter.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].getItem();
 				if (i2 != null)  {
-					if (selectedUnit.characterSheet.characterSheet.inventory.itemCanStackWith(i2,i) || !canUseActionType(at))  {
+					if (!selectedCharacter.characterSheet.inventory.itemCanStackWith(i2,i) || !canUseActionType(at))  {
 						c = badColor;
 					}
 					else  {
 						i = i2;
-						originSlot = UnitGUI.getIndexFromLinearIndex(selectedUnit.characterSheet.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].itemSlot.index);
+						originSlot = UnitGUI.getIndexFromLinearIndex(selectedCharacter.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].itemSlot.index);
 					}
 				}
 				else  {
-					if (!canUseActionType(at) || !(originSlot.y >= 0 && originSlot.x >= 0 && originSlot.x < 4 && originSlot.y < 4 && selectedUnit.characterSheet.characterSheet.inventory.canInsertItemInSlot(i, originSlot)))  {
+					if (!canUseActionType(at) || !(originSlot.y >= 0 && originSlot.x >= 0 && originSlot.x < 4 && originSlot.y < 4 && selectedCharacter.characterSheet.inventory.canInsertItemInSlot(i, originSlot)))  {
 						c = badColor;
 					}
 				}
@@ -586,7 +593,7 @@ public class InventoryGUI : MonoBehaviour  {
 				}
 			}
 			else if (UnitGUI.armorSlots.Contains(slot))  {
-				if (!selectedUnit.characterSheet.characterSheet.characterLoadout.canInsertItemInSlot(slot, i, originalSlot))  {
+				if (!selectedCharacter.characterSheet.characterLoadout.canInsertItemInSlot(slot, i, originalSlot))  {
 					c = badColor;
 				}
 			}
@@ -602,6 +609,7 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public bool canUseActionType(ActionType at)  {
+		if (selectedUnit == null) return true;
 		switch (at)  {
 		case ActionType.Minor:
 			return selectedUnit.minorsLeft > 0;

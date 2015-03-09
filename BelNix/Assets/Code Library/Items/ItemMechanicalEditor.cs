@@ -167,6 +167,7 @@ public class Turret : Item, ItemMechanical  {
 		return frame.getDurability();
 	}
 	public Turret(string creator, Frame fr, Applicator app, Gear g, EnergySource es)  {
+		itemName = "Turret";
 		itemStackType = ItemStackType.Turret;
 		frame = fr;
 		applicator = app;
@@ -237,6 +238,7 @@ public class Trap : Item, ItemMechanical  {
 		return applicator.rollDamage() + gear.additionalDamage();
 	}
 	public Trap(string creator, Frame fr, Applicator app, Gear g, Trigger tr)  {
+		itemName = "Trap";
 		frame = fr;
 		applicator = app;
 		gear = g;

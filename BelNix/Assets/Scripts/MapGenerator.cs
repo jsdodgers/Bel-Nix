@@ -762,7 +762,7 @@ public class MapGenerator : MonoBehaviour  {
 	void Start()  {
 		mg = this;
 		handWeapon = handWeaponEditor.getWeapon();
-
+		GameGUI.mapGenerator = this;
 		stash = new Stash();
 		stash.loadStash();
 		Time.timeScale = 1;
