@@ -121,82 +121,6 @@ public class MainMenuGUI : MonoBehaviour  {
 		}
 	}
 
-	void OnGUI ()  {
-		/*
-		GUI.depth = 10;
-		if (!splashArt)  {
-			Debug.LogError("Assign a Texture in the inspector.");
-			return;
-		}
-		GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), splashArt, ScaleMode.StretchToFill, true, 0);
-		*/
-		/*
-		if (loading)  {
-			//	float width = 250.0f;
-			//	float height = Screen.height * .8f;
-			//	float x = (Screen.width - width)/2.0f;
-			//	float y = (Screen.height - height)/2.0f;
-			//	float boxY = y;
-			//	GUI.Box(new Rect(x, y, width, height), "");
-			float buttonWidth = 80.0f;
-			float buttonHeight = 40.0f;
-			float buttonY = boxY + boxHeight - buttonHeight - 5.0f;
-			float buttonX1 = boxX + 10.0f;
-			float buttonX2 = buttonX1 + buttonWidth + 20.0f;
-			if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel"))  {
-				loading = false;
-				loadingName = "";
-			}
-			if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Load"))  {
-				Saves.loadSave(loadingName);
-				//	loading = false;
-				Application.LoadLevel(2);
-			}
-			//	float textFieldHeight = 25.0f;
-			//	saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
-			float savesHeight = 0.0f;
-			GUIStyle st = BaseManager.getSaveButtonsStyle();
-			foreach (string save in saves)  {
-				savesHeight += st.CalcSize(new GUIContent(save)).y;
-			}
-			float y = 5.0f + boxY + 20.0f;
-			float scrollHeight = buttonY - y - 5.0f;
-			float scrollX = boxX + 5.0f;
-			float scrollWidth = boxWidth - (scrollX - boxX) * 2.0f;
-			loadingScrollPos = GUI.BeginScrollView(new Rect(scrollX, y, scrollWidth, scrollHeight), loadingScrollPos, new Rect(scrollX, y, scrollWidth - 16.0f, savesHeight));
-			foreach (string save in saves)  {
-				GUIContent gc = new GUIContent(save);
-				float h = st.CalcSize(gc).y;
-				if (GUI.Button(new Rect(scrollX, y, scrollWidth, h), gc, st))  {
-					loadingName = save;
-				}
-				y += h;
-			}
-			GUI.EndScrollView();
-		}
-
-		if(GUI.Button(new Rect(buttX, Screen.height/2 + 20, buttWidth, 40), "New Game"))  {
-			Saves.removeFilesFromCurrentSaveFile();
-			//Load into Character Creation
-			PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
-			Application.LoadLevel(1);
-		}
-		if(GUI.Button(new Rect(buttX, Screen.height/2 + 60, buttWidth, 40), "Load Game"))  {
-			saves = Saves.getSaveFiles();
-			loading = true;
-			loadingScrollPos = new Vector2();
-			//				Application.LoadLevel(4);
-		}
-		if(GUI.Button(new Rect(buttX, Screen.height/2 + 100, buttWidth, 40), "Options"))  {
-			//Bring up Options UI.  Do NOT load into a new scene.
-		}
-		if(GUI.Button(new Rect(buttX, Screen.height/2 + 140, buttWidth, 40), "Quit"))  {
-			//Quit the Application
-			Application.Quit();
-		}
-		*/
-	}
-	
 	// Update is called once per frame
 	void Update ()  {
 		// If the escape key is pressed, it should dismiss the load game or options panel, or quit
@@ -218,7 +142,7 @@ public class MainMenuGUI : MonoBehaviour  {
 		// With how the Unity 4.6 UI works, if you click somewhere besides a button, you'll drop focus
 		// on the button and no longer be able to use the arrow keys to navigate the buttons until you click on one again.
 		// Solution: on Mouse up (any mouse key), reset the focus to New Game (or Load Game if available)
-		else if (Input.GetMouseButtonUp(0) || Input.GetMouseButtonUp(1) || Input.GetMouseButtonUp(2))
-			resetFocus();
+		//else if (Input.GetMouseButtonUp(0) || Input.GetMouseButtonUp(1) || Input.GetMouseButtonUp(2))
+		//	resetFocus();
 	}
 }
