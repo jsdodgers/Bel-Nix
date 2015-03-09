@@ -207,7 +207,7 @@ public class Unit : MonoBehaviour  {
 	
 	public int sneakAttackBonus(Unit u)  {
 		if (!hasCombatAdvantageOver(u) || !characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Sneak_Attack)) return 0;
-		int perception = characterSheet.characterSheet.combatScores.getPerceptionMod((hasMarkOn(u) ? 2 : 0));
+		int perception = characterSheet.characterSheet.combatScores.getPerceptionMod(hasMarkOn(u));
 		if (distanceFromUnit(u) <= 1.5f) return perception;
 		return perception/2;
 	}
