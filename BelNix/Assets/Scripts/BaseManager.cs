@@ -43,6 +43,8 @@ public class BaseManager : MonoBehaviour  {
 	
 	[Space(20)]
 	[SerializeField]
+	private InventoryGUI inventory; 
+	[SerializeField]
 	private GameObject baseGUI;
 
 	private BaseState baseState = BaseState.None;
@@ -169,6 +171,9 @@ public class BaseManager : MonoBehaviour  {
 				setCanAffordItems();
 			}
 		}
+        InventoryGUI.setInventoryGUI(inventory);
+        //InventoryGUI.setupInvent();
+        //InventoryGUI.setInventoryShown(false)
         baseGUI.GetComponent<BaseGUI>().initializeBarracks(units);
 		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;

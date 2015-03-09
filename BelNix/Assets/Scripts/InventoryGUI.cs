@@ -51,6 +51,14 @@ public class InventoryGUI : MonoBehaviour  {
 	Vector3 mouseSelectPos = new Vector3();
 	Vector2 selectedCell = new Vector2();
 	InventorySlot originalSlot = InventorySlot.None;
+
+    public static bool isShown = false;
+
+    public static void setInventoryGUI(InventoryGUI i)
+    {
+        inventoryGUI = i;
+        isShown = false;
+    }
 	
 	public static void setInventoryAC()  {
 		inventoryGUI.setACText();
@@ -373,7 +381,9 @@ public class InventoryGUI : MonoBehaviour  {
 
 	public static void setupInvent(Unit u)  {
 		inventoryGUI.setupInventory(u, null);
+        isShown = true;
 	}
+
 	
 	public void setupInventory(Unit u, Character cs)  {
 		selectedUnit = u;
@@ -505,7 +515,8 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public static void setInventoryShown(bool shown)  {
-		inventoryGUI.gameObject.SetActive(shown);
+        isShown = shown;
+        inventoryGUI.gameObject.SetActive(shown);
 		if (!shown)  {
 			inventoryGUI.clearLoot();
 			while (inventoryGUI.overlayObjects.Count > 0)  {
