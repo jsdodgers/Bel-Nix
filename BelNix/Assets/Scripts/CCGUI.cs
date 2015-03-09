@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class CCGUI : MonoBehaviour {
 	public enum GUIState  {SEX, RACE, PHYSICAL_FEATURES, CLASS, ABILITY_SCORES, SKILLS, /*TALENTS,*/ NAME};
@@ -74,13 +75,47 @@ public class CCGUI : MonoBehaviour {
 	GameObject paperdollMain;
 	GUIStyle[] hairTextures;
 	int hairStyle = 0;
+	public EventSystem system;
+	public Selectable first;
+	public Selectable last;
+	bool shouldSelectFirst;
+
+	void Update() {
+		if (currentState != GUIState.NAME) return;
+//		EventSystem system = GameObject.Find("EventSystem").GetComponent<EventSystem>();
+		GameObject currObj = system.currentSelectedGameObject;
+		Selectable current = null;
+		if (currObj != null) current = currObj.GetComponent<Selectable>();
+		if (Input.GetKeyDown(KeyCode.Tab) || shouldSelectFirst) {// || current == null || (current != first && current != last)) {
+		
+			Debug.Log ("Next: " + shouldSelectFirst);
+			shouldSelectFirst = false;
+//			system.firstSelectedGameObject
+//			Selectable next = system.currentSelectedGameObject.GetComponent<Selectable>().FindSelectableOnDown();
+//			if (next == null) next = system.currentSelectedGameObject.GetComponent<Selectable>().FindSelectableOnUp();
+		//	Selectable current = system.currentSelectedGameObject.GetComponent<Selectable>();
+			Selectable next = first;
+			if (current == first) next = last;
+			if (next != null) {
+				
+				InputField inputfield = next.GetComponent<InputField>();
+				if (inputfield != null)
+					inputfield.OnPointerClick(new PointerEventData(system));  //if it's an input field, also set the text caret
+				
+				system.SetSelectedGameObject(next.gameObject, new BaseEventData(system));
+			}
+			//else Debug.Log("next nagivation element not found");
+			
+		}
+	}
+
 
 	public void selectTurret(Button b)  {
 		if (turret) return;
 		turret = true;
 		selectTurretButton(b);
 	}
-
+	
 	public void selectTrap(Button b)  {
 		if (!turret) return;
 		turret = false;
@@ -546,6 +581,7 @@ public class CCGUI : MonoBehaviour {
 			toggleAllExcept(stateList[(int)GUIState.TALENTS]);
 			break;*/
 		case GUIState.NAME:
+			shouldSelectFirst = true;
 			toggleAllExcept(stateList[(int)GUIState.NAME]);
 			break;
 		default:

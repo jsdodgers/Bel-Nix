@@ -202,6 +202,7 @@ public class Unit : MonoBehaviour  {
 	
 	public void setActive(bool active)  {
 		aiActive = active;
+		if (active) mapGenerator.fadeInMusic();
 		BattleGUI.writeToConsole(getName() + " has been " + (active?"":"de") + "activated!");
 	}
 	
@@ -3237,6 +3238,7 @@ public class Unit : MonoBehaviour  {
 	bool gettingThrown = false;
 	Vector3 gettingThrownPosition;
 	void getThrown(Direction dir, int distance, Unit thrownBy)  {
+		activateAITo(thrownBy);
 		Debug.Log("getThrown(" + dir + ", " + distance + ")");
 		int x = (int)position.x;
 		int y = (int)-position.y;
@@ -3503,6 +3505,7 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public bool damageComposure(int damage, Unit u)  {
+		activateAITo(thrownBy);
 		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState())  {
 			crushingHitSFX();
 			characterSheet.characterSheet.combatScores.loseComposure(damage);
@@ -3813,6 +3816,7 @@ public class Unit : MonoBehaviour  {
 		//	int hit = characterSheet.rollHit();//Random.Range(1,21);
 		//Debug.Log("Deal Damage: " + attackEnemy);
 		attackEnemy.showDamage(wapoon, didHit, crit);
+		attackEnemy.activateAITo(this);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
         if (didHit) {
             attackEnemy.damage(wapoon, this, animate);
@@ -3908,15 +3912,18 @@ public class Unit : MonoBehaviour  {
 	public virtual bool givesDecisiveStrike()  {
 		return true;
 	}
+
+	public void activateAITo(Unit u) {
+		if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit))  {
+			addKnownUnit(u);
+			if (!aiActive) setActive(true);
+			mapGenerator.activateNearbyEnemies(this);
+		}
+	}
 	
 	public void damage(int damage, Unit u, bool animate = false)  {
 		//	Debug.Log("Damage");
 		if (damage > 0)  {
-			if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit))  {
-				addKnownUnit(u);
-				if (!aiActive) setActive(true);
-				mapGenerator.activateNearbyEnemies(this);
-			}
 			crushingHitSFX();
 			//			hitPoints -= damage;
 			//			if (hitPoints <= 0) died = true;
