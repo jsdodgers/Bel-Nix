@@ -4,58 +4,50 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-class Combat {
+class Combat  {
 	
-	public static Hit rollHit(Unit attacker) {
+	public static Hit rollHit(Unit attacker)  {
 		int dieRoll = rollD20();
 		int criticalHitChance = attacker.getCritChance();//attacker.characterSheet.characterSheet.characterLoadout.rightHand.criticalChance;
 		return new Hit(attacker.rollForSkill((attacker.getWeapon().isRanged ? Skill.Ranged : Skill.Melee), attacker.attackEnemyIsFavoredRace(), 20, dieRoll) + (flanking(attacker) ? 2 : 0) + (attacker.hasUncannyKnowledge() ? 1 : 0) + (attacker.hasWeaponFocus() ? 2 : 0) + attacker.getOneOfManyBonus(OneOfManyMode.Hit) - attacker.temperedHandsMod, (dieRoll * 5) > (100 - criticalHitChance));
 	}
 	
 	
-	public static int rollDamage(Unit attacker) { return rollDamage(attacker, false); }
-	public static int rollDamage(Unit attacker, bool critical)  {
+	public static int rollDamage(Unit attacker)  { return rollDamage(attacker, false); }
+	public static int rollDamage(Unit attacker, bool critical)   {
 		return 0;   //return attacker.characterSheet.characterSheet.characterLoadout.rightHand.rollDamage(critical) + (critical ? attacker.characterSheet.characterSheet.combatScores.getCritical()
 	}
-    public static int rollDamage(Unit attacker, Unit attackedEnemy, bool crit)
-    {
+    public static int rollDamage(Unit attacker, Unit attackedEnemy, bool crit) {
         return attacker.rollDamage(crit);
     }
 
 
-    public static AttackHandler getAttackHandler()
-    {
-        try
-        {
+    public static AttackHandler getAttackHandler() {
+        try {
             AttackHandler attackHandler = GameObject.Find("Event Handler").GetComponent<AttackHandler>();
             return attackHandler;
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             GameObject eventHandler = new GameObject("Event Handler");
             eventHandler.transform.SetParent(GameObject.Find("MapGenerator").transform);
             return eventHandler.AddComponent<AttackHandler>();
         }
     }
-    private static void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false)
-    {
+    private static void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false) {
         AttackHandler attackHandler = getAttackHandler();
         attackHandler.OnAttackHit(attacker, attackedEnemy, damage, ranged, crit, overClockedAttack);
     }
-    private static void OnAttackMissed(Unit attacker, Unit attackedEnemy, bool ranged = false, bool overClockedAttack = false)
-    {
+    private static void OnAttackMissed(Unit attacker, Unit attackedEnemy, bool ranged = false, bool overClockedAttack = false) {
         AttackHandler attackHandler = getAttackHandler();
         attackHandler.OnAttackMissed(attacker, attackedEnemy, ranged, overClockedAttack);
     }
 
 
 
-    public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false)
-    {
+    public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false) {
 
         bool animate = false;
-        if (!attacker.damageCalculated)
-        {
+        if (!attacker.damageCalculated) {
             attacker.calculateDamage();
             animate = true;
         }
@@ -75,8 +67,7 @@ class Combat {
             (attacker.getWeapon() == null ? attacker.getGenderString() + " fist " : attacker.getWeapon().itemName + " ") + 
             "for " + weaponDamage + " damage!" : "!"), (attacker.team == 0 ? Log.greenColor : Color.red));
 
-        if (didHit) 
-        {
+        if (didHit)  {
             attackedEnemy.damage(weaponDamage, attacker, animate);
             BloodScript.spillBlood(attacker, attackedEnemy, weaponDamage);
             OnAttackHit(attacker, attackedEnemy, weaponDamage, false, crit, overClockedAttack);
@@ -85,40 +76,35 @@ class Combat {
             OnAttackMissed(attacker, attackedEnemy, false, overClockedAttack);
         //    attackedEnemy.damage(0, attacker);
 
-        if (overClockedAttack)
-        {
+        if (overClockedAttack) {
             Debug.Log("Over Clocked Attack!!!");
             Weapon weapon = attacker.characterSheet.characterSheet.characterLoadout.rightHand;
-            if (weapon is ItemMechanical)
-            {
+            if (weapon is ItemMechanical) {
                 ((WeaponMechanical)weapon).overClocked = true;
             }
         }
-        if (!attackedEnemy.moving)
-        {
+        if (!attackedEnemy.moving) {
             attackedEnemy.attackedByCharacter = attacker;
             attackedEnemy.setRotationToAttackedByCharacter();
             attackedEnemy.beingAttacked = true;
         }
-        else
-        {
+        else {
             attackedEnemy.shouldMove--;
             if (attackedEnemy.shouldMove < 0) attackedEnemy.shouldMove = 0;
         }
         //Debug.Log((hit.hit > 4 ? "wapoon: " + weaponDamage : "miss!") + " hit: " + hit.hit + "  " + hit.crit + "  critHit: " + critHit.hit + "   enemyAC: " + enemyAC);
     }
 
-    public static int overClockDamage(Unit attacker)
-    {
+    public static int overClockDamage(Unit attacker) {
         return attacker.characterSheet.overloadDamage();
     }
 	
 	// Returns true if the attacker and a teammate are flanking the defender (they are on opposite sides of the defender)
-	public static bool flanking(Unit attacker) {
+	public static bool flanking(Unit attacker)  {
 		return flanking(attacker, attacker.attackEnemy);
 	}
 	
-	public static bool flanking(Unit attacker, Unit enemy) {
+	public static bool flanking(Unit attacker, Unit enemy)  {
 		if (attacker == null || enemy == null) return false;
 		// Get the positions on the grid for the attacker and defender
 		Vector3 attackerPosition = attacker.position;
@@ -139,23 +125,19 @@ class Combat {
 	}
 	
 	// Simulate a single 20-sided die being rolled
-	public static int rollD20() {
+	public static int rollD20()  {
 		return UnityEngine.Random.Range(1, 21);
 	}
 }
 
-public class AttackHandler : MonoBehaviour
-{
+public class AttackHandler : MonoBehaviour {
     public delegate void attackEventHandler(AttackEventArgs args);
     public event attackEventHandler attackHit;
     public event attackEventHandler attackMissed;
 
-     public void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false)
-    {
-        if (attackHit != null)
-        {
-            attackHit(new AttackEventArgs()
-            {
+     public void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false) {
+        if (attackHit != null) {
+            attackHit(new AttackEventArgs() {
                 attackingUnit = attacker.gameObject,
                 attackedUnit = attackedEnemy.gameObject,
                 missed = false,
@@ -166,12 +148,9 @@ public class AttackHandler : MonoBehaviour
             });
         }
     }
-    public void OnAttackMissed(Unit attacker, Unit attackedEnemy, bool ranged = false, bool overClockedAttack = false)
-    {
-        if (attackMissed != null)
-        {
-            attackMissed(new AttackEventArgs()
-            {
+    public void OnAttackMissed(Unit attacker, Unit attackedEnemy, bool ranged = false, bool overClockedAttack = false) {
+        if (attackMissed != null) {
+            attackMissed(new AttackEventArgs() {
                 attackingUnit = attacker.gameObject,
                 attackedUnit = attackedEnemy.gameObject,
                 missed = true,
@@ -184,8 +163,7 @@ public class AttackHandler : MonoBehaviour
     }
 }
 
-public class AttackEventArgs : EventArgs
-{
+public class AttackEventArgs : EventArgs {
     public GameObject attackingUnit;
     public GameObject attackedUnit;
     public int damageDealt;

@@ -5,8 +5,7 @@ using System.Text;
 using UnityEngine;
 using System.Collections;
 
-public class CharacterLoadout : MonoBehaviour
-{
+public class CharacterLoadout : MonoBehaviour {
 
 
 	public ItemArmor headSlot;
@@ -19,16 +18,16 @@ public class CharacterLoadout : MonoBehaviour
 	public ItemWeapon leftHand;
 }
 
-public class SpriteOrder {
+public class SpriteOrder  {
 	public GameObject sprite;
 	public int order;
-	public SpriteOrder(GameObject sprite, int order) {
+	public SpriteOrder(GameObject sprite, int order)  {
 		this.sprite = sprite;
 		this.order = order;
 	}
 }
 
-public class CharacterLoadoutActual {
+public class CharacterLoadoutActual  {
 	public Armor headSlot;
 	public Armor chestSlot;
 	public Armor gloveSlot;
@@ -41,8 +40,8 @@ public class CharacterLoadoutActual {
 	public List<SpriteOrder> sprites;
 
 
-	public int getOrder(InventorySlot slot) {
-		switch (slot) {
+	public int getOrder(InventorySlot slot)  {
+		switch (slot)  {
 		case InventorySlot.RightHand:
 			return 10;
 		case InventorySlot.LeftHand:
@@ -64,38 +63,38 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public Item removeItemFromSlot(InventorySlot itemSlot) {
+	public Item removeItemFromSlot(InventorySlot itemSlot)  {
 		Item i = getItemInSlot(itemSlot);
 		setItemInSlot(itemSlot, null);
 		return i;
 	}
 
 
-	public bool canInsertItemInSlot(InventorySlot slot, Item item, InventorySlot fromSlot) {
+	public bool canInsertItemInSlot(InventorySlot slot, Item item, InventorySlot fromSlot)  {
 		Item i = getItemInSlot(slot);
 		ActionType at = Inventory.getActionTypeForMovement(slot, fromSlot);
 		if (at == ActionType.Minor && character.unit.minorsLeft <= 0) return false;
 		if (at == ActionType.Standard && character.unit.usedStandard) return false;
-		if (i != null) {
+		if (i != null)  {
 			if (fromSlot == InventorySlot.None) return false;
-			if (slot == InventorySlot.Shoulder) {
+			if (slot == InventorySlot.Shoulder)  {
 				if (fromSlot == InventorySlot.RightHand || fromSlot == InventorySlot.LeftHand) return false;
 			}
-			else if (slot == InventorySlot.RightHand || slot == InventorySlot.LeftHand) {
+			else if (slot == InventorySlot.RightHand || slot == InventorySlot.LeftHand)  {
 				if (fromSlot == InventorySlot.Shoulder) return false;
 			}
 			bool canIns = false;
-			for (int n=0;n<16;n++) {
-				if (character.characterSheet.inventory.canInsertItemInSlot(i, Inventory.getSlotForIndex(n))) {
+			for (int n=0;n<16;n++)  {
+				if (character.characterSheet.inventory.canInsertItemInSlot(i, Inventory.getSlotForIndex(n)))  {
 					canIns = true;
 					break;
 				}
 			}
 			if (!canIns) return false;
 		}
-		if (item is Armor) {
+		if (item is Armor)  {
 			ArmorType type = ((Armor)item).armorType;
-			switch (slot) {
+			switch (slot)  {
 			case InventorySlot.Head:
 				return type == ArmorType.Head;
 			case InventorySlot.Shoulder:
@@ -112,8 +111,8 @@ public class CharacterLoadoutActual {
 				return false;
 			}
 		}
-		else if (item is Weapon) {
-			switch (slot) {
+		else if (item is Weapon)  {
+			switch (slot)  {
 			case InventorySlot.RightHand:
 			case InventorySlot.LeftHand:
 			case InventorySlot.Shoulder:
@@ -122,21 +121,21 @@ public class CharacterLoadoutActual {
 				return false;
 			}
 		}
-		else {
+		else  {
 			return slot == InventorySlot.Shoulder && item.canPlaceInShoulder;
 		}
 		return false;
 	}
 
-	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null) {
+	public void setItemInSlot(InventorySlot itemSlot, Item item, CharacterColors colors = null)  {
 		Debug.Log("setItemInSlot: "+ itemSlot);
 		if (itemSlot == InventorySlot.None) return;
 		removeSprite(getItemInSlot(itemSlot));
-		if (item != null && item.spritePrefab != null && character != null && character.unit != null) {
+		if (item != null && item.spritePrefab != null && character != null && character.unit != null)  {
 			if (colors==null) colors = character.characterSheet.characterColors;
 			GameObject sprite = GameObject.Instantiate(item.spritePrefab) as GameObject;
 			SpriteRenderer sr = sprite.GetComponent<SpriteRenderer>();
-			switch (itemSlot) {
+			switch (itemSlot)  {
 			case InventorySlot.Head:
 			case InventorySlot.Chest:
 				sr.color = colors.primaryColor;
@@ -156,9 +155,9 @@ public class CharacterLoadoutActual {
 			sprite.transform.localEulerAngles = new Vector3(0, 0, 0);
 			sprites.Add(new SpriteOrder(item.sprite, getOrder(itemSlot)));
 			if (MapGenerator.mg != null && MapGenerator.mg.isInPriority())
-				SetRenderQueue.setRendererQueue(sr.renderer, new int[] {1000});
+				SetRenderQueue.setRendererQueue(sr.renderer, new int[]  {1000});
 		}
-		switch (itemSlot) {
+		switch (itemSlot)  {
 		case InventorySlot.Head:
 			headSlot = (Armor)item;
 			break;
@@ -186,12 +185,12 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public void removeSprite(Item i) {
+	public void removeSprite(Item i)  {
 		if (i==null) return;
-		if (i.sprite != null) {
+		if (i.sprite != null)  {
 //			if (sprites.Contains(i.sprite)) sprites.Remove(i.sprite);
-			foreach (SpriteOrder sprite in sprites) {
-				if (sprite.sprite == i.sprite) {
+			foreach (SpriteOrder sprite in sprites)  {
+				if (sprite.sprite == i.sprite)  {
 					sprites.Remove(sprite);
 					break;
 				}
@@ -201,8 +200,8 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public Item getItemInSlot(InventorySlot itemSlot) {
-		switch (itemSlot) {
+	public Item getItemInSlot(InventorySlot itemSlot)  {
+		switch (itemSlot)  {
 		case InventorySlot.Head:
 			return headSlot;
 		case InventorySlot.Chest:
@@ -224,11 +223,11 @@ public class CharacterLoadoutActual {
 		}
 	}
 
-	public CharacterLoadoutActual() {
+	public CharacterLoadoutActual()  {
 		sprites = new List<SpriteOrder>();
 	}
 
-	public CharacterLoadoutActual(CharacterLoadout loadout, Character character, CharacterColors colors) : this() {
+	public CharacterLoadoutActual(CharacterLoadout loadout, Character character, CharacterColors colors) : this()  {
 		this.character = character;
 		if (loadout==null) return;
 		if (loadout.headSlot) setItemInSlot(InventorySlot.Head, loadout.headSlot.getArmor(), colors);
@@ -241,8 +240,7 @@ public class CharacterLoadoutActual {
 		if (loadout.shoulderSlot) setItemInSlot(InventorySlot.Shoulder, loadout.shoulderSlot.getItem(), colors);
 	}
 
-	public int getAC()
-	{
+	public int getAC()  {
 		// sum up and return the AC from all equipped armor
 		
 		// For now, just return 10, fill this in later when items and armor are more fleshed out.

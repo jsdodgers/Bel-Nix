@@ -1,6 +1,5 @@
 using System;
-public class CharacterSheet
-{
+public class CharacterSheet {
 	public AbilityScores abilityScores;
 	public PersonalInformation personalInformation;
 	public CharacterProgress characterProgress;
@@ -11,8 +10,7 @@ public Inventory inventory;
 	public CharacterColors characterColors;
 
 	public CharacterSheet (AbilityScores abilityScore, PersonalInformation personalInfo, 
-	                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores, CharacterColors characterColors, Character character, CharacterLoadout loadout)
-	{
+	                       CharacterProgress characterProg, CombatScores cScores, SkillScores sScores, CharacterColors characterColors, Character character, CharacterLoadout loadout)  {
 		abilityScores			= abilityScore;
 		personalInformation		= personalInfo;
 		characterProgress		= characterProg;
@@ -28,8 +26,7 @@ public Inventory inventory;
 }
 
 
-public class CharacterConstants
-{
+public class CharacterConstants {
 	public const int BASE_AC = 5;
 }
 

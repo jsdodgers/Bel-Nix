@@ -2,10 +2,9 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class ScrollbarResetter : MonoBehaviour {
+public class ScrollbarResetter : MonoBehaviour  {
     private Scrollbar physicalFeatureScrollbar;
-    void Awake()
-    {
+    void Awake() {
         physicalFeatureScrollbar = GetComponent<Scrollbar>();
         physicalFeatureScrollbar.value = 0.999f;
         resetScrollBar();
@@ -13,25 +12,23 @@ public class ScrollbarResetter : MonoBehaviour {
     }
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
         physicalFeatureScrollbar.value = 0.999f;
         resetScrollBar();
 	}
 
-    void OnEnable()
-    {
+    void OnEnable() {
         physicalFeatureScrollbar.value = 0.999f;
         resetScrollBar();
         Debug.Log("ScrollBar Enabled");
     }
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 	
 	}
 
-    private void resetScrollBar()
-    {
+    private void resetScrollBar() {
         physicalFeatureScrollbar.value = 1;
     }
 }

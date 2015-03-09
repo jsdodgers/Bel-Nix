@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-public struct Hit {
+public struct Hit  {
 	public int hit;
 	public bool crit;
-	public Hit(int h, bool c) {hit = h; crit = c;}
+	public Hit(int h, bool c)  {hit = h; crit = c;}
 }
 
-public class Character
-{
+public class Character {
 	private PersonalInformation personalInfo;
 	private CharacterProgress characterProgress;
 	private AbilityScores abilityScores;
@@ -24,7 +23,7 @@ public class Character
 //	public ItemWeapon mainHand;
 
 
-	//bool flanking() {
+	//bool flanking()  {
     //    return Combat.flanking(this.unit);
 		//Vector3 pos = unit.position;
 		//Vector3 enemyPos = unit.attackEnemy.position;
@@ -35,32 +34,32 @@ public class Character
 		//return unit.mapGenerator.tiles[flankX, flankY].hasAlly(unit);
 	//}
 
-	public void setCharacterLoadout(CharacterLoadout cl) {
+	public void setCharacterLoadout(CharacterLoadout cl)  {
 		characterLoadout = cl;
 	}
 
-	public List<SpriteOrder> getSprites() {
+	public List<SpriteOrder> getSprites()  {
 		return characterSheet.characterLoadout.sprites;
 	}
 
-	public int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+	public int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1)  {
 		if (dieRoll == -1) dieRoll = Random.Range(1, dieType + 1);
 		return characterSheet.skillScores.getScore(skill) + (favoredRace?1:0) + dieRoll;
 	}
 
-	public int rollDamage(Unit enemy) {
+	public int rollDamage(Unit enemy)  {
 		return rollDamage(enemy, false);
 	}
 
-	public int rollDamage(Unit enemy, bool critical) {
+	public int rollDamage(Unit enemy, bool critical)  {
 		return unit.getWeapon().rollDamage(critical) + (critical ? combatScores.getCritical(unit.hasMarkOn(enemy)) : unit.sneakAttackBonus(enemy));
 	}
 
-	public int overloadDamage() {
+	public int overloadDamage()  {
 		return unit.getWeapon().numberOfDamageDice * unit.getWeapon().diceType + characterSheet.combatScores.getHandling();
 	}
 
-	//public Hit rollHit() {
+	//public Hit rollHit()  {
     //    return Combat.rollHit(this.unit);
 		//int rand = Random.Range(1,21);
 		//Debug.Log(skillScores);
@@ -68,8 +67,8 @@ public class Character
 		//return new Hit(skillScores.getScore(Skill.Melee) + rand + (flanking() ? 2 : 0), rand * 5 > 100 - critChance);
 	//}
 
-	public int stackabilityOfItem(Item i) {
-		if (i is ItemMechanical) {
+	public int stackabilityOfItem(Item i)  {
+		if (i is ItemMechanical)  {
 			if (characterSheet.characterProgress.getClassFeatures().Contains(ClassFeature.Efficient_Storage))
 				return 3;
 		}
@@ -77,8 +76,7 @@ public class Character
 	}
 
 
-	void Start () 
-	{
+	void Start ()   {
 		// Personal Info first
 		// Then Character Progress (class, talent)
 		// Then Stats
@@ -101,24 +99,22 @@ public class Character
 	}
 	
 	// Update is called once per frame
-	void Update () 
-	{
+	void Update ()   {
 
 	}
 
-	public virtual void loadData() {
+	public virtual void loadData()  {
 		Debug.Log("????");
 	}
 
-	public virtual void loadData(string textFile2) {
+	public virtual void loadData(string textFile2)  {
 		loadCharacterFromTextFile(textFile2);
 	}
 
 	public void loadCharacter(string firstName, string lastName, CharacterSex mCSex, CharacterRace mCRace, int age,
 	                   CharacterBackground mCBackground, int height, int weight, CharacterClass mCClass,
 	                   int mCSturdy, int mCPerception, int mCTechnique, int mCWellVersed,
-	                          Color characterColor, Color headColor, Color primaryColor, Color secondaryColor, CharacterHairStyle hairStyle)
-	{
+	                          Color characterColor, Color headColor, Color primaryColor, Color secondaryColor, CharacterHairStyle hairStyle)  {
 		int heightRemainder = height % 12;
 		height -= heightRemainder;
 
@@ -136,11 +132,11 @@ public class Character
 
 	}
 
-	public void loadCharacterFromTextFile(string fileName) {
+	public void loadCharacterFromTextFile(string fileName)  {
 	//	TextAsset text = Resources.Load<TextAsset>("Saves/" + fileName);
 	//	string data = text.text;
 		string data = Saves.getCharactersString(fileName);
-		string[] components = data.Split(new char[]{';'});
+		string[] components = data.Split(new char[] {';'});
 		int curr = 0;
 		string firstName = components[curr++];
 		string lastName = components[curr++];
@@ -196,7 +192,7 @@ public class Character
 		if (curr < components.Length-1)
 			numFeatures = int.Parse(components[curr++]);
 		int[] features = new int[numFeatures];
-		for (int n=0;n<numFeatures;n++) {
+		for (int n=0;n<numFeatures;n++)  {
 			if (curr<components.Length-1)
 				features[n] = int.Parse(components[curr++]);
 		}
@@ -229,23 +225,23 @@ public class Character
 		characterProgress.getCharacterClass().chosenFeatures = features;
 		characterProgress.setWeaponFocus(focus);
 		Inventory inv = characterSheet.inventory;
-		for (int n=0;n<numItems;n++) {
+		for (int n=0;n<numItems;n++)  {
 			int slot = int.Parse(components[curr++]);
 			ItemCode code = (ItemCode)int.Parse(components[curr++]);
 			string itemData = components[curr++];
 			Debug.Log(slot + ": " + code + "\n" + itemData);
 			Item i = Item.deserializeItem(code, itemData);
-			if (slot < 100) {
-				if (inv.inventory[slot].item!=null) {
-					if(inv.itemCanStackWith(inv.inventory[slot].item, i)) {
+			if (slot < 100)  {
+				if (inv.inventory[slot].item!=null)  {
+					if(inv.itemCanStackWith(inv.inventory[slot].item, i))  {
 						inv.inventory[slot].item.addToStack(i);
 					}
 				}
-				else if (inv.canInsertItemInSlot(i, Inventory.getSlotForIndex(slot))) {
+				else if (inv.canInsertItemInSlot(i, Inventory.getSlotForIndex(slot)))  {
 					inv.insertItemInSlot(i, Inventory.getSlotForIndex(slot));
 				}
 			}
-			else {
+			else  {
 				characterSheet.characterLoadout.setItemInSlot(getArmorSlot(slot), i);
 			}
 				//Inventory stuff
@@ -263,8 +259,8 @@ public class Character
 
 	}
 
-	public static InventorySlot getArmorSlot(int i) {
-		switch (i) {
+	public static InventorySlot getArmorSlot(int i)  {
+		switch (i)  {
 		case 100:
 			return InventorySlot.RightHand;
 		case 110:
@@ -288,8 +284,8 @@ public class Character
 		}
 	}
 
-	public static int getArmorSlotIndex (InventorySlot i) {
-		switch (i) {
+	public static int getArmorSlotIndex (InventorySlot i)  {
+		switch (i)  {
 		case InventorySlot.RightHand:
 			return 100;
 		case InventorySlot.LeftHand:
@@ -314,18 +310,18 @@ public class Character
 	}
 
 	
-	public void deleteCharacter() {
+	public void deleteCharacter()  {
 		if (characterId == null) return;
 		Saves.deleteCharacter(characterId);
 	}
 	
-	public void saveCharacter() {
+	public void saveCharacter()  {
 		if (characterId == null) return;
 		Saves.saveCharacter(characterId, getCharacterString());
 	}
 	
 	const string delimiter = ";";
-	public string getCharacterString() {
+	public string getCharacterString()  {
 		string characterStr = "";
 		//********PERSONAL INFORMATION********\\
 		//Adding player first name.
@@ -346,7 +342,7 @@ public class Character
 		characterStr += abilityScores.getPerception(0) + delimiter;
 		characterStr += abilityScores.getTechnique() + delimiter;
 		characterStr += abilityScores.getWellVersed() + delimiter;
-		foreach (int score in skillScores.scores) {
+		foreach (int score in skillScores.scores)  {
 			characterStr += score + delimiter;
 		}
 		CharacterColors colors = characterSheet.characterColors;
@@ -363,20 +359,20 @@ public class Character
 		characterStr += characterSheet.combatScores.getCurrentComposure() + delimiter;
 		int[] features = characterSheet.characterProgress.getCharacterClass().chosenFeatures;
 		characterStr += features.Length + delimiter;
-		foreach (int feature in features) {
+		foreach (int feature in features)  {
 			characterStr += feature + delimiter;
 		}
 		characterStr += characterSheet.characterProgress.getWeaponFocusAsNumber() + delimiter;
 		string inventoryString = "";
 		int inventorySize = 0;
-		foreach (InventoryItemSlot slot in characterSheet.inventory.inventory) {
-			if (slot.item != null) {
+		foreach (InventoryItemSlot slot in characterSheet.inventory.inventory)  {
+			if (slot.item != null)  {
 				inventorySize++;
 				inventoryString += slot.index + delimiter;
 				inventoryString += (int)slot.item.getItemCode() + delimiter;
 				inventoryString += slot.item.getItemData() + delimiter;
-				if (slot.item.stackSize() > 0) {
-					foreach (Item i in slot.item.stack) {
+				if (slot.item.stackSize() > 0)  {
+					foreach (Item i in slot.item.stack)  {
 						inventorySize++;
 						inventoryString += slot.index + delimiter;
 						inventoryString += (int)i.getItemCode() + delimiter;
@@ -385,9 +381,9 @@ public class Character
 				}
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.armorSlots) {
+		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
 			Item i = characterSheet.characterLoadout.getItemInSlot(slot);
-			if (i != null) {
+			if (i != null)  {
 				inventorySize++;
 				inventoryString += getArmorSlotIndex(slot) + delimiter;
 				inventoryString += (int)i.getItemCode() + delimiter;
@@ -400,14 +396,13 @@ public class Character
 	}
 	
 	
-	static string colorString(Color c) {
+	static string colorString(Color c)  {
 		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
 	}
 
 	// Class Features (Skills)
 
-	public CharacterLoadout getCharacterLoadout()
-	{
+	public CharacterLoadout getCharacterLoadout()  {
 		return characterLoadout;
 	}
 

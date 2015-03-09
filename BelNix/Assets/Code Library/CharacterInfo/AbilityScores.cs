@@ -1,13 +1,11 @@
 using System;
-public class AbilityScores
-{
+public class AbilityScores {
 	private int sturdy, perception, technique, well_versed;
 
-	public AbilityScores (int stu, int per, int tec, int wVer)
-	{
+	public AbilityScores (int stu, int per, int tec, int wVer)  {
 		setScores(stu, per, tec, wVer);
 	}
-	public void setScores(int stu, int per, int tec, int wVer) {
+	public void setScores(int stu, int per, int tec, int wVer)  {
 		// Initialize default scores
 		sturdy		= (stu  > 0)  ? stu   : 1;
 		perception	= (per  > 0)  ? per   : 1;
@@ -15,10 +13,10 @@ public class AbilityScores
 		well_versed	= (wVer > 0)  ? wVer  : 1;
 	}
 
-	public int getSturdy()			{return sturdy;}
-	public int getPerception(int additional = 0)		{return perception + additional;}
-	public int getTechnique()		{return technique;}
-	public int getWellVersed()		{return well_versed;}
+	public int getSturdy()			 {return sturdy;}
+	public int getPerception(int additional = 0)		 {return perception + additional;}
+	public int getTechnique()		 {return technique;}
+	public int getWellVersed()		 {return well_versed;}
 }
 
 

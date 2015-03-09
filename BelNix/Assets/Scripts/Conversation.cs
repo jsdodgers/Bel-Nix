@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using UnityEngine.UI;
 
-public class Conversation : MonoBehaviour {
+public class Conversation : MonoBehaviour  {
 	
 	public TextAsset textFile;
 	public GameObject UI_Panel_Prefab;
@@ -16,7 +16,7 @@ public class Conversation : MonoBehaviour {
 	public static bool conversationOpen;
 
 	//finds button child of panel prefab and creates buttons list
-	void CreateUIButtonPrefab(GameObject UIPrefab){
+	void CreateUIButtonPrefab(GameObject UIPrefab) {
 
 		UI_Button_Prefab = UIPrefab.transform.FindChild("ButtonPrefab").gameObject;
 		//GameObject buttonChildPrefab = buttonChildPrefabTemp;
@@ -30,7 +30,7 @@ public class Conversation : MonoBehaviour {
 
 
 	//Assigns text to be displayed by a UI Prefab, most likely either the UI_Panel or a button clone
-	void AssignText(GameObject UIPrefab, string text){
+	void AssignText(GameObject UIPrefab, string text) {
 
 		Text textChild = UIPrefab.transform.FindChild ("Text").gameObject.GetComponent<Text> ();
 		textChild.enabled = true; //Only affects when buttons are instantiated
@@ -44,13 +44,13 @@ public class Conversation : MonoBehaviour {
 
 
 	//creates buttons to list available dialogue options 
-	void InstantiateButtons(GameObject UIParentPrefab, GameObject UIButtonPrefab, TextBox currentTextBox){
+	void InstantiateButtons(GameObject UIParentPrefab, GameObject UIButtonPrefab, TextBox currentTextBox) {
 	
 		//GameObject buttonChildPrefabTemp = UIButtonPrefab;
 	
 		//buttons = new List<GameObject> ();
 
-		for (int i = 0; i < currentTextBox.nextWindowID.Count; i++) {
+		for (int i = 0; i < currentTextBox.nextWindowID.Count; i++)  {
 				
 			GameObject buttonClone = Instantiate(UIButtonPrefab) as GameObject;
 			buttonClone.transform.SetParent(UIParentPrefab.transform, false);
@@ -67,18 +67,18 @@ public class Conversation : MonoBehaviour {
 			AssignText(buttonClone, t.text);
 
 			buttons.Add(buttonClone);
-			//button.onClick.AddListener(delegate{DestroyButtons();});
+			//button.onClick.AddListener(delegate {DestroyButtons();});
 
 
-			if(t.terminatesDialogue){
+			if(t.terminatesDialogue) {
 
 				button.onClick.AddListener(TerminateConversation);
 	
 			}
 
-			else{
+			else {
 
-				button.onClick.AddListener(delegate{DisplayTextBox(FindTextBox(t.nextWindowID[0]));});
+				button.onClick.AddListener(delegate {DisplayTextBox(FindTextBox(t.nextWindowID[0]));});
 
 			}
 
@@ -97,14 +97,14 @@ public class Conversation : MonoBehaviour {
 
 
 	//destroys button objects and clears the buttons list.
-	void DestroyButtons(){
+	void DestroyButtons() {
 
 		Debug.Log ("DestroyButtons");
 		//if there are no buttons to destroy an clear, pass 
-		if (buttons.Count != 0) {
+		if (buttons.Count != 0)  {
 				
 
-			foreach (GameObject b in buttons) {
+			foreach (GameObject b in buttons)  {
 				
 				Destroy(b);
 				
@@ -116,17 +116,17 @@ public class Conversation : MonoBehaviour {
 		
 		}
 
-		else{}
+		else {}
 
 
 
 	}
 
-	TextBox FindTextBox(int windowID){
+	TextBox FindTextBox(int windowID) {
 
-		foreach (TextBox t in textBoxes) {
+		foreach (TextBox t in textBoxes)  {
 				
-			if(windowID == t.windowID){
+			if(windowID == t.windowID) {
 
 				return t;
 			}
@@ -138,7 +138,7 @@ public class Conversation : MonoBehaviour {
 	
 	}
 
-	void DisplayTextBox(TextBox t){
+	void DisplayTextBox(TextBox t) {
 
 		DestroyButtons ();
 		
@@ -154,14 +154,14 @@ public class Conversation : MonoBehaviour {
 	
 	List<TextBox> textBoxes;
 
-	class Conditional{
+	class Conditional {
 		
 		public string type;
 		public string condition;
 		
 		
 		
-		public Conditional(string t, string c){
+		public Conditional(string t, string c) {
 			
 			type = t;
 			condition = c;
@@ -176,7 +176,7 @@ public class Conversation : MonoBehaviour {
 
 
 
-	class TextBox{
+	class TextBox {
 		
 		public string text; 
 		public int windowID;
@@ -185,7 +185,7 @@ public class Conversation : MonoBehaviour {
 		public bool terminatesDialogue;
 		//public List<Conditional> conditionals;
 		
-		public TextBox(string t, int id, int ty, List<int> idArray, bool td){
+		public TextBox(string t, int id, int ty, List<int> idArray, bool td) {
 			
 			text = t; 
 			windowID = id;
@@ -201,7 +201,7 @@ public class Conversation : MonoBehaviour {
 	
 
 	//Reads text file provided and creates a list textboxes.
-	void ReadTextFile(){
+	void ReadTextFile() {
 		
 		Debug.Log ("ReadTextFile()");
 		
@@ -209,15 +209,15 @@ public class Conversation : MonoBehaviour {
 		string[] nodes;
 		
 		
-		if (textFile != null) {
+		if (textFile != null)  {
 			
 			nodes = (textFile.text.Split( '\n' ));
 			
 			
 			
-			for (int i = 0; i < nodes.Length; i++) {
+			for (int i = 0; i < nodes.Length; i++)  {
 				
-				if(nodes[i] != ""){
+				if(nodes[i] != "") {
 					
 					textBoxes.Add(NodetoTextBox(nodes[i]));
 					
@@ -229,7 +229,7 @@ public class Conversation : MonoBehaviour {
 			
 		}
 		
-		else{
+		else {
 			
 			Debug.LogError("Text file missing.");
 			
@@ -238,7 +238,7 @@ public class Conversation : MonoBehaviour {
 	}
 	
 	//converts a node of the textfile to a textbox 
-	TextBox NodetoTextBox(string n){
+	TextBox NodetoTextBox(string n) {
 		
 		n.TrimStart ();
 		n.TrimEnd ();
@@ -247,7 +247,7 @@ public class Conversation : MonoBehaviour {
 		// within the first split array, 0 = text, 1 = next windows array, 2 = terminates dialogue, 3 = window id, 4 = nodetype;
 		
 		string[] textArray;		//extracts text seperated by '[]'
-		string[] nextWindowsIDArray;// extracts the next nodes in the tree for this text box indicated by {}
+		string[] nextWindowsIDArray;// extracts the next nodes in the tree for this text box indicated by  {}
 		string terminatesDialogueString;
 		string windowIDString;
 		string windowTypeString;
@@ -260,18 +260,18 @@ public class Conversation : MonoBehaviour {
 		bool terminatesDialogue = false;
 		//List<Conditional> conditionals = new List<Conditional>();
 		
-		firstSplit = n.Split (new char[] {'`'});
+		firstSplit = n.Split (new char[]  {'`'});
 		
-		textArray = firstSplit [0].Split (new char[] {'[',']'}, System.StringSplitOptions.RemoveEmptyEntries);
-		nextWindowsIDArray = firstSplit [1].Split (new char[] {'{','}'}, System.StringSplitOptions.RemoveEmptyEntries);
+		textArray = firstSplit [0].Split (new char[]  {'[',']'}, System.StringSplitOptions.RemoveEmptyEntries);
+		nextWindowsIDArray = firstSplit [1].Split (new char[]  {'{','}'}, System.StringSplitOptions.RemoveEmptyEntries);
 		terminatesDialogueString = firstSplit [2].Trim();
 		windowIDString = firstSplit [3].Trim();
 		windowTypeString = firstSplit [4].Trim();
-		//conditionalsStrings = firstSplit [5].Split (new char[]{'(',')'}, System.StringSplitOptions.RemoveEmptyEntries);
+		//conditionalsStrings = firstSplit [5].Split (new char[] {'(',')'}, System.StringSplitOptions.RemoveEmptyEntries);
 
 		
 		//builds textarray into the text to be displayed by this node
-		for (int i = 0; i < textArray.Length; i++) {
+		for (int i = 0; i < textArray.Length; i++)  {
 			
 			text = text + textArray[i];
 			
@@ -286,14 +286,14 @@ public class Conversation : MonoBehaviour {
 			
 			//Debug.Log(i + " : " + nextWindowsIDArray[i]);
 			
-			if(nextWindowsIDArray[i] != ""){
+			if(nextWindowsIDArray[i] != "") {
 				
-				string[] tempArray = nextWindowsIDArray[i].Split(new char[]{';', ' '}, System.StringSplitOptions.RemoveEmptyEntries);
+				string[] tempArray = nextWindowsIDArray[i].Split(new char[] {';', ' '}, System.StringSplitOptions.RemoveEmptyEntries);
 				
-				for(int j = 0; j < tempArray.Length; j++){
+				for(int j = 0; j < tempArray.Length; j++) {
 					//Debug.Log(j + " : " + tempArray[j]);
 					
-					if(tempArray[j] != ""){
+					if(tempArray[j] != "") {
 						tempArray[j].Trim();
 						//Debug.Log(tempArray[j]);
 						int tempID = int.Parse(tempArray[j]);
@@ -310,29 +310,29 @@ public class Conversation : MonoBehaviour {
 		}
 
 
-		/*for (int i = 0; i < conditionalsStrings.Length; i++) {
+		/*for (int i = 0; i < conditionalsStrings.Length; i++)  {
 			
 			//Debug.Log(i + " : " + nextWindowsIDArray[i]);
 			
-			if(conditionalsStrings[i] != ""){
+			if(conditionalsStrings[i] != "") {
 				
-				string[] tempArray0 = conditionalsStrings[i].Split(new char[]{';', ' '}, System.StringSplitOptions.RemoveEmptyEntries);
+				string[] tempArray0 = conditionalsStrings[i].Split(new char[] {';', ' '}, System.StringSplitOptions.RemoveEmptyEntries);
 				
-				for(int j = 0; j < tempArray0.Length; j++){
+				for(int j = 0; j < tempArray0.Length; j++) {
 
 
 					//Debug.Log(j + " : " + tempArray[j]);
 
-					string[] tempArray1 = conditionalsStrings[j].Split(new char[]{'<', '>'}, System.StringSplitOptions.RemoveEmptyEntries);
+					string[] tempArray1 = conditionalsStrings[j].Split(new char[] {'<', '>'}, System.StringSplitOptions.RemoveEmptyEntries);
 
-					for(int l = 0; l < tempArray0.Length; l++){
+					for(int l = 0; l < tempArray0.Length; l++) {
 						
 						
 						//Debug.Log(j + " : " + tempArray[j]);
 						
-						string[] tempArray2 = conditionalsStrings[l].Split(new char[]{'<', '>'}, System.StringSplitOptions.RemoveEmptyEntries);
+						string[] tempArray2 = conditionalsStrings[l].Split(new char[] {'<', '>'}, System.StringSplitOptions.RemoveEmptyEntries);
 						
-						if(tempArray1[l] != ""){
+						if(tempArray1[l] != "") {
 							tempArray1[l].Trim();
 							//Debug.Log(tempArray[j]);
 							int tempID = int.Parse(tempArray1[l]);
@@ -358,19 +358,19 @@ public class Conversation : MonoBehaviour {
 		
 		
 		//determines whether this node terminates dialogue
-		if (terminatesDialogueString == "False") {
+		if (terminatesDialogueString == "False")  {
 			
 			terminatesDialogue = false;
 			
 		}
 		
-		else if(terminatesDialogueString == "True"){
+		else if(terminatesDialogueString == "True") {
 			
 			terminatesDialogue = true;
 			
 		}
 		
-		else{
+		else {
 			Debug.LogError("Cannot create TextBox: TerminatesDialogueString format invalid");
 		}
 		
@@ -382,9 +382,7 @@ public class Conversation : MonoBehaviour {
 		Debug.Log ("Text: " + text);
 		
 		foreach(int element in nextWindowID) {
-			
 			Debug.Log("nextWindowID: " + element);
-			
 		}
 		
 		Debug.Log ("Terminates Dialogue: " + terminatesDialogue);
@@ -401,11 +399,11 @@ public class Conversation : MonoBehaviour {
 	}
 	
 	
-	public static void beginConversation(TextAsset file) {
+	public static void beginConversation(TextAsset file)  {
 		conversation.initiateConversation(file);
 	}
 
-	void initiateConversation(TextAsset file){
+	void initiateConversation(TextAsset file) {
 		conversationOpen = true;
 		gameObject.SetActive(true);
 		textFile = file;
@@ -417,7 +415,7 @@ public class Conversation : MonoBehaviour {
 	
 	}
 
-	void TerminateConversation(){
+	void TerminateConversation() {
 		conversationOpen = false;
 		textBoxes.Clear();
 		DestroyButtons();
@@ -430,8 +428,7 @@ public class Conversation : MonoBehaviour {
 
 
 	
-	void Start(){
-		
+	void Start() {
 		//ReadTextFile ();
 		//AssignText (UI_Panel_Prefab, "Hello");
 		//InstantiateButtons (UI_Panel_Prefab, UI_Button_Prefab, 1);
