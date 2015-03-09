@@ -15,6 +15,11 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
     protected int well_versed = 1;
     protected int totalPoints = 8;
 
+    protected int minSturdy = 1;
+    protected int minPerception = 1;
+    protected int minTechnique = 1;
+    protected int minWellVersed = 1;
+
     public int[] getScores() { return new int[4] { sturdy, perception, technique, well_versed }; }
 
     protected int athletics = 0;
@@ -26,6 +31,16 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
     protected int historical = 0;
     protected int political = 0;
     protected int totalSkillPoints = 2;
+
+    protected int minAthletics = 0;
+    protected int minMelee = 0;
+    protected int minRanged = 0;
+    protected int minStealth = 0;
+    protected int minMechanical = 0;
+    protected int minMedicinal = 0;
+    protected int minHistorical = 0;
+    protected int minPolitical = 0;
+    
 
     public int[] getSkills() { return new int[8] { athletics, melee, ranged, stealth, mechanical, medicinal, historical, political }; }
 
@@ -217,7 +232,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
         switch (score)
         {
             case "sturdy":
-                if (sturdy > 1)
+                if (sturdy > 1 && sturdy > minSturdy)
                 {
                     sturdy--;
                     abilityScorePointList[1].GetComponent<Text>().text = sturdy.ToString();
@@ -227,7 +242,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "perception":
-                if (perception > 1)
+                if (perception > 1 && perception > minPerception)
                 {
                     perception--;
                     abilityScorePointList[2].GetComponent<Text>().text = perception.ToString();
@@ -237,7 +252,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "technique":
-                if (technique > 1)
+                if (technique > 1 && technique > minTechnique)
                 {
                     technique--;
                     abilityScorePointList[3].GetComponent<Text>().text = technique.ToString();
@@ -247,7 +262,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "well-versed":
-                if (well_versed > 1)
+                if (well_versed > 1 && well_versed > minWellVersed)
                 {
                     well_versed--;
                     abilityScorePointList[4].GetComponent<Text>().text = well_versed.ToString();
@@ -266,7 +281,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
         switch (skill)
         {
             case "athletics":
-                if (athletics > 0)
+                if (athletics > 0 && athletics > minAthletics)
                 {
                     athletics--;
                     skillScorePointList[1].GetComponent<Text>().text = calculateSkill(athletics, sturdy, 0).ToString();
@@ -274,7 +289,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "melee":
-                if (melee > 0)
+                if (melee > 0 && melee > minMelee)
                 {
                     melee--;
                     skillScorePointList[2].GetComponent<Text>().text = calculateSkill(melee, sturdy, 1).ToString();
@@ -282,7 +297,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "ranged":
-                if (ranged > 0)
+                if (ranged > 0 && ranged > minRanged)
                 {
                     ranged--;
                     skillScorePointList[3].GetComponent<Text>().text = calculateSkill(ranged, perception, 2).ToString();
@@ -290,7 +305,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "stealth":
-                if (stealth > 0)
+                if (stealth > 0 && stealth > minStealth)
                 {
                     stealth--;
                     skillScorePointList[4].GetComponent<Text>().text = calculateSkill(stealth, perception, 3).ToString();
@@ -298,7 +313,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "mechanical":
-                if (mechanical > 0)
+                if (mechanical > 0 && mechanical > minMechanical)
                 {
                     mechanical--;
                     skillScorePointList[5].GetComponent<Text>().text = calculateSkill(mechanical, technique, 4).ToString();
@@ -306,7 +321,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "medicinal":
-                if (medicinal > 0)
+                if (medicinal > 0 && medicinal > minMedicinal)
                 {
                     medicinal--;
                     skillScorePointList[6].GetComponent<Text>().text = calculateSkill(medicinal, technique, 5).ToString();
@@ -314,7 +329,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "historical":
-                if (historical > 0)
+                if (historical > 0 && historical > minHistorical)
                 {
                     historical--;
                     skillScorePointList[7].GetComponent<Text>().text = calculateSkill(historical, well_versed, 6).ToString();
@@ -322,7 +337,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                 }
                 break;
             case "political":
-                if (political > 0)
+                if (political > 0 && political > minPolitical)
                 {
                     political--;
                     skillScorePointList[8].GetComponent<Text>().text = calculateSkill(political, well_versed, 7).ToString();

@@ -8,8 +8,8 @@ public class InventoryGUI : MonoBehaviour  {
 	
 //	[SerializeField] private GameObject inventoryCanvas;
 	[SerializeField] public static InventoryGUI inventoryGUI;
-	static Unit selectedUnit;
-	static Character selectedCharacter;
+	public static Unit selectedUnit;
+	public static Character selectedCharacter;
 	// Use this for initialization
 	void Start ()  {
 	//	mapGenerator = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
