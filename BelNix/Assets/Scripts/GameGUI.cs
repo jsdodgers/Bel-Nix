@@ -1185,7 +1185,6 @@ public class GameGUI : MonoBehaviour  {
 			getConfirmButtonStyle();
 		}
 		if (mapGenerator == null) return;
-
 		if (mapGenerator.isInCharacterPlacement())  {
 			float width = mapGenerator.selectionWidth;
 		//	if (Screen.height < mapGenerator.selectionUnits.Count * (mapGenerator.spriteSize + mapGenerator.spriteSeparator) + mapGenerator.spriteSeparator)

@@ -229,7 +229,6 @@ public class Character {
 			int slot = int.Parse(components[curr++]);
 			ItemCode code = (ItemCode)int.Parse(components[curr++]);
 			string itemData = components[curr++];
-			Debug.Log(slot + ": " + code + "\n" + itemData);
 			Item i = Item.deserializeItem(code, itemData);
 			if (slot < 100)  {
 				if (inv.inventory[slot].item!=null)  {

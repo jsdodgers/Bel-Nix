@@ -121,7 +121,6 @@ public class Item  {
 		gold = money/10000;
 		silver = (money/100)%100;
 		copper = money%100;
-		Debug.Log(itemName + ":  " + split[4]);
 		isKeyItem = int.Parse(split[4])==1;
 	/*	string[] textures = split[5].Split(textureDelim.ToCharArray());
 		setInventoryTextureName(textures.Length > 0 ? textures[0] : "");
@@ -140,10 +139,8 @@ public class Item  {
 		if (to.name == s)  {
 			inventoryTexture = to.texture;
 			spritePrefab = to.sprite;
-			Debug.Log("Has texture: " + s);
 		}
 		else {
-			Debug.Log("Does not have texture: " + s + "   " +to.name);
 		}
 		/*
 		if (inventoryTextureName == null) inventoryTexture = null;
