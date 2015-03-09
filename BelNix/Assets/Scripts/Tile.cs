@@ -262,8 +262,32 @@ public class Tile  {
 		bool canTurret = false;
 		bool canActivateTurret = false;
 		bool canActivateTurretAfterMove = false;
+		bool canPickUpTrapTurret = false;
+		bool canPickUpTrapTurretAfterBackstep = false;
+		bool canPickUpTrapTurretAfterMove = false;
+		Tile backstepTrapTurretTile = null;
+		Tile moveTrapTurretTile = null;
+		float backstepTrapTurretTileDist = float.MaxValue;
+		float moveTrapTurretTileDist = float.MaxValue;
+		StandardType trapTurretType = StandardType.None;
 		Tile moveTurretTile = null;
 		float moveTurretTileDist = float.MaxValue;
+		bool hasTrapTurret = false;
+		Trap tr = null;
+		Turret tur = null;
+		if (hasCharacter()) {
+			Unit u2 = getCharacter();
+			if (u2 is TrapUnit) {
+				tr = ((TrapUnit)u2).trap;
+				hasTrapTurret = ((TrapUnit)u2).owner == u;
+				trapTurretType = StandardType.PickUpTrap;
+			}
+			else if (u2 is TurretUnit) {
+				tur = ((TurretUnit)u2).turret;
+				hasTrapTurret = ((TurretUnit)u2).owner == u;
+				trapTurretType = StandardType.PickUpTurret;
+			}
+		}
 		u.mapGenerator.removeAllRanges(false);
 		HashSet<Tile> movements = (u.usedMovement || u.isProne() ? new HashSet<Tile>() : u.mapGenerator.setCharacterCanStand((int)u.position.x, (int)-u.position.y, u.moveDistLeft, 0, u.getAttackRange(), u, false));
 		canMove = canStandCurr && stand;
@@ -303,6 +327,34 @@ public class Tile  {
 					}
 				}
 			}
+			if (hasTrapTurret) {
+				canPickUpTrapTurret = u.mapGenerator.hasLineOfSight(uTile, this, 1, true);
+				if (!canPickUpTrapTurret) {
+					foreach (Tile t in backSteps)  {
+						if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, 1, true))  {
+							canPickUpTrapTurretAfterBackstep = true;
+							float d = uTile.distanceFromTile(t);
+							if (d < backstepTrapTurretTileDist)  {
+								backstepTrapTurretTile = t;
+								backstepTrapTurretTileDist = d;
+							}
+						}
+					}
+				}
+				if (!canPickUpTrapTurret && !canPickUpTrapTurretAfterBackstep) {
+					foreach (Tile t in movements)  {
+						if (t.canStand() && t!=uTile && u.mapGenerator.hasLineOfSight(t, this, 1, true))  {
+							canPickUpTrapTurretAfterMove = true;
+							float d = uTile.distanceFromTile(t);
+							if (d < moveTrapTurretTileDist)  {
+								moveTrapTurretTile = t;
+								moveTrapTurretTileDist = d;
+							}
+						}
+					}
+				}
+			}
+
 			if ((u.hasClassFeature(ClassFeature.Throw) || u.hasClassFeature(ClassFeature.Intimidate)) && this != uTile)  {
 				canThrow = (enemy || ally) && u.mapGenerator.hasLineOfSight(uTile, this, 1, true, VisibilityMode.Melee);
 				if (!canThrow && (enemy || ally))  {
@@ -381,7 +433,7 @@ public class Tile  {
 					}
 				}
 			}
-			if (hasCharacter() && getCharacter() is TurretUnit)  {
+			if (hasCharacter() && getCharacter() is TurretUnit && hasTrapTurret)  {
 				canActivateTurret = u.mapGenerator.hasLineOfSight(u, this, 1, true);
 				if (!canActivateTurret)  {
 					foreach (Tile t in movements)  {
@@ -467,6 +519,23 @@ public class Tile  {
 		if (canAttackAfterBackStep && addAttacks)  {
 			tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {att}, null, this, backstepAttackTile, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
 			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
+		}
+		if (hasTrapTurret) {
+			if (tr != null || tur != null) {
+				bool canPutInv = false;
+				foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+					InventoryItemSlot slot = u.characterSheet.characterSheet.inventory.inventory[sl - InventorySlot.Zero];
+					if (slot.item != null && (u.characterSheet.characterSheet.inventory.itemCanStackWith(slot.item, (tr != null ? (Item)tr: (Item)tur))) || u.characterSheet.characterSheet.inventory.canInsertItemInSlot((tr != null?(Item)tr:(Item)tur), UnitGUI.getIndexOfSlot(sl))) {
+						canPutInv = true;
+						break;
+					}
+				}
+				if (canPutInv) {
+					if (canPickUpTrapTurret) tileActions.Add(new TileAction(null, new StandardType[]  {trapTurretType}, null, this, null, u.intimidateHitChance(getCharacter())));
+					if (canPickUpTrapTurretAfterBackstep)tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {trapTurretType}, null, this, backstepTrapTurretTile));
+					if (canPickUpTrapTurretAfterMove) tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, new StandardType[]  {trapTurretType}, null, this, moveTrapTurretTile));
+				}
+			}
 		}
 		if (canLoot) tileActions.Add(new TileAction(null, null, new MinorType[]  {MinorType.Loot}, this));
 		if (canLootAfterMove) tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, null, new MinorType[]  {MinorType.Loot}, this, moveLootTile));
