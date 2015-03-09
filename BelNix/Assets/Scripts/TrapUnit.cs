@@ -124,20 +124,22 @@ public class TrapUnit : MechanicalUnit  {
 		}
 	}
 	public override void doDeath()  {
-		if (isDead())  {
+		if (isDead() || trap.removeTrap)  {
 			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking)  {
-				if (mapGenerator.selectedUnit)  {
-					//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
-					Unit p = mapGenerator.selectedUnit;
-					if (p.attackEnemy==this) p.attackEnemy = null;
-				}
-				//				mapGenerator.enemies.Remove(gameObject);
-				//	mapGenerator.removeCharacter(this);
 				Tile t = mapGenerator.tiles[(int)position.x, (int)-position.y];
 				if (t.getTrap()==this)
 					t.removeTrap();
+				if (mapGenerator.selectedUnit)  {
+					//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
+					Unit p = mapGenerator.selectedUnit;
+					if (p.attackEnemy==this){
+						p.attackEnemy = null;
+						mapGenerator.resetCharacterRange();
+					}
+				}
+				//				mapGenerator.enemies.Remove(gameObject);
+				//	mapGenerator.removeCharacter(this);
 				Destroy(gameObject);
-				mapGenerator.resetCharacterRange();
 			}
 		}
 		//	Debug.Log("End Death");

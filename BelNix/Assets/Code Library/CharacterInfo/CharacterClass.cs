@@ -94,7 +94,7 @@ public class Class_ExSoldier : CharacterClass {
 }
 
 public class Class_Engineer : CharacterClass {
-	public Class_Engineer()  {cModifiers = new ClassModifiers(1, 1, 0, 0, 0, 0, 2, 0, 0, 0);}
+	public Class_Engineer()  {cModifiers = new ClassModifiers(1, 0, 0, 0, 0, 0, 2, 0, 0, 0);}
 	public override ClassName getClassName()  {return ClassName.Engineer;}
 
 	public override ClassFeature[] getPossibleFeatures(int level)  {

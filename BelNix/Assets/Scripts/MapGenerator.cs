@@ -74,6 +74,7 @@ public class MapGenerator : MonoBehaviour  {
     public int copperReward;
 	public string tileMapName;
 	public int gridSize = 64;
+	public string goalText = "";
 
 	public AudioBank audioBank;
 	GameObject lastHit;
@@ -911,8 +912,9 @@ public class MapGenerator : MonoBehaviour  {
 		createSelectionArea();
 		createSelectionUnits();
 		setOverlay();
-	
-//		StartCoroutine(importGrid());
+
+		
+		//		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
@@ -953,6 +955,11 @@ public class MapGenerator : MonoBehaviour  {
 		sortPriority();
 		nextPlayer();
 		setOverlay();
+		Invoke("goalPresent", 2.0f);
+	}
+
+	public void goalPresent() {
+		BattleGUI.setPlayerTurnText(goalText, Log.greenColor, 5);
 	}
 
 	public void sortPriority()  {
@@ -1026,6 +1033,30 @@ public class MapGenerator : MonoBehaviour  {
 						ee.setActive(true);
 					ee.alertedAlly = e;
 					newlyActivatedUnits.Add(ee);
+					//	nonAlertEnemies.Remove(ee);
+					//	if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
+				}
+			}
+		}
+	}
+
+	public void addAggroNearbyEnemies(Unit e, Unit player) {
+		List<Unit> newlyActivatedUnits = new List<Unit>();
+		newlyActivatedUnits.Add(e);
+		while (newlyActivatedUnits.Count > 0)  {
+			Unit curr = newlyActivatedUnits[0];
+			newlyActivatedUnits.RemoveAt(0);
+			foreach (Unit ee in enemies)  {
+				if (ee.attackedByUnits.Contains(player)) continue;// && (ee.knownEnemies.Count > 0 || ee.alertedAlly != null)) continue;
+				if (ee.hasLineOfSightToUnit(curr))  {
+					if (!ee.aiActive) {
+						ee.setActive(true);
+						ee.alertedAlly = e;
+					}
+					newlyActivatedUnits.Add(ee);
+					if (!ee.knowsUnit(player)) ee.addKnownUnit(player);
+					ee.alertedAlly = null;
+					ee.attackedByUnits.Add(player);
 					//	nonAlertEnemies.Remove(ee);
 					//	if (nonAlertEnemiesCopy.Contains(ee)) nonAlertEnemiesCopy.Remove(ee);
 				}
@@ -1663,7 +1694,6 @@ public class MapGenerator : MonoBehaviour  {
 
 	public bool playerOrCanBeSeen()  {
 		bool can = selectedUnit == null || (selectedUnit.team != 0 && (!hasLineOfSight(selectedUnit)|| BattleGUI.speedUpAI));// return;
-		Debug.Log(selectedUnit.getName() + ": " + can + "                 " + Time.time);
 		return can;
 	}
 
@@ -2455,7 +2485,10 @@ public class MapGenerator : MonoBehaviour  {
 			//	Turret turret = GameGUI.getCurrentTurret();
 			//	turretBeingPlaced.turret = turret;
 				getCurrentUnit().addTurret(turretBeingPlaced);
-				if (GameGUI.selectedTurret != null) getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(GameGUI.selectedTurret);
+				if (GameGUI.selectedTurret != null) {
+					getCurrentUnit().characterSheet.characterSheet.inventory.removeItem(GameGUI.selectedTurret);
+					InventoryGUI.setupInvent(getCurrentUnit());
+				}
 				turretBeingPlacedInDirection = Direction.None;
 				turretBeingPlaced = null;
 				getCurrentUnit().useMovementIfStarted();
@@ -2478,6 +2511,7 @@ public class MapGenerator : MonoBehaviour  {
 					getCurrentUnit().useMovementIfStarted();
 					getCurrentUnit().useStandard();
 					currentTrap = new List<TrapUnit>();
+					InventoryGUI.setupInvent(getCurrentUnit());
 				}
 			}
 		}

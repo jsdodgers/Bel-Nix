@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
 public class KnownUnit  {
 	Unit knowingUnit;
 	public Unit knownUnit;
@@ -39,7 +40,7 @@ public class KnownUnit  {
 
 public enum UnitMovement  {Move, BackStep, Escape, None}
 public enum MovementType  {Move, BackStep, Recover, None}
-public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal}
+public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal, PickUpTurret, PickUpTrap}
 public enum ActionType  {None, Movement, Standard, Minor}
 public enum MinorType  {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None, TurretOn, TurretOff}
 public enum Affliction  {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
@@ -125,6 +126,8 @@ public class Unit : MonoBehaviour  {
 	public bool moving = false;
 	public Tile lootTile;
 	public Tile turretTile;
+	public Tile pickUpTurretTile;
+	public Tile pickUpTrapTile;
 	public bool rotating = false;
 	public bool rotating2 = false;
 
@@ -512,6 +515,10 @@ public class Unit : MonoBehaviour  {
 			return "Lay Trap";
 		case StandardType.InstillParanoia:
 			return "Instill Paranoia";
+		case StandardType.PickUpTrap:
+			return "Pick Up Trap";
+		case StandardType.PickUpTurret:
+			return "Pick Up Turret";
 		default:
 			return standard.ToString();
 		}
@@ -1729,7 +1736,7 @@ public class Unit : MonoBehaviour  {
 			//	List<Unit> throwUnits = new List<Unit>();
 				foreach (KnownUnit ku in knownEnemies)  {
 					float dist = distanceFromUnit(ku.knownUnit, true);
-					if (dist <= 1.1f && !ku.knownUnit.isProne())  {
+					if (dist <= 1.1f && !ku.knownUnit.isProne() && !ku.knownUnit.deadOrDyingOrUnconscious() && ku.knownUnit.team != team)  {
 			//			throwUnits.Add(ku.knownUnit);
 						aiThrow(ku.knownUnit);
 						return;
@@ -2957,6 +2964,7 @@ public class Unit : MonoBehaviour  {
 		foreach (EditorItem i in droppedItemsEditor)  {
 			droppedItems.Add(i.getItem());
 		}
+		attackedByUnits = new List<Unit>();
 		knownEnemies = new List<KnownUnit>();
 		paranoidOfUnits = new List<Unit>();
 		aiActive = false;
@@ -3003,6 +3011,7 @@ public class Unit : MonoBehaviour  {
 		doInstillParanoia();
 		doLootAfterMovement();
 		doTurretAfterMovement();
+		doTurretPickupAfterMovement();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
@@ -3017,6 +3026,46 @@ public class Unit : MonoBehaviour  {
 			InventoryGUI.clearLootItems();
 			InventoryGUI.setLootItems(lootTile.getItems(), lootTile);
 			lootTile = null;
+		}
+	}
+
+	public void doTurretPickupAfterMovement() {
+		if ((pickUpTrapTile != null || pickUpTurretTile != null) && !moving) {
+			Item insertItem = (pickUpTrapTile != null ? (Item)pickUpTrapTile.getTrap().trap : (Item)(pickUpTurretTile.getCharacter() as TurretUnit).turret);
+			bool inserted = false;
+			foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+				InventoryItemSlot slot = characterSheet.characterSheet.inventory.inventory[sl - InventorySlot.Zero];
+				if (slot.item != null && characterSheet.characterSheet.inventory.itemCanStackWith(slot.item, insertItem)) {
+					characterSheet.characterSheet.inventory.stackItemWith(slot.item, insertItem);
+					inserted = true;
+					break;
+				}
+			}
+			if (!inserted) {
+				foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+					if (characterSheet.characterSheet.inventory.canInsertItemInSlot(insertItem, UnitGUI.getIndexOfSlot(sl))) {
+						characterSheet.characterSheet.inventory.insertItemInSlot(insertItem, UnitGUI.getIndexOfSlot(sl));
+						inserted = true;
+						break;
+					}
+				}
+			}
+			if (pickUpTurretTile != null) {
+				TurretUnit turretUnit = pickUpTurretTile.getCharacter() as TurretUnit;
+				GameObject.Destroy(turretUnit.gameObject);
+				pickUpTurretTile.removeCharacter();
+			}
+			if (pickUpTrapTile != null) {
+				pickUpTrapTile.getTrap().trap.removeTrap = true;
+			//	pickUpTrapTile.removeTrap();
+			}
+			pickUpTrapTile = null;
+			pickUpTurretTile = null;
+			if (inserted) {
+			//	InventoryGUI.setupInvent(this);
+			}
+			useMovementIfStarted();
+			useStandard();
 		}
 	}
 
@@ -3089,6 +3138,8 @@ public class Unit : MonoBehaviour  {
 							turretTile = null;
 							intimidating = false;
 							invoking = false;
+							pickUpTrapTile = null;
+							pickUpTurretTile = null;
 							becomeProne();
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();
@@ -3253,7 +3304,7 @@ public class Unit : MonoBehaviour  {
 		int dis = 0;
 		for (;distance>0;distance--)  {
 			Tile nextT = t.getTile(dir);
-			if (!nextT.hasCharacter() && t.passabilityInDirection(dir)==1)  {//t.canPass(dir, this, dir))  {
+			if (nextT.canStand() && t.passabilityInDirection(dir)==1)  {//t.canPass(dir, this, dir))  {
 				t = nextT;
 				setXYFromDirection(dir, ref x, ref y);
 				dis++;
@@ -3262,13 +3313,14 @@ public class Unit : MonoBehaviour  {
 		}
 		bool becameProne = false;
 		Unit alsoProne = null;
-		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || t.getTile(dir).hasCharacter()))  {
+		if (t.passabilityInDirection(dir)!=1 || (t.getTile(dir)==null || !t.getTile(dir).canStand()))  {
 			//	affliction = Affliction.Prone;
 			becomeProne();
 			becameProne = true;
 			if (t.getTile(dir) != null)  {
 				Unit u = t.getTile(dir).getCharacter();
 				if (u)  {
+					u.activateAITo(thrownBy);
 					if (u.rollForSkill(Skill.Athletics) < 15)  {
 						//					u.affliction = Affliction.Prone;
 						u.becomeProne();
@@ -3927,7 +3979,8 @@ public class Unit : MonoBehaviour  {
 			if (!aiActive) setActive(true);
 			mapGenerator.activateNearbyEnemies(this);
 		}
-		attackEnemy.attackedByUnits.Add(this);
+		attackedByUnits.Add(u);
+		mapGenerator.addAggroNearbyEnemies(this, u);
 	}
 	
 	public void damage(int damage, Unit u, bool animate = false)  {
