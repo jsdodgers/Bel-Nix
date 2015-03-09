@@ -92,8 +92,9 @@ public class Class_ExSoldier : CharacterClass {
 	}
 
 }
+
 public class Class_Engineer : CharacterClass {
-	public Class_Engineer()  {cModifiers = new ClassModifiers(0, 0, 0, 0, 0, 0, 2, 0, 0, 0);}
+	public Class_Engineer()  {cModifiers = new ClassModifiers(1, 1, 0, 0, 0, 0, 2, 0, 0, 0);}
 	public override ClassName getClassName()  {return ClassName.Engineer;}
 
 	public override ClassFeature[] getPossibleFeatures(int level)  {
@@ -166,9 +167,9 @@ public class Class_Researcher : CharacterClass {
 	}
 }
 public class Class_Orator : CharacterClass {
-	public Class_Orator()  {cModifiers = new ClassModifiers(0, 0, 0, 0, 0, 0, 0, 0, 0, 2);}
+	public Class_Orator()  {cModifiers = new ClassModifiers(0, 2, 0, 0, 0, 0, 0, 0, 0, 2);}
 	public override ClassName getClassName()  {return ClassName.Orator;}
-	
+
 	public override ClassFeature[] getPossibleFeatures(int level)  {
 		switch (level)  {
 		case 5:
