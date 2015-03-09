@@ -49,7 +49,7 @@ public class BarracksEntry : MonoBehaviour  {
         hidePanel(statsPanel);
         hidePanel(featuresPanel);
         hidePanel(options.panel);
-        //hidePanel();
+        hidePanel(pointAllocationPanel);
 	}
 	
 	// Update is called once per frame
@@ -185,12 +185,12 @@ public class BarracksEntry : MonoBehaviour  {
 
     public void toggleInventory()
     {
-        Debug.Log("Waiting for Justin and a new version of InventoryGUI.setUpInvent that can take a Character instead of a Unit.");
+        //Debug.Log("Waiting for Justin and a new version of InventoryGUI.setUpInvent that can take a Character instead of a Unit.");
         
-        //if (InventoryGUI.isShown)
-        //    InventoryGUI.setInventoryShown(false);
-        //else
-        //    InventoryGUI.setupInvent(character.unit);
+        if (InventoryGUI.isShown)
+            InventoryGUI.setInventoryShown(false);
+        else
+            InventoryGUI.setupInvent(character);
     }
 
 
