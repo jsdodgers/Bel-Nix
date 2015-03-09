@@ -1310,6 +1310,13 @@ public class MapGenerator : MonoBehaviour  {
 				BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
 			}
 			activateEnemies(selectedUnit);
+			if (someAIActive()) {
+				foreach (Unit u in players) {
+					if (!u.deadOrDyingOrUnconscious()) {
+						u.resetPerEncounters();
+					}
+				}
+			}
 		//	selectedUnit.chooseNextBestActionType();
 
 			//		editingPath = false;
@@ -1317,6 +1324,13 @@ public class MapGenerator : MonoBehaviour  {
         //Invoke("beginTurn", 0.5f);
 //		setTargetObjectPosition();
 		return getCurrentUnit();
+	}
+
+	public bool someAIActive() {
+		foreach (Unit u in enemies) {
+			if (!u.deadOrDyingOrUnconscious() && u.aiActive) return true;
+		}
+		return false;
 	}
 
     //private void beginTurn()

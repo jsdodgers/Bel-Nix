@@ -207,7 +207,7 @@ public class Unit : MonoBehaviour  {
 	
 	public int sneakAttackBonus(Unit u)  {
 		if (!hasCombatAdvantageOver(u) || !characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Sneak_Attack)) return 0;
-		int perception = characterSheet.characterSheet.abilityScores.getPerception((hasMarkOn(u) ? 2 : 0));
+		int perception = characterSheet.characterSheet.combatScores.getPerceptionMod((hasMarkOn(u) ? 2 : 0));
 		if (distanceFromUnit(u) <= 1.5f) return perception;
 		return perception/2;
 	}
@@ -895,6 +895,13 @@ public class Unit : MonoBehaviour  {
 		currentMoveDist = 0;
 		moveDistLeft = maxMoveDist;
 		usedDecisiveStrike = false;
+	}
+
+	public void resetPerEncounters() {
+		temperedHandsUsesLeft = 2;
+		escapeUsed = false;
+		oneOfManyUsed = false;
+		invokeUsesLeft = 2;
 	}
 	
 	public void rollInitiative()  {
@@ -1755,9 +1762,11 @@ public class Unit : MonoBehaviour  {
 				return;
 			}
 			else if (attackComposureOrHealth > 0.0f && closestDist <= getAttackRange())  {
-				if (minorsLeft > 0)  {
-					if ((danger >= 8 || ((aiEnemy.healthPercent <= .25f || attackHitChance(enemy) > .90f) && Random.Range(0.0f, 1.0f) <= temperedHandsOftenness)))  {
-						aiTemperedHands(enemy, danger, (int)aiEnemy.healthPercent, (int)attackHitChance(enemy));
+				if (hasClassFeature(ClassFeature.Tempered_Hands)) {
+					if (minorsLeft > 0)  {
+						if ((danger >= 8 || ((aiEnemy.healthPercent <= .25f || attackHitChance(enemy) > .90f) && Random.Range(0.0f, 1.0f) <= temperedHandsOftenness)))  {
+							aiTemperedHands(enemy, danger, (int)aiEnemy.healthPercent, (int)attackHitChance(enemy));
+						}
 					}
 				}
 				aiAttackUnit(enemy, (danger >= 8 && hasClassFeature(ClassFeature.Over_Clock) && (getWeapon() is ItemMechanical)));
@@ -3757,6 +3766,7 @@ public class Unit : MonoBehaviour  {
 		int healthToHeal = Mathf.Min(getMaxHit(), (curr > 0 ? max - curr : -curr));
 		bool kitHit = rollForSkill(Skill.Medicinal) >= 5 + healthToHeal;
 		int gained = rollDamage(false);
+		gained = Mathf.Min(gained, healthToHeal);
 		if (kitHit)  {
 			attackEnemy.gainHealth(gained);
 			Medicinal med = (Medicinal)getWeapon();
