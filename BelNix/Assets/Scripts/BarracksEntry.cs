@@ -234,4 +234,10 @@ public class BarracksEntry : MonoBehaviour  {
             hidePanel(options.panel);
         }
     }
+
+    public void submitLevelUp()
+    {
+        int[] abilityScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getScores();
+        int[] skillScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getSkills();
+    }
 }
