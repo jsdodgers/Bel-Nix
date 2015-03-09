@@ -165,6 +165,13 @@ public class Item  {
 	public virtual string getItemData()  {
 		return getItemData(delimiter);
 	}
+
+	public virtual string getBlackMarketText() {
+		return itemName;
+	}
+	public string getBlackMarketPriceText() {
+		return (gold == 0 ? "" : gold + "g") + (silver == 0 && gold == 0 ? "" : silver + "s") + copper + "c";
+	}
 	public string textureDelim = "@";
 	public virtual string getItemData(string delim)  {
 
@@ -302,6 +309,9 @@ public class Weapon : Item  {
 			}
 		}
 	}
+	public override string getBlackMarketText() {
+		return itemName + "\n" + numberOfDamageDice + "d" + diceType + "\nRange: " + range + "\nCrit: " + criticalChance + "%";
+	}
 	public override string getItemData(string delim)  {
 		string shapeString = "0";
 		if (shape != null)  {
@@ -374,6 +384,9 @@ public class Medicinal : Weapon  {
 	public Medicinal()  {
 		
 	}
+	public override string getBlackMarketText() {
+		return itemName + "\n" + numberOfDamageDice + "d" + diceType + " Healing";
+	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.Medicinal;
 	}
@@ -391,6 +404,9 @@ public class Armor : Item  {
 		int curr = numSplit;
 		armorType = (ArmorType)int.Parse(split[curr++]);
 		AC = int.Parse(split[curr++]);
+	}
+	public override string getBlackMarketText() {
+		return itemName + "\nAC: " + AC;
 	}
 	public override string getItemData(string delim)  {
 	//	return AC + "  " + (int)armorType;

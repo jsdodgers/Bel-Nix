@@ -23,7 +23,14 @@ public class BaseManager : MonoBehaviour  {
         // This has to be subtracted from whenever a purchase is made
 	// (or upkeep is charged)
 	public enum BaseState  { Save, Mission, Barracks, Infirmary, Engineering, None };
+	[Space(10)]
+	[Header("Black Market")]
 	public List<BlackMarketSection> blackMarket = new List<BlackMarketSection>();
+	public GameObject blackMarketItemPrefab;
+	public GameObject blackMarketScrollContent;
+	public GameObject blackMarketScrollBar;
+
+
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
