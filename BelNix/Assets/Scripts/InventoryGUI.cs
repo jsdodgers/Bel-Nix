@@ -206,15 +206,27 @@ public class InventoryGUI : MonoBehaviour  {
 		if (at == ActionType.Minor) selectedUnit.useMinor(MinorType.Loot, false, false);
 		else if (at == ActionType.Standard) selectedUnit.useStandard();
 		if (!selectedUnit.usedStandard) {
-			BattleGUI.resetStandardButtons();
+			StandardType[] standards = selectedUnit.getStandardTypes();
+			if (!sameAsOldStandards(standards)) {
+				BattleGUI.resetStandardButtons();
+			}
 		}
+	}
+
+	public bool sameAsOldStandards(StandardType[] standards) {
+		if (standards == null || beforeItemStandards == null) return true;
+		foreach (StandardType st in standards) if (!beforeItemStandards.Contains(st)) return false;
+		foreach (StandardType st in beforeItemStandards) if (!standards.Contains(st)) return false;
+		return true;
 	}
 	
 	public static void selectItem()  {
 		inventoryGUI.selectItem((inventoryGUI.overlayObjects.Count > 0 ? inventoryGUI.overlayObjects[0] : null));
 	}
-	
+
+	StandardType[] beforeItemStandards = null;
 	public void selectItem(Image overlayObject)  {
+		beforeItemStandards = selectedUnit.getStandardTypes();
 		InventoryItem ii = overlayObject.GetComponent<InventoryItem>();
 		InventorySlot sl = ii.slot;
 		Item i = null;
