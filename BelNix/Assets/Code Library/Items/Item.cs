@@ -359,7 +359,7 @@ public class Weapon : Item  {
 		for(int i = 0; i < numberOfDamageDice; i++)  {
 			damageDealt += (critical ? diceType : Random.Range(1, diceType+1));
 		}
-		
+		Debug.Log ("Damage Dealt:" + damageDealt);
 		return damageDealt;
 	}
 }
