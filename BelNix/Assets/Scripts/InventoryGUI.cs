@@ -22,6 +22,15 @@ public class InventoryGUI : MonoBehaviour  {
 	
 	// Update is called once per frame
 	void Update ()  {
+		if (Input.GetMouseButtonDown(0)) Debug.Log(isShown);
+		if (Input.GetMouseButtonDown(0) && isShown)  {
+			if (overlayObjects.Count > 0)  {
+				selectItem();
+			}
+		}
+		if (Input.GetMouseButtonUp(0) && isShown)  {
+			InventoryGUI.deselectItem();
+		}
 		moveSelectedItem();
 
 	}
@@ -201,7 +210,10 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 		if (insertSlot == InventorySlot.None)  {
-			currentLootTile.addItem(i);
+			if (currentLootTile != null)
+				currentLootTile.addItem(i);
+			else if (currentStash != null)
+				currentStash.addItem(i);
 			selectedItem.transform.SetParent(lootContent, false);
 			selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
 			selectedItem.GetComponent<LayoutElement>().ignoreLayout = false;
@@ -250,7 +262,10 @@ public class InventoryGUI : MonoBehaviour  {
 			InventoryItem iii = overlayObject.transform.parent.GetComponent<InventoryItem>();
 			if (iii != null)  {
 				i = iii.item;
-				currentLootTile.removeItem(i,0);
+				if (currentLootTile != null)
+					currentLootTile.removeItem(i,0);
+				else if (currentStash != null)
+					currentStash.removeItem(i);
 				originalSlot = sl;
 				overlayObject.gameObject.SetActive(false);
 				overlayObject.transform.parent.GetComponent<LayoutElement>().ignoreLayout = true;
@@ -323,12 +338,14 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public Tile currentLootTile;
-	public static void setLootItems(List<Item> items, Tile t)  {
-		inventoryGUI.setLoot(items, t);
+	public Stash currentStash;
+	public static void setLootItems(List<Item> items, Tile t, Stash s = null)  {
+		inventoryGUI.setLoot(items, t, s);
 	}
 	
-	public void setLoot(List<Item> items, Tile t)  {
+	public void setLoot(List<Item> items, Tile t, Stash s = null)  {
 		currentLootTile = t;
+		currentStash = s;
 		foreach (Item i in items)  {
 			if (i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
@@ -388,7 +405,6 @@ public class InventoryGUI : MonoBehaviour  {
 
 	public static void setupInvent(Unit u)  {
 		inventoryGUI.setupInventory(u, null);
-        isShown = true;
 	}
 
 	

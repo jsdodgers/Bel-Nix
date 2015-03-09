@@ -380,6 +380,17 @@ public class Weapon : Item  {
 
 public class Medicinal : Weapon  {
 	public int numberOfUses = 4;
+	
+	public override string getBlackMarketText() {
+		return itemName + "\n" + numberOfDamageDice + "d" + diceType + " Healing";
+	}
+	public override ItemCode getItemCode ()  {
+		return ItemCode.Medicinal;
+	}
+	public override string getItemData(string delim) {
+		return base.getItemData(delim);
+	}
+
 
 	public Medicinal(string itemData, string delim) : base(itemData, delim)  {
 
@@ -387,12 +398,6 @@ public class Medicinal : Weapon  {
 
 	public Medicinal()  {
 		
-	}
-	public override string getBlackMarketText() {
-		return itemName + "\n" + numberOfDamageDice + "d" + diceType + " Healing";
-	}
-	public override ItemCode getItemCode ()  {
-		return ItemCode.Medicinal;
 	}
 	public Medicinal(string itemName, ItemType itemType, bool canPlaceItemInShoulder, int gold, int silver, int copper, bool isKeyItem, string inventoryTextureSpritePrefabName, int layerAdd, int hit, int range, int numberOfDamageDice, int diceType, int damageBonus, DamageType damageType, int criticalChance, int durabilityChance, bool isRanged, Vector2[] shape) :
 	base(itemName, itemType, canPlaceItemInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape)  {
