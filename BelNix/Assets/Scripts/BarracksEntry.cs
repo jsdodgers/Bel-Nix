@@ -35,6 +35,7 @@ public class BarracksEntry : MonoBehaviour  {
     private Options options;
     private GameObject statsPanel;
     private GameObject featuresPanel;
+    private GameObject pointAllocationPanel;
 
     private Physique physique;
     private Prowess prowess;
@@ -48,6 +49,7 @@ public class BarracksEntry : MonoBehaviour  {
         hidePanel(statsPanel);
         hidePanel(featuresPanel);
         hidePanel(options.panel);
+        //hidePanel();
 	}
 	
 	// Update is called once per frame
@@ -61,6 +63,7 @@ public class BarracksEntry : MonoBehaviour  {
         assignStats();
         assignClassFeatures();
         assignInventory();
+        setLevelUp();
     }
 
     private void assignAtAGlance() {
@@ -145,8 +148,9 @@ public class BarracksEntry : MonoBehaviour  {
             inventory = optionsPanel.FindChild("Button - Inventory").gameObject.GetComponent<Button>(),
             levelUp = optionsPanel.FindChild("Button - Level Up").gameObject.GetComponent<Button>()
         };
-        featuresPanel = gameObject.transform.FindChild("Panel - Class Features").gameObject;
+        featuresPanel = this.gameObject.transform.FindChild("Panel - Class Features").gameObject;
         statsPanel = this.gameObject.transform.FindChild("Panel - Character Stats").gameObject;
+        pointAllocationPanel = this.gameObject.transform.FindChild("Panel - Ability Scores").gameObject;
         Transform physiquePanel = statsPanel.transform.FindChild("Panel - Physique Stats");
         physique = new Physique() {
             panel = physiquePanel.gameObject,
@@ -173,6 +177,12 @@ public class BarracksEntry : MonoBehaviour  {
         };
     }
 
+    private void setLevelUp()
+    {
+        if (character.characterSheet.characterProgress.canLevelUp())
+            options.levelUp.interactable = true;
+    }
+
     public void toggleInventory()
     {
         Debug.Log("Waiting for Justin and a new version of InventoryGUI.setUpInvent that can take a Character instead of a Unit.");
@@ -183,14 +193,26 @@ public class BarracksEntry : MonoBehaviour  {
         //    InventoryGUI.setupInvent(character.unit);
     }
 
+
     public void hidePanel(GameObject panel) {
         panel.SetActive(false);
     }
     public void showPanel(GameObject panel) {
         if (panel == statsPanel)
+        {
             hidePanel(featuresPanel);
+            hidePanel(pointAllocationPanel);
+        }
         if (panel == featuresPanel)
+        {
             hidePanel(statsPanel);
+            hidePanel(pointAllocationPanel);
+        }
+        if (panel == pointAllocationPanel)
+        {
+            hidePanel(featuresPanel);
+            hidePanel(statsPanel);
+        }
         panel.SetActive(true);
     }
     public void togglePanel(GameObject panel) {
