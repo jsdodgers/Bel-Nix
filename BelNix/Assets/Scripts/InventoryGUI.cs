@@ -518,8 +518,9 @@ public class InventoryGUI : MonoBehaviour  {
 		List<Image> otherImages = new List<Image>();
 		if (selectedItem == null)  {
 			if (UnitGUI.inventorySlots.Contains(slot))  {
-				InventoryItemSlot iis = selectedUnit.characterSheet.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero];
-				if (iis.hasItem())  {
+				Debug.Log(slot);
+				InventoryItemSlot iis = (selectedUnit == null ? null : selectedUnit.characterSheet.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero]);
+				if (iis != null && iis.hasItem())  {
 					List<InventoryItemSlot> sllls = new List<InventoryItemSlot>();
 					if (iis.itemSlot != iis) sllls.Add(iis.itemSlot);
 					foreach (InventoryItemSlot iis2 in iis.itemSlot.otherSlots)  {
