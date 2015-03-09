@@ -398,7 +398,7 @@ public class FrameM3 : Frame  {
 }
 
 public class Applicator :  Weapon, ItemMechanical  {
-	public StackType getStackType()  {
+	public virtual StackType getStackType()  {
 		return StackType.None;
 	}
 	public override string getItemData(string delim) {
@@ -453,7 +453,7 @@ public class TestApplicator : Applicator  {
 }
 
 public class Knives : Applicator  {
-	public StackType getStackType()  {
+	public override StackType getStackType()  {
 		return StackType.Knives;
 	}
 	public Knives(string itemData, string delim) : base(itemData, delim)   {
@@ -476,7 +476,7 @@ public class Knives : Applicator  {
 }
 
 public class BuzzSaws : Applicator  {
-	public StackType getStackType()  {
+	public override StackType getStackType()  {
 		return StackType.BuzzSaws;
 	}
 	public BuzzSaws(string itemData, string delim) : base(itemData, delim)   {

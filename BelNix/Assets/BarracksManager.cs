@@ -8,6 +8,7 @@ public class BarracksManager : MonoBehaviour {
     GameObject barracksEntryTemplate;
     [SerializeField] private GameObject barracksRoster;
     [SerializeField] private GameObject scrollBar;
+	public static bool isShown;
 
 	// Use this for initialization
 	void Start () {
