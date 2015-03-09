@@ -173,6 +173,16 @@ public class BarracksEntry : MonoBehaviour  {
         };
     }
 
+    public void toggleInventory()
+    {
+        Debug.Log("Waiting for Justin and a new version of InventoryGUI.setUpInvent that can take a Character instead of a Unit.");
+        
+        //if (InventoryGUI.isShown)
+        //    InventoryGUI.setInventoryShown(false);
+        //else
+        //    InventoryGUI.setupInvent(character.unit);
+    }
+
     public void hidePanel(GameObject panel) {
         panel.SetActive(false);
     }
@@ -192,7 +202,6 @@ public class BarracksEntry : MonoBehaviour  {
     }
     public void onStopHovering()
     {
-        Debug.Log("You're only a little crrazy.");
         if (statsPanel.activeSelf || featuresPanel.activeSelf)
             return;
         else

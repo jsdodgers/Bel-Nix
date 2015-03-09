@@ -2,14 +2,15 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class CCPointAllocation : MonoBehaviour  {
-	[SerializeField] private GameObject[] abilityScorePointList;
-	[SerializeField] private GameObject[] modPointList;
-	[SerializeField] private GameObject[] defensePointList;
-	[SerializeField] private GameObject[] skillScorePointList;
+public class CCPointAllocation : AbstractPointAllocation  {
+	//[SerializeField] private GameObject[] abilityScorePointList;
+	//[SerializeField] private GameObject[] modPointList;
+	//[SerializeField] private GameObject[] defensePointList;
+	//[SerializeField] private GameObject[] skillScorePointList;
 
 	[SerializeField] private GameObject ccGUI;
 
+    /*
 	int sturdy = 1;
 	int perception = 1;
 	int technique = 1;
@@ -27,10 +28,13 @@ public class CCPointAllocation : MonoBehaviour  {
 	int historical = 0;
 	int political = 0;
 	int totalSkillPoints = 2;
+    
 
 	public int[] getSkills()  {return new int[8]  {athletics, melee, ranged, stealth, mechanical, medicinal, historical, political};}
+    */
 
-	// Use this for initialization
+    /*
+    // Use this for initialization
 	void Start ()  {
 		abilityScorePointList[1].GetComponent<Text>().text = sturdy.ToString();
 		abilityScorePointList[2].GetComponent<Text>().text = perception.ToString();
@@ -57,12 +61,14 @@ public class CCPointAllocation : MonoBehaviour  {
 		skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
 	}
 	
+
 	// Update is called once per frame
 	void Update ()  {
 	
 	}
-
-	public void updateScores()  {
+    */
+    /*
+    public void updateScores()  {
 		abilityScorePointList[1].GetComponent<Text>().text = sturdy.ToString();
 		abilityScorePointList[2].GetComponent<Text>().text = perception.ToString();
 		abilityScorePointList[3].GetComponent<Text>().text = technique.ToString();
@@ -87,8 +93,10 @@ public class CCPointAllocation : MonoBehaviour  {
 		skillScorePointList[8].GetComponent<Text>().text = calculateSkill(political, well_versed, 7).ToString();
 		skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
 	}
+    */
 
-	int calculateSkill(int skill, int abilityScore, int skillNumber)  {
+
+	protected override int calculateSkill(int skill, int abilityScore, int skillNumber)  {
 		int skillTotal = 0;
 
 		if(ccGUI.GetComponent<CCGUI>().character.cClass != null)  {
@@ -100,11 +108,13 @@ public class CCPointAllocation : MonoBehaviour  {
 		return skillTotal;
 	}
 
-	int calculateMod(int abilityScore)  {
+    /*
+	protected override int calculateMod(int abilityScore)  {
 		return (int) Mathf.Floor(abilityScore/2);
 	}
-
-	public int calculateHealth()  {
+    */
+	
+    public override int calculateHealth()  {
 		int health = 0;
 
 		if(ccGUI.GetComponent<CCGUI>().character.cClass != null)  {
@@ -119,7 +129,7 @@ public class CCPointAllocation : MonoBehaviour  {
 		return health;
 	}
 
-	public int calculateComposure()  {
+	public override int calculateComposure()  {
 		int composure = 0;
 
 		if(ccGUI.GetComponent<CCGUI>().character.cClass != null)  {
@@ -134,6 +144,11 @@ public class CCPointAllocation : MonoBehaviour  {
 		return composure;
 	}
 
+    protected override void subClassStart()
+    {
+    }
+
+    /*
 	public void addPoint(string score)  {
 		if(totalPoints > 0)  {
 			switch(score)
@@ -169,7 +184,9 @@ public class CCPointAllocation : MonoBehaviour  {
 			adjustTotalPoints(false);
 		}
 	}
+    */
 
+    /*
 	public void addSkillPoint(string skill)  {
 		if(totalSkillPoints > 0)  {
 			switch(skill)
@@ -212,7 +229,8 @@ public class CCPointAllocation : MonoBehaviour  {
 			adjustTotalSkillPoints(false);
 		}
 	}
-
+     */
+    /*
 	void adjustTotalPoints(bool positive)  {
 		if(positive)  {
 			totalPoints++;
@@ -222,7 +240,8 @@ public class CCPointAllocation : MonoBehaviour  {
 		}
 		abilityScorePointList[0].GetComponent<Text>().text = totalPoints.ToString();
 	}
-
+    */
+    /*
 	void adjustTotalSkillPoints(bool positive)  {
 		if(positive)  {
 			totalSkillPoints++;
@@ -232,7 +251,8 @@ public class CCPointAllocation : MonoBehaviour  {
 		}
 		skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
 	}
-
+     */
+    /*
 	public void subtractPoint(string score)  {
 		switch(score)  {
 		case "sturdy":
@@ -279,8 +299,9 @@ public class CCPointAllocation : MonoBehaviour  {
 			break;
 		}
 	}
-
-	public void subtractSkillPoint(string skill)  {
+    */
+	/*
+    public void subtractSkillPoint(string skill)  {
 		switch(skill)  {
 		case "athletics":
 			if(athletics > 0)
@@ -350,4 +371,5 @@ public class CCPointAllocation : MonoBehaviour  {
 			break;
 		}
 	}
+     */
 }

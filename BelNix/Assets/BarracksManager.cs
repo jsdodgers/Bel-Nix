@@ -7,6 +7,7 @@ public class BarracksManager : MonoBehaviour {
     List<Character> characters;
     GameObject barracksEntryTemplate;
     [SerializeField] private GameObject barracksRoster;
+    [SerializeField] private GameObject scrollBar;
 
 	// Use this for initialization
 	void Start () {

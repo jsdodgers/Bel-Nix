@@ -47,6 +47,8 @@ public class BaseManager : MonoBehaviour  {
 	static Texture2D barracksTexture;
 	static Texture2D bottomSheetTexture;
     [SerializeField]
+    private InventoryGUI inventory; 
+    [SerializeField]
     private GameObject baseGUI;
 	// Use this for initialization
 	void Start ()  {
@@ -68,6 +70,9 @@ public class BaseManager : MonoBehaviour  {
 			ch.characterId = chars[n];
 			units.Add(ch);
 		}
+        InventoryGUI.setInventoryGUI(inventory);
+        //InventoryGUI.setupInvent();
+        //InventoryGUI.setInventoryShown(false)
         baseGUI.GetComponent<BaseGUI>().initializeBarracks(units);
 		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
