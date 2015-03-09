@@ -192,6 +192,7 @@ public class BarracksEntry : MonoBehaviour  {
     }
     public void onStopHovering()
     {
+        Debug.Log("You're only a little crrazy.");
         if (statsPanel.activeSelf || featuresPanel.activeSelf)
             return;
         else

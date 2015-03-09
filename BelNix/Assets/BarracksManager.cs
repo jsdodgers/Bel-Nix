@@ -6,6 +6,7 @@ public class BarracksManager : MonoBehaviour {
 
     List<Character> characters;
     GameObject barracksEntryTemplate;
+    [SerializeField] private GameObject barracksRoster;
 
 	// Use this for initialization
 	void Start () {
@@ -19,8 +20,8 @@ public class BarracksManager : MonoBehaviour {
         {
             var abilityScores = character.characterSheet.abilityScores;
             var newBarracksEntryPanel = (GameObject) Instantiate(barracksEntryTemplate);
-            var newBarracksEntry = newBarracksEntryPanel.GetComponent<BarracksEntry>();
-            newBarracksEntryPanel.transform.SetParent(gameObject.transform, false);
+            var newBarracksEntry = newBarracksEntryPanel.GetComponentInChildren<BarracksEntry>();
+            newBarracksEntryPanel.transform.SetParent(barracksRoster.transform, false);
             newBarracksEntry.assignCharacter(character);
         }
         //Destroy(barracksEntryTemplate);
