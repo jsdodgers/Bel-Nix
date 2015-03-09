@@ -70,7 +70,6 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public void deselectItem(Image overlayObject)  {
-		Debug.Log("deselectItem:");
 		if (selectedItem == null)  {
 			setLootInteractable(true);
 			return;
@@ -78,7 +77,6 @@ public class InventoryGUI : MonoBehaviour  {
 		CharacterSheet cs = selectedUnit.characterSheet.characterSheet;
 		Item i = selectedItem.GetComponent<InventoryItem>().item;
 		InventorySlot insertSlot = originalSlot;
-		Debug.Log(overlayObjects.Count);
 		if (overlayObjects.Count > 0)  {
 			InventorySlot sl = overlayObjects[0].GetComponent<InventoryItem>().slot;
 			if (sl == InventorySlot.None)  {

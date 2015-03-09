@@ -2093,9 +2093,9 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	void handleInput()  {
-		if (Conversation.conversationOpen) return;
+		if (Conversation.conversationOpen || gameState != GameState.Playing) return;
 		handleKeys();
-		if (GameGUI.escapeMenuOpen || gameState != GameState.Playing) return;
+		if (GameGUI.escapeMenuOpen) return;
 		if (currentUnitIsPrimal())  {
 			getCurrentUnit().performPrimal();
 			return;
