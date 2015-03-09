@@ -9,7 +9,7 @@ public class SkillScores {
 	public SkillScores (CombatScores combatScores, CharacterProgress characterProgress)  {
 		cScores = combatScores;
 		cProgress = characterProgress;
-		scores = cProgress.getCharacterClass().getClassModifiers().getSkillModifiers();
+	///	scores = cProgress.getCharacterClass().getClassModifiers().getSkillModifiers();
 	}
 	public void incrementScore(Skill skill)  {
 		incrementScore(skill, 1);
@@ -47,7 +47,7 @@ public class SkillScores {
 			break;
 		}
 
-		return scores[(int)skill] + modifier;
+		return scores[(int)skill] + modifier + cProgress.getCharacterClass().getClassModifiers().getSkillModifiers()[(int)skill];
 	}
 }
 

@@ -2145,14 +2145,7 @@ public class MapGenerator : MonoBehaviour  {
 		handleMouseClicks();
 		handleMouseSelect();
 		handleMouseMovement();
-		if (mouseDown && UnitGUI.inventoryOpen)  {
-			if (InventoryGUI.inventoryGUI.overlayObjects.Count > 0)  {
-				InventoryGUI.selectItem();
-			}
-		}
-		if (mouseUp && UnitGUI.inventoryOpen)  {
-			InventoryGUI.deselectItem();
-		}
+
 		if (altDown && shiftDown) rotatePlayerTowardsMouse();
 	}
 	

@@ -177,20 +177,23 @@ public class BarracksEntry : MonoBehaviour  {
         };
     }
 
-    private void setLevelUp()
-    {
-        if (character.characterSheet.characterProgress.canLevelUp())
-            options.levelUp.interactable = true;
-    }
 
-    public void toggleInventory()
-    {
-        //Debug.Log("Waiting for Justin and a new version of InventoryGUI.setUpInvent that can take a Character instead of a Unit.");
-        
-        if (InventoryGUI.isShown)
+	private void setLevelUp() {
+		if (character.characterSheet.characterProgress.canLevelUp())
+			options.levelUp.interactable = true;
+	}
+
+	public void toggleInventory() {
+		if (InventoryGUI.isShown)
             InventoryGUI.setInventoryShown(false);
-        else
-            InventoryGUI.setupInvent(character);
+        else {
+			GameObject basee = (GameObject)GameObject.Find("Base");
+			if (basee != null) {
+				BaseManager bm = basee.GetComponent<BaseManager>();
+				bm.setInventory(character);
+			}
+			InventoryGUI.setInventoryShown(true);
+		}
     }
 
 

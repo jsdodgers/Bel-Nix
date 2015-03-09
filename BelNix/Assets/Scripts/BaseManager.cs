@@ -53,7 +53,11 @@ public class BaseManager : MonoBehaviour  {
 	Character hoveredCharacter = null;
 	Character levelingUpCharacter = null;
 	public List<Character> units;
+
+	[Space(10)]
+	[Header("Inventory")]
 	public Stash stash = new Stash();
+
 	string saveName = "";
 	string[] saves;
 //	bool saving = false;
@@ -150,6 +154,11 @@ public class BaseManager : MonoBehaviour  {
 		stash.addItem(i);
 		setCanAffordItems();
 	}
+	public void setInventory(Character character) {
+		InventoryGUI.setupInvent(character);
+		InventoryGUI.clearLootItems();
+		InventoryGUI.setLootItems(stash.items, null, stash);
+	}
 
 
 	void Start ()  {
@@ -178,6 +187,7 @@ public class BaseManager : MonoBehaviour  {
 			}
 		}
         InventoryGUI.setInventoryGUI(inventory);
+		setCanAffordItems();
         //InventoryGUI.setupInvent();
         //InventoryGUI.setInventoryShown(false)
         baseGUI.GetComponent<BaseGUI>().initializeBarracks(units);
