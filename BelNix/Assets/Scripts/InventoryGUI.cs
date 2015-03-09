@@ -567,7 +567,10 @@ public class InventoryGUI : MonoBehaviour  {
 			return inventorySlots;
 		}
 	}
-	
+
+	public void hideInventory() {
+		setInventoryShown(false);
+	}
 	public static void setInventoryShown(bool shown)  {
         isShown = shown;
         inventoryGUI.gameObject.SetActive(shown);
