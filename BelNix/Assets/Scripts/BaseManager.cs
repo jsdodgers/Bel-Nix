@@ -47,7 +47,7 @@ public class BaseManager : MonoBehaviour  {
 	static Texture2D barracksTexture;
 	static Texture2D bottomSheetTexture;
     [SerializeField]
-    private GameObject barracksEntryTemplate;
+    private GameObject baseGUI;
 	// Use this for initialization
 	void Start ()  {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
@@ -68,8 +68,7 @@ public class BaseManager : MonoBehaviour  {
 			ch.characterId = chars[n];
 			units.Add(ch);
 		}
-        BarracksManager barracks = GameObject.Find("Panel - Barracks").AddComponent<BarracksManager>();
-        barracks.fillBarracks(barracksEntryTemplate, units);
+        baseGUI.GetComponent<BaseGUI>().initializeBarracks(units);
 		barracksTexture = Resources.Load<Texture>("UI/barracks-back") as Texture2D;
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 		tooltips = new Dictionary<string, string>();
@@ -114,9 +113,10 @@ public class BaseManager : MonoBehaviour  {
 					baseState = BaseState.Mission;
 				}
 				else if (hoveredObject.tag=="barracks")  {
-					barracksScrollPos = new Vector2();
-					displayedCharacter = null;
-					baseState = BaseState.Barracks;
+					//barracksScrollPos = new Vector2();
+					//displayedCharacter = null;
+					//baseState = BaseState.Barracks;
+                    GameObject.Find("Canvas - Base GUI").GetComponent<BaseGUI>().enableBarracks();
 				}
 				else if (hoveredObject.tag=="newcharacter")  {
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
