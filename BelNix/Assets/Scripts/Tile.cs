@@ -835,7 +835,7 @@ public class Tile  {
 		else units = new List<Unit>(cs.mapGenerator.priorityOrder);
 
 		foreach (Unit u in units)  {
-			if (u.isEnemyOf(cs) && (u.playerControlled || u.aiActive) && u.canAttOpp() && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true, u.attackVisibilityMode()))  {
+			if (u.isEnemyOf(cs) && (u.playerControlled || u.aiActive) && u.canAttOpp(cs) && u.hasLineOfSightToTile(this, cs, u.getAttackRange(), true, u.attackVisibilityMode()))  {
 				Tile next = getTile(direction);
 				if (!u.hasLineOfSightToTile(next, cs, u.getAttackRange(), true, u.attackVisibilityMode())) return true;
 			}

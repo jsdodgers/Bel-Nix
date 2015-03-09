@@ -49,7 +49,7 @@ public class TrapUnit : MechanicalUnit  {
 	}
 	
 	
-	public override bool canAttOpp()  {
+	public override bool canAttOpp(Unit u)  {
 		return false;
 	}
 
