@@ -9,6 +9,7 @@ public class InventoryGUI : MonoBehaviour  {
 //	[SerializeField] private GameObject inventoryCanvas;
 	[SerializeField] public static InventoryGUI inventoryGUI;
 	static Unit selectedUnit;
+	static Character selectedCharacter;
 	// Use this for initialization
 	void Start ()  {
 	//	mapGenerator = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
@@ -366,12 +367,18 @@ public class InventoryGUI : MonoBehaviour  {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value+.0001f;
 	}
 
+	public static void setupInvent(Character cs) {
+		inventoryGUI.setupInventory(null, cs);
+	}
+
 	public static void setupInvent(Unit u)  {
-		inventoryGUI.setupInventory(u);
+		inventoryGUI.setupInventory(u, null);
 	}
 	
-	public void setupInventory(Unit u)  {
+	public void setupInventory(Unit u, Character cs)  {
 		selectedUnit = u;
+		selectedCharacter = cs;
+		if (cs == null && u != null) selectedCharacter = u.characterSheet;
 		GameObject[] inventoryParents = new GameObject[]  {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
 		/*		GameObject[] oldInventory = GameObject.FindGameObjectsWithTag("inventoryitem");
 		for (int n = oldInventory.Length-1;n >= 0; n--)  {
@@ -384,7 +391,7 @@ public class InventoryGUI : MonoBehaviour  {
 				if (g2.name == "InventoryItem") GameObject.Destroy(g2);
 			}
 		}
-		foreach (InventoryItemSlot iis in u.characterSheet.characterSheet.inventory.inventory)  {
+		foreach (InventoryItemSlot iis in selectedCharacter.characterSheet.inventory.inventory)  {
 			if (iis.item != null && iis.item.inventoryTexture != null)  {
 				Item i = iis.item;
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
@@ -410,11 +417,11 @@ public class InventoryGUI : MonoBehaviour  {
 					case ArmorType.Head:
 					case ArmorType.Chest:
 					case ArmorType.Shoulder:
-						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.primaryColor;
+						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
 						break;
 					case ArmorType.Gloves:
 					case ArmorType.Pants:
-						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.secondaryColor;
+						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
 						break;
 					default:
 						break;
@@ -423,7 +430,7 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
-			Item i = u.characterSheet.characterSheet.characterLoadout.getItemInSlot(slot);
+			Item i = selectedCharacter.characterSheet.characterLoadout.getItemInSlot(slot);
 			if (i != null && i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
 				invP.name = "InventoryItem";
@@ -457,11 +464,11 @@ public class InventoryGUI : MonoBehaviour  {
 					case ArmorType.Head:
 					case ArmorType.Chest:
 					case ArmorType.Shoulder:
-						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.primaryColor;
+						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
 						break;
 					case ArmorType.Gloves:
 					case ArmorType.Pants:
-						invP.GetComponent<Image>().color = u.characterSheet.characterSheet.characterColors.secondaryColor;
+						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
 						break;
 						//	case ArmorType.Boots:
 						//		invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
