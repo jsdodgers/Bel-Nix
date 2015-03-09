@@ -5,6 +5,14 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 using System.IO;
 
+[System.Serializable]
+public class BlackMarketSection {
+	public string sectionName = "";
+	public List<EditorItem> items = new List<EditorItem>();
+	public List<Item> actualItems = new List<Item>();
+	public void setupItems() { foreach (EditorItem i in items) actualItems.Add(i.getItem()); }
+}
+
 public class BaseManager : MonoBehaviour  {
 
     //Purse partyPurse = new Purse();
@@ -14,6 +22,7 @@ public class BaseManager : MonoBehaviour  {
         // This has to be subtracted from whenever a purchase is made
 	// (or upkeep is charged)
 	public enum BaseState  { Save, Mission, Barracks, Infirmary, Engineering, None };
+	public List<BlackMarketSection> blackMarket = new List<BlackMarketSection>();
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
@@ -47,6 +56,13 @@ public class BaseManager : MonoBehaviour  {
 	static Texture2D bottomSheetTexture;
     Character charizard;
 	// Use this for initialization
+
+	
+	void Awake() {
+		foreach (BlackMarketSection section in blackMarket) {
+			section.setupItems();
+		}
+	}
 	void Start ()  {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 	//	Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
@@ -1381,6 +1397,7 @@ public class BaseManager : MonoBehaviour  {
 			return false;
 		}
 	}
+
 
 	public ClassFeature getSelectedFeature()  {
 		if (possibleFeatures.Length==0) return ClassFeature.None;
