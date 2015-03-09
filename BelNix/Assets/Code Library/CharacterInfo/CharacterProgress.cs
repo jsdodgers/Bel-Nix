@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
-public class CharacterProgress
-{
+public class CharacterProgress {
 	private CharacterClass cClass;
 	private int cLevel;
 	private int cExperience;
@@ -9,38 +8,35 @@ public class CharacterProgress
 	private RaceName favoredRace;
 public const int LEVEL_COEFFICIENT = 100;
 
-	public CharacterProgress (CharacterClass characterClass)
-	{
+	public CharacterProgress (CharacterClass characterClass)  {
 		cClass		= characterClass;
 		cLevel 		= 1;
 		cExperience = 0;
 		weaponFocus = DamageType.None;
 		favoredRace = RaceName.None;
 	}
-	public CharacterClass getCharacterClass()	 	{ return cClass; }
-	public int getCharacterLevel() 					{ return cLevel; }
-	public int getCharacterExperience() 			{ return cExperience; }
-	public int addExperience(int exp)				{ return cExperience += exp; }
-	public int setExperience(int exp)				{ return cExperience = exp; }
-	public int incrementLevel()						
-{
-    if (canLevelUp())
-    {
+	public CharacterClass getCharacterClass()	 	 { return cClass; }
+	public int getCharacterLevel() 					 { return cLevel; }
+	public int getCharacterExperience() 			 { return cExperience; }
+	public int addExperience(int exp)				 { return cExperience += exp; }
+	public int setExperience(int exp)				 { return cExperience = exp; }
+	public int incrementLevel()						 {
+    if (canLevelUp()) {
         cExperience -= cLevel * LEVEL_COEFFICIENT;
         cLevel++;
     }
     return cLevel; 
 }
-	public bool canLevelUp() {
+	public bool canLevelUp()  {
 		return cExperience >= cLevel * LEVEL_COEFFICIENT;
 	}
-	public int setLevel(int level)					{ return cLevel = level; }
-	public ClassFeature[] getClassFeatures() 		{ return getCharacterClass().getClassFeatures(cLevel); }
-	public bool hasFeature(ClassFeature feature)	{ return Array.IndexOf(getClassFeatures(),feature)>=0; }
-	public RaceName getFavoredRace()				{ return favoredRace; }
-	public void setFavoredRace(RaceName race)		{ favoredRace = race; }
-	public void setFavoredRace(int race) {
-		switch (race) {
+	public int setLevel(int level)					 { return cLevel = level; }
+	public ClassFeature[] getClassFeatures() 		 { return getCharacterClass().getClassFeatures(cLevel); }
+	public bool hasFeature(ClassFeature feature)	 { return Array.IndexOf(getClassFeatures(),feature)>=0; }
+	public RaceName getFavoredRace()				 { return favoredRace; }
+	public void setFavoredRace(RaceName race)		 { favoredRace = race; }
+	public void setFavoredRace(int race)  {
+		switch (race)  {
 		case 1:
 			favoredRace = RaceName.Berrind;
 			break;
@@ -55,8 +51,8 @@ public const int LEVEL_COEFFICIENT = 100;
 			break;
 		}
 	}
-	public int getFavoredRaceAsNumber() {
-		switch (favoredRace) {
+	public int getFavoredRaceAsNumber()  {
+		switch (favoredRace)  {
 		case RaceName.Berrind:
 			return 1;
 		case RaceName.Ashpian:
@@ -67,10 +63,10 @@ public const int LEVEL_COEFFICIENT = 100;
 			return 0;
 		}
 	}
-	public DamageType getWeaponFocus()				{ return weaponFocus; }
-	public void setWeaponFocus(DamageType type)		{ weaponFocus = type; }
-	public void setWeaponFocus(int focus) {
-		switch (focus) {
+	public DamageType getWeaponFocus()				 { return weaponFocus; }
+	public void setWeaponFocus(DamageType type)		 { weaponFocus = type; }
+	public void setWeaponFocus(int focus)  {
+		switch (focus)  {
 		case 1:
 			weaponFocus = DamageType.Piercing;
 			break;
@@ -85,8 +81,8 @@ public const int LEVEL_COEFFICIENT = 100;
 			break;
 		}
 	}
-	public int getWeaponFocusAsNumber() {
-		switch (weaponFocus) {
+	public int getWeaponFocusAsNumber()  {
+		switch (weaponFocus)  {
 		case DamageType.Piercing:
 			return 1;
 		case DamageType.Slashing:

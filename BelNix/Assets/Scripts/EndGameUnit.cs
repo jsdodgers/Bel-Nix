@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class EndGameUnit : MonoBehaviour {
+public class EndGameUnit : MonoBehaviour  {
 
 	public Image body;
 	public Image boots;
@@ -16,7 +16,7 @@ public class EndGameUnit : MonoBehaviour {
 	public GameObject deceased;
 	public Sprite maleBaseSprite;
 
-	public void setUnit(Unit u) {
+	public void setUnit(Unit u)  {
 	//	u.resetAllSprites();
 		setBody(maleBaseSprite, u.characterSheet.characterSheet.characterColors.characterColor);
 		Armor b = u.characterSheet.characterSheet.characterLoadout.bootsSlot;
@@ -38,63 +38,63 @@ public class EndGameUnit : MonoBehaviour {
 		setDead(u.isDead());
 	}
 
-	public void setBody(Sprite spr, Color c) {
+	public void setBody(Sprite spr, Color c)  {
 		body.sprite = spr;
 		body.color = c;
 		body.gameObject.SetActive(true);
 	}
 
-	public void setBoots(Sprite spr, Color c) {
+	public void setBoots(Sprite spr, Color c)  {
 		boots.sprite = spr;
 		boots.color = c;
 		boots.gameObject.SetActive(true);
 	}
 
-	public void setPants(Sprite spr, Color c) {
+	public void setPants(Sprite spr, Color c)  {
 		pants.sprite = spr;
 		pants.color = c;
 		pants.gameObject.SetActive(true);
 	}
 
-	public void setShirt(Sprite spr, Color c) {
+	public void setShirt(Sprite spr, Color c)  {
 		shirt.sprite = spr;
 		shirt.color = c;
 		shirt.gameObject.SetActive(true);
 	}
 
-	public void setHair(Sprite spr, Color c) {
+	public void setHair(Sprite spr, Color c)  {
 		hair.sprite = spr;
 		hair.color = c;
 		hair.gameObject.SetActive(true);
 	}
 
-	public void setWeapon(Sprite spr) {
+	public void setWeapon(Sprite spr)  {
 		weapon.sprite = spr;
 	//	weapon.color = c;
 		weapon.gameObject.SetActive(true);
 	}
 
-	public void setExperienceLevel(int exp, int lev) {
+	public void setExperienceLevel(int exp, int lev)  {
 		int totalExp = lev * 100;
 		experience.text = UnitGUI.getSmallCapsString("Experience: " + exp + "/" + totalExp, 10);
 		level.text = UnitGUI.getSmallCapsString("Level: " + lev,10) + (exp >= totalExp ? "<color=green>" + UnitGUI.getSmallCapsString("(Level Up!)",10) + "</color>" : "");
 	}
 
-	public void setName(string n) {
+	public void setName(string n)  {
 		name.text = UnitGUI.getSmallCapsString(n, 10);
 	}
 
-	public void setDead(bool dead) {
+	public void setDead(bool dead)  {
 		deceased.SetActive(dead);
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 	
 	}
 }

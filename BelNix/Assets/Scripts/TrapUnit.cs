@@ -2,23 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class TrapUnit : MechanicalUnit {
+public class TrapUnit : MechanicalUnit  {
 	
 	public Unit owner;
 	public Trap trap;
 	public List<TrapUnit> fullTrap;
 	public bool selectedForPlacement;
 
-	public void setSelectedForPlacement() {
+	public void setSelectedForPlacement()  {
 		selectedForPlacement = true;
 	}
 
-	public void unsetSelectedForPlacement() {
+	public void unsetSelectedForPlacement()  {
 		selectedForPlacement = false;
 		transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 	}
 
-	public void doPlacementExpand() {
+	public void doPlacementExpand()  {
 		if (!selectedForPlacement) return;
 		float factor = 1.0f/10.0f;
 		float speed = 3.0f;
@@ -28,7 +28,7 @@ public class TrapUnit : MechanicalUnit {
 	}
 
 	
-	public override void setPosition(Vector3 pos) {
+	public override void setPosition(Vector3 pos)  {
 		//	setNewTilePosition(pos);
 		position = pos;
 		transform.localPosition = new Vector3(pos.x + .5f, pos.y - .5f, pos.z);
@@ -37,81 +37,81 @@ public class TrapUnit : MechanicalUnit {
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 	
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 		doPlacementExpand();
 		doDeath();
 		doAttack();
 	}
 	
 	
-	public override bool canAttOpp() {
+	public override bool canAttOpp()  {
 		return false;
 	}
 
-	public override RaceName getRaceName() {
+	public override RaceName getRaceName()  {
 		return RaceName.None;
 	}
 
-	public override bool hasUncannyKnowledge() {
+	public override bool hasUncannyKnowledge()  {
 		return false;
 	}
 	
-	public override bool attackEnemyIsFavoredRace() {
+	public override bool attackEnemyIsFavoredRace()  {
 		return unitIsFavoredRace(attackEnemy);
 	}
 	
-	public override bool unitIsFavoredRace(Unit u) {
+	public override bool unitIsFavoredRace(Unit u)  {
 		return raceIsFavoredRace(u.getRaceName());
 	}
 	
-	public override bool raceIsFavoredRace(RaceName race) {
+	public override bool raceIsFavoredRace(RaceName race)  {
 		return false;
 	}
 	
 	
-	public override bool givesDecisiveStrike() {
+	public override bool givesDecisiveStrike()  {
 		return false;
 	}
 	
-	public override int getMeleeScore() {
+	public override int getMeleeScore()  {
+		return owner == null ? 0 : owner.getSkill(Skill.Mechanical);
+	}
+	
+	public override int getCritChance()  {
 		return 0;
 	}
 	
-	public override int getCritChance() {
-		return 0;
-	}
-	
-	public override Weapon getWeapon() {
+	public override Weapon getWeapon()  {
 		if (trap==null) return null;
 		return trap.applicator;
 	}
 	
-	public override string getGenderString() {
+	public override string getGenderString()  {
 		return "its";
 	}
 	
-	public override int rollDamage(bool crit) {
+	public override int rollDamage(bool crit)  {
 		return trap.rollDamage();
 	}
 
 
 	
-	public override int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1) {
+	public override int rollForSkill(Skill skill, bool favoredRace = false, int dieType = 10, int dieRoll = -1)  {
 		int roll = Random.Range(1, dieType + 1);
 		return (skill==Skill.Melee ? getMeleeScore() : 0) + (favoredRace?1:0) + roll;
 	}
 	
-	void doAttack() {
+	void doAttack()  {
 		if (mapGenerator.movingCamera && mapGenerator.getCurrentUnit()==this) return;
-		if (attacking) {
+		if (attacking)  {
 			attacking = false;
 			dealDamage();
-			if (attackEnemy) {
+			if (attackEnemy)  {
 				attackEnemy.wasBeingAttacked = attackEnemy.beingAttacked;
 				attackEnemy.beingAttacked = false;
 				attackEnemy.attackedByCharacter = null;
@@ -123,10 +123,10 @@ public class TrapUnit : MechanicalUnit {
 			trap.use();
 		}
 	}
-	public override void doDeath() {
-		if (isDead()) {
-			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking) {
-				if (mapGenerator.selectedUnit) {
+	public override void doDeath()  {
+		if (isDead())  {
+			if (!mapGenerator.selectedUnit || !mapGenerator.selectedUnit.attacking)  {
+				if (mapGenerator.selectedUnit)  {
 					//	Player p = mapGenerator.selectedPlayer.GetComponent<Player>();
 					Unit p = mapGenerator.selectedUnit;
 					if (p.attackEnemy==this) p.attackEnemy = null;
@@ -143,19 +143,19 @@ public class TrapUnit : MechanicalUnit {
 		//	Debug.Log("End Death");
 	}
 
-	public override bool hasWeaponFocus () {
+	public override bool hasWeaponFocus ()  {
 		return false;
 	}
 	
-	public override string getName() {
+	public override string getName()  {
 		return owner.getName() + "'s Trap";
 	}
 	
-	public override bool isDead() {
+	public override bool isDead()  {
 		if (trap == null) return false;
 		return !trap.hasUsesLeft();
 	}
-	public override string deathString() {
+	public override string deathString()  {
 		return "destroyed";
 	}
 

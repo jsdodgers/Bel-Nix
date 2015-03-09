@@ -1,13 +1,13 @@
-["Well, well...  What do we have here?"  Chip looks over to the bloodstained body collapsed at the side of the street.  "Let's check if he's got anything useful on him."]` {1; 2; 3}` False` 0` 0` 
-["Already on it."]` {4}` False` 1` 1` 
-["That's horrible.  He's a human being!"]` {5}` False` 2` 1` 
-[Remain silent.]` {6}` False` 3` 1` 
-["I like you, rookie."]` {7}` False` 4` 0` 
-["Kid, this is life on the Sixth Tier.  If you don't loot his body, someone's going to be looting yours real soon."]` {7}` False` 5` 0` 
-["Something wrong, rookie?"]` {8; 9; 10}` False` 6` 0` 
-[End Dialogue.]` {8}` True` 7` 1` 
-["No.  Nothing's wrong."]` {12}` False` 8` 1` 
-["This is disrespectful to the dead."]` {5}` False` 9` 1` 
-[Continue remaining silent.]` {11}` False` 10` 1` 
-[Chip looks away, an expression of discomfort clearly visible.  "Never mind, then."]` {7}` False` 11` 0` 
-["Let's get moving, then."]` {7}` False` 12` 0` 
+["Well, well...  What do we have here?"  Chip looks over to the bloodstained body collapsed at the side of the street.  "Let's check if he's got anything useful on him."]`  {1; 2; 3}` False` 0` 0` 
+["Already on it."]`  {4}` False` 1` 1` 
+["That's horrible.  He's a human being!"]`  {5}` False` 2` 1` 
+[Remain silent.]`  {6}` False` 3` 1` 
+["I like you, rookie."]`  {7}` False` 4` 0` 
+["Kid, this is life on the Sixth Tier.  If you don't loot his body, someone's going to be looting yours real soon."]`  {7}` False` 5` 0` 
+["Something wrong, rookie?"]`  {8; 9; 10}` False` 6` 0` 
+[End Dialogue.]`  {8}` True` 7` 1` 
+["No.  Nothing's wrong."]`  {12}` False` 8` 1` 
+["This is disrespectful to the dead."]`  {5}` False` 9` 1` 
+[Continue remaining silent.]`  {11}` False` 10` 1` 
+[Chip looks away, an expression of discomfort clearly visible.  "Never mind, then."]`  {7}` False` 11` 0` 
+["Let's get moving, then."]`  {7}` False` 12` 0` 

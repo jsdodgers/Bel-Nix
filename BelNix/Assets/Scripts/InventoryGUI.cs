@@ -4,23 +4,23 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Collections;
 
-public class InventoryGUI : MonoBehaviour {
+public class InventoryGUI : MonoBehaviour  {
 	
 //	[SerializeField] private GameObject inventoryCanvas;
 	[SerializeField] public static InventoryGUI inventoryGUI;
 	static Unit selectedUnit;
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 	//	mapGenerator = GameObject.Find("MapGenerator").GetComponent<MapGenerator>();
 	}
 
-	void Awake() {
+	void Awake()  {
 	//	Debug.Log("This ");
 	//	inventoryGUI = this;
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 		moveSelectedItem();
 
 	}
@@ -51,27 +51,27 @@ public class InventoryGUI : MonoBehaviour {
 	Vector2 selectedCell = new Vector2();
 	InventorySlot originalSlot = InventorySlot.None;
 	
-	public static void setInventoryAC() {
+	public static void setInventoryAC()  {
 		inventoryGUI.setACText();
 	}
 	
-	void setACText() {
+	void setACText()  {
 		if (selectedUnit == null) return;
 		inventoryAC.text = "AC: " + selectedUnit.getAC();
 	}
 	
-	public void moveSelectedItem() {
+	public void moveSelectedItem()  {
 		if (selectedItem != null) selectedItem.transform.position += (Input.mousePosition - mouseSelectPos);
 		mouseSelectPos = Input.mousePosition;
 	}
 	
-	public static void deselectItem() {
+	public static void deselectItem()  {
 		inventoryGUI.deselectItem((inventoryGUI.overlayObjects.Count > 0 ? inventoryGUI.overlayObjects[0] : null));
 	}
 	
-	public void deselectItem(Image overlayObject) {
+	public void deselectItem(Image overlayObject)  {
 		Debug.Log("deselectItem:");
-		if (selectedItem == null) {
+		if (selectedItem == null)  {
 			setLootInteractable(true);
 			return;
 		}
@@ -79,37 +79,37 @@ public class InventoryGUI : MonoBehaviour {
 		Item i = selectedItem.GetComponent<InventoryItem>().item;
 		InventorySlot insertSlot = originalSlot;
 		Debug.Log(overlayObjects.Count);
-		if (overlayObjects.Count > 0) {
+		if (overlayObjects.Count > 0)  {
 			InventorySlot sl = overlayObjects[0].GetComponent<InventoryItem>().slot;
-			if (sl == InventorySlot.None) {
+			if (sl == InventorySlot.None)  {
 				insertSlot = sl;
 			}
-			else if (UnitGUI.armorSlots.Contains(sl)) {
-				if (cs.characterLoadout.canInsertItemInSlot(sl, i, originalSlot)) {
+			else if (UnitGUI.armorSlots.Contains(sl))  {
+				if (cs.characterLoadout.canInsertItemInSlot(sl, i, originalSlot))  {
 					insertSlot = sl;
 				}
 			}
-			else if (UnitGUI.inventorySlots.Contains(sl)) {
+			else if (UnitGUI.inventorySlots.Contains(sl))  {
 				Vector2 vSlot = UnitGUI.getIndexOfSlot(sl);
 				int oSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
 				vSlot -= selectedCell;
 				int iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
-				if (iSlot >= 0 && iSlot < 16 && cs.inventory.canInsertItemInSlot(i, vSlot)) {
+				if (iSlot >= 0 && iSlot < 16 && cs.inventory.canInsertItemInSlot(i, vSlot))  {
 					insertSlot = UnitGUI.getInventorySlotFromIndex(vSlot);
 				}
-				else if (oSlot >= 0 && oSlot < 16) {
+				else if (oSlot >= 0 && oSlot < 16)  {
 					Item inSlot = cs.inventory.inventory[oSlot].getItem();
-					if (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)) {
+					if (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i))  {
 						insertSlot = sl;
 					}
 				}
 			}
 		}
 		ActionType at = Inventory.getActionTypeForMovement(originalSlot, insertSlot);
-		if (UnitGUI.armorSlots.Contains(insertSlot)) {
+		if (UnitGUI.armorSlots.Contains(insertSlot))  {
 			Item i2 = cs.characterLoadout.getItemInSlot(insertSlot);
 			GameObject oldItem = null;
-			if (i2 != null) {
+			if (i2 != null)  {
 				oldItem = getArmourParent(insertSlot).transform.FindChild("InventoryItem").gameObject;
 			}
 			cs.characterLoadout.setItemInSlot(insertSlot,i);
@@ -118,7 +118,7 @@ public class InventoryGUI : MonoBehaviour {
 			selectedItem.transform.SetParent(armourParent.transform, false);
 			Vector2 v = new Vector2();
 			v.x = 32.0f - size.x/2.0f;
-			if (size.y >= 64.0f) {
+			if (size.y >= 64.0f)  {
 				v.y = -64.0f + size.y;
 			}
 			else v.y = -32.0f + size.y/2.0f;
@@ -129,7 +129,7 @@ public class InventoryGUI : MonoBehaviour {
 			rt.anchoredPosition = v;
 			rt.sizeDelta = size;
 			i = i2;
-			if (i != null) {
+			if (i != null)  {
 				selectedItem = oldItem;
 				InventorySlot sl = originalSlot;
 				Vector2 vSlot = UnitGUI.getIndexOfSlot(sl);
@@ -138,16 +138,16 @@ public class InventoryGUI : MonoBehaviour {
 				int iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
 				Debug.Log("Drop has item: " + sl + "  " + vSlot + "   " + iSlot + "  " + selectedCell);
 				Item inSlot = (iSlot <0 || iSlot >= 16 ? null : cs.inventory.inventory[iSlot].getItem());
-				if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i))) {
+				if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)))  {
 					insertSlot = sl;
 				}
-				else {
-					foreach (InventorySlot sl2 in UnitGUI.inventorySlots) {
+				else  {
+					foreach (InventorySlot sl2 in UnitGUI.inventorySlots)  {
 						sl = sl2;
 						vSlot = UnitGUI.getIndexOfSlot(sl);
 						iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
 						inSlot = cs.inventory.inventory[iSlot].getItem();
-						if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i))) {
+						if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)))  {
 							insertSlot = sl;
 							break;
 						}
@@ -161,8 +161,8 @@ public class InventoryGUI : MonoBehaviour {
 			selectedUnit.Invoke("beginIdle",0.05f);
 			
 		}
-		if (UnitGUI.inventorySlots.Contains(insertSlot)) {
-			if (cs.inventory.canInsertItemInSlot(i, UnitGUI.getIndexOfSlot(insertSlot))) {
+		if (UnitGUI.inventorySlots.Contains(insertSlot))  {
+			if (cs.inventory.canInsertItemInSlot(i, UnitGUI.getIndexOfSlot(insertSlot)))  {
 				cs.inventory.insertItemInSlot(i, UnitGUI.getIndexOfSlot(insertSlot));
 				selectedItem.transform.SetParent(inventorySlots.transform, false);
 				Vector2 v = 32.0f * UnitGUI.getIndexOfSlot(insertSlot);
@@ -170,16 +170,16 @@ public class InventoryGUI : MonoBehaviour {
 				selectedItem.GetComponent<RectTransform>().anchoredPosition = v;
 				selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
 			}
-			else {
+			else  {
 				Vector2 vSlot = UnitGUI.getIndexOfSlot(insertSlot);
 				int iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
 				Item inSlot = cs.inventory.inventory[iSlot].getItem();
-				if (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)) {
+				if (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i))  {
 					cs.inventory.stackItemWith(inSlot, i);
 					GameObject[] obj = GameObject.FindGameObjectsWithTag("inventoryitem");
-					foreach (GameObject go in obj) {
+					foreach (GameObject go in obj)  {
 						InventoryItem invP = go.GetComponent<InventoryItem>();
-						if (invP.item == inSlot) {
+						if (invP.item == inSlot)  {
 							invP.transform.FindChild("Text").GetComponent<Text>().text = (inSlot.stackSize() > 1 ? inSlot.stackSize() + "" : "");
 						}
 					}
@@ -187,7 +187,7 @@ public class InventoryGUI : MonoBehaviour {
 				GameObject.Destroy(selectedItem);
 			}
 		}
-		if (insertSlot == InventorySlot.None) {
+		if (insertSlot == InventorySlot.None)  {
 			currentLootTile.addItem(i);
 			selectedItem.transform.SetParent(lootContent, false);
 			selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
@@ -197,7 +197,7 @@ public class InventoryGUI : MonoBehaviour {
 		}
 		selectedItem = null;
 		List<Image> hoveredCopy = new List<Image>(overlayObjects);
-		foreach (Image im in hoveredCopy) {
+		foreach (Image im in hoveredCopy)  {
 			mouseHoverLeave(im);
 			mouseHoverEnter(im);
 		}
@@ -207,18 +207,18 @@ public class InventoryGUI : MonoBehaviour {
 		else if (at == ActionType.Standard) selectedUnit.useStandard();
 	}
 	
-	public static void selectItem() {
+	public static void selectItem()  {
 		inventoryGUI.selectItem((inventoryGUI.overlayObjects.Count > 0 ? inventoryGUI.overlayObjects[0] : null));
 	}
 	
-	public void selectItem(Image overlayObject) {
+	public void selectItem(Image overlayObject)  {
 		InventoryItem ii = overlayObject.GetComponent<InventoryItem>();
 		InventorySlot sl = ii.slot;
 		Item i = null;
-		if (sl == InventorySlot.None) {
+		if (sl == InventorySlot.None)  {
 			Debug.Log(overlayObjects.Count);
 			InventoryItem iii = overlayObject.transform.parent.GetComponent<InventoryItem>();
-			if (iii != null) {
+			if (iii != null)  {
 				i = iii.item;
 				currentLootTile.removeItem(i,0);
 				originalSlot = sl;
@@ -229,21 +229,21 @@ public class InventoryGUI : MonoBehaviour {
 				Invoke("resetLootScrollPos",0.05f);
 			}
 		}
-		else if (UnitGUI.armorSlots.Contains(sl)) {
+		else if (UnitGUI.armorSlots.Contains(sl))  {
 			i = selectedUnit.characterSheet.characterSheet.characterLoadout.removeItemFromSlot(sl);
 			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().sizeDelta= new Vector2(64.0f, 64.0f);
 			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 0.0f);
 			originalSlot = sl;
 		}
-		else if (UnitGUI.inventorySlots.Contains(sl)) {
+		else if (UnitGUI.inventorySlots.Contains(sl))  {
 			ItemReturn i2 = selectedUnit.characterSheet.characterSheet.inventory.removeItemFromSlot(sl);
 			i = i2.item;
 			originalSlot = UnitGUI.getInventorySlotFromIndex(UnitGUI.getIndexOfSlot(sl) - i2.slot);
 		}
 		if (i == null) return;
 		GameObject[] items = GameObject.FindGameObjectsWithTag("inventoryitem");
-		foreach (GameObject item in items) {
-			if (item.GetComponent<InventoryItem>().item == i) {
+		foreach (GameObject item in items)  {
+			if (item.GetComponent<InventoryItem>().item == i)  {
 				selectedItem = item;
 				item.transform.SetParent(inventoryBackground.transform);
 				Vector3 pos = item.transform.position;
@@ -253,9 +253,9 @@ public class InventoryGUI : MonoBehaviour {
 				selectedCell = new Vector2((int)((mousePos.x - pos.x)/32.0f), (int)((mousePos.y - pos.y)/32.0f));
 				Vector2 closest = selectedCell;
 				float closestDist = float.MaxValue;
-				foreach (Vector2 v in i.getShape()) {
+				foreach (Vector2 v in i.getShape())  {
 					float dist = Mathf.Abs(v.x - selectedCell.x) + Mathf.Abs(v.y - selectedCell.y);
-					if (dist < closestDist) {
+					if (dist < closestDist)  {
 						closestDist = dist;
 						closest = v;
 					}
@@ -271,37 +271,37 @@ public class InventoryGUI : MonoBehaviour {
 		setLootInteractable(false);
 	}
 	
-	public void setLootInteractable(bool interactable) {
-		if (interactable && inventoryGUI.overlayObjects.Contains(inventoryGUI.lootOverlay.GetComponent<Image>())) {
+	public void setLootInteractable(bool interactable)  {
+		if (interactable && inventoryGUI.overlayObjects.Contains(inventoryGUI.lootOverlay.GetComponent<Image>()))  {
 			inventoryGUI.mouseHoverLeave(inventoryGUI.lootOverlay.GetComponent<Image>());
 		}
 		lootContent.transform.parent.GetComponent<ScrollRect>().vertical = interactable;
-		for (int n=lootContent.transform.childCount-1;n>=0;n--) {//lootContent.transform.parent.childCount;n++) {
+		for (int n=lootContent.transform.childCount-1;n>=0;n--)  {//lootContent.transform.parent.childCount;n++)  {
 			lootContent.transform.GetChild(n).FindChild("Overlay").gameObject.SetActive(interactable);
 		}
 		lootOverlay.SetActive(!interactable && originalSlot != InventorySlot.None);
 	}
 	
-	public static void clearLootItems() {
+	public static void clearLootItems()  {
 		inventoryGUI.clearLoot();
 	}
 	
-	public void clearLoot() {
-		for (int n = lootContent.childCount-1;n>=0;n--) {
+	public void clearLoot()  {
+		for (int n = lootContent.childCount-1;n>=0;n--)  {
 			GameObject.Destroy(lootContent.GetChild(n).gameObject);
 		}
 	}
 	
 	public Tile currentLootTile;
-	public static void setLootItems(List<Item> items, Tile t) {
+	public static void setLootItems(List<Item> items, Tile t)  {
 		inventoryGUI.setLoot(items, t);
 	}
 	
-	public void setLoot(List<Item> items, Tile t) {
+	public void setLoot(List<Item> items, Tile t)  {
 		currentLootTile = t;
 		Unit u = selectedUnit;
-		foreach (Item i in items) {
-			if (i.inventoryTexture != null) {
+		foreach (Item i in items)  {
+			if (i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
 				invP.name = "InventoryItem";
 				invP.GetComponent<Image>().sprite = i.inventoryTexture;
@@ -321,8 +321,8 @@ public class InventoryGUI : MonoBehaviour {
 				loe.ignoreLayout = false;
 				loe.preferredHeight = size.y;
 				loe.preferredWidth = size.x;
-				if (i is Armor) {
-					switch (((Armor)i).armorType) {
+				if (i is Armor)  {
+					switch (((Armor)i).armorType)  {
 					case ArmorType.Head:
 					case ArmorType.Chest:
 					case ArmorType.Shoulder:
@@ -341,38 +341,38 @@ public class InventoryGUI : MonoBehaviour {
 		}
 	}
 	
-	public void setLootScrollBar() {
+	public void setLootScrollBar()  {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = 1;
 	}
 	
-	public void resetLootScrollPos() {
+	public void resetLootScrollPos()  {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value-.0001f;
 		Invoke("resetLootScrollPos2",0.05f);
 	}
-	public void resetLootScrollPos2() {
+	public void resetLootScrollPos2()  {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value+.0001f;
 	}
 
-	public static void setupInvent(Unit u) {
+	public static void setupInvent(Unit u)  {
 		inventoryGUI.setupInventory(u);
 	}
 	
-	public void setupInventory(Unit u) {
+	public void setupInventory(Unit u)  {
 		selectedUnit = u;
-		GameObject[] inventoryParents = new GameObject[] {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
+		GameObject[] inventoryParents = new GameObject[]  {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
 		/*		GameObject[] oldInventory = GameObject.FindGameObjectsWithTag("inventoryitem");
-		for (int n = oldInventory.Length-1;n >= 0; n--) {
+		for (int n = oldInventory.Length-1;n >= 0; n--)  {
 			Debug.Log("Destroy " + n);
 			GameObject.Destroy(oldInventory[n]);
 		}*/
-		foreach (GameObject g in inventoryParents) {
-			for (int n=g.transform.childCount-1;n>=0;n--) {
+		foreach (GameObject g in inventoryParents)  {
+			for (int n=g.transform.childCount-1;n>=0;n--)  {
 				GameObject g2 = g.transform.GetChild(n).gameObject;
 				if (g2.name == "InventoryItem") GameObject.Destroy(g2);
 			}
 		}
-		foreach (InventoryItemSlot iis in u.characterSheet.characterSheet.inventory.inventory) {
-			if (iis.item != null && iis.item.inventoryTexture != null) {
+		foreach (InventoryItemSlot iis in u.characterSheet.characterSheet.inventory.inventory)  {
+			if (iis.item != null && iis.item.inventoryTexture != null)  {
 				Item i = iis.item;
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
 				invP.name = "InventoryItem";
@@ -392,8 +392,8 @@ public class InventoryGUI : MonoBehaviour {
 				loe.ignoreLayout = true;
 				loe.preferredHeight = size.y;
 				loe.preferredWidth = size.x;
-				if (i is Armor) {
-					switch (((Armor)i).armorType) {
+				if (i is Armor)  {
+					switch (((Armor)i).armorType)  {
 					case ArmorType.Head:
 					case ArmorType.Chest:
 					case ArmorType.Shoulder:
@@ -409,9 +409,9 @@ public class InventoryGUI : MonoBehaviour {
 				}
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.armorSlots) {
+		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
 			Item i = u.characterSheet.characterSheet.characterLoadout.getItemInSlot(slot);
-			if (i != null && i.inventoryTexture != null) {
+			if (i != null && i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
 				invP.name = "InventoryItem";
 				invP.GetComponent<Image>().sprite = i.inventoryTexture;
@@ -422,7 +422,7 @@ public class InventoryGUI : MonoBehaviour {
 				invP.transform.SetParent(armourParent.transform, false);
 				Vector2 v = new Vector2();
 				v.x = 32.0f - size.x/2.0f;
-				if (size.y >= 64.0f) {
+				if (size.y >= 64.0f)  {
 					v.y = -64.0f + size.y;
 				}
 				else v.y = -32.0f + size.y/2.0f;
@@ -439,8 +439,8 @@ public class InventoryGUI : MonoBehaviour {
 				RectTransform rt = canv.GetComponent<RectTransform>();
 				rt.anchoredPosition = v;
 				rt.sizeDelta = size;
-				if (i is Armor) {
-					switch (((Armor)i).armorType) {
+				if (i is Armor)  {
+					switch (((Armor)i).armorType)  {
 					case ArmorType.Head:
 					case ArmorType.Chest:
 					case ArmorType.Shoulder:
@@ -461,8 +461,8 @@ public class InventoryGUI : MonoBehaviour {
 		}
 		setACText();
 	}
-	public GameObject getArmourParent(InventorySlot slot) {
-		switch (slot) {
+	public GameObject getArmourParent(InventorySlot slot)  {
+		switch (slot)  {
 		case InventorySlot.Head:
 			return inventoryHead;
 		case InventorySlot.Shoulder:
@@ -484,11 +484,11 @@ public class InventoryGUI : MonoBehaviour {
 		}
 	}
 	
-	public static void setInventoryShown(bool shown) {
+	public static void setInventoryShown(bool shown)  {
 		inventoryGUI.gameObject.SetActive(shown);
-		if (!shown) {
+		if (!shown)  {
 			inventoryGUI.clearLoot();
-			while (inventoryGUI.overlayObjects.Count > 0) {
+			while (inventoryGUI.overlayObjects.Count > 0)  {
 				inventoryGUI.mouseHoverLeave(inventoryGUI.overlayObjects[0]);
 			}
 		}
@@ -498,22 +498,22 @@ public class InventoryGUI : MonoBehaviour {
 	Color badColor = new Color(1.0f, 0.0f, 0.0f, 103.0f/255.0f);
 	public List<Image> overlayObjects = new List<Image>();
 	public Dictionary<Image, List<Image>> overlayObjectList = new Dictionary<Image, List<Image>>();
-	public void mouseHoverEnter(Image overlayObject) {
+	public void mouseHoverEnter(Image overlayObject)  {
 		Color c = goodColor;
 		//	c.a = 103.0f/255.0f;
 		InventorySlot slot = overlayObject.GetComponent<InventoryItem>().slot;
 		List<Image> otherImages = new List<Image>();
-		if (selectedItem == null) {
-			if (UnitGUI.inventorySlots.Contains(slot)) {
+		if (selectedItem == null)  {
+			if (UnitGUI.inventorySlots.Contains(slot))  {
 				InventoryItemSlot iis = selectedUnit.characterSheet.characterSheet.inventory.inventory[(int)slot - (int)InventorySlot.Zero];
-				if (iis.hasItem()) {
+				if (iis.hasItem())  {
 					List<InventoryItemSlot> sllls = new List<InventoryItemSlot>();
 					if (iis.itemSlot != iis) sllls.Add(iis.itemSlot);
-					foreach (InventoryItemSlot iis2 in iis.itemSlot.otherSlots) {
+					foreach (InventoryItemSlot iis2 in iis.itemSlot.otherSlots)  {
 						if (iis2 == iis) continue;
 						sllls.Add(iis2);
 					}
-					foreach (InventoryItemSlot iis2 in sllls) {
+					foreach (InventoryItemSlot iis2 in sllls)  {
 						int slotind = iis2.index;
 						Image img = overlayObject.transform.parent.GetChild(slotind).GetComponent<Image>();
 						img.color = c;
@@ -522,30 +522,30 @@ public class InventoryGUI : MonoBehaviour {
 				}
 			}
 		}
-		else {
+		else  {
 			Item i = selectedItem.GetComponent<InventoryItem>().item;
 			ActionType at = Inventory.getActionTypeForMovement(slot, originalSlot);
-			if (UnitGUI.inventorySlots.Contains(slot)) {
+			if (UnitGUI.inventorySlots.Contains(slot))  {
 				Vector2 currentHighlightSlot = UnitGUI.getIndexOfSlot(slot);
 				Vector2 originSlot = currentHighlightSlot - selectedCell;
 				Item i2 = selectedUnit.characterSheet.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].getItem();
-				if (i2 != null) {
-					if (selectedUnit.characterSheet.characterSheet.inventory.itemCanStackWith(i2,i) || !canUseActionType(at)) {
+				if (i2 != null)  {
+					if (selectedUnit.characterSheet.characterSheet.inventory.itemCanStackWith(i2,i) || !canUseActionType(at))  {
 						c = badColor;
 					}
-					else {
+					else  {
 						i = i2;
 						originSlot = UnitGUI.getIndexFromLinearIndex(selectedUnit.characterSheet.characterSheet.inventory.inventory[UnitGUI.getLinearIndexFromIndex(currentHighlightSlot)].itemSlot.index);
 					}
 				}
-				else {
-					if (!canUseActionType(at) || !(originSlot.y >= 0 && originSlot.x >= 0 && originSlot.x < 4 && originSlot.y < 4 && selectedUnit.characterSheet.characterSheet.inventory.canInsertItemInSlot(i, originSlot))) {
+				else  {
+					if (!canUseActionType(at) || !(originSlot.y >= 0 && originSlot.x >= 0 && originSlot.x < 4 && originSlot.y < 4 && selectedUnit.characterSheet.characterSheet.inventory.canInsertItemInSlot(i, originSlot)))  {
 						c = badColor;
 					}
 				}
-				foreach (Vector2 cell in i.getShape()) {
+				foreach (Vector2 cell in i.getShape())  {
 					Vector2 cc = originSlot + cell;
-					if (cc != currentHighlightSlot && cc.x >= 0 && cc.y >= 0 && cc.x < 4 && cc.y < 4) {
+					if (cc != currentHighlightSlot && cc.x >= 0 && cc.y >= 0 && cc.x < 4 && cc.y < 4)  {
 						int ind = UnitGUI.getLinearIndexFromIndex(cc);
 						Image img = overlayObject.transform.parent.GetChild(ind).GetComponent<Image>();
 						img.color = c;
@@ -553,12 +553,12 @@ public class InventoryGUI : MonoBehaviour {
 					}
 				}
 			}
-			else if (UnitGUI.armorSlots.Contains(slot)) {
-				if (!selectedUnit.characterSheet.characterSheet.characterLoadout.canInsertItemInSlot(slot, i, originalSlot)) {
+			else if (UnitGUI.armorSlots.Contains(slot))  {
+				if (!selectedUnit.characterSheet.characterSheet.characterLoadout.canInsertItemInSlot(slot, i, originalSlot))  {
 					c = badColor;
 				}
 			}
-			else if (!canUseActionType(at)) {
+			else if (!canUseActionType(at))  {
 				c = badColor;
 			}
 		}
@@ -569,8 +569,8 @@ public class InventoryGUI : MonoBehaviour {
 		if (!overlayObjects.Contains(overlayObject)) overlayObjects.Add(overlayObject);
 	}
 	
-	public bool canUseActionType(ActionType at) {
-		switch (at) {
+	public bool canUseActionType(ActionType at)  {
+		switch (at)  {
 		case ActionType.Minor:
 			return selectedUnit.minorsLeft > 0;
 		case ActionType.Standard:
@@ -580,12 +580,12 @@ public class InventoryGUI : MonoBehaviour {
 		}
 	}
 	
-	public void mouseHoverLeave(Image overlayObject) {
+	public void mouseHoverLeave(Image overlayObject)  {
 		Color c = overlayObject.color;
 		c.a = 3.0f/255.0f;
 		overlayObject.color = c;
-		if (overlayObjectList.ContainsKey(overlayObject)) {
-			foreach (Image i in overlayObjectList[overlayObject]) {
+		if (overlayObjectList.ContainsKey(overlayObject))  {
+			foreach (Image i in overlayObjectList[overlayObject])  {
 				i.color = c;
 			}
 			overlayObjectList.Remove(overlayObject);

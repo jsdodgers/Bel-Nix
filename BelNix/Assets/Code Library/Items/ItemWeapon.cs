@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum DamageType {Crushing, Piercing, Slashing, None}
+public enum DamageType  {Crushing, Piercing, Slashing, None}
 
-public class ItemWeapon : EditorItem {
+public class ItemWeapon : EditorItem  {
 
 	public int hit;
 	public int range;
@@ -17,14 +17,14 @@ public class ItemWeapon : EditorItem {
 	public Vector2[] shape;
 //	Weapon weapon;
 
-	public override Item getItem() {
+	public override Item getItem()  {
 		return getWeapon();
 	}
 
-	public virtual Weapon getWeapon() {
+	public virtual Weapon getWeapon()  {
 //		if (weapon == null)
 	/*	string s = AssetDatabase.GetAssetPath(spritePrefab);
-		if (s != null && s.Length >= 17) {
+		if (s != null && s.Length >= 17)  {
 			s = s.Substring(17, s.Length - 17 - 7);
 		}
 		Debug.Log("Weapon Asset Path: " + s);*/
@@ -34,7 +34,7 @@ public class ItemWeapon : EditorItem {
 //		return weapon;
 	}
 /*
-	public void Update() {
+	public void Update()  {
 		Debug.LogWarning("Weapon Update");
 	}*/
 

@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 
 
-public class Editor : MonoBehaviour {
+public class Editor : MonoBehaviour  {
 	
 	public GameObject nodePrefab;
 	//public GameObject lineSegmentPrefab;
@@ -25,7 +25,7 @@ public class Editor : MonoBehaviour {
 	
 	
 	
-	void InstantiateTextBox(){
+	void InstantiateTextBox() {
 		
 		Debug.Log ("Total Nodes = " + totalNodes);
 		
@@ -42,7 +42,7 @@ public class Editor : MonoBehaviour {
 		
 		nodes.Add (t);
 		
-		if(totalNodes != 0){
+		if(totalNodes != 0) {
 			
 			int i = totalNodes - 1;
 			
@@ -70,7 +70,7 @@ public class Editor : MonoBehaviour {
 	
 	public Vector2 scrollPosition = Vector2.zero;
 	
-	void OnGUI(){
+	void OnGUI() {
 		
 		//GUILayout.BeginArea(new Rect(0, 0, 10000, 10000));
 		
@@ -81,9 +81,9 @@ public class Editor : MonoBehaviour {
 		//GUI.depth = totalTextBoxes;
 		//Debug.Log(GUI.depth);
 		
-		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp){
+		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp) {
 			
-			if(selectedWindow == null){
+			if(selectedWindow == null) {
 				
 				currentWindow = null;
 				Debug.Log("Selected Window Cleared");
@@ -91,14 +91,14 @@ public class Editor : MonoBehaviour {
 				
 			}
 			
-			/*else if(selectedWindow == currentWindow){
+			/*else if(selectedWindow == currentWindow) {
 
 
 
 			}*/
 			
 			
-			else{
+			else {
 				selectedWindow = null;
 			}
 			
@@ -106,21 +106,21 @@ public class Editor : MonoBehaviour {
 		
 		scrollPosition = GUI.BeginScrollView(new Rect(0, 0, Screen.width, Screen.height), scrollPosition, new Rect(0, 0, 10000, 10000));
 		
-		if(GUI.Button(new Rect(10, 10, 40, 25), "Save")){
+		if(GUI.Button(new Rect(10, 10, 40, 25), "Save")) {
 			
 			WriteAllText(filename);
 			
 		}
 		
-		if(GUI.Button(new Rect(10, 35, 80, 25), "Add Node")){
+		if(GUI.Button(new Rect(10, 35, 80, 25), "Add Node")) {
 			
 			InstantiateTextBox();
 			
 		}
 
-		if (GUI.Button (new Rect (10, 60, 80, 25), "mybutton")) {
+		if (GUI.Button (new Rect (10, 60, 80, 25), "mybutton"))  {
 				
-			foreach(Node element in nodes){
+			foreach(Node element in nodes) {
 
 				Debug.Log(element.WindowID);
 
@@ -144,15 +144,15 @@ public class Editor : MonoBehaviour {
 	
 	
 	//Saves project under file name in the Saves folder within Assets
-	void WriteAllText(string filename){
+	void WriteAllText(string filename) {
 		
-		if (filename != "") {
+		if (filename != "")  {
 			
 			string path = Application.dataPath + "/Saves/" + filename + ".txt";
 			
 			StreamWriter sw = new StreamWriter (path, false);
 			
-			foreach (Node element in nodes){
+			foreach (Node element in nodes) {
 				
 				sw.WriteLine (element.ThisBoxToString());
 			}
@@ -168,7 +168,7 @@ public class Editor : MonoBehaviour {
 		
 		
 		
-		else {
+		else  {
 			
 			Debug.Log("File Name Required");
 			
@@ -192,7 +192,7 @@ public class Editor : MonoBehaviour {
 	
 	
 	
-	void Start () {
+	void Start ()  {
 		
 		filename = "";
 		totalNodes = 0;
@@ -202,7 +202,7 @@ public class Editor : MonoBehaviour {
 	
 	
 	
-	void Update(){
+	void Update() {
 		
 		
 		

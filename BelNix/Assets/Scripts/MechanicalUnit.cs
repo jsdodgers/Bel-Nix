@@ -1,19 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MechanicalUnit : Unit {
+public class MechanicalUnit : Unit  {
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 	
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 	
 	}
 
-	public override int getUncannyKnowledgeBonus() {
+	public override int getUncannyKnowledgeBonus()  {
 		return 0;
 	}
 }

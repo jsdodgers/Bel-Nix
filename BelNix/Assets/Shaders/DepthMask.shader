@@ -1,11 +1,11 @@
-﻿Shader "Masked/Mask" {
+﻿Shader "Masked/Mask"  {
  
-	SubShader {
+	SubShader  {
 		// Render the mask after regular geometry, but before masked geometry and
 		// transparent things.
  
-//		Tags {"Queue" = "Geometry+10" }
- 		Tags {"Queue" = "Geometry+600" }
+//		Tags  {"Queue" = "Geometry+10" }
+ 		Tags  {"Queue" = "Geometry+600" }
  
 		// Don't draw in the RGBA channels; just the depth buffer
  
@@ -14,6 +14,6 @@
  	Blend Zero One
 		// Do nothing specific in the pass:
  
-		Pass {}
+		Pass  {}
 	}
 }

@@ -1,15 +1,15 @@
-﻿Shader "Mask/Texture Only" {
+﻿Shader "Mask/Texture Only"  {
  
-Properties {
+Properties  {
 	_MainTex ("Texture", 2D) = ""
 }
  
-SubShader {Pass {	// iPhone 3GS and later
+SubShader  {Pass  {	// iPhone 3GS and later
 	GLSLPROGRAM
 	varying mediump vec2 uv;
  
 	#ifdef VERTEX
-	void main() {
+	void main()  {
 		gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 		uv = gl_MultiTexCoord0.xy;
 	}
@@ -17,14 +17,14 @@ SubShader {Pass {	// iPhone 3GS and later
  
 	#ifdef FRAGMENT
 	uniform lowp sampler2D _MainTex;
-	void main() {
+	void main()  {
 		gl_FragColor = texture2D(_MainTex, uv);
 	}
 	#endif		
 	ENDGLSL
 }}
  
-SubShader {Pass {	// pre-3GS devices, including the September 2009 8GB iPod touch
+SubShader  {Pass  {	// pre-3GS devices, including the September 2009 8GB iPod touch
 	SetTexture[_MainTex]
 }}
  

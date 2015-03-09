@@ -3,20 +3,19 @@ using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 
-public class GraphicalUserInterface : MonoBehaviour
-{
+public class GraphicalUserInterface : MonoBehaviour {
 	string characterName = "";
 	string characterLastName = "";
-	public string[] cCProgression = new string[] {"Personal Information"};
+	public string[] cCProgression = new string[]  {"Personal Information"};
 	int cCProgressionSelect = 0;
 	//bool abilityScoresHasBeenTriggered, skillsHasBeenTriggered, talentHasBeenTriggered = false;
-	public string[] sex = new string[] {"Male", "Female"};
-	public string[] race = new string[] {"Berrind", "Ashpian", "Rorrul"};
-	public string[] backgroundBerrind = new string[] {"Fallen Noble", "White Gem"};
-	public string[] backgroundAshpian = new string[] {"Commoner", "Immigrant"};
-	public string[] backgroundRorrul = new string[] {"Servant", "Unknown"};
-	public string[] characterClass = new string[] {"Ex-Soldier", "Engineer", "Investigator", "Researcher", "Orator"};
-	public string[] colorTypes = new string[] {"Body", "Hair", "Primary", "Secondary"};
+	public string[] sex = new string[]  {"Male", "Female"};
+	public string[] race = new string[]  {"Berrind", "Ashpian", "Rorrul"};
+	public string[] backgroundBerrind = new string[]  {"Fallen Noble", "White Gem"};
+	public string[] backgroundAshpian = new string[]  {"Commoner", "Immigrant"};
+	public string[] backgroundRorrul = new string[]  {"Servant", "Unknown"};
+	public string[] characterClass = new string[]  {"Ex-Soldier", "Engineer", "Investigator", "Researcher", "Orator"};
+	public string[] colorTypes = new string[]  {"Body", "Hair", "Primary", "Secondary"};
 	int sexSelect, raceSelect, backgroundSelect, classSelect, colorSelect = 0;
 	int age = 25;
 	int ageUpperBound = 40;
@@ -53,19 +52,19 @@ public class GraphicalUserInterface : MonoBehaviour
 	GameObject hairGameObject;
 	GUIStyle[] hairTextures;
 
-	static Color createColor(float r, float g, float b) {
+	static Color createColor(float r, float g, float b)  {
 		return new Color(r/255.0f, g/255.0f, b/255.0f);
 	}
 
-	static Color[] berrindColors = new Color[]{createColor(246, 197, 197), createColor(236, 181, 181), createColor(250, 213, 179), createColor(234, 196, 160)};
-	static Color[] ashpianColors = new Color[]{createColor(223, 180, 135), createColor(199, 149, 95), createColor(174, 125, 73), createColor(188, 113, 85), createColor(171, 100, 74), createColor(142, 79, 56)};
-	static Color[] rorrulColors = new Color[]{createColor(98, 71, 56), createColor(82, 54, 44), createColor(62, 41, 30), createColor(49, 32, 24)};
-	static Color[] hairColors = new Color[]{createColor(214, 214, 214), createColor(173, 173, 173), createColor(132, 132, 132), createColor(91, 91, 91), createColor(50, 50, 50), createColor(20, 20, 20),
+	static Color[] berrindColors = new Color[] {createColor(246, 197, 197), createColor(236, 181, 181), createColor(250, 213, 179), createColor(234, 196, 160)};
+	static Color[] ashpianColors = new Color[] {createColor(223, 180, 135), createColor(199, 149, 95), createColor(174, 125, 73), createColor(188, 113, 85), createColor(171, 100, 74), createColor(142, 79, 56)};
+	static Color[] rorrulColors = new Color[] {createColor(98, 71, 56), createColor(82, 54, 44), createColor(62, 41, 30), createColor(49, 32, 24)};
+	static Color[] hairColors = new Color[] {createColor(214, 214, 214), createColor(173, 173, 173), createColor(132, 132, 132), createColor(91, 91, 91), createColor(50, 50, 50), createColor(20, 20, 20),
 								/*Red*/		createColor(218, 88, 77), createColor(186, 63, 52), createColor(146, 42, 32), 
 								/*Orange*/	createColor(212, 90, 45), createColor(195, 81, 39), createColor(180, 76, 37), 
 								/*Blond*/	createColor(227, 190, 93), createColor(202, 163, 73), createColor(174, 140, 41), 
 								/*Brown*/	createColor(100, 73, 41), createColor(81, 54, 27), createColor(53, 33, 13)};
-	static Color[] favoriteColors = new Color[]{createColor(224, 224, 224), createColor(183, 183, 183), createColor(142, 142, 142), createColor(101, 101, 101), createColor(60, 60, 60), createColor(30, 30, 30), 
+	static Color[] favoriteColors = new Color[] {createColor(224, 224, 224), createColor(183, 183, 183), createColor(142, 142, 142), createColor(101, 101, 101), createColor(60, 60, 60), createColor(30, 30, 30), 
 								/*Red*/		createColor(231, 144, 144), createColor(208, 100, 100), createColor(188, 70, 70), createColor(150, 45, 45), createColor(118, 29, 29), createColor(88, 17, 17), 
 								/*Orange*/	createColor(216, 133, 59), createColor(191, 119, 53), createColor(163, 102, 47), createColor(131, 82, 36), createColor(99, 70, 43), createColor(77, 57, 39), 
 								/*Yellow*/	createColor(234, 219, 95), createColor(202, 189, 80), createColor(165, 154, 66), createColor(135, 126, 53), createColor(105, 98, 41), createColor(82, 77, 33), 
@@ -75,8 +74,8 @@ public class GraphicalUserInterface : MonoBehaviour
 											};
 	// Use this for initialization
 
-	void setHairStyle() {
-		if (hairGameObject != null) {
+	void setHairStyle()  {
+		if (hairGameObject != null)  {
 			GameObject.Destroy(hairGameObject);
 		}
 		hairGameObject = Instantiate(Resources.Load<GameObject>("Units/Hair/" + PersonalInformation.hairTypes[hairStyle])) as GameObject;
@@ -89,9 +88,8 @@ public class GraphicalUserInterface : MonoBehaviour
 		hairSprite.color = hairColor;
 	}
 
-	void Start()
-	{
-		if (Application.loadedLevel == 0) {
+	void Start()  {
+		if (Application.loadedLevel == 0)  {
 			if (!Saves.hasCurrentSaveFile())
 				Saves.createCurrentSaveFile();
 			return;
@@ -109,10 +107,10 @@ public class GraphicalUserInterface : MonoBehaviour
 		hairStyle = Random.Range(0, PersonalInformation.hairTypes.Length);
 		setHairStyle();
 	}
-	void setTexturesArray() {
+	void setTexturesArray()  {
 		hairTextures = new GUIStyle[PersonalInformation.hairTypes.Length];
 		int n=0;
-		foreach (string s in PersonalInformation.hairTypes) {
+		foreach (string s in PersonalInformation.hairTypes)  {
 			GUIStyle gs = new GUIStyle("Button");
 			gs.normal.background = gs.hover.background = gs.active.background = Resources.Load<Texture>("Units/Hair/" + s) as Texture2D;
 			hairTextures[n++] = gs;
@@ -121,12 +119,11 @@ public class GraphicalUserInterface : MonoBehaviour
 	}
 	
 	// Update is called once per frame
-	void Update() {
+	void Update()  {
 
 	}
 
-	int calculateBoxHeight(int n)
-	{
+	int calculateBoxHeight(int n)  {
 		int height = 0;
 
 		height = 20 * n;
@@ -134,32 +131,29 @@ public class GraphicalUserInterface : MonoBehaviour
 		return height;
 	}
 
-	int calculateMod(int abilityScore)
-	{
+	int calculateMod(int abilityScore)  {
 		return abilityScore/2;
 	}
 
-	int raceModifications(int cRace, string modName)
-	{
-		switch(modName)
-		{
+	int raceModifications(int cRace, string modName)  {
+		switch(modName)  {
 		case "Health":
 			if(cRace == 0)
-			{
+			 {
 				return (-1);
 			}
 			else if(cRace == 2)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Composure":
 			if(cRace == 0)
-			{
+			 {
 				return 1;
 			}
 			else if(cRace == 2)
-			{
+			 {
 				return (-1);
 			}
 			break;
@@ -170,75 +164,73 @@ public class GraphicalUserInterface : MonoBehaviour
 		return 0;
 	}
 
-	int classModifications(int cClass, string modName)
-	{
-		switch(modName)
-		{
+	int classModifications(int cClass, string modName)  {
+		switch(modName)  {
 		case "Health":
 			if(cClass == 0)
-			{
+			 {
 				return 2;
 			}
 			else if(cClass == 2)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Composure":
 			if(cClass == 3)
-			{
+			 {
 				return 2;
 			}
 			else if(cClass == 2)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Athletics":
 			if(cClass == 0)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Melee":
 			if(cClass == 2)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Ranged":
 			if(cClass == 0)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Stealth":
 			if(cClass == 2)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Mechanical":
 			if(cClass == 1)
-			{
+			 {
 				return 2;
 			}
 			break;
 		case "Medicinal":
 			if(cClass == 3)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Historical":
 			if(cClass == 3)
-			{
+			 {
 				return 1;
 			}
 			break;
 		case "Political":
 			if(cClass == 4)
-			{
+			 {
 				return 2;
 			}
 			break;
@@ -249,21 +241,18 @@ public class GraphicalUserInterface : MonoBehaviour
 		return 0;
 	}
 
-	int setSkillDecreaseButton(int skill, int boxHeight)
-	{
-		if(skill == skillLowerBound)
-		{
+	int setSkillDecreaseButton(int skill, int boxHeight)  {
+		if(skill == skillLowerBound)  {
 			GUI.enabled = false;
 			if(GUI.Button(new Rect(260, calculateBoxHeight(boxHeight), 25, 20), "<"))
-			{
+			 {
 				skillPointsAvailable++;
 				skill = skill - 1;
 			}
 		}
-		else
-		{
+		else  {
 			if(GUI.Button(new Rect(260, calculateBoxHeight(boxHeight), 25, 20), "<"))
-			{
+			 {
 				skillPointsAvailable++;
 				skill = skill - 1;
 			}
@@ -273,21 +262,18 @@ public class GraphicalUserInterface : MonoBehaviour
 		return skill;
 	}
 
-	int setSkillIncreaseButton(int skill, int boxHeight)
-	{
-		if(skillPointsAvailable == 0)
-		{
+	int setSkillIncreaseButton(int skill, int boxHeight)  {
+		if(skillPointsAvailable == 0)  {
 			GUI.enabled = false;
 			if(GUI.Button(new Rect(335, calculateBoxHeight(boxHeight), 25, 20), ">"))
-			{
+			 {
 				skillPointsAvailable--;
 				skill++;
 			}
 		}
-		else
-		{
+		else  {
 			if(GUI.Button(new Rect(335, calculateBoxHeight(boxHeight), 25, 20), ">"))
-			{
+			 {
 				skillPointsAvailable--;
 				skill++;
 			}
@@ -299,11 +285,9 @@ public class GraphicalUserInterface : MonoBehaviour
 
 
 	const int colorSquareWidth = 40;
-	static Texture2D makeTex( int width, int height, Color col )
-	{
+	static Texture2D makeTex( int width, int height, Color col )  {
 		Color[] pix = new Color[width * height];
-		for( int i = 0; i < pix.Length; ++i )
-		{
+		for( int i = 0; i < pix.Length; ++i )  {
 			pix[ i ] = col;
 		}
 		Texture2D result = new Texture2D( width, height );
@@ -313,11 +297,9 @@ public class GraphicalUserInterface : MonoBehaviour
 	}
 	
 	
-	static Texture2D makeTexBorder(int width, int height, Color col )
-	{
+	static Texture2D makeTexBorder(int width, int height, Color col )  {
 		Color[] pix = new Color[width * height];
-		for( int i = 0; i < pix.Length; ++i )
-		{
+		for( int i = 0; i < pix.Length; ++i )  {
 			//	Debug.Log("it is: " + (i/width));
 			if (i/width == 0 || i/width == height-1) pix[i] = Color.red;
 			else if (i%width == 0 || i % width == width-1) pix[i] = Color.red;
@@ -329,7 +311,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		return result;
 	}
 	static Dictionary<Color, GUIStyle> colorStyles = new Dictionary<Color, GUIStyle>();
-	static GUIStyle getColorStyle(Color c) {
+	static GUIStyle getColorStyle(Color c)  {
 		if (colorStyles.ContainsKey(c)) return colorStyles[c];
 		Texture2D tex = makeTex(colorSquareWidth, colorSquareWidth, c);
 		GUIStyle st = new GUIStyle("Button");
@@ -339,7 +321,7 @@ public class GraphicalUserInterface : MonoBehaviour
 	}
 
 	static Dictionary<Color, GUIStyle> colorStylesSelected = new Dictionary<Color, GUIStyle>();
-	static GUIStyle getColorStyleSelected(Color c) {
+	static GUIStyle getColorStyleSelected(Color c)  {
 		if (colorStylesSelected.ContainsKey(c)) return colorStylesSelected[c];
 		Texture2D tex = makeTexBorder(colorSquareWidth, colorSquareWidth, c);
 		GUIStyle st = new GUIStyle("Button");
@@ -351,10 +333,8 @@ public class GraphicalUserInterface : MonoBehaviour
 	string loadingName = "";
 	string[] saves;
 	Vector2 loadingScrollPos = new Vector2();
-	void OnGUI()
-	{
-		if(Application.loadedLevel == 0)
-		{
+	void OnGUI()  {
+		if(Application.loadedLevel == 0)  {
 			float boxX = Screen.width/4.0f;
 			float boxY = Screen.height/2.0f;
 			float boxHeight = 250.0f;
@@ -362,7 +342,7 @@ public class GraphicalUserInterface : MonoBehaviour
 			float buttX = boxX + 20.0f;
 			float buttWidth = boxWidth - 20.0f*2.0f;
 			GUI.Box(new Rect(boxX, boxY, boxWidth, boxHeight), loading ? (loadingName == "" ? "Choose a file to load" : "Load: " + loadingName) : "Main Menu");
-			if (loading) {
+			if (loading)  {
 				/*
 			//	float width = 250.0f;
 			//	float height = Screen.height * .8f;
@@ -375,11 +355,11 @@ public class GraphicalUserInterface : MonoBehaviour
 				float buttonY = boxY + boxHeight - buttonHeight - 5.0f;
 				float buttonX1 = boxX + 10.0f;
 				float buttonX2 = buttonX1 + buttonWidth + 20.0f;
-				if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel")) {
+				if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel"))  {
 					loading = false;
 					loadingName = "";
 				}
-				if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Load")) {
+				if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Load"))  {
 					Saves.loadSave(loadingName);
 				//	loading = false;
 					Application.LoadLevel(2);
@@ -388,7 +368,7 @@ public class GraphicalUserInterface : MonoBehaviour
 			//	saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
 				float savesHeight = 0.0f;
 				GUIStyle st = BaseManager.getSaveButtonsStyle();
-				foreach (string save in saves) {
+				foreach (string save in saves)  {
 					savesHeight += st.CalcSize(new GUIContent(save)).y;
 				}
 				float y = 5.0f + boxY + 20.0f;
@@ -396,10 +376,10 @@ public class GraphicalUserInterface : MonoBehaviour
 				float scrollX = boxX + 5.0f;
 				float scrollWidth = boxWidth - (scrollX - boxX) * 2.0f;
 				loadingScrollPos = GUI.BeginScrollView(new Rect(scrollX, y, scrollWidth, scrollHeight), loadingScrollPos, new Rect(scrollX, y, scrollWidth - 16.0f, savesHeight));
-				foreach (string save in saves) {
+				foreach (string save in saves)  {
 					GUIContent gc = new GUIContent(save);
 					float h = st.CalcSize(gc).y;
-					if (GUI.Button(new Rect(scrollX, y, scrollWidth, h), gc, st)) {
+					if (GUI.Button(new Rect(scrollX, y, scrollWidth, h), gc, st))  {
 						loadingName = save;
 					}
 					y += h;
@@ -407,36 +387,35 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.EndScrollView();
 				*/
 			}
-			else {
+			else  {
 				/*
 				if(GUI.Button(new Rect(buttX, Screen.height/2 + 20, buttWidth, 40), "New Game"))
-				{
+				 {
 					Saves.removeFilesFromCurrentSaveFile();
 					//Load into Character Creation
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
 					Application.LoadLevel(1);
 				}
 				if(GUI.Button(new Rect(buttX, Screen.height/2 + 60, buttWidth, 40), "Load Game"))
-				{
+				 {
 					saves = Saves.getSaveFiles();
 					loading = true;
 					loadingScrollPos = new Vector2();
 	//				Application.LoadLevel(4);
 				}
 				if(GUI.Button(new Rect(buttX, Screen.height/2 + 100, buttWidth, 40), "Options"))
-				{
+				 {
 					//Bring up Options UI.  Do NOT load into a new scene.
 				}
 				if(GUI.Button(new Rect(buttX, Screen.height/2 + 140, buttWidth, 40), "Quit"))
-				{
+				 {
 					//Quit the Application
 					Application.Quit();
 				}
 				*/
 			}
 		}
-		else if(Application.loadedLevel == 1)
-		{
+		else if(Application.loadedLevel == 1)  {
 			cCProgressionSelect = GUI.SelectionGrid(new Rect(225, Screen.height - 100, Screen.width - 450, 100), cCProgressionSelect, cCProgression, 4);
 			GUI.Box(new Rect(Screen.width/2.0f - 150, 10, 300, 50), "Portrait/Looks");
 			GUI.Box(new Rect(Screen.width/2.0f - 150, calculateBoxHeight(3), 300, calculateBoxHeight(16)), "");
@@ -449,9 +428,9 @@ public class GraphicalUserInterface : MonoBehaviour
 			int y = calculateBoxHeight(4) + 10;
 			Color[] colorss = null;
 			Color current = Color.clear;
-			switch (colorSelect) {
+			switch (colorSelect)  {
 			case 0:
-				switch (raceSelect) {
+				switch (raceSelect)  {
 				case 0:
 					colorss = berrindColors;
 					current = berrindColor;
@@ -480,11 +459,11 @@ public class GraphicalUserInterface : MonoBehaviour
 				break;
 			}
 			int num2 = 0;
-			foreach (Color c in colorss) {
-				if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", (c ==current ? getColorStyleSelected(c) : getColorStyle(c)))) {
-					switch (colorSelect) {
+			foreach (Color c in colorss)  {
+				if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", (c ==current ? getColorStyleSelected(c) : getColorStyle(c))))  {
+					switch (colorSelect)  {
 					case 0:
-						switch (raceSelect) {
+						switch (raceSelect)  {
 						case 0:
 							berrindColor = c;
 							break;
@@ -509,29 +488,29 @@ public class GraphicalUserInterface : MonoBehaviour
 				}
 				x += colorSquareWidth + 5;
 				num2++;
-				if (num2%num==0) {
+				if (num2%num==0)  {
 					x = startX;
 					y += colorSquareWidth + 5;
 				}
 			}
 			num2 = 0;
-			if (colorSelect == 1) {
-				if (x!=startX) {
+			if (colorSelect == 1)  {
+				if (x!=startX)  {
 					x = startX;
 					y += colorSquareWidth + 5;
 				}
 				if (!texturesSet) setTexturesArray();
 				Color c = GUI.color;
 				GUI.color = hairColor;
-				for (int n=0;n<hairTextures.Length;n++) {
+				for (int n=0;n<hairTextures.Length;n++)  {
 					GUIStyle t = hairTextures[n];
-					if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", t)) {
+					if (GUI.Button(new Rect(x, y, colorSquareWidth, colorSquareWidth), "", t))  {
 						hairStyle = n;
 						setHairStyle();
 					}
 					x += colorSquareWidth + 5;
 					num2++;
-					if (num2%num==0) {
+					if (num2%num==0)  {
 						x = startX;
 						y += colorSquareWidth + 5;
 					}
@@ -544,7 +523,7 @@ public class GraphicalUserInterface : MonoBehaviour
 			hairSprite.color = hairColor;
 
 			switch(raceSelect)
-			{
+			 {
 			case 0:
 				characterSprite.color = berrindColor;
 				break;
@@ -558,7 +537,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				break;
 			}
 			if(cCProgressionSelect == 0)
-			{
+			 {
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Personal Information");
 				GUI.Box(new Rect(10, calculateBoxHeight(3), 250, 20), "First Name:");
 				characterName = GUI.TextField(new Rect(260, calculateBoxHeight(3), 250, 20), characterName);
@@ -572,7 +551,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(135, calculateBoxHeight(8), 125, 20), "Primal State:");
 				GUI.Box(new Rect(135, calculateBoxHeight(9), 125, 20), "Background:");
 				switch(raceSelect)
-				{
+				 {
 				case 0:
 					GUI.Box(new Rect(260, calculateBoxHeight(7), 250, 20), "-1 Health/ +1 Composure");
 					GUI.Box(new Rect(260, calculateBoxHeight(8), 250, 20), "Reckless");
@@ -596,14 +575,14 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(135, calculateBoxHeight(11), 125, 20), "Age:");
 				int tempAge = (int) GUI.Slider(new Rect(310, calculateBoxHeight(11), 200, 20), Mathf.Max(20, Mathf.Min(age, 40)), 0, 20, 40, new GUIStyle(GUI.skin.horizontalSlider), new GUIStyle(GUI.skin.horizontalSliderThumb), true, 1);
 				if(GUI.GetNameOfFocusedControl() != "ageTextField")
-				{
+				 {
 					age = tempAge;
 				}
 				GUI.SetNextControlName("ageTextField");
 				string newAge = GUI.TextField(new Rect(260, calculateBoxHeight(11), 50, 20), (age == 0 && GUI.GetNameOfFocusedControl() == "ageTextField" ? "" : age.ToString()));
 				int.TryParse(newAge, out age);
 				if(GUI.GetNameOfFocusedControl() != "ageTextField")
-				{
+				 {
 					if(age < 20)
 						age = 20;
 					if(age > 40)
@@ -611,17 +590,17 @@ public class GraphicalUserInterface : MonoBehaviour
 				}
 				/*
 				if(age == ageLowerBound)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(260, calculateBoxHeight(11), 25, 20), "<") && age > ageLowerBound)
-					{
+					 {
 						age--;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(260, calculateBoxHeight(11), 25, 20), "<") && age > ageLowerBound)
-					{
+					 {
 						age--;
 					}
 				}
@@ -629,17 +608,17 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				GUI.Box(new Rect(285, calculateBoxHeight(11), 200, 20), age.ToString());
 				if(age == ageUpperBound)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(485, calculateBoxHeight(11), 25, 20), ">") && age < ageUpperBound)
-					{
+					 {
 						age++;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(485, calculateBoxHeight(11), 25, 20), ">") && age < ageUpperBound)
-					{
+					 {
 						age++;
 					}
 				}
@@ -647,37 +626,37 @@ public class GraphicalUserInterface : MonoBehaviour
 				*/
 				GUI.Box(new Rect(135, calculateBoxHeight(12), 125, 20), "Height:");
 				if(GUI.Button(new Rect(260, calculateBoxHeight(12), 25, 20), "<"))
-				{
+				 {
 					height--;
 				}
 				GUI.Box(new Rect(285, calculateBoxHeight(12), 200, 20), height.ToString());
 				if(GUI.Button(new Rect(485, calculateBoxHeight(12), 25, 20), ">"))
-				{
+				 {
 					height++;
 				}
 				
 				GUI.Box(new Rect(135, calculateBoxHeight(13), 125, 20), "Weight:");
 				int tempWeight = (int) GUI.Slider(new Rect(310, calculateBoxHeight(13), 200, 20), Mathf.Max(100, Mathf.Min(weight, 200)), 0, 100, 200, new GUIStyle(GUI.skin.horizontalSlider), new GUIStyle(GUI.skin.horizontalSliderThumb), true, 0);
 				if(GUI.GetNameOfFocusedControl() != "weightTextField")
-				{
+				 {
 					weight = tempWeight;
 				}
 				GUI.SetNextControlName("weightTextField");
 				string newWeight = GUI.TextField(new Rect(260, calculateBoxHeight(13), 50, 20), (weight == 0 && GUI.GetNameOfFocusedControl() == "weightTextField" ? "" : weight.ToString()));
 				int.TryParse(newWeight, out weight);
 				if(GUI.GetNameOfFocusedControl() != "weightTextField")
-				{
+				 {
 					if(weight < 100)
 						weight = 100;
 					if(weight > 200)
 						weight = 200;
 				}
 				/*if(GUI.Button(new Rect(260, calculateBoxHeight(13), 25, 20), "<"))
-				{
+				 {
 					weight--;
 				}*/
 				/*if(GUI.Button(new Rect(485, calculateBoxHeight(13), 25, 20), ">"))
-				{
+				 {
 					weight++;
 				}*/
 				
@@ -687,7 +666,7 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(135, calculateBoxHeight(16), 125, 20), "Class Stats:");
 				GUI.Box(new Rect(135, calculateBoxHeight(17), 125, 20), "Class Features:");
 				switch(classSelect)
-				{
+				 {
 				case 0:
 					GUI.Box(new Rect(260, calculateBoxHeight(16), 250, 20), "+2 Health/+1 Athletics/ +1 Ranged");
 					GUI.Box(new Rect(260, calculateBoxHeight(17), 250, 20), "Throw");
@@ -718,40 +697,40 @@ public class GraphicalUserInterface : MonoBehaviour
 				}
 
 				if(GUI.Button(new Rect(0, Screen.height - 40, 200, 40), "Cancel"))
-				{
+				 {
 					Application.LoadLevel(PlayerPrefs.GetInt("playercreatefrom"));
 				}
 
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
-				{
+				 {
 					//abilityScoresHasBeenTriggered = true;
 					cCProgressionSelect = 1;
 					if(cCProgression.Length < 2)
-					{
-						cCProgression = new string[] {"Personal Information", "Ability Scores"};
+					 {
+						cCProgression = new string[]  {"Personal Information", "Ability Scores"};
 					}
 				}
 			}
 			else if(cCProgressionSelect == 1)
-			{
+			 {
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Ability Scores");
 				GUI.Box(new Rect(10, calculateBoxHeight(3), 250, 20), "Points Available:");
 				GUI.Box(new Rect(260, calculateBoxHeight(3), 250, 20), abilityScorePointsAvailable.ToString());
 
 				GUI.Box(new Rect(135, calculateBoxHeight(4), 125, 20), "Sturdy:");
 				if(sturdyScore == scoreLowerBound)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(260, calculateBoxHeight(4), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						sturdyScore--;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(260, calculateBoxHeight(4), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						sturdyScore--;
 					}
@@ -760,18 +739,18 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				GUI.Box(new Rect(285, calculateBoxHeight(4), 200, 20), sturdyScore.ToString());
 				if(abilityScorePointsAvailable == 0)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(485, calculateBoxHeight(4), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						sturdyScore++;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(485, calculateBoxHeight(4), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						sturdyScore++;
 					}
@@ -780,18 +759,18 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				GUI.Box(new Rect(135, calculateBoxHeight(5), 125, 20), "Perception:");
 				if(perceptionScore == scoreLowerBound)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(260, calculateBoxHeight(5), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						perceptionScore--;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(260, calculateBoxHeight(5), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						perceptionScore--;
 					}
@@ -800,18 +779,18 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				GUI.Box(new Rect(285, calculateBoxHeight(5), 200, 20), perceptionScore.ToString());
 				if(abilityScorePointsAvailable == 0)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(485, calculateBoxHeight(5), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						perceptionScore++;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(485, calculateBoxHeight(5), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						perceptionScore++;
 					}
@@ -822,18 +801,18 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				GUI.Box(new Rect(135, calculateBoxHeight(6), 125, 20), "Technique:");
 				if(techniqueScore == scoreLowerBound)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(260, calculateBoxHeight(6), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						techniqueScore--;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(260, calculateBoxHeight(6), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						techniqueScore--;
 					}
@@ -842,18 +821,18 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				GUI.Box(new Rect(285, calculateBoxHeight(6), 200, 20), techniqueScore.ToString());
 				if(abilityScorePointsAvailable == 0)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(485, calculateBoxHeight(6), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						techniqueScore++;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(485, calculateBoxHeight(6), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						techniqueScore++;
 					}
@@ -862,18 +841,18 @@ public class GraphicalUserInterface : MonoBehaviour
 
 				GUI.Box(new Rect(135, calculateBoxHeight(7), 125, 20), "Well-Versed:");
 				if(wellVersedScore == scoreLowerBound)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(260, calculateBoxHeight(7), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						wellVersedScore--;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(260, calculateBoxHeight(7), 25, 20), "<"))
-					{
+					 {
 						abilityScorePointsAvailable++;
 						wellVersedScore--;
 					}
@@ -882,18 +861,18 @@ public class GraphicalUserInterface : MonoBehaviour
 				
 				GUI.Box(new Rect(285, calculateBoxHeight(7), 200, 20), wellVersedScore.ToString());
 				if(abilityScorePointsAvailable == 0)
-				{
+				 {
 					GUI.enabled = false;
 					if(GUI.Button(new Rect(485, calculateBoxHeight(7), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						wellVersedScore++;
 					}
 				}
 				else
-				{
+				 {
 					if(GUI.Button(new Rect(485, calculateBoxHeight(7), 25, 20), ">"))
-					{
+					 {
 						abilityScorePointsAvailable--;
 						wellVersedScore++;
 					}
@@ -914,22 +893,22 @@ public class GraphicalUserInterface : MonoBehaviour
 				GUI.Box(new Rect(260, calculateBoxHeight(13), 125, 20), calculateMod(wellVersedScore).ToString());
 
 				if(GUI.Button(new Rect(0, Screen.height - 40, 200, 40), "Back"))
-				{
+				 {
 					cCProgressionSelect = 0;
 				}
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
-				{
+				 {
 					//skillsHasBeenTriggered = true;
 					cCProgressionSelect = 2;
 					if(cCProgression.Length < 3)
-					{
-						cCProgression = new string[] {"Personal Information", "Ability Scores", "Skills"};
+					 {
+						cCProgression = new string[]  {"Personal Information", "Ability Scores", "Skills"};
 					}
 				}
 			}
 			else if(cCProgressionSelect == 2)
-			{
+			 {
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Skills");
 				GUI.Box(new Rect(10, calculateBoxHeight(3), 250, 20), "Points Available:");
 				GUI.Box(new Rect(260, calculateBoxHeight(3), 250, 20), skillPointsAvailable.ToString());
@@ -996,31 +975,31 @@ public class GraphicalUserInterface : MonoBehaviour
 				politicalSkill = setSkillIncreaseButton(politicalSkill, 12);
 
 				if(GUI.Button(new Rect(0, Screen.height - 40, 200, 40), "Back"))
-				{
+				 {
 					cCProgressionSelect = 1;
 				}
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Next"))
-				{
+				 {
 					//talentHasBeenTriggered = true;
 					cCProgressionSelect = 3;
 					if(cCProgression.Length < 4)
-					{
-						cCProgression = new string[] {"Personal Information", "Ability Scores", "Skills", "Talent"};
+					 {
+						cCProgression = new string[]  {"Personal Information", "Ability Scores", "Skills", "Talent"};
 					}
 				}
 			}
 			else
-			{
+			 {
 				GUI.Box(new Rect(10, 10, 500, 50), "Character Creation: Talents");
 
 				if(GUI.Button(new Rect(0, Screen.height - 40, 200, 40), "Back"))
-				{
+				 {
 					cCProgressionSelect = 2;
 				}
 				
 				if(GUI.Button(new Rect(Screen.width - 200, Screen.height - 40, 200, 40), "Finish"))
-				{
+				 {
 					writeCharacter();
 				}
 			}
@@ -1028,8 +1007,7 @@ public class GraphicalUserInterface : MonoBehaviour
 	}
 	const string delimiter = ";";
 	bool saving = false;
-	public void writeCharacter()
-	{
+	public void writeCharacter()  {
 		if (saving) return;
 		saving = true;
 		string characterStr = "";
@@ -1068,7 +1046,7 @@ public class GraphicalUserInterface : MonoBehaviour
 		characterStr += politicalSkill.ToString() + delimiter;
 		//********Talents********\\
 		Color raceColor = Color.white;
-		switch (raceSelect) {
+		switch (raceSelect)  {
 		case 0:
 			raceColor = berrindColor;
 			break;
@@ -1116,7 +1094,7 @@ public class GraphicalUserInterface : MonoBehaviour
 	//	Debug.Log(characterStr);
 	}
 
-	static string colorString(Color c) {
+	static string colorString(Color c)  {
 		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
 	}
 

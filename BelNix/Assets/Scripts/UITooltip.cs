@@ -3,40 +3,37 @@ using UnityEngine.UI;
 using System.Collections;
 
 
-public class UITooltip : MonoBehaviour {
+public class UITooltip : MonoBehaviour  {
 
     private bool visible = false;
     private GameObject tooltip;
     private const int PADDING = 5;
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
         tooltip = generateTooltip();
         hideTooltip();
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
         
 	}
 
     
-    public void displayTooltip()
-    {
+    public void displayTooltip() {
         tooltip.SetActive(true);
         visible = true;
     }
 
-    public void hideTooltip()
-    {
+    public void hideTooltip() {
         if (tooltip == null)
             return;
         tooltip.SetActive(false);
         visible = false;
     }
 
-    private GameObject generateTooltip()
-    {
+    private GameObject generateTooltip() {
         // Initialize the Panel and Text
         GameObject ttPanel  = new GameObject("Panel - UITooltip");
 		ttPanel.transform.SetParent(gameObject.transform);
@@ -79,10 +76,8 @@ public class UITooltip : MonoBehaviour {
         return ttPanel;
     }
 
-    private string getTooltipText(GameObject UIElement)
-    {
-        switch (UIElement.name)
-        {
+    private string getTooltipText(GameObject UIElement) {
+        switch (UIElement.name) {
             // Movement actions
 		case "Button - Move":
 			return "Move: \n" + "Run (up to) five squares.";

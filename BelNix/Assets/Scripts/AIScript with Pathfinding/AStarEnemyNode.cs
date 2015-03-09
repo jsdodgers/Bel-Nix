@@ -1,16 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class AStarEnemyNode : AStarNode {
+public class AStarEnemyNode : AStarNode  {
 
 
-	public AStarEnemyNode(AStarParameters parameters, float heuristic) : base(parameters, heuristic) {
+	public AStarEnemyNode(AStarParameters parameters, float heuristic) : base(parameters, heuristic)  {
 
 	}
 	
-	public override void setPrev(AStarNode node) {
+	public override void setPrev(AStarNode node)  {
 		base.setPrev(node);
-		if (node is AStarEnemyNode) {
+		if (node is AStarEnemyNode)  {
 			AStarEnemyParameters fromN = node.parameters as AStarEnemyParameters;
 			AStarEnemyParameters toN = parameters as AStarEnemyParameters;
 			Direction dir = Direction.Down;
@@ -21,11 +21,11 @@ public class AStarEnemyNode : AStarNode {
 		}
 	}
 	/*
-	public bool isValidNode(AStarEnemyMap map, Direction dir) {
+	public bool isValidNode(AStarEnemyMap map, Direction dir)  {
 		Tile t = MapGenerator.tiles[parameters.x, parameters.y];
 		return t.canStand();
 	}
-	public bool canGoInDirection(AStarEnemyMap map, Direction dir, Direction prevDir) {
+	public bool canGoInDirection(AStarEnemyMap map, Direction dir, Direction prevDir)  {
 		Tile t = MapGenerator.tiles[parameters.x, parameters.y];
 		return t.canPass(dir, map.unit, prevDir);
 	}*/
@@ -33,24 +33,23 @@ public class AStarEnemyNode : AStarNode {
 
 
 
-public class AStarEnemyParameters : AStarParameters {
+public class AStarEnemyParameters : AStarParameters  {
 	public int x;
 	public int y;
 	public Direction fromDir = Direction.None;
 	public Tile t = null;
 
-	public AStarEnemyParameters(int x, int y, Tile t) {
+	public AStarEnemyParameters(int x, int y, Tile t)  {
 		this.x = x;
 		this.y = y;
 		this.t = t;
 	}
 
-	public Vector2 getPos() {
+	public Vector2 getPos()  {
 		return new Vector2(x,y);
 	}
 
-	public override bool Equals (object obj)
-	{
+	public override bool Equals (object obj)  {
 		if (obj==null) return false;
 		AStarEnemyParameters p = (AStarEnemyParameters)obj;
 		if ((System.Object)p==null) return false;
@@ -58,7 +57,7 @@ public class AStarEnemyParameters : AStarParameters {
 		
 	}
 	
-	public override string toString() {
+	public override string toString()  {
 		return "(x:" + x + ",y:" + y + ", dir: " + fromDir + ")";		
 	}
 }

@@ -2,22 +2,21 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class ActionMarker : MonoBehaviour {
+public class ActionMarker : MonoBehaviour  {
     [SerializeField] private GameObject sparkObject;
 
     private GameObject sparks;
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 	
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 	
 	}
 
-    public void spark()
-    {
+    public void spark() {
         //GetComponent<Animator>().SetBool("Explode", true);
         sparks = (GameObject) Instantiate(sparkObject);
         sparks.transform.SetParent(gameObject.transform, false);
@@ -30,12 +29,10 @@ public class ActionMarker : MonoBehaviour {
         //Invoke("stopExploding", 0.51f);
     }
 
-    private void hideMarker()
-    {
+    private void hideMarker() {
         GetComponent<Image>().enabled = false;   
     }
-    public void stopExploding(GameObject explosion)
-    {
+    public void stopExploding(GameObject explosion) {
         //GetComponent<Animator>().SetBool("Explode", false);
         Destroy(explosion);
     }
