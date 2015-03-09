@@ -126,6 +126,8 @@ public class Unit : MonoBehaviour  {
 	public bool moving = false;
 	public Tile lootTile;
 	public Tile turretTile;
+	public Tile pickUpTurretTile;
+	public Tile pickUpTrapTile;
 	public bool rotating = false;
 	public bool rotating2 = false;
 
@@ -1734,7 +1736,7 @@ public class Unit : MonoBehaviour  {
 			//	List<Unit> throwUnits = new List<Unit>();
 				foreach (KnownUnit ku in knownEnemies)  {
 					float dist = distanceFromUnit(ku.knownUnit, true);
-					if (dist <= 1.1f && !ku.knownUnit.isProne())  {
+					if (dist <= 1.1f && !ku.knownUnit.isProne() && !ku.knownUnit.deadOrDyingOrUnconscious() && ku.knownUnit.team != team)  {
 			//			throwUnits.Add(ku.knownUnit);
 						aiThrow(ku.knownUnit);
 						return;
@@ -3009,6 +3011,7 @@ public class Unit : MonoBehaviour  {
 		doInstillParanoia();
 		doLootAfterMovement();
 		doTurretAfterMovement();
+		doTurretPickupAfterMovement();
 		doDeath();
 		setLayer();
 		setTargetObjectScale();
@@ -3023,6 +3026,46 @@ public class Unit : MonoBehaviour  {
 			InventoryGUI.clearLootItems();
 			InventoryGUI.setLootItems(lootTile.getItems(), lootTile);
 			lootTile = null;
+		}
+	}
+
+	public void doTurretPickupAfterMovement() {
+		if ((pickUpTrapTile != null || pickUpTurretTile != null) && !moving) {
+			Item insertItem = (pickUpTrapTile != null ? (Item)pickUpTrapTile.getTrap().trap : (Item)(pickUpTurretTile.getCharacter() as TurretUnit).turret);
+			bool inserted = false;
+			foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+				InventoryItemSlot slot = characterSheet.characterSheet.inventory.inventory[sl - InventorySlot.Zero];
+				if (slot.item != null && characterSheet.characterSheet.inventory.itemCanStackWith(slot.item, insertItem)) {
+					characterSheet.characterSheet.inventory.stackItemWith(slot.item, insertItem);
+					inserted = true;
+					break;
+				}
+			}
+			if (!inserted) {
+				foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+					if (characterSheet.characterSheet.inventory.canInsertItemInSlot(insertItem, UnitGUI.getIndexOfSlot(sl))) {
+						characterSheet.characterSheet.inventory.insertItemInSlot(insertItem, UnitGUI.getIndexOfSlot(sl));
+						inserted = true;
+						break;
+					}
+				}
+			}
+			if (pickUpTurretTile != null) {
+				TurretUnit turretUnit = pickUpTurretTile.getCharacter() as TurretUnit;
+				GameObject.Destroy(turretUnit.gameObject);
+				pickUpTurretTile.removeCharacter();
+			}
+			if (pickUpTrapTile != null) {
+				pickUpTrapTile.getTrap().trap.removeTrap = true;
+			//	pickUpTrapTile.removeTrap();
+			}
+			pickUpTrapTile = null;
+			pickUpTurretTile = null;
+			if (inserted) {
+			//	InventoryGUI.setupInvent(this);
+			}
+			useMovementIfStarted();
+			useStandard();
 		}
 	}
 
@@ -3095,6 +3138,8 @@ public class Unit : MonoBehaviour  {
 							turretTile = null;
 							intimidating = false;
 							invoking = false;
+							pickUpTrapTile = null;
+							pickUpTurretTile = null;
 							becomeProne();
 							mapGenerator.resetPlayerPath();
 							mapGenerator.resetRanges();

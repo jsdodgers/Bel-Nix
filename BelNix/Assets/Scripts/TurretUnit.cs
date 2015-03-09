@@ -110,7 +110,7 @@ public class TurretUnit : MechanicalUnit  {
 			if (this == mapGenerator.getCurrentUnit())
 				mapGenerator.resetRanges();
 			attackAnimating = false;
-			turret.use();
+		//	turret.use();
 		}
 	}
 	public override void doDeath()  {
@@ -157,7 +157,7 @@ public class TurretUnit : MechanicalUnit  {
 	
 	public override bool isDead()  {
 		if (turret == null) return false;
-		return turret.isDestroyed() || !turret.hasUsesLeft();
+		return turret.isDestroyed();// || !turret.hasUsesLeft();
 	}
 	public override string deathString()  {
 		return "destroyed";
@@ -214,7 +214,8 @@ public class TurretUnit : MechanicalUnit  {
 
 	public void fire()  {
 		Debug.Log("Turret Fire");
-		if (!isOn) return;
+		Debug.Log(turret.hasUsesLeft() + " " + turret.turnsLeft() + "  " + turret.maxTurns());
+		if (!isOn || !turret.hasUsesLeft()) return;
 		fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5);
 		turret.use();
 	}

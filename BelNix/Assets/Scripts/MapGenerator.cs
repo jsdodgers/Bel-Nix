@@ -74,6 +74,7 @@ public class MapGenerator : MonoBehaviour  {
     public int copperReward;
 	public string tileMapName;
 	public int gridSize = 64;
+	public string goalText = "";
 
 	public AudioBank audioBank;
 	GameObject lastHit;
@@ -911,8 +912,9 @@ public class MapGenerator : MonoBehaviour  {
 		createSelectionArea();
 		createSelectionUnits();
 		setOverlay();
-	
-//		StartCoroutine(importGrid());
+
+		
+		//		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
@@ -953,6 +955,11 @@ public class MapGenerator : MonoBehaviour  {
 		sortPriority();
 		nextPlayer();
 		setOverlay();
+		Invoke("goalPresent", 2.0f);
+	}
+
+	public void goalPresent() {
+		BattleGUI.setPlayerTurnText(goalText, Log.greenColor, 5);
 	}
 
 	public void sortPriority()  {

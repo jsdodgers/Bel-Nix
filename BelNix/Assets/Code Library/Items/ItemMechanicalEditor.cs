@@ -185,6 +185,7 @@ public class Trap : Item, ItemMechanical  {
 	public Applicator applicator;
 	public Trigger trigger;
 	public string creatorId = "";
+	public bool removeTrap = false;
 	public StackType getStackType()  {
 		return StackType.Trap;
 	}
@@ -484,7 +485,7 @@ public class EnergySource :  Item, ItemMechanical  {
 	public EnergySource(string itemData, string delim) : base(itemData, delim)  {
 		string[] split = itemData.Split(delim.ToCharArray());
 		int curr = numSplit;
-		turnsLeft = int.Parse(split[curr++]);
+		turnsLeft = getMaxTurns();// int.Parse(split[curr++]);
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySource;
