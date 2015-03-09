@@ -902,6 +902,7 @@ public class Unit : MonoBehaviour  {
 		escapeUsed = false;
 		oneOfManyUsed = false;
 		invokeUsesLeft = 2;
+		usedDecisiveStrike = false;
 	}
 	
 	public void rollInitiative()  {
@@ -3997,6 +3998,8 @@ public class Unit : MonoBehaviour  {
 		if (usedDecisiveStrike) return;
 		usedDecisiveStrike = true;
 		usedStandard = false;
+		BattleGUI.resetStandardButtons();
+	//	BattleGUI.hideStandardArm(false);
 	}
 	
 	
