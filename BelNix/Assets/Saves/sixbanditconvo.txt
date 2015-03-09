@@ -1,0 +1,11 @@
+[As you approach the large group of Ashpians and Rorruls, you see them tilt their heads in your direction.  They remain silent.]`  {1; 2; 3}` False` 0` 0` 
+["I need to get through."]`  {4}` False` 1` 1` 
+["Get out of my way."]`  {5}` False` 2` 1` 
+[Leave.]`  {}` True` 3` 1` 
+[One of the pack steps forward and responds to you, "Well looks like you're shit out of luck, friend."]`  {6; 3}` False` 4` 0` 
+[The entire group bursts out in laughter.  As their laughter begins to die, they draw their weapons.  One of the pack steps forward, his dagger at the ready.  "Say that again, I dare you."]`  {6; 7; 3}` False` 5` 0` 
+["Just let me through, I don't want any trouble."]`  {8}` False` 6` 1` 
+["Get. Out. Of. My. Way."]`  {9}` False` 7` 1` 
+["Nobody 'wants' trouble on the Sixth Tier.  Now, get out of here."  He motions you away like a servant.]`  {3}` False` 8` 0` 
+["Looks like we've got a trouble-maker."  He plays with his dagger while giving you a coy look.  "If they try to get past, gut 'em."]`  {10}` False` 9` 0` 
+[End Dialogue.]`  {}` True` 10` 1` 
