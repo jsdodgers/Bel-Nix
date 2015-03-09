@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
-public class ClassFeatures
-{
-	public static string getName(ClassFeature feature) {
-		switch (feature) {
+public class ClassFeatures {
+	public static string getName(ClassFeature feature)  {
+		switch (feature)  {
 
 //**********EX-SOLDIER**********\\
 		case ClassFeature.Decisive_Strike:
@@ -116,8 +115,8 @@ public class ClassFeatures
 		}
 	}
 
-	public static string getDescription(ClassFeature feature) {
-		switch (feature) {
+	public static string getDescription(ClassFeature feature)  {
+		switch (feature)  {
 		case ClassFeature.Decisive_Strike:
 			return "If one of the Ex-Soldier's attacks downs his target, he gains an extra standard.  This only works once per turn (you cannot down one enemy, then down another with your standard and get yet another standard).";
 		case ClassFeature.Throw:
@@ -204,9 +203,8 @@ public class ClassFeatures
 		}
 	}
 
-    public static string getTooltipDescription(ClassFeature feature) {
-        switch (feature)
-        {
+    public static string getTooltipDescription(ClassFeature feature)  {
+        switch (feature) {
             case ClassFeature.Decisive_Strike:
                 return "";
             case ClassFeature.Throw:

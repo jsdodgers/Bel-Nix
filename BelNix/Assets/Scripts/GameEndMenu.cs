@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class GameEndMenu : MonoBehaviour {
+public class GameEndMenu : MonoBehaviour  {
 
 	public GameObject winText;
 	public GameObject loseText;
@@ -12,7 +12,7 @@ public class GameEndMenu : MonoBehaviour {
 	public GameObject quitToMenuButton;
 	public GameObject quitGameButton;
 
-	public void setValues(int c, int exp, bool won) {
+	public void setValues(int c, int exp, bool won)  {
 		winText.SetActive(won);
 		loseText.SetActive(!won);
 		rewardText.gameObject.SetActive(won);
@@ -24,12 +24,12 @@ public class GameEndMenu : MonoBehaviour {
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 	
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 	
 	}
 }

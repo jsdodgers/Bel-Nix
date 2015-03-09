@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Player : Unit {
+public class Player : Unit  {
 
-	public override void setPosition(Vector3 pos) {
+	public override void setPosition(Vector3 pos)  {
 		setNewTilePosition(pos);
 		position = pos;
 		transform.localPosition = new Vector3(pos.x + .5f, pos.y - .5f, pos.z);
@@ -13,11 +13,11 @@ public class Player : Unit {
 	
 
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 		initializeVariables();
 	}
 
-	public override void initializeVariables() {
+	public override void initializeVariables()  {
 		team = 0;
 		base.initializeVariables();
 //		currentPath = new ArrayList();
@@ -25,8 +25,8 @@ public class Player : Unit {
 	}
 	
 	// Update is called once per frame
-//	void Update () {
-	//	if (attacking) {
+//	void Update ()  {
+	//	if (attacking)  {
 	//		attackAnimation();
 	//		attacking = false;
 	//	}

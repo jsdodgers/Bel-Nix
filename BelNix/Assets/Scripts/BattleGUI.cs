@@ -5,14 +5,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public enum ClassFeatureCanvas { OneOfMany, TemperedHands }
-public enum ConfirmButton {Movement = 0, Standard, Minor }
-public enum ActionArm {Movement = 0, Standard, Minor }
+public enum ClassFeatureCanvas  { OneOfMany, TemperedHands }
+public enum ConfirmButton  {Movement = 0, Standard, Minor }
+public enum ActionArm  {Movement = 0, Standard, Minor }
 
-public class BattleGUI : MonoBehaviour {
+public class BattleGUI : MonoBehaviour  {
 
 	public static BattleGUI battleGUI;
 	public static bool aggressivelyEndTurn;
+	public static bool speedUpAI;
 	private string[] saves;
 	[SerializeField] private GameObject saveEntry;
 	[SerializeField] private EventSystem eventSystem;
@@ -45,6 +46,7 @@ public class BattleGUI : MonoBehaviour {
 	[SerializeField] private GameEndMenu gameEndMenu;
 	[SerializeField] private Slider masterVolumeSlider;
 	[SerializeField] private Toggle aggressiveEndTurnToggle;
+	[SerializeField] private Toggle speedUpAIToggle;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
@@ -88,16 +90,14 @@ public class BattleGUI : MonoBehaviour {
 	public bool loadMenuOpen = false;
     
     // Numbers as indices aren't very informative. Let's use enums.
-    public enum CIPanel { Glance, Stats, Skills, Buttons };
+    public enum CIPanel  { Glance, Stats, Skills, Buttons };
     //--------------------------------------------------------------------------------
 
-    private void cameraDebug()
-    {
+    private void cameraDebug() {
         gameObject.GetComponent<Canvas>().enabled = false;
         Camera uiCamera = GameObject.Find("Camera - UI").GetComponent<Camera>();
         Camera mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
-        if (uiCamera.orthographicSize != mainCamera.orthographicSize)
-        {
+        if (uiCamera.orthographicSize != mainCamera.orthographicSize) {
             uiCamera.enabled = false;
             uiCamera.orthographicSize = mainCamera.orthographicSize;
             uiCamera.enabled = true;
@@ -106,31 +106,38 @@ public class BattleGUI : MonoBehaviour {
     }
 
     // Use this for initialization
-	public void setReferenceResolution() {
+	public void setReferenceResolution()  {
 		if (Screen.width >= 1200)
 			consoleCanvas.transform.parent.gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
 	}
-    void Start()
-    {
+    void Start() {
 		InventoryGUI.inventoryGUI = inventoryCanvas;
 		Conversation.conversation = conversationCanvas;
         //Some audiovisual setup
         //gameObject.GetComponent<Canvas>().enabled = false;
         //Invoke("cameraDebug", 0.01f);
-		if (PlayerPrefs.HasKey("globalVolume")) {
+		if (PlayerPrefs.HasKey("globalVolume"))  {
 			AudioListener.volume = PlayerPrefs.GetFloat("globalVolume");
 			masterVolumeSlider.value = PlayerPrefs.GetFloat("globalVolume");
 		}
-		else {
+		else  {
 			AudioListener.volume = masterVolumeSlider.value = 1;
 		}
-		if (PlayerPrefs.HasKey("aggressiveEndTurn")) {
+		if (PlayerPrefs.HasKey("aggressiveEndTurn"))  {
 			aggressivelyEndTurn = PlayerPrefs.GetInt("aggressiveEndTurn") >= 100;
 			aggressiveEndTurnToggle.isOn = aggressivelyEndTurn;
 		}
-		else {
+		else  {
 			aggressivelyEndTurn = true;
 			aggressiveEndTurnToggle.isOn = true;
+		}
+		if (PlayerPrefs.HasKey("speedUpAI")) {
+			speedUpAI = PlayerPrefs.GetInt("speedUpAI") == 1;
+			speedUpAIToggle.isOn = speedUpAI;
+		}
+		else {
+			speedUpAI = false;
+			speedUpAIToggle.isOn = false;
 		}
 		for (int n=0;n<3;n++) armsShown[n] = true;
         
@@ -144,8 +151,7 @@ public class BattleGUI : MonoBehaviour {
         // Initialize the Character Information panels, grab relevant UI elements
         atAGlanceText = GameObject.Find("Text - At a Glance").GetComponent<Text>();
         statsTexts = new Text[4];
-        for (int n = 0; n < 4; n++)
-        {
+        for (int n = 0; n < 4; n++) {
             statsTexts[n] = GameObject.Find("Text - Stats" + (n + 1)).GetComponent<Text>();
         }
         characterInfoText = GameObject.Find("Text - Character Info").GetComponent<Text>();
@@ -153,22 +159,19 @@ public class BattleGUI : MonoBehaviour {
         consoleScrollBar = GameObject.Find("Scrollbar - Console").GetComponent<Scrollbar>();
 
         // Initialize the fields relating to Action Buttons
-        MinorType[] minorTypes = new MinorType[] { MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.OneOfMany, MinorType.Invoke };
-        MovementType[] movementTypes = new MovementType[] { MovementType.Move, MovementType.BackStep, MovementType.Recover };
-        StandardType[] standardTypes = new StandardType[] { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.InstillParanoia, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory, StandardType.Heal };
+        MinorType[] minorTypes = new MinorType[]  { MinorType.Loot, MinorType.Stealth, MinorType.Mark, MinorType.TemperedHands, MinorType.Escape, MinorType.OneOfMany, MinorType.Invoke };
+        MovementType[] movementTypes = new MovementType[]  { MovementType.Move, MovementType.BackStep, MovementType.Recover };
+        StandardType[] standardTypes = new StandardType[]  { StandardType.Attack, StandardType.OverClock, StandardType.Throw, StandardType.Intimidate, StandardType.InstillParanoia, StandardType.Place_Turret, StandardType.Lay_Trap, StandardType.Inventory, StandardType.Heal };
         minorButtons = new Dictionary<MinorType, GameObject>();
         standardButtons = new Dictionary<StandardType, GameObject>();
         movementButtons = new Dictionary<MovementType, GameObject>();
-        foreach (MinorType minorType in minorTypes)
-        {
+        foreach (MinorType minorType in minorTypes) {
             minorButtons[minorType] = GameObject.Find("Image - " + Unit.getNameOfMinorType(minorType));
         }
-        foreach (MovementType movementType in movementTypes)
-        {
+        foreach (MovementType movementType in movementTypes) {
             movementButtons[movementType] = GameObject.Find("Image - " + Unit.getNameOfMovementType(movementType));
         }
-        foreach (StandardType standardType in standardTypes)
-        {
+        foreach (StandardType standardType in standardTypes) {
             standardButtons[standardType] = GameObject.Find("Image - " + Unit.getNameOfStandardType(standardType));
         }
 
@@ -186,22 +189,19 @@ public class BattleGUI : MonoBehaviour {
 		populateSaves();
     }
 
-    public static void onFirstMinorUsed(Object source, MinorEventArgs args)
-    {
+    public static void onFirstMinorUsed(Object source, MinorEventArgs args) {
         Debug.Log("First minor used!");
         GameObject firstMarker = GameObject.Find("Image - Marker 1");
         firstMarker.GetComponent<ActionMarker>().spark();
     }
-    public static void onFinalMinorUsed(Object source, MinorEventArgs args)
-    {
+    public static void onFinalMinorUsed(Object source, MinorEventArgs args) {
         Debug.Log("Final minor used!");
     }
 
     // Update is called once per frame
 	int oldWidth = 0;
-    void Update()
-    {
-		if (Screen.width != oldWidth) {
+    void Update() {
+		if (Screen.width != oldWidth)  {
 			oldWidth = Screen.width;
 			setReferenceResolution();
 		}
@@ -210,115 +210,120 @@ public class BattleGUI : MonoBehaviour {
 
         // C is for Character Sheet
         // V is for Class Features
-        if (Input.anyKeyDown && !UIRevealed)
-        {
+        if (Input.anyKeyDown && !UIRevealed) {
             // Debug only: Reveal the Character UI once a key is pressed.
             //toggleBattleUI();
         }
-        if (Input.GetKeyDown(KeyCode.C))
-        {
+        if (Input.GetKeyDown(KeyCode.C)) {
             toggleCIPanel(CIPanel.Stats);
         }
-        if (Input.GetKeyDown(KeyCode.V))
-        {
+        if (Input.GetKeyDown(KeyCode.V)) {
             toggleCIPanel(CIPanel.Skills);
         }
     }
 
-    void OnGUI()
-    {
+    void OnGUI() {
         GameGUI.doGUI();
     }
 
-	public void setVolume(Slider slider) {
+	public void setVolume(Slider slider)  {
 		setVolume(slider.value);
 	}
 
-	public void setVolume(float value) {
+	public void setVolume(float value)  {
 		PlayerPrefs.SetFloat("globalVolume", value);
 		AudioListener.volume = value;
 	}
 
-	public void setAggressivelyEndTurn(Toggle toggle) {
+	public void setAggressivelyEndTurn(Toggle toggle)  {
 		setAggressivelyEndTurn(toggle.isOn);
 	}
 
-	public void setAggressivelyEndTurn(bool agg) {
+	public void setAggressivelyEndTurn(bool agg)  {
 		PlayerPrefs.SetInt("aggressiveEndTurn", (agg ? 100 : 50));
 		aggressivelyEndTurn = agg;
 	}
 
-	public static void setEndGameUnits(int c, int exp, bool won) {
+	public void setSpeedUpAI(Toggle toggle) {
+		setSpeedUpAI(toggle.isOn);
+	}
+
+	public void setSpeedUpAI(bool speed) {
+		PlayerPrefs.SetInt("speedUpAI", (speed ? 1 : 0));
+		speedUpAI = speed;
+	}
+
+	public static void setEndGameUnits(int c, int exp, bool won)  {
 		battleGUI.setEndGameUnitsActually(c, exp, won);
 
 	}
 
-	void setEndGameUnitsActually(int c, int exp, bool won) {
+	void setEndGameUnitsActually(int c, int exp, bool won)  {
 		endGameCanvas.SetActive(true);
 		gameEndMenu.setValues(c, exp, won);
-		for (int n = endGameUnitsContent.transform.childCount-1; n >= 0; n--) {
+		for (int n = endGameUnitsContent.transform.childCount-1; n >= 0; n--)  {
 			GameObject.Destroy(endGameUnitsContent.transform.GetChild(n).gameObject);
 		}
-		foreach (Unit u in mapGenerator.players) {
+		foreach (Unit u in mapGenerator.players)  {
 			createEndGameObjectFor(u);
 		}
-		foreach (Unit u in mapGenerator.deadUnits) {
+		foreach (Unit u in mapGenerator.deadUnits)  {
 			createEndGameObjectFor(u);
 		}
 		Invoke("setGameOverScrollBar", .05f);
 	}
 
-	void setGameOverScrollBar() {
+	void setGameOverScrollBar()  {
 		gameOverUnitsScrollBar.value = 1;
 	}
 
-	void createEndGameObjectFor(Unit u) {
+	void createEndGameObjectFor(Unit u)  {
 		GameObject go = GameObject.Instantiate(endGameUnitPrefab) as GameObject;
 		EndGameUnit egu = go.GetComponent<EndGameUnit>();
 		egu.setUnit(u);
 		egu.transform.SetParent(endGameUnitsContent.transform, false);
 	}
 
-	public void exitToBase() {
+	public void exitToBase()  {
 		GameGUI.escapeMenuOpen = false;
 		Application.LoadLevel(2);
 	}
 
-	public void exitToMenu() {
+	public void exitToMenu()  {
 		GameGUI.escapeMenuOpen = false;
 		Application.LoadLevel(0);
 	}
 
-	public void quitGame() {
+	public void quitGame()  {
 		GameGUI.escapeMenuOpen = false;
 		Application.Quit();
 	}
 
-	public static void hitEscape() {
+	public static void hitEscape()  {
 		battleGUI.hitEscapeActually();
 	}
-	public void hitEscapeActually() {
+	public void hitEscapeActually()  {
 		if (loadMenuOpen)  setLoadGameCanvasShown(false);
 		else battleGUI.setPauseMenuShown(!pauseMenuOpen);
 		GameGUI.escapeMenuOpen = pauseMenuOpen;
 
 	}
 
-	public void setPauseMenuShown(bool shown) {
+	public void setPauseMenuShown(bool shown)  {
 		pauseMenuOpen = shown;
 		pauseMenuCanvas.SetActive(pauseMenuOpen);
 	}
 
-	public void loadGame() {
+	public void loadGame()  {
 		setLoadGameCanvasShown(true);
 	}
 
-	public void setLoadGameCanvasShown(bool shown) {
+	public void setLoadGameCanvasShown(bool shown)  {
 		loadMenuOpen = shown;
 		loadGameCanvas.SetActive(shown);
 	}
 
-	public void selectPauseMenuTab(int tab) {
+	public void selectPauseMenuTab(int tab)  {
 		pauseButtons[currentPauseCanvas].sortingOrder = 10000;
 		pauseWindows[currentPauseCanvas].SetActive(false);
 		currentPauseCanvas = tab;
@@ -326,7 +331,7 @@ public class BattleGUI : MonoBehaviour {
 		pauseWindows[currentPauseCanvas].SetActive(true);
 	}
 
-	public void selectGameOverTab(int tab) {
+	public void selectGameOverTab(int tab)  {
 		gameOverButtons[currentGameOverCanvas].sortingOrder = 10000;
 		gameOverWindows[currentGameOverCanvas].SetActive(false);
 		currentGameOverCanvas = tab;
@@ -334,47 +339,47 @@ public class BattleGUI : MonoBehaviour {
 		gameOverWindows[currentGameOverCanvas].SetActive(true);
 	}
 
-	public static void setActionsButtonDefault(bool defaultSprite) {
+	public static void setActionsButtonDefault(bool defaultSprite)  {
 		battleGUI.actionsButton.setSprite(defaultSprite);
 	}
 
-	public static bool armShown(ActionArm arm) {
+	public static bool armShown(ActionArm arm)  {
 		return armsShown[(int)arm];
 	}
 
 
-	public void selectOneOfManyMode(int mode) {
+	public void selectOneOfManyMode(int mode)  {
 		mapGenerator.getCurrentUnit().useOneOfMany((OneOfManyMode)mode);
 	}
 
 
-	public void selectTurretActiveButton(Button b) {
+	public void selectTurretActiveButton(Button b)  {
 		turretActiveButton.animator.SetBool("Selected", false);
 		turretActiveButton = b;
 		turretActiveButton.animator.SetBool("Selected", true);
 	}
 	
 
-	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false) {
+	public static void hideTurretSelect(bool hide = true, bool selectCurrent = false)  {
 		battleGUI.hideTurretSelectActually(hide, selectCurrent);
 	}
 
-	public void hideTurretSelectActually(bool hide = true, bool selectCurrent = false) {
+	public void hideTurretSelectActually(bool hide = true, bool selectCurrent = false)  {
 		turretSelectCanvas.SetActive(!hide);
-		if (selectCurrent && lastSelected != null) {
+		if (selectCurrent && lastSelected != null)  {
 			setTrapTurretButtonSelected(lastSelected, true);
 		}
 		selectTurretActiveButton(turretActiveButton);
 	}
 
-	public void selectTrapOrTurret() {
+	public void selectTrapOrTurret()  {
 		if (lastSelected == null) return;
 		GameGUI.selectedTrapTurret = true;
 		hideTurretSelectActually();
 		mapGenerator.resetRanges();
 	}
 	GameObject lastSelected = null;
-	public void selectTrapTurretButton(GameObject button) {
+	public void selectTrapTurretButton(GameObject button)  {
 		if (lastSelected != null) setTrapTurretButtonSelected(lastSelected, false);
 		MechanicalPlacementScript scr = button.GetComponent<MechanicalPlacementScript>();
 		GameGUI.selectedTrap = scr.trap;
@@ -383,25 +388,25 @@ public class BattleGUI : MonoBehaviour {
 		lastSelected = button;
 	}
 
-	public void setTrapTurretButtonSelected(GameObject button, bool selected) {
+	public void setTrapTurretButtonSelected(GameObject button, bool selected)  {
 		Animator anim = button.GetComponent<Animator>();
 		anim.SetBool("CurrentAction",selected);
 	}
 	
-	public static void turnOnTurretSelect(Unit u) {
+	public static void turnOnTurretSelect(Unit u)  {
 		battleGUI.turnOnTurretSelectActually(u);
 	}
-	public void turnOnTurretSelectActually(Unit u) {
+	public void turnOnTurretSelectActually(Unit u)  {
 		List<Turret> turrets = u.getTurrets();
 		hideTurretSelectActually(false);
-		for (int n = turretSelectContentPanel.transform.childCount-1;n>=0;n--) {
+		for (int n = turretSelectContentPanel.transform.childCount-1;n>=0;n--)  {
 			GameObject.Destroy(turretSelectContentPanel.transform.GetChild(n).gameObject);
 		}
 		bool first = true;
-		foreach (Turret t in turrets) {
+		foreach (Turret t in turrets)  {
 			GameObject tsp = GameObject.Instantiate(turretSelectPrefab) as GameObject;
 			Button b = tsp.GetComponent<Button>();
-			b.onClick.AddListener(delegate() { selectTrapTurretButton(b.gameObject); });
+			b.onClick.AddListener(delegate()  { selectTrapTurretButton(b.gameObject); });
 			MechanicalPlacementScript scr = tsp.GetComponent<MechanicalPlacementScript>();
 			scr.turret = t;
 			tsp.transform.SetParent(turretSelectContentPanel.transform, false);
@@ -409,7 +414,7 @@ public class BattleGUI : MonoBehaviour {
 			Image img = tsp.transform.FindChild("Image").GetComponent<Image>();
 			tex.text = turretString(t);
 			img.sprite = t.inventoryTexture;//Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
-			if (first) {
+			if (first)  {
 				lastSelected = tsp;
 				setTrapTurretButtonSelected(tsp, true);
 				GameGUI.selectedTurret = t;
@@ -421,29 +426,29 @@ public class BattleGUI : MonoBehaviour {
 		selectTurretActiveButton(turretActiveButton);
 		Invoke("setTurretScrollBar", 0.05f);
 	}
-	public static bool turretOn() {
+	public static bool turretOn()  {
 		return battleGUI.turretActiveButton.name.Equals("On");
 	}
 
-	void setTurretScrollBar() {
+	void setTurretScrollBar()  {
 		turretScrollBar.value = 1;
 	}
 	
-	public static void turnOnTrapSelect(Unit u) {
+	public static void turnOnTrapSelect(Unit u)  {
 		battleGUI.turnOnTrapSelectActually(u);
 	}
 	
-	public void turnOnTrapSelectActually(Unit u) {
+	public void turnOnTrapSelectActually(Unit u)  {
 		List<Trap> traps = u.getTraps();
 		hideTurretSelectActually(false);
-		for (int n = turretSelectContentPanel.transform.childCount-1;n>=0;n--) {
+		for (int n = turretSelectContentPanel.transform.childCount-1;n>=0;n--)  {
 			GameObject.Destroy(turretSelectContentPanel.transform.GetChild(n).gameObject);
 		}
 		bool first = true;
-		foreach (Trap t in traps) {
+		foreach (Trap t in traps)  {
 			GameObject tsp = GameObject.Instantiate(turretSelectPrefab) as GameObject;
 			Button b = tsp.GetComponent<Button>();
-			b.onClick.AddListener(delegate() { selectTrapTurretButton(b.gameObject); });
+			b.onClick.AddListener(delegate()  { selectTrapTurretButton(b.gameObject); });
 			MechanicalPlacementScript scr = tsp.GetComponent<MechanicalPlacementScript>();
 			scr.trap = t;
 			tsp.transform.parent = turretSelectContentPanel.transform;
@@ -451,7 +456,7 @@ public class BattleGUI : MonoBehaviour {
 			Image img = tsp.transform.FindChild("Image").GetComponent<Image>();
 			tex.text = trapString(t);
 			img.sprite = t.inventoryTexture;// Sprite.Create(t.inventoryTexture as Texture2D, new Rect(0, 0, 64, 64), new Vector2(.5f, .5f));
-			if (first) {
+			if (first)  {
 				lastSelected = tsp;
 				setTrapTurretButtonSelected(tsp, true);
 				GameGUI.selectedTrap = t;
@@ -464,7 +469,7 @@ public class BattleGUI : MonoBehaviour {
 //		turretScrollBar.value = 1;
 	}
 
-	string turretString(Turret t) {
+	string turretString(Turret t)  {
 		string str = "Frame: " + t.frame.itemName + "\n" +
 			"Energy Source: " + t.energySource.itemName + "\n" +
 				"Gear: " + t.gear.itemName + "\n" +
@@ -472,7 +477,7 @@ public class BattleGUI : MonoBehaviour {
 		return UnitGUI.getSmallCapsString(str, 9);
 	}
 
-	string trapString(Trap t) {
+	string trapString(Trap t)  {
 		string str = "Frame: " + t.frame.itemName + "\n" +
 			"Trigger: " + t.trigger.itemName + "\n" +
 				"Gear: " + t.gear.itemName + "\n" +
@@ -481,15 +486,13 @@ public class BattleGUI : MonoBehaviour {
 	}
 
     // Trigger everything that needs to happen at the beginning of a turn
-    public static void beginTurn(Unit unit)
-    {
+    public static void beginTurn(Unit unit) {
         // Update the turn order
         if (!battleGUI.mapGenerator.isInCharacterPlacement())
             battleGUI.updateTurnOrderPanel();
 
         // Update event subscriptions
-        if (previousUnit != null)
-        {
+        if (previousUnit != null) {
             previousUnit.finalMinor -= onFinalMinorUsed;
             previousUnit.firstMinor -= onFirstMinorUsed;
             
@@ -510,8 +513,7 @@ public class BattleGUI : MonoBehaviour {
 //        disableAllButtons();
         
         hideActionArms();
-        if (unit.getTeam() == 0 && !battleGUI.mapGenerator.isInCharacterPlacement())
-        {
+        if (unit.getTeam() == 0 && !battleGUI.mapGenerator.isInCharacterPlacement()) {
             // Delayed so that the collapsing animation can complete smoothly
             battleGUI.Invoke("refreshActionArms", 0.25f);
             //Debug.Log("Player is beginning their turn");
@@ -526,23 +528,23 @@ public class BattleGUI : MonoBehaviour {
 
 
     // Display in the UI whose turn it is
-	void updatePlayerTurnText() {
+	void updatePlayerTurnText()  {
 		float t = Time.time;
-		if (t - playerTurnTextStartTime > textColorTime) {
+		if (t - playerTurnTextStartTime > textColorTime)  {
 			doPlayerText = false;
 			return;
 		}
-	/*	if (t - playerTurnTextStartTime <= textColorAlphaTime) {
+	/*	if (t - playerTurnTextStartTime <= textColorAlphaTime)  {
 			Debug.Log(textColorAlphaScale + "  " + playerTurnTextColor.a + "  " + Time.deltaTime + "  " + (Time.deltaTime * textColorAlphaScale));
 			playerTurnTextColor.a += Time.deltaTime*textColorAlphaScale;
 		}*/
-		if (t - playerTurnTextStartTime >= textColorTime - textColorAlphaTime) {
+		if (t - playerTurnTextStartTime >= textColorTime - textColorAlphaTime)  {
 			playerTurnTextColor.a -= Time.deltaTime * textColorAlphaScale;
 		}
 		playerTurnTextObject.color = playerTurnTextColor;
 	}
 
-	public static void setPlayerTurnText(string text, Color color, float time = 1) {
+	public static void setPlayerTurnText(string text, Color color, float time = 1)  {
 		writeToConsole(text, color);
 		battleGUI.playerTurnTextObject.text = text;
 		battleGUI.playerTurnTextColor = color;
@@ -553,44 +555,43 @@ public class BattleGUI : MonoBehaviour {
     //--------------------------------------------------------------------------------
 
     // Provide some hooks to the backend for the buttons to grab onto
-	public void selectMovementType(string movementType) {
+	public void selectMovementType(string movementType)  {
 		GameGUI.selectMovementType(movementType);
 	}
 	
-	public void selectStandardType(string standardType) {
+	public void selectStandardType(string standardType)  {
 		GameGUI.selectStandardType(standardType);
 	}
 	
-	public void selectMinorType(string minorType) {
+	public void selectMinorType(string minorType)  {
 		GameGUI.selectMinorType(minorType);
 	}
 
-    public void clickEndTurn()
-    {
+    public void clickEndTurn() {
         GameGUI.clickWait();
     }
     //--------------------------------------------------------------------------------
 
-	public static void selectMovementType(MovementType type, bool selected = true) {
+	public static void selectMovementType(MovementType type, bool selected = true)  {
 		if (type == MovementType.None) return;
 	//	battleGUI.eventSystem.SetSelectedGameObject();
 		battleGUI.movementButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
 
-	public static void selectStandardType(StandardType type, bool selected = true) {
+	public static void selectStandardType(StandardType type, bool selected = true)  {
 		if (type == StandardType.None) return;
 		//	battleGUI.eventSystem.SetSelectedGameObject(battleGUI.standardButtons[type].transform.GetChild(0).gameObject);
 		battleGUI.standardButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
 
-	public static void selectMinorType(MinorType type, bool selected = true) {
+	public static void selectMinorType(MinorType type, bool selected = true)  {
 		if (type == MinorType.None) return;
 		//	battleGUI.eventSystem.SetSelectedGameObject(battleGUI.minorButtons[type].transform.GetChild(0).gameObject);
 		battleGUI.minorButtons[type].transform.GetChild(0).GetComponent<Animator>().SetBool("CurrentAction",selected);
 	}
 
-	public static void setPrimalControlWindowShown(Unit u, bool shown) {
-		switch (u.getRaceName()) {
+	public static void setPrimalControlWindowShown(Unit u, bool shown)  {
+		switch (u.getRaceName())  {
 		case RaceName.Berrind:
 			battleGUI.setPrimalControlWindowShown(0, shown);
 			break;
@@ -605,36 +606,36 @@ public class BattleGUI : MonoBehaviour {
 		}
 	}
 
-	public void hidePrimalControlWindow(int i) {
+	public void hidePrimalControlWindow(int i)  {
 		setPrimalControlWindowShown(i, false);
 	}
-	public void setPrimalControlWindowShown(int i, bool shown) {
+	public void setPrimalControlWindowShown(int i, bool shown)  {
 		primalControlWindows[i].SetActive(shown);
 	}
 
-	public void selectPrimalControl(int i) {
+	public void selectPrimalControl(int i)  {
 		mapGenerator.getCurrentUnit().setPrimalControl(i);
 	}
 
 
-	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown) {
+	public static void setConfirmButtonShown(ConfirmButton confirmButton, bool shown)  {
 		battleGUI.confirmButtons[(int)confirmButton].SetActive(shown);
 	}
-	public static void resetTemperedHands() {
+	public static void resetTemperedHands()  {
 		battleGUI.setTemperedHandsStuff();
 	}
-	public void useTemperedHands() {
+	public void useTemperedHands()  {
 		GameGUI.useTemperedHands();
 	}
-	public void increaseTemperedHands() {
+	public void increaseTemperedHands()  {
 		GameGUI.temperedHandsMod++;
 		setTemperedHandsStuff();
 	}
-	public void decreaseTemperedHands() {
+	public void decreaseTemperedHands()  {
 		GameGUI.temperedHandsMod--;
 		setTemperedHandsStuff();
 	}
-	public void setTemperedHandsStuff() {
+	public void setTemperedHandsStuff()  {
 		plus.interactable = GameGUI.temperedHandsMod < mapGenerator.getCurrentUnit().characterSheet.characterSheet.combatScores.getTechniqueMod();
 		minus.interactable = GameGUI.temperedHandsMod > -mapGenerator.getCurrentUnit().characterSheet.characterSheet.combatScores.getTechniqueMod();
 		temperedHandsHitText.text = "" + (-GameGUI.temperedHandsMod);
@@ -643,12 +644,10 @@ public class BattleGUI : MonoBehaviour {
 
     // Some handy methods for controlling the GUI
 	public bool UIRevealed = false;
-    public static void toggleUI()
-    {
+    public static void toggleUI() {
         battleGUI.toggleBattleUI();
     }
-	public void toggleBattleUI()
-	{
+	public void toggleBattleUI()  {
 		consoleCanvas.GetComponent<Animator>().SetBool("Hidden", UIRevealed);
 		turnOrderCanvas.GetComponent<Animator>().SetBool("Hidden", UIRevealed);
 		setCharacterInfoVisibility(!UIRevealed);
@@ -666,7 +665,7 @@ public class BattleGUI : MonoBehaviour {
 
 	public void setClassFeatureCanvasShown(ClassFeatureCanvas canvas, bool shown) {
 		Debug.Log(canvas + "  " + shown);
-		switch (canvas) {
+		switch (canvas)  {
 		case ClassFeatureCanvas.OneOfMany:
 			oneOfManyCanvas.SetActive(shown);
 			break;
@@ -676,15 +675,12 @@ public class BattleGUI : MonoBehaviour {
 		}
 	}
 
-    public static void setCharacterInfoVisibility(bool isVisible)
-    {
+    public static void setCharacterInfoVisibility(bool isVisible) {
         battleGUI.characterInfoCanvas.GetComponent<Animator>().SetBool("Hidden", !isVisible);
     }
 
-    public void toggleCIPanel(GameObject panel)
-    {
-        switch(panel.name)
-        {
+    public void toggleCIPanel(GameObject panel) {
+        switch(panel.name) {
             case "Panel - Character Stats":
                 toggleCIPanel(CIPanel.Stats);
                 break;
@@ -696,76 +692,65 @@ public class BattleGUI : MonoBehaviour {
         }
     }
 
-    private void toggleCIPanel(CIPanel panel)
-    {
+    private void toggleCIPanel(CIPanel panel) {
 		//Debug.Log("Exposed" + panel.ToString());
 		toggleAnimatorBool(CIPanels[(int)panel].GetComponent<Animator>(), "Exposed" + panel.ToString());
 
-        if (panel == CIPanel.Skills)
-        {
+        if (panel == CIPanel.Skills) {
             if(CIPanels[(int)CIPanel.Stats].GetComponent<Animator>().GetBool("ExposedStats"))
 				toggleAnimatorBool(CIPanels[(int)CIPanel.Stats].GetComponent<Animator>(), "ExposedStats");
         }
-        else if (panel == CIPanel.Stats)
-        {
+        else if (panel == CIPanel.Stats) {
 			if(CIPanels[(int)CIPanel.Skills].GetComponent<Animator>().GetBool("ExposedSkills"))
 				toggleAnimatorBool(CIPanels[(int)CIPanel.Skills].GetComponent<Animator>(), "ExposedSkills");
         }
     }
 
-	public void toggleConsole()
-	{
+	public void toggleConsole()  {
 		toggleAnimatorBool(consoleCanvas.GetComponent<Animator>(), "Dismissed");
 	//	writeToConsoleActually("Somebody just toggled the console", Color.black);
 		GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().adjustArmsForConsole();
 		//cycleTurnOrder();
 	}
 
-    public void toggleTurnOrderMinimize()
-    {
+    public void toggleTurnOrderMinimize() {
         toggleAnimatorBool(GameObject.Find("Canvas - Turn Order").GetComponent<Animator>(), "Revealed");
     }
-	private void toggleAnimatorBool(Animator animator, string boolName)
-	{
+	private void toggleAnimatorBool(Animator animator, string boolName)  {
 		animator.SetBool(boolName, !animator.GetBool(boolName));
 	}
     //--------------------------------------------------------------------------------
 
 
     // Set the text for the Character Information panel in the upper right corner
-	public static void setAtAGlanceText(string text) {
+	public static void setAtAGlanceText(string text)  {
 		if (battleGUI==null) return;
 		battleGUI.atAGlanceText.text = text;
 	}
 
-	public static void setStatsText(int statNum, string text) {
+	public static void setStatsText(int statNum, string text)  {
 		if (battleGUI==null) return;
 		battleGUI.statsTexts[statNum].text = text;
 	}
 
-	public static void setCharacterInfoText(string text) {
+	public static void setCharacterInfoText(string text)  {
 		if (battleGUI == null) return;
 		battleGUI.characterInfoText.text = text;
 	}
 
-    public static void setClassFeatures(string[] classFeatureStrings)
-    {
+    public static void setClassFeatures(string[] classFeatureStrings) {
         if (battleGUI == null) return;
         battleGUI.setClassFeaturesActually(classFeatureStrings);
     }
 
-    public void setClassFeaturesActually(string[] classFeatureStrings)
-    {
-        if (currentClassFeatures != null)
-        {
-            foreach (GameObject feature in currentClassFeatures)
-            {
+    public void setClassFeaturesActually(string[] classFeatureStrings) {
+        if (currentClassFeatures != null) {
+            foreach (GameObject feature in currentClassFeatures) {
                 GameObject.Destroy(feature);
             }
         }
         currentClassFeatures = new GameObject[classFeatureStrings.Length];
-        for (int n = 0; n < classFeatureStrings.Length; n++)
-        {
+        for (int n = 0; n < classFeatureStrings.Length; n++) {
             GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab); 
             Text textComponent = textToAdd.GetComponent<Text>();
             textComponent.text = classFeatureStrings[n];
@@ -781,25 +766,23 @@ public class BattleGUI : MonoBehaviour {
     //--------------------------------------------------------------------------------
 
     // Write text to the Console
-	public static void writeToConsole(string message) {
+	public static void writeToConsole(string message)  {
 		writeToConsole(message, Color.black);
 	}
 	
-	public static void writeToConsole(string message, Color color) {
+	public static void writeToConsole(string message, Color color)  {
 		if (battleGUI == null) return;
 		battleGUI.writeToConsoleActually(message, color);
 	}
 
-	private void writeToConsoleActually(string message, Color color)
-	{
+	private void writeToConsoleActually(string message, Color color)  {
         // Get the number of messages written on the console.
 		int numMessages = consoleText.Count;
 
         // Create a text entry, pop an entry off the queue if necessary, then add the new one.
 		GameObject textToAdd = (GameObject)Instantiate(consoleMessagePrefab);
         
-		if(numMessages >= maxNumMessages)
-		{
+		if(numMessages >= maxNumMessages)  {
 			GameObject deleteThis = (GameObject)consoleText.Dequeue();
 			GameObject.Destroy(deleteThis);
 		}
@@ -825,137 +808,135 @@ public class BattleGUI : MonoBehaviour {
     //--------------------------------------------------------------------------------
 
 	
-	public static void resetMovementButtons() {
+	public static void resetMovementButtons()  {
 		hideMovementArm();
 		battleGUI.Invoke("resetMovementButtonsActually",0.25f);		
 	}
-	public static void showMovementButtons() {
+	public static void showMovementButtons()  {
 		battleGUI.resetMovementButtonsActually();
 	}
-	public void resetMovementButtonsActually() {
+	public void resetMovementButtonsActually()  {
 		enableButtons(mapGenerator.getCurrentUnit().getMovementTypes());
 		hideMovementArm(false);
 	}
 
-	public static void resetStandardButtons() {
+	public static void resetStandardButtons()  {
 		hideStandardArm();
 		battleGUI.Invoke("resetStandardButtonsActually",0.25f);		
 	}
-	public static void showStandardButtons() {
+	public static void showStandardButtons()  {
 		battleGUI.resetStandardButtonsActually();
 	}
-	public void resetStandardButtonsActually() {
+	public void resetStandardButtonsActually()  {
 		enableButtons(mapGenerator.getCurrentUnit().getStandardTypes());
 		hideStandardArm(false);
 	}
 
-	public static void resetMinorButtons() {
+	public static void resetMinorButtons()  {
 		hideMinorArm();
 		battleGUI.Invoke("resetMinorButtonsActually",0.25f);		
 	}
-	public static void showMinorButtons() {
+	public static void showMinorButtons()  {
 		battleGUI.resetMinorButtonsActually();
 	}
-	public void resetMinorButtonsActually() {
+	public void resetMinorButtonsActually()  {
 		enableButtons(mapGenerator.getCurrentUnit().getMinorTypes());
 		hideMinorArm(false);
 	}
     // Manage the available Action Buttons
-/*	public static void disableAllButtons() {
+/*	public static void disableAllButtons()  {
 		if (battleGUI == null) return;
 		disableMinorButtonsExcept();
 		disableStandardButtonsExcept();
 		disableMovementButtonsExcept();
 	}
-	public static bool buttonIsIn(GameObject button, MinorType[] minorTypes) {
-		foreach (MinorType t in minorTypes) {
+	public static bool buttonIsIn(GameObject button, MinorType[] minorTypes)  {
+		foreach (MinorType t in minorTypes)  {
 			if (button.name == "Image - " + Unit.getNameOfMinorType(t)) return true;
 		}
 		return false;
 	}
-	public static bool buttonIsIn(GameObject button, StandardType[] standardTypes) {
-		foreach (StandardType t in standardTypes) {
+	public static bool buttonIsIn(GameObject button, StandardType[] standardTypes)  {
+		foreach (StandardType t in standardTypes)  {
 			if (button.name == "Image - " + Unit.getNameOfStandardType(t)) return true;
 		}
 		return false;
 	}
-	public static bool buttonIsIn(GameObject button, MovementType[] movementTypes) {
-		foreach (MovementType t in movementTypes) {
+	public static bool buttonIsIn(GameObject button, MovementType[] movementTypes)  {
+		foreach (MovementType t in movementTypes)  {
 			if (button.name == "Image - " + Unit.getNameOfMovementType(t)) return true;
 		}
 		return false;
 	}
-	public static void disableMinorButtonsExcept(MinorType[] minorTypes = new MinorType[0]) {
-		foreach (GameObject button in battleGUI.minorButtons.Values) {
+	public static void disableMinorButtonsExcept(MinorType[] minorTypes = new MinorType[0])  {
+		foreach (GameObject button in battleGUI.minorButtons.Values)  {
 			if (buttonIsIn(button, minorTypes)) button.SetActive(true);
 			else button.SetActive(false);
 		}
 	}
-	public static void disableStandardButtonsExcept(StandardType[] standardTypes = new StandardType[0]) {
-		foreach (GameObject button in battleGUI.standardButtons.Values) {
+	public static void disableStandardButtonsExcept(StandardType[] standardTypes = new StandardType[0])  {
+		foreach (GameObject button in battleGUI.standardButtons.Values)  {
 			if (buttonIsIn(button, standardTypes)) button.SetActive(true);
 			else button.SetActive(false);
 		}
 	}
-	public static void disableMovementButtonsExcept(MovementType[] movementTypes = new MovementType[0]) {
-		foreach (GameObject button in battleGUI.movementButtons.Values) {
+	public static void disableMovementButtonsExcept(MovementType[] movementTypes = new MovementType[0])  {
+		foreach (GameObject button in battleGUI.movementButtons.Values)  {
 			if (buttonIsIn(button, movementTypes)) button.SetActive(true);
 			else button.SetActive(false);
 		}
 	}*/
 
-	public static void enableButtons(MinorType[] minorTypes, MovementType[] movementTypes, StandardType[] standardTypes) {
+	public static void enableButtons(MinorType[] minorTypes, MovementType[] movementTypes, StandardType[] standardTypes)  {
 		if (battleGUI == null) return;
 		//		battleGUI.movementButtons.
 		enableButtons(minorTypes);
 		enableButtons(movementTypes);
 		enableButtons(standardTypes);
 	}
-	public static void enableButtons(MinorType[] minorTypes) {
-		foreach (MinorType type in battleGUI.minorButtons.Keys) {
+	public static void enableButtons(MinorType[] minorTypes)  {
+		foreach (MinorType type in battleGUI.minorButtons.Keys)  {
 			battleGUI.minorButtons[type].SetActive(minorTypes.Contains(type));
 		}
 	}
-	public static void enableButtons(MovementType[] movementTypes) {
-		foreach (MovementType type in battleGUI.movementButtons.Keys) {
+	public static void enableButtons(MovementType[] movementTypes)  {
+		foreach (MovementType type in battleGUI.movementButtons.Keys)  {
 			battleGUI.movementButtons[type].SetActive(movementTypes.Contains(type));
 		}
 	}
-	public static void enableButtons(StandardType[] standardTypes) {
-		foreach (StandardType type in battleGUI.standardButtons.Keys) {
+	public static void enableButtons(StandardType[] standardTypes)  {
+		foreach (StandardType type in battleGUI.standardButtons.Keys)  {
 			battleGUI.standardButtons[type].SetActive(standardTypes.Contains(type));
 		}
-/*		foreach (MinorType type in minorTypes) {
+/*		foreach (MinorType type in minorTypes)  {
 			battleGUI.minorButtons[type].SetActive(true);
 			Button b;
 		}
-		foreach (MovementType type in movementTypes) {
+		foreach (MovementType type in movementTypes)  {
 			battleGUI.movementButtons[type].SetActive(true);
 		}
-		foreach (StandardType type in standardTypes) {
+		foreach (StandardType type in standardTypes)  {
 			battleGUI.standardButtons[type].SetActive(true);
 		}*/
 	}
-    public static void hideActionArms()
-    {
+    public static void hideActionArms() {
 		hideMinorArm();
 		hideStandardArm();
 		hideMovementArm();
 	}
-	public static void hideMinorArm(bool hidden = true) {
+	public static void hideMinorArm(bool hidden = true)  {
 	//	armsShown[(int)ActionArm.Minor] = !hidden;
         GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
 	}
-	public static void hideStandardArm(bool hidden = true) {
+	public static void hideStandardArm(bool hidden = true)  {
 	//	armsShown[(int)ActionArm.Standard] = !hidden;
         GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
 	}
-	public static void hideMovementArm(bool hidden = true) {
+	public static void hideMovementArm(bool hidden = true)  {
 	//	armsShown[(int)ActionArm.Movement] = !hidden;
         GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
     }
-    private void refreshActionArms()
-    {
+    private void refreshActionArms() {
 		Debug.Log("Refresh Action Arms");
         GameObject.Find("Image - Marker 1").GetComponent<Image>().enabled = true;
         Unit unit = mapGenerator.getCurrentUnit();
@@ -973,23 +954,19 @@ public class BattleGUI : MonoBehaviour {
 
 	
     // Manage the Turn Order panel
-    public void updateTurnOrderPanel()
-    {
+    public void updateTurnOrderPanel() {
         // Grab the Turn Order Panel (container/parent for the player entries) for convenience
         GameObject turnOrderPanel = GameObject.Find("Panel - Character Entries");
 
         // if the Turn Order panel already has children, then new character(s) has/have entered the fray.
-        if (turnOrderPanel.transform.childCount > 0)
-        {
+        if (turnOrderPanel.transform.childCount > 0) {
             List<GameObject> characterEntries = new List<GameObject>();
             // Handle this by simpy clearing the turn order before moving on 
-            for (int i = turnOrderPanel.transform.childCount - 1; i >= 0; i--)
-            {
+            for (int i = turnOrderPanel.transform.childCount - 1; i >= 0; i--) {
                 characterEntries.Add(turnOrderPanel.transform.GetChild(i).gameObject);
             }
             turnOrderPanel.transform.DetachChildren();
-            foreach (GameObject character in characterEntries)
-            {
+            foreach (GameObject character in characterEntries) {
                 Destroy(character);
             }
         }
@@ -1005,10 +982,8 @@ public class BattleGUI : MonoBehaviour {
         // (this is only likely to matter if new characters enter the fray after combat has already started)
         //Debug.Log(turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text);
         //Debug.Log(mapGenerator.getCurrentUnit().characterSheet.personalInfo.getCharacterName().fullName());
-        for (int i = 0; i < turnOrderPanel.transform.childCount; i++)
-        {
-            if (turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text != mapGenerator.getCurrentUnit().characterSheet.characterSheet.personalInformation.getCharacterName().fullName())
-            {
+        for (int i = 0; i < turnOrderPanel.transform.childCount; i++) {
+            if (turnOrderPanel.transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).GetComponent<Text>().text != mapGenerator.getCurrentUnit().characterSheet.characterSheet.personalInformation.getCharacterName().fullName()) {
                 cycleTurnOrder();
 
                 //Debug.Log("Yo.");
@@ -1017,16 +992,16 @@ public class BattleGUI : MonoBehaviour {
         }
     }
     
-    private void addToPlayerOrder(Unit unit) {
+    private void addToPlayerOrder(Unit unit)  {
         GameObject turnOrderPanel = GameObject.Find("Panel - Character Entries");
       	 List<Unit> activatedCharacters = new List<Unit>(mapGenerator.priorityOrder);
         // If the unit is not participating in combat (they're not activated), take it out.
-        foreach (Unit enemy in mapGenerator.enemies) {
+        foreach (Unit enemy in mapGenerator.enemies)  {
 			if (enemy.playerControlled || enemy.aiActive) continue;
             activatedCharacters.Remove(enemy);
         }
         // If it wasn't taken out, add it to the turn order.
-        if (activatedCharacters.Contains(unit)) {
+        if (activatedCharacters.Contains(unit))  {
             GameObject turnOrderEntry = (GameObject)Instantiate(turnOrderPrefab);
             
 
@@ -1044,8 +1019,7 @@ public class BattleGUI : MonoBehaviour {
         }
 	}
 
-	private void cycleTurnOrder()
-	{
+	private void cycleTurnOrder()  {
 		// The unit on top needs to be sent to the bottom of the list, and everybody else gets to slide up.
 		// Since the turn order is using a Vertical Layout group, the order is dictated by the sibling index of
 		// each entry, with Panel - Character Entries as the parent. Thankfully, RectTransform has the handy SetAsLastSibling method!
@@ -1054,8 +1028,7 @@ public class BattleGUI : MonoBehaviour {
 	}
     //--------------------------------------------------------------------------------
 
-	private void populateSaves()
-	{
+	private void populateSaves()  {
 		pauseMenuCanvas.GetComponent<CanvasGroup>().alpha = 0.0f;
 		// Step 1: need to format the canvas to fit the number of saves and look correct
 	//	GameObject savedGameCanvas = GameObject.Find("Canvas - Load Content");
@@ -1069,8 +1042,7 @@ public class BattleGUI : MonoBehaviour {
 		float newHeight = 	(numSaves * buttonHeight) + 	// cumulative button height
 			topPadding + botPadding + 		// padding at the top and bottom
 				((numSaves-1) * savedGameCanvas.GetComponent<VerticalLayoutGroup>().spacing);	// cumulative spacing between buttons
-		if(newHeight < GameObject.Find("ScrollView - Save Files").GetComponent<RectTransform>().rect.height)
-		{
+		if(newHeight < GameObject.Find("ScrollView - Save Files").GetComponent<RectTransform>().rect.height)  {
 			newHeight = GameObject.Find("ScrollView - Save Files").GetComponent<RectTransform>().rect.height;
 		}
 		savedGameCanvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, newHeight);
@@ -1078,8 +1050,7 @@ public class BattleGUI : MonoBehaviour {
 */
 		//Step 2: We need to instantiate a button for each save and add them as children of the canvas.
 		// While we're at it, we'll also set the text field of the save entry to the save name.
-		for(int i = 0; i < saves.Length; i++)
-		{
+		for(int i = 0; i < saves.Length; i++)  {
 			GameObject newSaveEntry = (GameObject)Instantiate(saveEntry);
             newSaveEntry.GetComponent<RectTransform>().sizeDelta = Vector2.one;
 			newSaveEntry.transform.GetChild(1).GetComponentInChildren<Text>().text = saves[i];
@@ -1091,7 +1062,7 @@ public class BattleGUI : MonoBehaviour {
 		pauseMenuCanvas.GetComponent<CanvasGroup>().alpha = 1.0f;
 		Invoke("setLoadGameScrollBar", 0.05f);
 	}
-	void setLoadGameScrollBar() {
+	void setLoadGameScrollBar()  {
 		loadGameScrollBar.value = 1;
 	}
 

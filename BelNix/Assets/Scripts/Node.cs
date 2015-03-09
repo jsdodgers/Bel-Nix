@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Node : MonoBehaviour {
+public class Node : MonoBehaviour  {
 	
 	public Editor editor;
 	//public Camera camera;
@@ -49,7 +49,7 @@ public class Node : MonoBehaviour {
 	string tempText;//Temporary chuck of processed text added to the compiled text
 	
 	//assigns player ID values passed from DialogueTree
-	/*public void InstantiateValues(string fName, string lName, int gender){
+	/*public void InstantiateValues(string fName, string lName, int gender) {
 
 		playerGender = gender;
 		playerFirstName = fName;
@@ -59,27 +59,26 @@ public class Node : MonoBehaviour {
 	}*/
 	
 	
-	public string Text{ 
-		get{return text;}
+	public string Text { 
+		get {return text;}
 	}
 	
-	public int WindowID{ 
-		get{return windowID;} 
-		set{windowID = value;}
+	public int WindowID { 
+		get {return windowID;} 
+		set {windowID = value;}
 	}
 	
 	
 	//Defines "Conditional Class" with all string members specifying variable type and conditional to be met, 
 	
-	public class Conditional
-	{
+	public class Conditional  {
 		
 		public string type;
 		public string condition;
 		
 		
 		
-		public Conditional(string t, string c){
+		public Conditional(string t, string c) {
 			
 			type = t;
 			condition = c;
@@ -104,23 +103,23 @@ public class Node : MonoBehaviour {
 	
 	public Vector2 oldscrollposition = new Vector2(0,0);
 	
-	void OnGUI () {
+	void OnGUI ()  {
 		//windowRect = GUI.Window (windowID, new Rect (windowRectLeft, windowRectTop, windowRectWidth, windowRectHeigth), WindowFunction, "Node_" + windowID);
 		
 		
-		if(!isCollapsed){
+		if(!isCollapsed) {
 			
 			windowRect = GUI.Window (windowID, windowRect, WindowFunction, "Node_" + windowID);
 			
 		}
 		
-		if(isCollapsed){
+		if(isCollapsed) {
 			
 			windowRectCollapsed = GUI.Window(windowID, windowRectCollapsed, WindowFunction, "Node_" + windowID);
 			
 		}
 		
-		if (isConditionalDisplayed && !isCollapsed) {
+		if (isConditionalDisplayed && !isCollapsed)  {
 			
 			
 			conditionalRect = GUI.Window(conditionalWindowID, conditionalRect, ConditionalWindowFunction, "Conditionals_" + windowID);
@@ -147,13 +146,13 @@ public class Node : MonoBehaviour {
 	
 	
 	
-	void WindowFunction (int windowID) {
+	void WindowFunction (int windowID)  {
 		
 		//editor.selectedWindow = windowID;
 		//Debug.Log("This window is selected: " + windowID);
 		//GUI.BeginGroup(new Rect(0, 0, 250, 200));
 		
-		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp &&  (editor.currentWindow == this || editor.currentWindow == null)){
+		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp &&  (editor.currentWindow == this || editor.currentWindow == null)) {
 			
 			GUI.BringWindowToFront(windowID);
 			editor.selectedWindow = this;
@@ -162,14 +161,14 @@ public class Node : MonoBehaviour {
 			
 		}
 		
-		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp && (editor.currentWindow != this)){
+		if(Event.current.button == 1 && Event.current.type == EventType.MouseUp && (editor.currentWindow != this)) {
 			
 			bool unlink = false;
 			Node nodeToUnlink = null;
 			
-			foreach (int element in editor.currentWindow.nextTextBoxID){
+			foreach (int element in editor.currentWindow.nextTextBoxID) {
 				
-				if(element == this.windowID){
+				if(element == this.windowID) {
 					
 					unlink = true;
 					nodeToUnlink = this;
@@ -179,7 +178,7 @@ public class Node : MonoBehaviour {
 				
 			}
 
-			if(unlink){
+			if(unlink) {
 
 				UnlinkNodes(editor.currentWindow, nodeToUnlink);
 
@@ -187,7 +186,7 @@ public class Node : MonoBehaviour {
 			
 			
 			
-			else{
+			else {
 				
 				LinkNodes(editor.currentWindow, this);
 				
@@ -200,14 +199,14 @@ public class Node : MonoBehaviour {
 		isPlayerResponse = GUI.Toggle (new Rect (100, 60, 140, 20),isPlayerResponse, "isPlayerResponse");
 
 
-		if(GUI.Button(new Rect(220, 15, 22, 20), "X ")){
+		if(GUI.Button(new Rect(220, 15, 22, 20), "X ")) {
 
 			DestroyNode(this);
 
 		}
 
 
-		if(isCollapsed){
+		if(isCollapsed) {
 			
 			isCollapsed = GUI.Toggle(new Rect(10, 25, 100, 25), isCollapsed, "Collapse"); 
 			GUI.DragWindow(new Rect(0,0,1000,20));
@@ -215,9 +214,9 @@ public class Node : MonoBehaviour {
 		}
 		
 		
-		else{ 
+		else { 
 			
-			if(GUI.Button(new Rect(10, 60, 90, 25), "Conditionals")){
+			if(GUI.Button(new Rect(10, 60, 90, 25), "Conditionals")) {
 				
 				//display conditional GUI.box
 				isConditionalDisplayed = !isConditionalDisplayed;
@@ -233,7 +232,7 @@ public class Node : MonoBehaviour {
 			
 			//GUI.EndGroup();
 			
-			//if (GUI.Button (new Rect(150, 30, 60, 25), "Options")) {
+			//if (GUI.Button (new Rect(150, 30, 60, 25), "Options"))  {
 			
 			//}
 			//GUI.DragWindow();
@@ -248,10 +247,10 @@ public class Node : MonoBehaviour {
 	string type = "";
 	string condition = "";
 
-	void ConditionalWindowFunction(int conditionalID){
+	void ConditionalWindowFunction(int conditionalID) {
 
 
-		if(GUI.Button(new Rect(220, 25, 20, 25), "+")){
+		if(GUI.Button(new Rect(220, 25, 20, 25), "+")) {
 			
 			/*conditionals.Add (new Conditional (type, condition));
 			type = "";
@@ -269,7 +268,7 @@ public class Node : MonoBehaviour {
 		Rect r = new Rect (10, 55, 90, 25);
 		Rect s = new Rect (110, 55, 90, 25);
 
-		for (int i = 0; i < conditionals.Count; i++) {
+		for (int i = 0; i < conditionals.Count; i++)  {
 
 			r.y = r.y + 30;
 			GUI.TextField(r, conditionals[i].type);
@@ -289,9 +288,9 @@ public class Node : MonoBehaviour {
 
 
 
-	void WindowSync(){
+	void WindowSync() {
 		
-		if(!isCollapsed){
+		if(!isCollapsed) {
 			
 			conditionalRect.y = windowRect.y + windowRect.height;
 			conditionalRect.x = windowRect.x;
@@ -304,7 +303,7 @@ public class Node : MonoBehaviour {
 			
 		}
 		
-		else{
+		else {
 			
 			windowRect.x = windowRectCollapsed.x;
 			windowRect.y = windowRectCollapsed.y;
@@ -317,7 +316,7 @@ public class Node : MonoBehaviour {
 	}
 	
 	
-	void LinkNodes(Node t1, Node t2){
+	void LinkNodes(Node t1, Node t2) {
 		
 		t1.nextTextBoxID.Add(t2.windowID);
 		//DrawLine(editor.currentWindow, this);
@@ -328,7 +327,7 @@ public class Node : MonoBehaviour {
 		
 	}
 
-	void UnlinkNodes(Node t1, Node t2){
+	void UnlinkNodes(Node t1, Node t2) {
 
 		t1.nextTextBoxID.Remove (t2.windowID);
 		Debug.Log("Node " + t1.windowID + " has removed node " + t2.windowID);
@@ -343,7 +342,7 @@ public class Node : MonoBehaviour {
 	
 	
 	//draws three lines to connect nodes
-	public void DrawLine(Node t1, Node t2){
+	public void DrawLine(Node t1, Node t2) {
 		
 		
 		//Debug.Log (t1.windowID);
@@ -419,28 +418,28 @@ public class Node : MonoBehaviour {
 	
 	
 	
-	public string ThisBoxToString(){
+	public string ThisBoxToString() {
 		
 		string compiledString;
 		string terminatesDialogueString = terminatesDialogue.ToString();
 		string isPlayerResponseString = "";
 		string windowIDString = windowID.ToString();
-		string nextTextBoxIDString = "{";
+		string nextTextBoxIDString = " {";
 		//string conditionalsString = "(";
 		
-		foreach(int element in nextTextBoxID){
+		foreach(int element in nextTextBoxID) {
 			
 			string s = element.ToString();
 	
 			
-			if(element == (nextTextBoxID[nextTextBoxID.Count - 1])){
+			if(element == (nextTextBoxID[nextTextBoxID.Count - 1])) {
 				
 				nextTextBoxIDString = nextTextBoxIDString + s;
 				
 				
 			}
 			
-			else{nextTextBoxIDString = nextTextBoxIDString + s + "; ";}
+			else {nextTextBoxIDString = nextTextBoxIDString + s + "; ";}
 			
 			
 			
@@ -450,27 +449,27 @@ public class Node : MonoBehaviour {
 		nextTextBoxIDString = nextTextBoxIDString + "}";
 		
 		
-		if (!isPlayerResponse) {
+		if (!isPlayerResponse)  {
 			
 			isPlayerResponseString = "0";
 		}
 		
-		else{
+		else {
 			isPlayerResponseString = "1";
 		}
 
 
 
-		/*for (int i = 0; i < conditionals.Count; i++) {
+		/*for (int i = 0; i < conditionals.Count; i++)  {
 
-			if(i == conditionals.Count - 1){
+			if(i == conditionals.Count - 1) {
 
 				string s = "<" + conditionals[i].type + " : " + conditionals[i].condition + ">";
 				conditionalsString = conditionalsString + s;
 
 			}
 
-			else{
+			else {
 
 				string s = "<" + conditionals[i].type + " : " + conditionals[i].condition + ">; ";
 				conditionalsString = conditionalsString + s;
@@ -495,15 +494,15 @@ public class Node : MonoBehaviour {
 
 
 
-	void DestroyNode(Node n){
+	void DestroyNode(Node n) {
 
 		List<Node> nodesToUnlink = new List<Node>();
 
-		foreach (Node m in editor.nodes) {
+		foreach (Node m in editor.nodes)  {
 
-			foreach(int element in m.nextTextBoxID){
+			foreach(int element in m.nextTextBoxID) {
 				
-				if(element == n.windowID){
+				if(element == n.windowID) {
 					
 					nodesToUnlink.Add(m);
 					
@@ -513,7 +512,7 @@ public class Node : MonoBehaviour {
 
 		}
 
-		foreach (Node m in nodesToUnlink) {
+		foreach (Node m in nodesToUnlink)  {
 				
 			UnlinkNodes(m, n);
 		
@@ -528,7 +527,7 @@ public class Node : MonoBehaviour {
 
 
 	
-	void Start(){
+	void Start() {
 		
 		//(-windowID -1) to give unique IDs for conditional windows (even for node 0)
 		conditionalWindowID = (-windowID - 1);
@@ -548,7 +547,7 @@ public class Node : MonoBehaviour {
 
 
 	
-	void Update(){
+	void Update() {
 		
 		//UpdateTransform (windowRect);
 		

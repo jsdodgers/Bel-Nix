@@ -2,8 +2,8 @@ using System;
 using UnityEngine;
 using System.Collections;
 
-public enum StackType {None, Turret, Trap, Frame, Gear, Trigger, EnergySource, Knives, BuzzSaws};
-public class ItemMechanicalEditor : EditorItem {
+public enum StackType  {None, Turret, Trap, Frame, Gear, Trigger, EnergySource, Knives, BuzzSaws};
+public class ItemMechanicalEditor : EditorItem  {
 
 	public ItemMechanicalEditor frame;
 	public ItemMechanicalEditor applicator;
@@ -17,8 +17,8 @@ public class ItemMechanicalEditor : EditorItem {
 	
 	public ItemCode itemCode;
 	
-	public override Item getItem() {
-		switch (itemCode) {
+	public override Item getItem()  {
+		switch (itemCode)  {
 		case ItemCode.Turret:
 			return new Turret(creatorId, (Frame)frame.getItem(), (Applicator)applicator.getItem(), (Gear)gear.getItem(), (EnergySource)energySource.getItem());
 		case ItemCode.Trap:
@@ -79,21 +79,21 @@ public class ItemMechanicalEditor : EditorItem {
 }
 
 
-public interface ItemMechanical {
+public interface ItemMechanical  {
 	StackType getStackType();
 }
 
-public class Turret : Item, ItemMechanical {
+public class Turret : Item, ItemMechanical  {
 	public Frame frame;
 	public Applicator applicator;
 	public Gear gear;
 	public EnergySource energySource;
 	public string creatorId = "";
 	const int range = 5;
-	public StackType getStackType() {
+	public StackType getStackType()  {
 		return StackType.Turret;
 	}
-	public override string getItemData (string delim) {
+	public override string getItemData (string delim)  {
 		string s = base.getItemData(delim) + delim;
 			s += (frame == null ? 0 + delim : 
 			 (int)frame.getItemCode() + delim +
@@ -118,7 +118,7 @@ public class Turret : Item, ItemMechanical {
 				energySource.getItemData(otherDelimiter) + delim +
 				creatorId;
 	}
-	public Turret(string itemData, string delim) : base(itemData, delim) {
+	public Turret(string itemData, string delim) : base(itemData, delim)  {
 		string[] split = itemData.Split(delim.ToCharArray());
 		int curr = numSplit;
 		ItemCode frameCode = (ItemCode)int.Parse(split[curr++]);
@@ -130,41 +130,40 @@ public class Turret : Item, ItemMechanical {
 		if (curr < split.Length)
 			creatorId = split[curr++];
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Turret;
 	}
-	public int turnsLeft() {
+	public int turnsLeft()  {
 		return energySource.turnsLeft;
 	}
-	public int maxTurns() {
+	public int maxTurns()  {
 		return energySource.getMaxTurns();
 	}
-	public bool hasUsesLeft() {
+	public bool hasUsesLeft()  {
 		return energySource.hasUsesLeft();
 	}
-	public bool use() {
+	public bool use()  {
 		return energySource.use();
 	}
-	public int rollDamage() {
+	public int rollDamage()  {
 		return applicator.rollDamage() + gear.additionalDamage();
 	}
-	public int getRange() {
+	public int getRange()  {
 		return range;
 	}
-	public bool takeDamage(int amount) {
+	public bool takeDamage(int amount)  {
 		return frame.takeDamage(amount);
 	}
-	public bool isDestroyed() {
+	public bool isDestroyed()  {
 		return frame.isDestroyed();
 	}
-	public int getHealth() {
+	public int getHealth()  {
 		return frame.healthLeft;
 	}
-	public int getMaxHealth() {
+	public int getMaxHealth()  {
 		return frame.getDurability();
 	}
-	public Turret(string creator, Frame fr, Applicator app, Gear g, EnergySource es) {
+	public Turret(string creator, Frame fr, Applicator app, Gear g, EnergySource es)  {
 		itemStackType = ItemStackType.Turret;
 		frame = fr;
 		applicator = app;
@@ -173,24 +172,23 @@ public class Turret : Item, ItemMechanical {
 		setInventoryTextureName("Turret");//"Units/Turrets/TurretPlaceholder");
 		creatorId = creator;
 	}
-	public Turret() {
+	public Turret()  {
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
 	}
 }
 
-public class Trap : Item, ItemMechanical {
+public class Trap : Item, ItemMechanical  {
 	public Frame frame;
 	public Gear gear;
 	public Applicator applicator;
 	public Trigger trigger;
 	public string creatorId = "";
-	public StackType getStackType() {
+	public StackType getStackType()  {
 		return StackType.Trap;
 	}
-	public override string getItemData (string delim)
-	{
+	public override string getItemData (string delim)  {
 		return base.getItemData(delim) + delim +
 			(frame == null ? 0 + delim : 
 			 (int)frame.getItemCode() + delim +
@@ -203,7 +201,7 @@ public class Trap : Item, ItemMechanical {
 				trigger.getItemData(otherDelimiter) + delim +
 				creatorId;
 	}
-	public Trap(string itemData, string delim) : base(itemData, delim) {
+	public Trap(string itemData, string delim) : base(itemData, delim)  {
 		string[] split = itemData.Split(delim.ToCharArray());
 		int curr = numSplit;
 		ItemCode frameCode = (ItemCode)int.Parse(split[curr++]);
@@ -215,24 +213,23 @@ public class Trap : Item, ItemMechanical {
 		if (curr < split.Length)
 			creatorId = split[curr++];
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Trap;	
 	}
-	public int getMaxSize() {
+	public int getMaxSize()  {
 		return frame.getSize();
 	}
 	
-	public bool hasUsesLeft() {
+	public bool hasUsesLeft()  {
 		return trigger.hasUsesLeft();
 	}
-	public bool use() {
+	public bool use()  {
 		return trigger.use();
 	}
-	public int rollDamage() {
+	public int rollDamage()  {
 		return applicator.rollDamage() + gear.additionalDamage();
 	}
-	public Trap(string creator, Frame fr, Applicator app, Gear g, Trigger tr) {
+	public Trap(string creator, Frame fr, Applicator app, Gear g, Trigger tr)  {
 		frame = fr;
 		applicator = app;
 		gear = g;
@@ -240,163 +237,156 @@ public class Trap : Item, ItemMechanical {
 		setInventoryTextureName("Trap");
 		creatorId = creator;
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
 	}
 }
 
-public class Frame : Item, ItemMechanical {
+public class Frame : Item, ItemMechanical  {
 	internal int healthLeft;
-	public StackType getStackType() {
+	public StackType getStackType()  {
 		return StackType.Frame;
 	}
-	public override string getItemData (string delim)
-	{
+	public override string getItemData (string delim)  {
 		return base.getItemData(delim) + delim +
 			healthLeft;
 	}
-	public Frame(string itemData, string delim) : base(itemData, delim) {
+	public Frame(string itemData, string delim) : base(itemData, delim)  {
 		string[] split = itemData.Split(delim.ToCharArray());
 		int curr = numSplit;
 		healthLeft = int.Parse(split[curr++]);
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Frame;
 	}
-	public Frame() {
+	public Frame()  {
 		itemStackType = ItemStackType.Frame;
 		healthLeft = getDurability();
 	}
-	public virtual int getDurability() {
+	public virtual int getDurability()  {
 		return 0;
 	}
-	public virtual int getHardness() {
+	public virtual int getHardness()  {
 		return 0;
 	}
-	public new virtual int getSize() {
+	public new virtual int getSize()  {
 		return 0;
 	}
-	public bool isDestroyed() {
+	public bool isDestroyed()  {
 		return healthLeft <= 0;
 	}
-	public bool takeDamage(int amount) {
+	public bool takeDamage(int amount)  {
 		healthLeft-=amount;
 		Debug.Log("Took Damage: " + amount + "  left: " + healthLeft);
 		return isDestroyed();
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0), new Vector2(0,1), new Vector2(1,0), new Vector2(1,1)};
 	}
 }
 
-public class TestFrame : Frame {
-	public TestFrame(string itemData, string delim) : base(itemData, delim)  {
+public class TestFrame : Frame  {
+	public TestFrame(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TestFrame;
 	}
-	public override int getDurability() {
+	public override int getDurability()  {
 		return 5 + 60;
 	}
-	public override int getHardness() {
+	public override int getHardness()  {
 		return 10;
 	}
-	public override int getSize () {
+	public override int getSize ()  {
 		return 6;
 	}
-	public TestFrame() {
+	public TestFrame()  {
 		itemName = "Test Frame";
 		setInventoryTextureName("Units/Turrets/Frame");
 	}
 }
 
-public class FrameM1 : Frame {
-	public FrameM1(string itemData, string delim) : base(itemData, delim)  {
+public class FrameM1 : Frame  {
+	public FrameM1(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.FrameM1;
 	}
-	public override int getDurability() {
+	public override int getDurability()  {
 		return 5;
 	}
-	public override int getHardness() {
+	public override int getHardness()  {
 		return 5;
 	}
-	public override int getSize () {
+	public override int getSize ()  {
 		return 1;
 	}
-	public FrameM1() {
+	public FrameM1()  {
 		itemName = "Frame Mark 1";
 		setInventoryTextureName("FrameM1");
 	}
 }
 
-public class FrameM2 : Frame {
-	public FrameM2(string itemData, string delim) : base(itemData, delim)  {
+public class FrameM2 : Frame  {
+	public FrameM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.FrameM2;
 	}
-	public override int getDurability() {
+	public override int getDurability()  {
 		return 7;
 	}
-	public override int getHardness() {
+	public override int getHardness()  {
 		return 7;
 	}
-	public override int getSize () {
+	public override int getSize ()  {
 		return 2;
 	}
-	public FrameM2() {
+	public FrameM2()  {
 		itemName = "Frame Mark 2";
 		setInventoryTextureName("FrameM2");
 	}
 }
 
-public class FrameM3 : Frame {
-	public FrameM3(string itemData, string delim) : base(itemData, delim)  {
+public class FrameM3 : Frame  {
+	public FrameM3(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.FrameM3;
 	}
-	public override int getDurability() {
+	public override int getDurability()  {
 		return 10;
 	}
-	public override int getHardness() {
+	public override int getHardness()  {
 		return 10;
 	}
-	public override int getSize () {
+	public override int getSize ()  {
 		return 3;
 	}
-	public FrameM3() {
+	public FrameM3()  {
 		itemName = "Frame Mark 3";
 		setInventoryTextureName("FrameM3");
 	}
 }
 
-public class Applicator :  Weapon, ItemMechanical {
-	public StackType getStackType() {
+public class Applicator :  Weapon, ItemMechanical  {
+	public StackType getStackType()  {
 		return StackType.None;
 	}
-	public Applicator(string itemData, string delim) : base(itemData, delim)  {
+	public Applicator(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Applicator;
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0)};
 	}
-	public Applicator() {
+	public Applicator()  {
 		itemType = ItemType.Weapon;
 		itemStackType = ItemStackType.Applicator;
 		gold = 0;
@@ -415,15 +405,14 @@ public class Applicator :  Weapon, ItemMechanical {
 	}
 }
 
-public class TestApplicator : Applicator {
-	public TestApplicator(string itemData, string delim) : base(itemData, delim)  {
+public class TestApplicator : Applicator  {
+	public TestApplicator(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TestApplicator;
 	}
-	public TestApplicator() {
+	public TestApplicator()  {
 		itemName = "Test Applicator";
 		copper = 30;
 		range = 1;
@@ -436,18 +425,17 @@ public class TestApplicator : Applicator {
 	}
 }
 
-public class Knives : Applicator {
-	public StackType getStackType() {
+public class Knives : Applicator  {
+	public StackType getStackType()  {
 		return StackType.Knives;
 	}
-	public Knives(string itemData, string delim) : base(itemData, delim)  {
+	public Knives(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Knives;
 	}
-	public Knives() {
+	public Knives()  {
 		itemName = "Knives";
 		copper = 30;
 		range = 1;
@@ -460,18 +448,17 @@ public class Knives : Applicator {
 	}
 }
 
-public class BuzzSaws : Applicator {
-	public StackType getStackType() {
+public class BuzzSaws : Applicator  {
+	public StackType getStackType()  {
 		return StackType.BuzzSaws;
 	}
-	public BuzzSaws(string itemData, string delim) : base(itemData, delim)  {
+	public BuzzSaws(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.BuzzSaws;
 	}
-	public BuzzSaws() {
+	public BuzzSaws()  {
 		itemName = "Buzz Saws";
 		copper = 30;
 		range = 1;
@@ -486,301 +473,284 @@ public class BuzzSaws : Applicator {
 
 	
 
-public class EnergySource :  Item, ItemMechanical {
-	public StackType getStackType() {
+public class EnergySource :  Item, ItemMechanical  {
+	public StackType getStackType()  {
 		return StackType.EnergySource;
 	}
-	public override string getItemData (string delim)
-	{
+	public override string getItemData (string delim)  {
 		return base.getItemData (delim) + delim +
 			turnsLeft;
 	}
-	public EnergySource(string itemData, string delim) : base(itemData, delim) {
+	public EnergySource(string itemData, string delim) : base(itemData, delim)  {
 		string[] split = itemData.Split(delim.ToCharArray());
 		int curr = numSplit;
 		turnsLeft = int.Parse(split[curr++]);
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySource;
 	}
 	public int turnsLeft;
-	public EnergySource() {
+	public EnergySource()  {
 		turnsLeft = getMaxTurns();
 	}
-	public bool use() {
+	public bool use()  {
 		turnsLeft--;
 		return turnsLeft<=0;
 	}
-	public bool hasUsesLeft() {
+	public bool hasUsesLeft()  {
 		return turnsLeft > 0;
 	}
-	public virtual int getMaxTurns() {
+	public virtual int getMaxTurns()  {
 		return 0;
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0)};
 	}
 }
 
-public class TestEnergySource : EnergySource {
-	public TestEnergySource(string itemData, string delim) : base(itemData, delim)  {
+public class TestEnergySource : EnergySource  {
+	public TestEnergySource(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TestEnergySource;
 	}
-	public override int getMaxTurns() {
+	public override int getMaxTurns()  {
 		return 2;
 	}
-	public TestEnergySource() {
+	public TestEnergySource()  {
 		itemName = "Test Energy Source";
 		setInventoryTextureName("Units/Turrets/EnergySource");
 	}
 }
 
-public class EnergySourceM1 : EnergySource {
-	public EnergySourceM1(string itemData, string delim) : base(itemData, delim)  {
+public class EnergySourceM1 : EnergySource  {
+	public EnergySourceM1(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySourceM1;
 	}
-	public override int getMaxTurns() {
+	public override int getMaxTurns()  {
 		return 3;
 	}
-	public EnergySourceM1() {
+	public EnergySourceM1()  {
 		itemName = "Energy Source Mark 1";
 		setInventoryTextureName("Energy Source M1");
 	}
 }
 
-public class EnergySourceM2 : EnergySource {
-	public EnergySourceM2(string itemData, string delim) : base(itemData, delim)  {
+public class EnergySourceM2 : EnergySource  {
+	public EnergySourceM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySourceM2;
 	}
-	public override int getMaxTurns() {
+	public override int getMaxTurns()  {
 		return 5;
 	}
-	public EnergySourceM2() {
+	public EnergySourceM2()  {
 		itemName = "Energy Source Mark 2";
 		setInventoryTextureName("Energy Source M2");
 	}
 }
 
-public class EnergySourceM3 : EnergySource {
-	public EnergySourceM3(string itemData, string delim) : base(itemData, delim)  {
+public class EnergySourceM3 : EnergySource  {
+	public EnergySourceM3(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySourceM3;
 	}
-	public override int getMaxTurns() {
+	public override int getMaxTurns()  {
 		return 7;
 	}
-	public EnergySourceM3() {
+	public EnergySourceM3()  {
 		itemName = "Energy Source Mark 3";
 		setInventoryTextureName("Energy Source M3");
 	}
 }
 
-public class Gear :  Item, ItemMechanical {
-	public StackType getStackType() {
+public class Gear :  Item, ItemMechanical  {
+	public StackType getStackType()  {
 		return StackType.Gear;
 	}
-	public Gear(string itemData, string delim) : base(itemData, delim)  {
+	public Gear(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public Gear() {
+	public Gear()  {
 
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Gear;
 	}
-	public virtual int additionalDamage() {
+	public virtual int additionalDamage()  {
 		return 0;
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0)};
 	}
 }
 
-public class TestGear : Gear {
-	public TestGear(string itemData, string delim) : base(itemData, delim)  {
+public class TestGear : Gear  {
+	public TestGear(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TestGear;
 	}
-	public override int additionalDamage() {
+	public override int additionalDamage()  {
 		return 2;
 	}
-	public TestGear() {
+	public TestGear()  {
 		itemName = "Test Gear";
 		setInventoryTextureName("Units/Turrets/Gear");
 	}
 }
 
-public class GearM1 : Gear {
-	public GearM1(string itemData, string delim) : base(itemData, delim)  {
+public class GearM1 : Gear  {
+	public GearM1(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.GearM1;
 	}
-	public override int additionalDamage() {
+	public override int additionalDamage()  {
 		return 0;
 	}
-	public GearM1() {
+	public GearM1()  {
 		itemName = "Gear Mark 1";
 		setInventoryTextureName("Gear M1");
 	}
 }
 
-public class GearM2 : Gear {
-	public GearM2(string itemData, string delim) : base(itemData, delim)  {
+public class GearM2 : Gear  {
+	public GearM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.GearM2;
 	}
-	public override int additionalDamage() {
+	public override int additionalDamage()  {
 		return 1;
 	}
-	public GearM2() {
+	public GearM2()  {
 		itemName = "Gear Mark 2";
 		setInventoryTextureName("Gear M2");
 	}
 }
 
-public class GearM3 : Gear {
-	public GearM3(string itemData, string delim) : base(itemData, delim)  {
+public class GearM3 : Gear  {
+	public GearM3(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.GearM3;
 	}
-	public override int additionalDamage() {
+	public override int additionalDamage()  {
 		return 2;
 	}
-	public GearM3() {
+	public GearM3()  {
 		itemName = "Gear Mark 3";
 		setInventoryTextureName("Gear M3");
 	}
 }
 
-public class Trigger : Item, ItemMechanical {
-	public StackType getStackType() {
+public class Trigger : Item, ItemMechanical  {
+	public StackType getStackType()  {
 		return StackType.Trigger;
 	}
-	public override string getItemData (string delim)
-	{
+	public override string getItemData (string delim)  {
 		return base.getItemData (delim) + delim +
 			usesLeft;
 	}
-	public Trigger(string itemData, string delim) : base(itemData, delim) {
+	public Trigger(string itemData, string delim) : base(itemData, delim)  {
 		string[] split = itemData.Split(delim.ToCharArray());
 		int curr = numSplit;
 		usesLeft = int.Parse(split[curr++]);
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.Trigger;
 	}
 	public int usesLeft;
-	public Trigger() {
+	public Trigger()  {
 		usesLeft = triggerTimes();
 	}
-	public bool use() {
+	public bool use()  {
 		usesLeft--;
 		return usesLeft<=0;
 	}
-	public bool hasUsesLeft() {
+	public bool hasUsesLeft()  {
 		return usesLeft > 0;
 	}
-	public virtual int triggerTimes() {
+	public virtual int triggerTimes()  {
 		return 0;
 	}
-	public override Vector2[] getShape() {
-		return new Vector2[] {new Vector2(0,0)};
+	public override Vector2[] getShape()  {
+		return new Vector2[]  {new Vector2(0,0)};
 	}
 }
 
-public class TestTrigger : Trigger {
-	public TestTrigger(string itemData, string delim) : base(itemData, delim)  {
+public class TestTrigger : Trigger  {
+	public TestTrigger(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TestTrigger;	
 	}
-	public override int triggerTimes() {
+	public override int triggerTimes()  {
 		return 3;
 	}
-	public TestTrigger() {
+	public TestTrigger()  {
 		itemName = "Test Trigger";
 		setInventoryTextureName("Trigger M1");
 	}
 }
 
-public class TriggerM1 : Trigger {
-	public TriggerM1(string itemData, string delim) : base(itemData, delim)  {
+public class TriggerM1 : Trigger  {
+	public TriggerM1(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TriggerM1;	
 	}
-	public override int triggerTimes() {
+	public override int triggerTimes()  {
 		return 1;
 	}
-	public TriggerM1() {
+	public TriggerM1()  {
 		itemName = "Trigger Mark 1";
 		setInventoryTextureName("Trigger M1");
 	}
 }
 
-public class TriggerM2 : Trigger {
-	public TriggerM2(string itemData, string delim) : base(itemData, delim)  {
+public class TriggerM2 : Trigger  {
+	public TriggerM2(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TriggerM2;	
 	}
-	public override int triggerTimes() {
+	public override int triggerTimes()  {
 		return 2;
 	}
-	public TriggerM2() {
+	public TriggerM2()  {
 		itemName = "Trigger Mark 2";
 		setInventoryTextureName("Trigger M2");
 	}
 }
 
-public class TriggerM3 : Trigger {
-	public TriggerM3(string itemData, string delim) : base(itemData, delim)  {
+public class TriggerM3 : Trigger  {
+	public TriggerM3(string itemData, string delim) : base(itemData, delim)   {
 		
 	}
-	public override ItemCode getItemCode ()
-	{
+	public override ItemCode getItemCode ()  {
 		return ItemCode.TriggerM3;	
 	}
-	public override int triggerTimes() {
+	public override int triggerTimes()  {
 		return 3;
 	}
-	public TriggerM3() {
+	public TriggerM3()  {
 		itemName = "Trigger Mark 3";
 		setInventoryTextureName("Trigger M3");
 	}

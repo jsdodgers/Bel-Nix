@@ -2,8 +2,7 @@
 using System.Collections;
 
 
-public class CharacterTemplate : MonoBehaviour
-{
+public class CharacterTemplate : MonoBehaviour {
 
 	public string textFile;
 	public string firstName, lastName;
@@ -25,26 +24,25 @@ public class CharacterTemplate : MonoBehaviour
 	public CharacterLoadout characterLoadout;
 
 	// Use this for initialization
-	void Start ()
-	{
+	void Start ()  {
 	//	Character character = gameObject.GetComponent<Character>();
 
 	}
 
-	public Character loadData(Unit u) {
+	public Character loadData(Unit u)  {
 		return loadData(null, u);
 	}
 
-	public Character loadData(string textFile2, Unit u) {
+	public Character loadData(string textFile2, Unit u)  {
 		Character ch = new Character();
 	//	ch.characterLoadout = characterLoadout;
 		ch.setCharacterLoadout(characterLoadout);
 		ch.unit = u;
 		if (textFile2 != null && textFile2 != "") textFile = textFile2;
-		if (textFile != null && textFile != "") {
+		if (textFile != null && textFile != "")  {
 			ch.loadCharacterFromTextFile(textFile);
 		}
-		else {
+		else  {
 			CharacterRace mCRace = CharacterRace.getRace(mCRaceName);
 			CharacterClass mCClass = CharacterClass.getClass(mCClassName);
 			
@@ -63,8 +61,7 @@ public class CharacterTemplate : MonoBehaviour
 	}
 	
 	// Update is called once per frame
-	void Update ()
-	{
+	void Update ()  {
 	
 	}
 }

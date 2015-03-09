@@ -3,9 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class CCGUI : MonoBehaviour
-{
-	public enum GUIState {SEX, RACE, PHYSICAL_FEATURES, CLASS, ABILITY_SCORES, SKILLS, /*TALENTS,*/ NAME};
+public class CCGUI : MonoBehaviour {
+	public enum GUIState  {SEX, RACE, PHYSICAL_FEATURES, CLASS, ABILITY_SCORES, SKILLS, /*TALENTS,*/ NAME};
 	[SerializeField] private GameObject[] stateList;
 	[SerializeField] private GameObject[] progressionButtons;
 	[SerializeField] private GameObject blankText;
@@ -76,192 +75,192 @@ public class CCGUI : MonoBehaviour
 	GUIStyle[] hairTextures;
 	int hairStyle = 0;
 
-	public void selectTurret(Button b) {
+	public void selectTurret(Button b)  {
 		if (turret) return;
 		turret = true;
 		selectTurretButton(b);
 	}
 
-	public void selectTrap(Button b) {
+	public void selectTrap(Button b)  {
 		if (!turret) return;
 		turret = false;
 		selectTurretButton(b);
 	}
-	public void selectTurretButton(Button b) {
-		if (selectedTurretButton != null) {
+	public void selectTurretButton(Button b)  {
+		if (selectedTurretButton != null)  {
 			selectedTurretButton.GetComponent<Animator>().SetBool("Selected",false);
 			selectedButtons.Remove(selectedTurretButton);
 		}
 		selectedTurretButton = b;
-		if (selectedTurretButton != null) {
+		if (selectedTurretButton != null)  {
 			selectedTurretButton.GetComponent<Animator>().SetBool("Selected",true);
 			selectedButtons.Add(selectedTurretButton);
 		}
 	}
 
-	public void selectExSoldier(Button b) {
+	public void selectExSoldier(Button b)  {
 		selectClass(b, new Class_ExSoldier());
 	}
-	public void selectEngineer(Button b) {
+	public void selectEngineer(Button b)  {
 		selectClass(b, new Class_Engineer());
 	}
-	public void selectInvestigator(Button b) {
+	public void selectInvestigator(Button b)  {
 		selectClass(b, new Class_Investigator());
 	}
-	public void selectResearcher(Button b) {
+	public void selectResearcher(Button b)  {
 		selectClass(b, new Class_Researcher());
 	}
-	public void selectOrator(Button b) {
+	public void selectOrator(Button b)  {
 		selectClass(b, new Class_Orator());
 	}
-	public void selectClass(Button b, CharacterClass cc) {
+	public void selectClass(Button b, CharacterClass cc)  {
 		character.cClass = cc;
 		selectClassButton(b);
 		showClassPanel(cc);
 	}
-	public void showClassPanel(CharacterClass cc) {
-		if (cc is Class_ExSoldier) {
+	public void showClassPanel(CharacterClass cc)  {
+		if (cc is Class_ExSoldier)  {
 			toggleAllExcept(classTextFields[0]);
 		}
-		else if (cc is Class_Engineer) {
-			toggleAllExcept(new GameObject[] {classTextFields[1], engineerButtons});
+		else if (cc is Class_Engineer)  {
+			toggleAllExcept(new GameObject[]  {classTextFields[1], engineerButtons});
 		}
-		else if (cc is Class_Investigator) {
+		else if (cc is Class_Investigator)  {
 			toggleAllExcept(classTextFields[2]);
 		}
-		else if (cc is Class_Researcher) {
+		else if (cc is Class_Researcher)  {
 			toggleAllExcept(classTextFields[3]);
 		}
-		else if (cc is Class_Orator) {
+		else if (cc is Class_Orator)  {
 			toggleAllExcept(classTextFields[4]);
 		}
 	}
-	public void selectClassButton(Button b) {
-		if (selectedClassButton != null) {
+	public void selectClassButton(Button b)  {
+		if (selectedClassButton != null)  {
 			selectedClassButton.GetComponent<Animator>().SetBool("Selected",false);
 			selectedButtons.Remove(selectedClassButton);
 		}
 		selectedClassButton = b;
-		if (selectedClassButton != null) {
+		if (selectedClassButton != null)  {
 			selectedClassButton.GetComponent<Animator>().SetBool("Selected",true);
 			selectedButtons.Add(selectedClassButton);
 		}
 	}
-	public void selectRaceBerrind(Button b) {
+	public void selectRaceBerrind(Button b)  {
 		selectRace(b, new Race_Berrind());
 		setSkinColor(berrindColor);
 
 	}
-	public void selectRaceAshpian(Button b) {
+	public void selectRaceAshpian(Button b)  {
 		selectRace(b, new Race_Ashpian());
 		setSkinColor(ashpianColor);
 	}
-	public void selectRaceRorrul(Button b) {
+	public void selectRaceRorrul(Button b)  {
 		selectRace(b, new Race_Rorrul());
 		setSkinColor(rorrulColor);
 	}
-	public void selectRace(Button b, CharacterRace cr) {
+	public void selectRace(Button b, CharacterRace cr)  {
 		character.race = cr;
 		selectRaceButton(b);
 		showRacePanel(cr);
 		selectBackground(null, CharacterBackground.None);
 	}
-	public void showRacePanel(CharacterRace cr) {
+	public void showRacePanel(CharacterRace cr)  {
 		toggleAllExcept(getRaceTextField(cr));
 	}
-	public GameObject getRaceTextField(CharacterRace cr) {
-		if (cr is Race_Berrind) {
+	public GameObject getRaceTextField(CharacterRace cr)  {
+		if (cr is Race_Berrind)  {
 			return raceTextFields[0];
 		}
-		else if (cr is Race_Ashpian) {
+		else if (cr is Race_Ashpian)  {
 			return raceTextFields[1];
 		}
-		else if (cr is Race_Rorrul) {
+		else if (cr is Race_Rorrul)  {
 			return raceTextFields[2];
 		}
 		return null;
 	}
-	public void selectRaceButton(Button b) {
-		if (selectedRaceButton != null) {
+	public void selectRaceButton(Button b)  {
+		if (selectedRaceButton != null)  {
 			selectedRaceButton.GetComponent<Animator>().SetBool("Selected",false);
 			selectedButtons.Remove(selectedRaceButton);
 		}
 		selectedRaceButton = b;
-		if (selectedRaceButton != null) {
+		if (selectedRaceButton != null)  {
 			selectedRaceButton.GetComponent<Animator>().SetBool("Selected",true);
 			selectedButtons.Add(selectedRaceButton);
 		}
 	}
 	
-	public void selectBackgroundFallenNoble(Button b) {
+	public void selectBackgroundFallenNoble(Button b)  {
 		selectBackground(b, CharacterBackground.FallenNoble);
 	}
-	public void selectBackgroundWhiteGem(Button b) {
+	public void selectBackgroundWhiteGem(Button b)  {
 		selectBackground(b, CharacterBackground.WhiteGem);
 	}
-	public void selectBackgroundCommoner(Button b) {
+	public void selectBackgroundCommoner(Button b)  {
 		selectBackground(b, CharacterBackground.Commoner);
 	}
-	public void selectBackgroundImmigrant(Button b) {
+	public void selectBackgroundImmigrant(Button b)  {
 		selectBackground(b, CharacterBackground.Immigrant);
 	}
-	public void selectBackgroundServant(Button b) {
+	public void selectBackgroundServant(Button b)  {
 		selectBackground(b, CharacterBackground.Servant);
 	}
-	public void selectBackgroundUnknown(Button b) {
+	public void selectBackgroundUnknown(Button b)  {
 		selectBackground(b, CharacterBackground.Unknown);
 	}
-	public void selectBackground(Button b, CharacterBackground cb) {
+	public void selectBackground(Button b, CharacterBackground cb)  {
 		character.background = cb;
 		selectBackgroundButton(b);
 		showBackgroundPanel(cb);
 	}
-	public void showBackgroundPanel(CharacterBackground cb) {
+	public void showBackgroundPanel(CharacterBackground cb)  {
 		GameObject go = getRaceTextField(character.race);
-		if (go != null) {
-			if (cb != CharacterBackground.None) {
-				toggleAllExcept(new GameObject[] {go, backgroundTextFields[(int)cb]});
+		if (go != null)  {
+			if (cb != CharacterBackground.None)  {
+				toggleAllExcept(new GameObject[]  {go, backgroundTextFields[(int)cb]});
 			}
 			else toggleAllExcept(go);
 		}
-		else if (cb != CharacterBackground.None) {
+		else if (cb != CharacterBackground.None)  {
 			toggleAllExcept(backgroundTextFields[(int)cb]);
 		}
 	}
-	public void selectBackgroundButton(Button b) {
-		if (selectedBackgroundButton != null) {
+	public void selectBackgroundButton(Button b)  {
+		if (selectedBackgroundButton != null)  {
 			selectedBackgroundButton.GetComponent<Animator>().SetBool("Selected",false);
 			selectedButtons.Remove(selectedBackgroundButton);
 		}
 		selectedBackgroundButton = b;
-		if (selectedBackgroundButton != null) {
+		if (selectedBackgroundButton != null)  {
 			selectedBackgroundButton.GetComponent<Animator>().SetBool("Selected",true);
 			selectedButtons.Add(selectedBackgroundButton);
 		}
 	}
 
-	public void selectSexMale(Button b) {
+	public void selectSexMale(Button b)  {
 		selectSex(b, CharacterSex.Male);
 	}
-	public void selectSexFemale(Button b) {
+	public void selectSexFemale(Button b)  {
 		selectSex(b, CharacterSex.Female);
 	}
-	public void selectSex(Button b, CharacterSex cs) {
+	public void selectSex(Button b, CharacterSex cs)  {
 		character.sex = cs;
 		selectSexButton(b);
 		showSexPanel(cs);
 	}
-	public void showSexPanel(CharacterSex cs) {
+	public void showSexPanel(CharacterSex cs)  {
 		if (cs == CharacterSex.None) toggleAllExcept(blankText);
 		else toggleAllExcept(sexFields[(int)cs]);
 	}
-	public void selectSexButton(Button b) {
-		if (selectedSexButton != null) {
+	public void selectSexButton(Button b)  {
+		if (selectedSexButton != null)  {
 			selectedSexButton.GetComponent<Animator>().SetBool("Selected",false);
 			selectedButtons.Remove(selectedSexButton);
 		}
 		selectedSexButton = b;
-		if (selectedSexButton != null) {
+		if (selectedSexButton != null)  {
 			selectedSexButton.GetComponent<Animator>().SetBool("Selected",true);
 			selectedButtons.Add(selectedSexButton);
 		}
@@ -269,12 +268,11 @@ public class CCGUI : MonoBehaviour
 
 
 
-	static Color createColor(float r, float g, float b) {
+	static Color createColor(float r, float g, float b)  {
 		return new Color(r, g, b);
 	}
 
-	public struct CharacterCreator
-	{
+	public struct CharacterCreator  {
 		public CharacterSex sex;
 		public CharacterRace race;
 		public CharacterBackground background;
@@ -287,8 +285,7 @@ public class CCGUI : MonoBehaviour
 	public CharacterCreator character;
 
 	// Use this for initialization
-	void Start()
-	{
+	void Start()  {
 		//pointAllocator = GameObject.Find("Panel - Ability Scores").GetComponent<CCPointAllocation>();
 
 		passport = new Dictionary<string, GameObject>();
@@ -345,51 +342,45 @@ public class CCGUI : MonoBehaviour
 		setState(currentState);
 	}
 
-	public void setFirstName(Text firstName)
-	{
+	public void setFirstName(Text firstName)  {
 		characterName = firstName.text;
 	}
 
-	public void setLastName(Text lastName)
-	{
+	public void setLastName(Text lastName)  {
 		characterLastName = lastName.text;
 	}
 
 	bool settingPrimary = true;
-	public void settingPrimaryColor() {settingPrimary = true;}
-	public void settingSecondaryColor() {settingPrimary = false;}
+	public void settingPrimaryColor()  {settingPrimary = true;}
+	public void settingSecondaryColor()  {settingPrimary = false;}
 
-	public void setHairColor(GameObject newHairColor)
-	{
+	public void setHairColor(GameObject newHairColor)  {
         setHairColor(newHairColor.GetComponent<Image>().color);
-		if (hairColorObj != null) {
+		if (hairColorObj != null)  {
 			hairColorObj.GetComponent<Outline>().enabled = false;
 		}
 		hairColorObj = newHairColor;
-		if (hairColorObj != null) {
+		if (hairColorObj != null)  {
 			hairColorObj.GetComponent<Outline>().enabled = true;
 		}
 	}
-    private void setHairColor(Color newHairColor)
-    {
+    private void setHairColor(Color newHairColor) {
         hairColor = newHairColor;
      //   hairGameObject.GetComponent<SpriteRenderer>().color = hairColor;
 		hairSprite.color = hairColor;
-        for (int i = 0; i < hairTransform.childCount; i++)
-        {
+        for (int i = 0; i < hairTransform.childCount; i++) {
             hairTransform.GetChild(i).GetComponent<Image>().color = hairColor;
         }
         paperdollHair.color = newHairColor;
     }
 
-	public void setHairType(int newHairStyle)
-	{
+	public void setHairType(int newHairStyle)  {
 		hairStyle = newHairStyle;
 		setHairStyle(newHairStyle);
 	}
 
-	void setHairStyle(int newHairStyle) {
-	//	if (hairGameObject != null) {
+	void setHairStyle(int newHairStyle)  {
+	//	if (hairGameObject != null)  {
 	//		GameObject.Destroy(hairGameObject);
 	//	}
 	//	hairGameObject = Instantiate(Resources.Load<GameObject>("Units/Hair/" + PersonalInformation.hairTypes[newHairStyle])) as GameObject;
@@ -409,71 +400,66 @@ public class CCGUI : MonoBehaviour
 	public GameObject primaryColorObj;
 	public GameObject secondaryColorObj;
 
-	public void setBerrindSkinColor(GameObject newSkinColor)
-	{
+	public void setBerrindSkinColor(GameObject newSkinColor)  {
 		berrindColor = newSkinColor.GetComponent<Image>().color;
-       if (berrindColorObj != null) {
+       if (berrindColorObj != null)  {
 			berrindColorObj.GetComponent<Outline>().enabled = false;
 		}
 		berrindColorObj = newSkinColor;
-		if (berrindColorObj != null) {
+		if (berrindColorObj != null)  {
 			berrindColorObj.GetComponent<Outline>().enabled = true;
 		}
 		setSkinColor(berrindColor);
 	}
 
-	public void setAshpianSkinColor(GameObject newSkinColor) {
+	public void setAshpianSkinColor(GameObject newSkinColor)  {
 		ashpianColor = newSkinColor.GetComponent<Image>().color;
-		if (ashpianColorObj != null) {
+		if (ashpianColorObj != null)  {
 			ashpianColorObj.GetComponent<Outline>().enabled = false;
 		}
 		ashpianColorObj = newSkinColor;
-		if (ashpianColorObj != null) {
+		if (ashpianColorObj != null)  {
 			ashpianColorObj.GetComponent<Outline>().enabled = true;
 		}
 		setSkinColor(ashpianColor);
 	}
 
-	public void setRorrulSkinColor(GameObject newSkinColor) {
+	public void setRorrulSkinColor(GameObject newSkinColor)  {
 		rorrulColor = newSkinColor.GetComponent<Image>().color;
-		if (rorrulColorObj != null) {
+		if (rorrulColorObj != null)  {
 			rorrulColorObj.GetComponent<Outline>().enabled = false;
 		}
 		rorrulColorObj = newSkinColor;
-		if (rorrulColorObj != null) {
+		if (rorrulColorObj != null)  {
 			rorrulColorObj.GetComponent<Outline>().enabled = true;
 		}
 		setSkinColor(rorrulColor);
 	}
-    private void setSkinColor(Color skinColor)
-    {
+    private void setSkinColor(Color skinColor) {
         characterSprite.color = skinColor;
         paperdollSkin.color = skinColor;
     }
 
-	public void setPrimaryColor(GameObject newPrimaryColor)
-	{
-		if(settingPrimary)
-		{
+	public void setPrimaryColor(GameObject newPrimaryColor)  {
+		if(settingPrimary)  {
 			primaryColor = newPrimaryColor.GetComponent<Image>().color;
-			if (primaryColorObj != null) {
+			if (primaryColorObj != null)  {
 				primaryColorObj.GetComponent<Outline>().enabled = false;
 			}
 			primaryColorObj = newPrimaryColor;
-			if (primaryColorObj != null) {
+			if (primaryColorObj != null)  {
 				primaryColorObj.GetComponent<Outline>().enabled = true;
 			}
 			shirtSprite.color = primaryColor;
             paperdollPrimary.color = primaryColor;
 		}
-		else
-		{
+		else  {
 			secondaryColor = newPrimaryColor.GetComponent<Image>().color;
-			if (secondaryColorObj != null) {
+			if (secondaryColorObj != null)  {
 				secondaryColorObj.GetComponent<Outline>().enabled = false;
 			}
 			secondaryColorObj = newPrimaryColor;
-			if (secondaryColorObj != null) {
+			if (secondaryColorObj != null)  {
 				secondaryColorObj.GetComponent<Outline>().enabled = true;
 			}
 			pantsSprite.color = secondaryColor;
@@ -482,18 +468,14 @@ public class CCGUI : MonoBehaviour
 		}
 	}
 
-	public void setProperSkinDisplay()
-	{
-		if(character.race.raceName == RaceName.Berrind)
-		{
+	public void setProperSkinDisplay()  {
+		if(character.race.raceName == RaceName.Berrind)  {
 			toggleAllExcept(skinColorList[0]);
 		}
-		else if(character.race.raceName == RaceName.Ashpian)
-		{
+		else if(character.race.raceName == RaceName.Ashpian)  {
 			toggleAllExcept(skinColorList[1]);
 		}
-		else
-		{
+		else  {
 			toggleAllExcept(skinColorList[2]);
 		}
 		skinColorList[3].SetActive(true);
@@ -501,47 +483,42 @@ public class CCGUI : MonoBehaviour
 		paperdollMain.SetActive(true);
 	}
 
-	public void toggleAllExcept(GameObject thisOne)
-	{
+	public void toggleAllExcept(GameObject thisOne)  {
 		if (thisOne == null) return;
-		toggleAllExcept(new GameObject[] {thisOne});
+		toggleAllExcept(new GameObject[]  {thisOne});
 	}
 
-	public void toggleAllExcept(GameObject[] theseOnes) {
+	public void toggleAllExcept(GameObject[] theseOnes)  {
 		if (theseOnes.Length == 0 || theseOnes == null) return;
 		ArrayList siblings = new ArrayList();
-		for (int i = 0; i < theseOnes[0].transform.parent.childCount; i++)
-		{
+		for (int i = 0; i < theseOnes[0].transform.parent.childCount; i++)  {
 			siblings.Add(theseOnes[0].transform.parent.GetChild(i).gameObject);
 		}
 		foreach (GameObject thisOne in theseOnes)
 			siblings.Remove(thisOne);
 		
-		foreach(GameObject sibling in siblings)
-		{
+		foreach(GameObject sibling in siblings)  {
 			sibling.SetActive(false);
 		}
-		foreach (GameObject thisOne in theseOnes) {
+		foreach (GameObject thisOne in theseOnes)  {
 			thisOne.SetActive(true);
 			enableButtonObject(thisOne);
 		}
 	}
-	public void enableButtonObject(GameObject go) {
+	public void enableButtonObject(GameObject go)  {
 		Button b = go.GetComponent<Button>();
-		if (b != null) {
-			if (selectedButtons.Contains(b)) {
+		if (b != null)  {
+			if (selectedButtons.Contains(b))  {
 				b.GetComponent<Animator>().SetBool("Selected", true);
 			}
 		}
-		for (int n=0; n < go.transform.childCount;n++) {
+		for (int n=0; n < go.transform.childCount;n++)  {
 			enableButtonObject(go.transform.GetChild(n).gameObject);
 		}
 	}
 
-	public void setState(GUIState state)
-	{
-		switch(state)
-		{
+	public void setState(GUIState state)  {
+		switch(state)  {
 		case GUIState.SEX:
 			toggleAllExcept(stateList[(int)GUIState.SEX]);
 			showSexPanel(character.sex);
@@ -580,14 +557,12 @@ public class CCGUI : MonoBehaviour
 		progressionButtons[2].SetActive(currentState != GUIState.NAME);
 	}
 
-	public void nextState()
-	{
+	public void nextState()  {
 		GameObject tempObj;
-		switch(currentState)
-		{
+		switch(currentState)  {
 		case GUIState.SEX:
 		/*	if(passport.TryGetValue("Sex", out tempObj))
-			{
+			 {
 				character.sex = (tempObj.GetComponent<Text>().text == "Male") ? CharacterSex.Male : CharacterSex.Female;
 			//	progressionButtons[1].SetActive(true);
 			//	progressionButtons[0].SetActive(false);
@@ -595,34 +570,34 @@ public class CCGUI : MonoBehaviour
 
 			}
 			else
-			{
+			 {
 				Debug.LogError("Sex GameObject does not exist.  You suck.");
 			}*/
 			break;
 		case GUIState.RACE:
 			/*
 			if(passport.TryGetValue("Race", out tempObj))
-			{
+			 {
 				if(tempObj.GetComponent<Text>().text == "Ashpian")
-				{
+				 {
 					character.race = new Race_Ashpian();
 					setSkinColor(ashpianColor);
 				}
 				else if(tempObj.GetComponent<Text>().text == "Berrind")
-				{
+				 {
 					character.race = new Race_Berrind();
 					setSkinColor(berrindColor);
 				}
 				else
-				{
+				 {
 					character.race = new Race_Rorrul();
 					setSkinColor(rorrulColor);
 				}
 			}*/
 			/*if(passport.TryGetValue("Background", out tempObj))
-			{
+			 {
 				switch(tempObj.GetComponent<Text>().text)
-				{
+				 {
 				case "Commoner":
 					character.background = CharacterBackground.Commoner;
 					break;
@@ -646,16 +621,16 @@ public class CCGUI : MonoBehaviour
 				}
 			}
 			else
-			{
+			 {
 				Debug.LogError("Race GameObject does not exist.  You suck.");
 			}*/
 		//	toggleAllExcept(blankText);
 			break;
 		case GUIState.CLASS:
 		/*	if(passport.TryGetValue("Class", out tempObj))
-			{
+			 {
 				switch(tempObj.GetComponent<Text>().text)
-				{
+				 {
 				case "Ex-Soldier":
 					character.cClass = new Class_ExSoldier();
 					break;
@@ -676,7 +651,7 @@ public class CCGUI : MonoBehaviour
 				}
 			}
 			else
-			{
+			 {
 				Debug.LogError("Class GameObject does not exist.  You suck.");
 			}*/
 		//setsta	showClassPanel(character.cClass);
@@ -698,31 +673,26 @@ public class CCGUI : MonoBehaviour
 		}
 		toggleAllExcept(blankText);
 
-		if(currentState != GUIState.NAME)
-		{
+		if(currentState != GUIState.NAME)  {
 			setState(++currentState);
 			if(currentState >= furthestState)
-			{
+			 {
 				furthestState = currentState;
 			}
 		}
 	}
 
-	public void previousState()
-	{
+	public void previousState()  {
 		toggleAllExcept(blankText);
-		if(currentState == GUIState.NAME)
-		{
+		if(currentState == GUIState.NAME)  {
 			setState(--currentState);
 			progressionButtons[2].SetActive(true);
 			progressionButtons[3].SetActive(false);
 		}
-		else if(currentState > GUIState.RACE && currentState < GUIState.NAME)
-		{
+		else if(currentState > GUIState.RACE && currentState < GUIState.NAME)  {
 			setState(--currentState);
 		}
-		else if (currentState == GUIState.RACE)
-		{
+		else if (currentState == GUIState.RACE)  {
 			setState(--currentState);
 //			progressionButtons[0].SetActive(true);
 //			progressionButtons[1].SetActive(false);
@@ -732,15 +702,13 @@ public class CCGUI : MonoBehaviour
 	//	toggleAllExcept(blankText);
 	}
 
-	public void exitCharacterCreation()
-	{
+	public void exitCharacterCreation()  {
 		Application.LoadLevel(PlayerPrefs.GetInt("playercreatefrom"));
 	}
 
 	const string delimiter = ";";
 	bool saving = false;
-	public void finishCharacterCreation()
-	{
+	public void finishCharacterCreation()  {
 		if (saving) return;
 		string characterId = Saves.getnewCharacterUUID();
 		saving = true;
@@ -750,17 +718,14 @@ public class CCGUI : MonoBehaviour
 		characterStr += characterName + delimiter;
 		characterStr += characterLastName + delimiter;
 		//Character Sex: 0 = Male, 1 = Female
-		if(character.sex == CharacterSex.Male)
-		{
+		if(character.sex == CharacterSex.Male)  {
 			characterStr += "0" + delimiter;
 		}
-		else
-		{
+		else  {
 			characterStr += "1" + delimiter;
 		}
 		//Character Race: 0 = Berrind, 1 = Ashpian, 2 = Rorrul
-		switch(character.race.raceName)
-		{
+		switch(character.race.raceName)  {
 		case RaceName.Berrind:
 			characterStr += "0" + delimiter;
 			raceColor = berrindColor;
@@ -779,12 +744,10 @@ public class CCGUI : MonoBehaviour
 		//Character Background (contextualized by race): 0 = Fallen Noble | Commoner | Servant, 1 = White Gem | Immigrant | Unknown
 		if(character.background == CharacterBackground.FallenNoble ||
 		   character.background == CharacterBackground.Commoner ||
-		   character.background == CharacterBackground.Servant)
-		{
+		   character.background == CharacterBackground.Servant)  {
 			characterStr += "0" + delimiter;
 		}
-		else
-		{
+		else  {
 			characterStr += "1" + delimiter;
 		}
 		//Age, Height, Weight are unused, but still in the character sheet
@@ -792,8 +755,7 @@ public class CCGUI : MonoBehaviour
 		characterStr += "0" + delimiter;
 		characterStr += "0" + delimiter;
 		//Character Class: 0 = Ex-Soldier, 1 = Engineer, 2 = Investigator, 3 = Researcher, 4 = Orator
-		switch(character.cClass.getClassName())
-		{
+		switch(character.cClass.getClassName())  {
 		case ClassName.ExSoldier:
 			characterStr += "0" + delimiter;
 			break;
@@ -816,12 +778,10 @@ public class CCGUI : MonoBehaviour
 		int[] skills = gameObject.GetComponent<CCPointAllocation>().getSkills();
 
 		//Add all Ability Scores and Skills
-		for(int i = 0; i < scores.Length; i++)
-		{
+		for(int i = 0; i < scores.Length; i++)  {
 			characterStr += scores[i] + delimiter;
 		}
-		for(int i = 0; i < skills.Length; i++)
-		{
+		for(int i = 0; i < skills.Length; i++)  {
 			characterStr += skills[i] + delimiter;
 		}
 
@@ -835,20 +795,16 @@ public class CCGUI : MonoBehaviour
 		//Level and Experience
 		characterStr += "1;0;";
 		//Add in any copper the character may start with
-		if(character.background == CharacterBackground.FallenNoble)
-		{
+		if(character.background == CharacterBackground.FallenNoble)  {
 			characterStr += "50" + delimiter;
 		}
-		else if(character.background == CharacterBackground.Commoner)
-		{
+		else if(character.background == CharacterBackground.Commoner)  {
 			characterStr += "10" + delimiter;
 		}
-		else if(character.background == CharacterBackground.Servant)
-		{
+		else if(character.background == CharacterBackground.Servant)  {
 			characterStr += "30" + delimiter;
 		}
-		else
-		{
+		else  {
 			characterStr += "0" + delimiter;
 		}
 		//Add in health and composure
@@ -863,7 +819,7 @@ public class CCGUI : MonoBehaviour
 		loadout.setItemInSlot(InventorySlot.Chest, clothChest.GetComponent<ItemArmor>().getItem());
 		loadout.setItemInSlot(InventorySlot.Boots, clothBoots.GetComponent<ItemArmor>().getItem());
 		loadout.setItemInSlot(InventorySlot.Pants, clothPants.GetComponent<ItemArmor>().getItem());
-		switch (character.background) {
+		switch (character.background)  {
 		case CharacterBackground.FallenNoble:
 			loadout.setItemInSlot(InventorySlot.Chest, paddedVest.GetComponent<ItemArmor>().getItem());
 			break;
@@ -889,25 +845,25 @@ public class CCGUI : MonoBehaviour
 		string inventoryString = "";
 		int inventorySize = 0;
 		
-		if (character.cClass is Class_Engineer) {
+		if (character.cClass is Class_Engineer)  {
 			inventorySize++;
 			inventoryString += "0;";
-			if (turret) {
+			if (turret)  {
 				Turret t = startingTurret.GetComponent<ItemMechanicalEditor>().getItem() as Turret;
 				t.creatorId = characterId;
 				inventoryString += (int)t.getItemCode() + delimiter;
 				inventoryString += t.getItemData() + delimiter;
 			}
-			else {
+			else  {
 				Trap t = startingTrap.GetComponent<ItemMechanicalEditor>().getItem() as Trap;
 				t.creatorId = characterId;
 				inventoryString += (int)t.getItemCode() + delimiter;
 				inventoryString += t.getItemData() + delimiter;
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.armorSlots) {
+		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
 			Item i = loadout.getItemInSlot(slot);
-			if (i != null) {
+			if (i != null)  {
 				inventorySize++;
 				inventoryString += Character.getArmorSlotIndex(slot) + delimiter;
 				inventoryString += (int)i.getItemCode() + delimiter;
@@ -922,26 +878,22 @@ public class CCGUI : MonoBehaviour
 			Application.LoadLevel(2);
 	}
 
-	static string colorString(Color c)
-	{
+	static string colorString(Color c)  {
 		return ((int)(c.r*255)) + delimiter + ((int)(c.g*255)) + delimiter + ((int)(c.b*255)) + delimiter;
 	}
 
-	public void isNextAvailable()
-	{
-		switch (currentState) {
+	public void isNextAvailable()  {
+		switch (currentState)  {
 		case GUIState.CLASS:
 			progressionButtons[2].GetComponent<Button>().interactable = character.cClass != null;
 			return;
 		default:
 			break;
 		}
-		if(currentState < GUIState.ABILITY_SCORES)
-		{
+		if(currentState < GUIState.ABILITY_SCORES)  {
 			progressionButtons[2].GetComponent<Button>().interactable = (currentState < furthestState);
 		}
-		if(currentState == GUIState.PHYSICAL_FEATURES)
-		{
+		if(currentState == GUIState.PHYSICAL_FEATURES)  {
 			setProperSkinDisplay();
 			progressionButtons[2].GetComponent<Button>().interactable = true;
 		}

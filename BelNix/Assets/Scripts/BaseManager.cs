@@ -5,7 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 using System.IO;
 
-public class BaseManager : MonoBehaviour {
+public class BaseManager : MonoBehaviour  {
 
     //Purse partyPurse = new Purse();
         // This should be initialized at the beginning of a new game
@@ -13,7 +13,7 @@ public class BaseManager : MonoBehaviour {
         // This has to be added to whenever a mission ends
         // This has to be subtracted from whenever a purchase is made
 	// (or upkeep is charged)
-	public enum BaseState { Save, Mission, Barracks, Infirmary, Engineering, None };
+	public enum BaseState  { Save, Mission, Barracks, Infirmary, Engineering, None };
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
@@ -31,8 +31,8 @@ public class BaseManager : MonoBehaviour {
 	bool mouseRightDown;
 	bool mouseMiddleDown;
 
-	string[] missions = new string[]{"The Warehouse"};//, "Test Map 1"};
-	int[] missionLevels = new int[]{5};//, 3};
+	string[] missions = new string[] {"The Warehouse"};//, "Test Map 1"};
+	int[] missionLevels = new int[] {5};//, 3};
 	Vector2 savesScrollPos = new Vector2();
 	Vector2 barracksScrollPos = new Vector2();
 
@@ -47,26 +47,25 @@ public class BaseManager : MonoBehaviour {
 	static Texture2D bottomSheetTexture;
     Character charizard;
 	// Use this for initialization
-	void Start () {
+	void Start ()  {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 	//	Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
 	//	Debug.Log(item.getItemCode() + "   " + (int)item.getItemCode() + "   \n" + item.getItemData());
 	//	BinaryFormatter bf = new BinaryFormatter();
 	/*	XmlSerializer bf = new XmlSerializer(item.GetType());
-		using (StringWriter textWriter = new StringWriter()) {
+		using (StringWriter textWriter = new StringWriter())  {
 			bf.Serialize(textWriter, item);
 			Debug.Log(textWriter.ToString());
 		}*/
 	
 		units = new List<Character>();
 		string[] chars = Saves.getCharacterList();
-		for (int n=0;n<chars.Length-1;n++) {
+		for (int n=0;n<chars.Length-1;n++)  {
 			Character ch = new Character();
 			ch.loadCharacterFromTextFile(chars[n]);
 			ch.characterId = chars[n];
 			units.Add(ch);
-            if (n == 0)
-            {
+            if (n == 0) {
                 charizard = ch;
                 Invoke("waitJustAMoment", 0.01f);
             }
@@ -82,25 +81,24 @@ public class BaseManager : MonoBehaviour {
 		tooltips.Add("infirmary", "Infirmary");
 		tooltips.Add("newcharacter", "Create a new Character");
 		int nn=0;
-		do {
+		do  {
 			nn++;
 			saveName = "Save " + nn;
 		} while (Saves.hasSaveFileNamed(saveName));
 	}
 
-    private void waitJustAMoment()
-    {
+    private void waitJustAMoment() {
         GameObject.Find("Panel - Barracks Entry").GetComponent<BarracksEntry>().assignCharacter(charizard);
     }
 
 
 	// Update is called once per frame
-	void Update () {
+	void Update ()  {
 		handleInput();
 		UnitGUI.doTabs();
 	}
 
-	void handleInput() {
+	void handleInput()  {
 		handleKeys();
 		handleDrag();
 		handleKeyPan();
@@ -108,58 +106,58 @@ public class BaseManager : MonoBehaviour {
 		handleMouseClick();
 	}
 
-	void handleMouseClick() {
+	void handleMouseClick()  {
 		Vector2 mouse = Input.mousePosition;
 		mouse.y = Screen.height - mouse.y;
-		if (Input.GetMouseButtonDown(0)) {
-			if (hoveredObject != null) {
+		if (Input.GetMouseButtonDown(0))  {
+			if (hoveredObject != null)  {
 				if (hoveredObject.tag == "exit")
 					Application.LoadLevel(0);
-				else if (hoveredObject.tag=="map") {
+				else if (hoveredObject.tag=="map")  {
 					loadMapScrollPos = new Vector2();
 					baseState = BaseState.Mission;
 				}
-				else if (hoveredObject.tag=="barracks") {
+				else if (hoveredObject.tag=="barracks")  {
 					barracksScrollPos = new Vector2();
 					displayedCharacter = null;
 					baseState = BaseState.Barracks;
 				}
-				else if (hoveredObject.tag=="newcharacter") {
+				else if (hoveredObject.tag=="newcharacter")  {
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
 					Application.LoadLevel(1);
 				}
-				else if (hoveredObject.tag=="infirmary") {
+				else if (hoveredObject.tag=="infirmary")  {
 					baseState = BaseState.Infirmary;
 				}
-				else if (hoveredObject.tag=="engineering") {
+				else if (hoveredObject.tag=="engineering")  {
 					barracksScrollPos = new Vector2();
 					displayedCharacter = null;
 					baseState = BaseState.Engineering;
 				}
 			}
 		
-			if (!levelup && !(UnitGUI.containsMouse(mouse) && displayedCharacter!=null) && levelingUpCharacter == null) {
-				if (baseState==BaseState.Barracks) {
+			if (!levelup && !(UnitGUI.containsMouse(mouse) && displayedCharacter!=null) && levelingUpCharacter == null)  {
+				if (baseState==BaseState.Barracks)  {
 					if (hoveredCharacter == displayedCharacter) displayedCharacter = null;
 					else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
 				}
-				else if (baseState == BaseState.Engineering) {
+				else if (baseState == BaseState.Engineering)  {
 					if (displayedCharacter == null) displayedCharacter = hoveredCharacter;
 				}
 			}
 			selectItem(displayedCharacter);
 		}
-		if (Input.GetMouseButtonUp(0)) {
+		if (Input.GetMouseButtonUp(0))  {
 			deselectItem(displayedCharacter);
 		}
-		if (UnitGUI.containsMouse(mouse) && Input.GetMouseButtonDown(0) && !rightDraggin && !middleDraggin) {
-			if (UnitGUI.inventoryOpen && displayedCharacter != null) {
+		if (UnitGUI.containsMouse(mouse) && Input.GetMouseButtonDown(0) && !rightDraggin && !middleDraggin)  {
+			if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
 				UnitGUI.selectItem(displayedCharacter);
 				//		selectedUnit.selectItem();
 			}
 		}
-		if (Input.GetMouseButtonUp(0) && !rightDraggin && !middleDraggin) {
-			if (UnitGUI.inventoryOpen && displayedCharacter != null) {
+		if (Input.GetMouseButtonUp(0) && !rightDraggin && !middleDraggin)  {
+			if (UnitGUI.inventoryOpen && displayedCharacter != null)  {
 				//				selectedUnit.deselectItem();
 				UnitGUI.deselectItem(displayedCharacter);
 			}
@@ -167,7 +165,7 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	
-	void handleKeyPan() {
+	void handleKeyPan()  {
 		return;
 		float xDiff = 0;
 		float yDiff = 0;
@@ -194,7 +192,7 @@ public class BaseManager : MonoBehaviour {
 	bool controlDown = false;
 	bool commandDown = false;
 	Character expChanged = null;
-	void handleKeys() {
+	void handleKeys()  {
 		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 		altDown = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
 		controlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
@@ -204,32 +202,32 @@ public class BaseManager : MonoBehaviour {
 		mouseMiddleDown = Input.GetMouseButton(2);
 		if (!rightDraggin) middleDraggin = ((mouseMiddleDown || (mouseLeftDown && Input.touchCount==2)) && middleDraggin) || Input.GetMouseButtonDown(2);
 		if (!middleDraggin) rightDraggin = (rightDraggin && mouseRightDown) || Input.GetMouseButtonDown(1);
-		if (baseState==BaseState.Barracks && displayedCharacter!=null) {
-			if (Input.GetKeyDown(KeyCode.C)) {
+		if (baseState==BaseState.Barracks && displayedCharacter!=null)  {
+			if (Input.GetKeyDown(KeyCode.C))  {
 				UnitGUI.clickTab(Tab.C);
 			}
-			if (Input.GetKeyDown(KeyCode.V)) {
+			if (Input.GetKeyDown(KeyCode.V))  {
 				UnitGUI.clickTab(Tab.V);
 			}
-			if (Input.GetKeyDown(KeyCode.B)) {
+			if (Input.GetKeyDown(KeyCode.B))  {
 				UnitGUI.clickTab(Tab.B);
 			}
 		}
-		if (shiftDown && controlDown && (altDown || commandDown)) {
-			if (displayedCharacter != null) {
-				if ((commandDown && Input.GetKey(KeyCode.Minus)) || Input.GetKeyDown(KeyCode.Minus)) {
+		if (shiftDown && controlDown && (altDown || commandDown))  {
+			if (displayedCharacter != null)  {
+				if ((commandDown && Input.GetKey(KeyCode.Minus)) || Input.GetKeyDown(KeyCode.Minus))  {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
 					displayedCharacter.characterSheet.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterSheet.characterProgress.getCharacterExperience()-100));
 					displayedCharacter.saveCharacter();
 				}
-				if ((commandDown && Input.GetKey(KeyCode.Equals)) || Input.GetKeyDown(KeyCode.Equals)) {
+				if ((commandDown && Input.GetKey(KeyCode.Equals)) || Input.GetKeyDown(KeyCode.Equals))  {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
 					displayedCharacter.characterSheet.characterProgress.addExperience(100);
 					displayedCharacter.saveCharacter();
 				}
-				if ((commandDown && Input.GetKey(KeyCode.Alpha9)) || Input.GetKeyDown(KeyCode.Alpha9)) {
+				if ((commandDown && Input.GetKey(KeyCode.Alpha9)) || Input.GetKeyDown(KeyCode.Alpha9))  {
 					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
 					expChanged = displayedCharacter;
 					//displayedCharacter.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterProgress.getCharacterExperience()-100));
@@ -237,31 +235,31 @@ public class BaseManager : MonoBehaviour {
 					displayedCharacter.saveCharacter();
 				}
 			}
-			if ((commandDown && Input.GetKey (KeyCode.RightBracket)) || Input.GetKeyDown(KeyCode.RightBracket)) {
+			if ((commandDown && Input.GetKey (KeyCode.RightBracket)) || Input.GetKeyDown(KeyCode.RightBracket))  {
 				units[0].characterSheet.inventory.purse.receiveMoney(10);
 				units[0].saveCharacter();
 			}
-			if ((commandDown && Input.GetKey (KeyCode.LeftBracket)) || Input.GetKeyDown(KeyCode.LeftBracket)) {
+			if ((commandDown && Input.GetKey (KeyCode.LeftBracket)) || Input.GetKeyDown(KeyCode.LeftBracket))  {
 				units[0].characterSheet.inventory.purse.spendMoney(10);
 				units[0].saveCharacter();
 			}
 		}
-		if (expChanged!=null) {
-			if (Input.GetKeyUp(KeyCode.Equals) || Input.GetKeyUp(KeyCode.Plus)) {
+		if (expChanged!=null)  {
+			if (Input.GetKeyUp(KeyCode.Equals) || Input.GetKeyUp(KeyCode.Plus))  {
 				expChanged.saveCharacter();
 				expChanged = null;
 			}
 		}
 	}
 
-	void handleDrag() {
+	void handleDrag()  {
 		return;
 		var mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = Camera.main.ScreenToWorldPoint(mPos);
-		if (((middleDraggin && Input.touchCount == oldTouchCount) || rightDraggin)) {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc)) {
+		if (((middleDraggin && Input.touchCount == oldTouchCount) || rightDraggin))  {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc))  {
 			//= mainCamera.WorldToScreenPoint(cameraTransform.position);
-			if (!Input.GetMouseButtonDown(0)) {
+			if (!Input.GetMouseButtonDown(0))  {
 				float xDiff = pos1.x - lastPos.x;
 				float yDiff = pos1.y - lastPos.y;
 				//	Vector3 pos = mapTransform.position;
@@ -280,24 +278,23 @@ public class BaseManager : MonoBehaviour {
 
 	float scale = 1.1f;
 
-	void handleMouseMovement() {
+	void handleMouseMovement()  {
 		bool old = hoveredObject==null;
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<13);
 		//		Physics2D.Ray
 		GameObject go = null;
 		if (hit.collider != null) go = hit.collider.gameObject;
 		if (baseState != BaseState.None) go = null;
-		if (go != hoveredObject) {
-			if (hoveredObject != null) {
+		if (go != hoveredObject)  {
+			if (hoveredObject != null)  {
 				hoveredObject.transform.localScale = new Vector3(1, 1, 1);
 			}
 			hoveredObject = go;
-			if (hoveredObject != null) {
+			if (hoveredObject != null)  {
 				hoveredObject.transform.localScale = new Vector3(scale, scale, scale);
 			}
 		}
-        if (go != null)
-        {
+        if (go != null) {
             //Dictionary<string, string> dict = tooltips;
             //GameObject gam = go;
             //string tag = gam.tag;
@@ -309,8 +306,8 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	static GUIStyle saveButtonsStyle = null;
-	public static GUIStyle getSaveButtonsStyle() {
-		if (saveButtonsStyle==null) {
+	public static GUIStyle getSaveButtonsStyle()  {
+		if (saveButtonsStyle==null)  {
 			saveButtonsStyle = new GUIStyle("Button");
 			saveButtonsStyle.active.background = saveButtonsStyle.hover.background = saveButtonsStyle.normal.background = null;
 			saveButtonsStyle.alignment = TextAnchor.MiddleLeft;
@@ -321,16 +318,16 @@ public class BaseManager : MonoBehaviour {
 	string oldSaveName;
 //	bool choosingMap = false;
 	Vector2 loadMapScrollPos = new Vector2();
-	void OnGUI() {
+	void OnGUI()  {
 		hoveredCharacter = null;
-		if (baseState == BaseState.None) {
-			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game")) {
+		if (baseState == BaseState.None)  {
+			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
 				saves = Saves.getSaveFiles();
 				baseState = BaseState.Save;
 				oldSaveName = saveName;
 				savesScrollPos = new Vector2();
 				string savesSt = "";
-				foreach (string save in saves) {
+				foreach (string save in saves)  {
 					savesSt += save + "\n";
 				}
 			}
@@ -345,7 +342,7 @@ public class BaseManager : MonoBehaviour {
 			float y = 0.0f;	
 			GUI.Label(new Rect(x, y, size.x, size.y), toolContent, st);
 		}
-		else if (baseState == BaseState.Mission) {
+		else if (baseState == BaseState.Mission)  {
 			float boxHeight = 250.0f;
 			float boxWidth = 200.0f;
 			float boxX = (Screen.width - boxWidth)/2.0f;
@@ -354,17 +351,17 @@ public class BaseManager : MonoBehaviour {
 			float buttWidth = boxWidth - 20.0f*2.0f;
 			GUI.Box(new Rect(boxX, boxY, boxWidth, boxHeight), "Select Mission");
 			GUI.BeginScrollView(new Rect(boxX, boxY + 25.0f, boxWidth, 40.0f * 4), loadMapScrollPos, new Rect(boxX, boxY + 25.0f, boxWidth - 16.0f, 40.0f * missions.Length));
-			for (int n=0;n<Mathf.Min(missions.Length, missionLevels.Length); n++) {
-				if (GUI.Button(new Rect(buttX, boxY + 25.0f + 40.0f * n, buttWidth, 40.0f), missions[n])) {
+			for (int n=0;n<Mathf.Min(missions.Length, missionLevels.Length); n++)  {
+				if (GUI.Button(new Rect(buttX, boxY + 25.0f + 40.0f * n, buttWidth, 40.0f), missions[n]))  {
 					Application.LoadLevel(missionLevels[n]);
 				}
 			}
 			GUI.EndScrollView();
-			if (GUI.Button(new Rect(buttX, boxY + 25.0f + 40.0f * 4 + 10.0f, buttWidth, 40.0f), "Cancel")) {
+			if (GUI.Button(new Rect(buttX, boxY + 25.0f + 40.0f * 4 + 10.0f, buttWidth, 40.0f), "Cancel"))  {
 				baseState = BaseState.None;
 			}
 		}
-		else if (baseState == BaseState.Save) {
+		else if (baseState == BaseState.Save)  {
 			float width = 250.0f;
 			float height = Screen.height * .8f;
 			float x = (Screen.width - width)/2.0f;
@@ -376,11 +373,11 @@ public class BaseManager : MonoBehaviour {
 			float buttonY = y + height - buttonHeight - 5.0f;
 			float buttonX1 = x + 15.0f;
 			float buttonX2 = buttonX1 + buttonWidth + 20.0f;
-			if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel")) {
+			if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel"))  {
 				baseState = BaseState.None;
 				saveName = oldSaveName;
 			}
-			if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Save")) {
+			if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Save"))  {
 				Saves.saveAs(saveName);
 				baseState = BaseState.None;
 			}
@@ -388,7 +385,7 @@ public class BaseManager : MonoBehaviour {
 			saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
 			float savesHeight = 0.0f;
 			GUIStyle st = getSaveButtonsStyle();
-			foreach (string save in saves) {
+			foreach (string save in saves)  {
 				savesHeight += st.CalcSize(new GUIContent(save)).y;
 			}
 			y += 5.0f + textFieldHeight + 5.0f;
@@ -396,17 +393,17 @@ public class BaseManager : MonoBehaviour {
 			float scrollX = x + 5.0f;
 			float scrollWidth = width - (scrollX - x) * 2.0f;
 			savesScrollPos = GUI.BeginScrollView(new Rect(scrollX, y, scrollWidth, scrollHeight), savesScrollPos, new Rect(scrollX, y, scrollWidth - 16.0f, savesHeight));
-			foreach (string save in saves) {
+			foreach (string save in saves)  {
 				GUIContent gc = new GUIContent(save);
 				float h = st.CalcSize(gc).y;
-				if (GUI.Button(new Rect(scrollX, y, scrollWidth, h), gc, st)) {
+				if (GUI.Button(new Rect(scrollX, y, scrollWidth, h), gc, st))  {
 					saveName = save;
 				}
 				y += h;
 			}
 			GUI.EndScrollView();
 		}
-		else if (baseState == BaseState.Infirmary) {
+		else if (baseState == BaseState.Infirmary)  {
 			Vector2 boxSize = new Vector2(200.0f, 300.0f);
 			Vector2 boxOrigin = new Vector2((Screen.width - boxSize.x)/2.0f, (Screen.height - boxSize.y)/2.0f);
 			float y = boxOrigin.y;
@@ -416,9 +413,9 @@ public class BaseManager : MonoBehaviour {
 			int cost = perUnitInfirmaryCost * units.Count;
 			bool enabled = units[0].characterSheet.inventory.purse.enoughMoney(cost);
 			bool enabled2 = false;
-			foreach (Character c in units) {
+			foreach (Character c in units)  {
 				CombatScores cs = c.characterSheet.combatScores;
-				if (cs.getCurrentHealth() < cs.getMaxHealth() || cs.getCurrentComposure() < cs.getMaxComposure()) {
+				if (cs.getCurrentHealth() < cs.getMaxHealth() || cs.getCurrentComposure() < cs.getMaxComposure())  {
 					enabled2 = true;
 					break;
 				}
@@ -429,36 +426,36 @@ public class BaseManager : MonoBehaviour {
 			GUI.Label(new Rect(x, y, boxSize.x - 10.0f, infSize), infContent);
 			y += infSize + 5.0f;
 			Vector2 buttonSize = new Vector2(90.0f, 40.0f);
-			if (GUI.Button(new Rect(Screen.width/2.0f - buttonSize.x - 5.0f, boxOrigin.y + boxSize.y - buttonSize.y - 20.0f, buttonSize.x, buttonSize.y), "Cancel")) {
+			if (GUI.Button(new Rect(Screen.width/2.0f - buttonSize.x - 5.0f, boxOrigin.y + boxSize.y - buttonSize.y - 20.0f, buttonSize.x, buttonSize.y), "Cancel"))  {
 				baseState = BaseState.None;
 			}
 			GUI.enabled = enabled && enabled2;
-			if (GUI.Button(new Rect((Screen.width)/2.0f + 5.0f, boxOrigin.y + boxSize.y - buttonSize.y - 20.0f, buttonSize.x, buttonSize.y), "Rest")) {
-				for (int n=0;n<units.Count;n++) {
+			if (GUI.Button(new Rect((Screen.width)/2.0f + 5.0f, boxOrigin.y + boxSize.y - buttonSize.y - 20.0f, buttonSize.x, buttonSize.y), "Rest"))  {
+				for (int n=0;n<units.Count;n++)  {
 					Character c = units[n];
 					int health = c.characterSheet.combatScores.getCurrentHealth();
 					int maxHealth = c.characterSheet.combatScores.getMaxHealth();
 					bool changed = false;
-					if (n==0) {
+					if (n==0)  {
 						c.characterSheet.inventory.purse.spendMoney(cost);
 						changed = true;
 					}
-					if (health < maxHealth) {
+					if (health < maxHealth)  {
 						if (health < 0) c.characterSheet.combatScores.addHealth(1);
 						else c.characterSheet.combatScores.setHealth(maxHealth);
 						changed = true;
 					}
-					if (c.characterSheet.combatScores.getCurrentComposure() < c.characterSheet.combatScores.getMaxComposure()) {
+					if (c.characterSheet.combatScores.getCurrentComposure() < c.characterSheet.combatScores.getMaxComposure())  {
 						c.characterSheet.combatScores.setComposure(c.characterSheet.combatScores.getMaxComposure());
 						changed = true;
 					}
-					if (changed) {
+					if (changed)  {
 						c.saveCharacter();
 					}
 				}
 			}
 		}
-		else if (baseState == BaseState.Engineering) {
+		else if (baseState == BaseState.Engineering)  {
 			int numHeight = 8;
 			float topHeight = 20.0f;
 			float buttonHeight = 40.0f;
@@ -466,7 +463,7 @@ public class BaseManager : MonoBehaviour {
 			float bottomHeight = buttonHeight + 5.0f*2;
 			Vector2 eachSize = new Vector2(476, 79);
 			Vector2 totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
-			while (totalSize.y > Screen.height - 50.0f && numHeight > 2) {
+			while (totalSize.y > Screen.height - 50.0f && numHeight > 2)  {
 				numHeight--;
 				totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
 			}
@@ -475,8 +472,8 @@ public class BaseManager : MonoBehaviour {
 
 
 			List<Character> engineerUnits = new List<Character>();
-			foreach (Character c in units) {
-				if (c.characterSheet.characterProgress.getCharacterClass().getClassName()==ClassName.Engineer) {
+			foreach (Character c in units)  {
+				if (c.characterSheet.characterProgress.getCharacterClass().getClassName()==ClassName.Engineer)  {
 					engineerUnits.Add(c);
 				}
 			}
@@ -485,12 +482,12 @@ public class BaseManager : MonoBehaviour {
 
 			Rect scrollRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + eachSize.y, eachSize.x + 16.0f, eachSize.y * (numHeight - 1));
 			bool inScroll = scrollRect.Contains(Event.current.mousePosition);
-		/*	if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null) {
+		/*	if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null)  {
 				GUI.enabled = false;
 			}*/
 			barracksScrollPos = GUI.BeginScrollView(scrollRect, barracksScrollPos, new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + eachSize.y, eachSize.x, eachSize.y * engineerUnits.Count));
 			GUI.enabled = true;
-			for (int n=0;n<engineerUnits.Count;n++) {
+			for (int n=0;n<engineerUnits.Count;n++)  {
 				Character u = engineerUnits[n];
 				Rect totalRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + (n+1)*eachSize.y, eachSize.x, eachSize.y);
 				GUI.DrawTexture(totalRect, barracksTexture);
@@ -519,27 +516,27 @@ public class BaseManager : MonoBehaviour {
 				Vector2 levelUpSize = new Vector2(70.0f, expSize.y/2.0f - 15.0f);
 				Rect levelUpRect = new Rect(expX - levelUpSize.x - 5.0f, y + 10.0f, levelUpSize.x, levelUpSize.y);
 
-				if (inScroll) {
+				if (inScroll)  {
 					if (totalRect.Contains(Event.current.mousePosition)) hoveredCharacter = u;
 				}
 			}
-			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null) {
+			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null)  {
 				GUI.enabled = false;
 			}
 			GUI.EndScrollView();
 			GUI.enabled = true;
-			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel")) {
+			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel"))  {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
 
-			if (displayedCharacter != null) {
+			if (displayedCharacter != null)  {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
 			}
-			else if (hoveredCharacter != null) {
+			else if (hoveredCharacter != null)  {
 				UnitGUI.drawGUI(hoveredCharacter, null, null);
 			}
-			if (displayedCharacter != null) {
+			if (displayedCharacter != null)  {
 			//	UnitGUI.drawGUI(displayedCharacter, null, null);
 				drawWorkbenchGUI();
 			}
@@ -550,7 +547,7 @@ public class BaseManager : MonoBehaviour {
 
 
 		}
-		else if (baseState == BaseState.Barracks) {
+		else if (baseState == BaseState.Barracks)  {
 			int numHeight = 8;
 			float topHeight = 20.0f;
 			float buttonHeight = 40.0f;
@@ -558,7 +555,7 @@ public class BaseManager : MonoBehaviour {
 			float bottomHeight = buttonHeight + 5.0f*2;
 			Vector2 eachSize = new Vector2(476, 79);
 			Vector2 totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
-			while (totalSize.y > Screen.height - 50.0f && numHeight > 1) {
+			while (totalSize.y > Screen.height - 50.0f && numHeight > 1)  {
 				numHeight--;
 				totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
 			}
@@ -566,12 +563,12 @@ public class BaseManager : MonoBehaviour {
 			GUI.Box(new Rect(boxOrigin.x, boxOrigin.y, totalSize.x, totalSize.y), "Barracks");
 			Rect scrollRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight, eachSize.x + 16.0f, eachSize.y * numHeight);
 			bool inScroll = scrollRect.Contains(Event.current.mousePosition);
-			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null) {
+			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null)  {
 				GUI.enabled = false;
 			}
 			barracksScrollPos = GUI.BeginScrollView(scrollRect, barracksScrollPos, new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight, eachSize.x, eachSize.y * units.Count));
 			GUI.enabled = true;
-			for (int n=0;n<units.Count;n++) {
+			for (int n=0;n<units.Count;n++)  {
 				Character u = units[n];
 				Rect totalRect = new Rect(boxOrigin.x + 20.0f, boxOrigin.y + topHeight + n*eachSize.y, eachSize.x, eachSize.y);
 				GUI.DrawTexture(totalRect, barracksTexture);
@@ -600,12 +597,12 @@ public class BaseManager : MonoBehaviour {
 				Vector2 levelUpSize = new Vector2(70.0f, expSize.y/2.0f - 15.0f);
 				Rect levelUpRect = new Rect(expX - levelUpSize.x - 5.0f, y + 10.0f, levelUpSize.x, levelUpSize.y);
 				bool haslevelup = false;
-				if (u.characterSheet.characterProgress.canLevelUp()) {
-					//if ((UnitGUI.containsMouse(Event.current.mousePosition) || guiContainsMouse()) && displayedCharacter!=null) {
-					if (levelingUpCharacter != null) {
+				if (u.characterSheet.characterProgress.canLevelUp())  {
+					//if ((UnitGUI.containsMouse(Event.current.mousePosition) || guiContainsMouse()) && displayedCharacter!=null)  {
+					if (levelingUpCharacter != null)  {
 						GUI.enabled = false;
 					}
-					if (GUI.Button(levelUpRect, "Level Up!") && levelingUpCharacter == null) {
+					if (GUI.Button(levelUpRect, "Level Up!") && levelingUpCharacter == null)  {
 						levelingUpCharacter = u;
 						abilityScorePointsAvailable = 1;
 						skillPointsAvailable = 1;
@@ -636,23 +633,23 @@ public class BaseManager : MonoBehaviour {
 					GUI.enabled = true;
 					if (levelUpRect.Contains(Event.current.mousePosition)) haslevelup = true;
 				}
-				if (!haslevelup && inScroll) {
+				if (!haslevelup && inScroll)  {
 					if (totalRect.Contains(Event.current.mousePosition)) hoveredCharacter = u;
 				}
 			}
-			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null) {
+			if (UnitGUI.containsMouse(Event.current.mousePosition) && displayedCharacter!=null)  {
 				GUI.enabled = false;
 			}
 			GUI.EndScrollView();
 			GUI.enabled = true;
-			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel")) {
+			if (GUI.Button(new Rect((Screen.width - buttonWidth)/2.0f, boxOrigin.y + totalSize.y - 5.0f - buttonHeight, buttonWidth, buttonHeight), "Cancel"))  {
 				baseState = BaseState.None;
 				displayedCharacter = null;
 			}
-			if (displayedCharacter != null) {
+			if (displayedCharacter != null)  {
 				UnitGUI.drawGUI(displayedCharacter, null, null);
 			}
-			if (levelingUpCharacter != null) {
+			if (levelingUpCharacter != null)  {
 				drawLevelUpGUI();
 			}
 		}
@@ -663,8 +660,8 @@ public class BaseManager : MonoBehaviour {
 	public const float change = inventoryCellSize - inventoryLineThickness;
 	public const float change2 = inventoryCellSize - inventoryLineThickness/2.0f;
 
-	public static Vector2 getInventorySlotPos(InventorySlot slot, float baseX, float baseY) {
-		switch (slot) {
+	public static Vector2 getInventorySlotPos(InventorySlot slot, float baseX, float baseY)  {
+		switch (slot)  {
 		case InventorySlot.Frame:
 			return new Vector2(baseX, baseY);
 		case InventorySlot.Applicator:
@@ -713,9 +710,9 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	
-	public static Rect getInventorySlotRect(InventorySlot slot, float baseX, float baseY) {
+	public static Rect getInventorySlotRect(InventorySlot slot, float baseX, float baseY)  {
 		Vector2 v = getInventorySlotPos(slot, baseX, baseY);
-		switch (slot) {
+		switch (slot)  {
 		case InventorySlot.Head:
 		case InventorySlot.Shoulder:
 		case InventorySlot.Back:
@@ -772,16 +769,16 @@ public class BaseManager : MonoBehaviour {
 	public Vector3 selectedMousePos = new Vector3();
 	public Vector2 selectedItemPos = new Vector2();
 	public Vector2 selectedCell = new Vector2();
-	public void selectItem(Character characterSheet) {
+	public void selectItem(Character characterSheet)  {
 		selectItem(characterSheet, null, null);
 	}
-	public void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u) {
+	public void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u)  {
 		Debug.Log("Select Item");
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
-		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
 			Rect r = getInventorySlotRect(slot, inventX, inventY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				Vector2 v = UnitGUI.getIndexOfSlot(slot);
 				//				Debug.Log(v);
 				int ind = UnitGUI.getLinearIndexFromIndex(v);
@@ -792,8 +789,8 @@ public class BaseManager : MonoBehaviour {
 				Vector2 itemSlot = Inventory.getSlotForIndex(ind);
 				ItemReturn ir = characterSheet.characterSheet.inventory.removeItemFromSlot(itemSlot);
 				selectedItem = ir.item;
-				if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
-					if (selectedItem.stackSize()>1) {
+				if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))  {
+					if (selectedItem.stackSize()>1)  {
 						characterSheet.characterSheet.inventory.insertItemInSlot(selectedItem, itemSlot - ir.slot);
 						selectedItem = selectedItem.popStack();
 					}
@@ -806,11 +803,11 @@ public class BaseManager : MonoBehaviour {
 				break;
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots)  {
 			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				Item i = null;
-				switch (slot) {
+				switch (slot)  {
 				case InventorySlot.Frame:
 					i = frame;
 					break;
@@ -835,19 +832,19 @@ public class BaseManager : MonoBehaviour {
 				Rect r2 = new Rect(x, y, width, height);
 				float inventW = inventoryCellSize;
 				float inventH = inventoryCellSize;
-				if (!r2.Contains(mousePos)) {
+				if (!r2.Contains(mousePos))  {
 					inventW = inventW * r.width/r2.width;
 					inventH = inventH * r.height/r2.height;
 					r2 = r;
 				}
 				selectedCell = new Vector2((int)((mousePos.x - r2.x)/inventW), (int)((mousePos.y - r2.y)/inventH));
-				foreach (Vector2 cell in i.getShape()) {
-					if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+				foreach (Vector2 cell in i.getShape())  {
+					if (cell.x == selectedCell.x && cell.y == selectedCell.y)  {
 						selectedItemPos = new Vector2(mousePos.x - (mousePos.x - r2.x)/(inventW/inventoryCellSize), mousePos.y - (mousePos.y - r2.y)/(inventH/inventoryCellSize));
 						selectedMousePos = mousePos;
 						selectedItem = i;
 						selectedItemWasInSlot = slot;
-						switch (slot) {
+						switch (slot)  {
 						case InventorySlot.Frame:
 							frame = null;
 							break;
@@ -868,17 +865,17 @@ public class BaseManager : MonoBehaviour {
 						break;
 					}
 				}
-				if (selectedItem != null) {
+				if (selectedItem != null)  {
 					break;
 				}
 			}
 		}
 		bool doTrapsTurrets = true;
-		while (doTrapsTurrets) {
+		while (doTrapsTurrets)  {
 			doTrapsTurrets = false;
 			InventorySlot slot = InventorySlot.TrapTurret;
 			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				Item i = (trapOrTurret==0 ? (Item)turret : (Item)trap);
 				if (i==null)break;
 				Vector2 size = i.getSize();
@@ -889,14 +886,14 @@ public class BaseManager : MonoBehaviour {
 				Rect r2 = new Rect(x, y, width, height);
 				float inventW = inventoryCellSize;
 				float inventH = inventoryCellSize;
-				if (!r2.Contains(mousePos)) {
+				if (!r2.Contains(mousePos))  {
 					inventW = inventW * r.width/r2.width;
 					inventH = inventH * r.height/r2.height;
 					r2 = r;
 				}
 				selectedCell = new Vector2((int)((mousePos.x - r2.x)/inventW), (int)((mousePos.y - r2.y)/inventH));
-				foreach (Vector2 cell in i.getShape()) {
-					if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+				foreach (Vector2 cell in i.getShape())  {
+					if (cell.x == selectedCell.x && cell.y == selectedCell.y)  {
 						selectedItemPos = new Vector2(mousePos.x - (mousePos.x - r2.x)/(inventW/inventoryCellSize), mousePos.y - (mousePos.y - r2.y)/(inventH/inventoryCellSize));
 						selectedMousePos = mousePos;
 						selectedItem = i;
@@ -906,7 +903,7 @@ public class BaseManager : MonoBehaviour {
 						break;
 					}
 				}
-				if (selectedItem != null) {
+				if (selectedItem != null)  {
 					break;
 				}
 			}
@@ -919,19 +916,19 @@ public class BaseManager : MonoBehaviour {
 		float mid = UnitGUI.groundX + UnitGUI.groundWidth/2.0f + scrollOff.x;
 		//	mousePos.y += groundScrollPosition.y;
 		selectedItem = null;
-		if (mapGenerator != null) {
+		if (mapGenerator != null)  {
 			List<Item> groundItems = mapGenerator.tiles[(int)u.position.x,(int)-u.position.y].getReachableItems();
-			foreach (Item i in groundItems) {
+			foreach (Item i in groundItems)  {
 				if (i.inventoryTexture==null) continue;
 				//	Debug.Log(mousePos.x + "  " + mousePos.y + "       " + mid + "  " + y);
 				Vector2 size = i.getSize();
 				float x = mid - size.x*inventoryCellSize/2.0f;
 				Rect r = new Rect(x, y, size.x*inventoryCellSize, size.y*UnitGUI.inventoryCellSize);
-				if (r.Contains(mousePos)) {
+				if (r.Contains(mousePos))  {
 					//	Debug.Log(i);
 					selectedCell = new Vector2((int)((mousePos.x - x)/inventoryCellSize), (int)((mousePos.y - y)/inventoryCellSize));
-					foreach (Vector2 cell in i.getShape()) {
-						if (cell.x == selectedCell.x && cell.y == selectedCell.y) {
+					foreach (Vector2 cell in i.getShape())  {
+						if (cell.x == selectedCell.x && cell.y == selectedCell.y)  {
 							selectedItemPos = new Vector2(x, y);
 							selectedMousePos = mousePos;
 							selectedItem = i;
@@ -939,7 +936,7 @@ public class BaseManager : MonoBehaviour {
 						}
 					}
 					Debug.Log(selectedCell);
-					if (selectedItem!=null) {
+					if (selectedItem!=null)  {
 						break;
 					}
 				}
@@ -947,11 +944,11 @@ public class BaseManager : MonoBehaviour {
 			}
 		}*/
 	}
-	public void deselectItem(Character characterSheet) {
+	public void deselectItem(Character characterSheet)  {
 		deselectItem(characterSheet, null, null);
 	}
-	public void removeTurretTrapItemsPossibly() {
-		if (selectedItemWasInSlot==InventorySlot.TrapTurret) {
+	public void removeTurretTrapItemsPossibly()  {
+		if (selectedItemWasInSlot==InventorySlot.TrapTurret)  {
 			frame = null;
 			applicator = null;
 			gear = null;
@@ -959,19 +956,19 @@ public class BaseManager : MonoBehaviour {
 			displayedCharacter.saveCharacter();
 		}
 	}
-	public void deselectItem(Character characterSheet, MapGenerator mapGenerator, Unit u) {
+	public void deselectItem(Character characterSheet, MapGenerator mapGenerator, Unit u)  {
 		if (selectedItem == null) return;
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		Tile t = (mapGenerator != null && u!=null ? mapGenerator.tiles[(int)u.position.x,(int)-u.position.y] : null);
-		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
 			Rect r = getInventorySlotRect(slot, inventX, inventY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				Vector2 v2 = UnitGUI.getIndexOfSlot(slot);
 				Vector2 v = v2 - selectedCell;
 				Debug.Log(v);
-				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v)) {
-					if (selectedItemWasInSlot == InventorySlot.None) {
+				if (characterSheet.characterSheet.inventory.canInsertItemInSlot(selectedItem, v))  {
+					if (selectedItemWasInSlot == InventorySlot.None)  {
 						t.removeItem(selectedItem,1);
 						//u.useMinor(false,false);
 					}
@@ -980,11 +977,11 @@ public class BaseManager : MonoBehaviour {
 					removeTurretTrapItemsPossibly();
 					return;
 				}
-				else {
+				else  {
 					InventoryItemSlot invSlot = characterSheet.characterSheet.inventory.inventory[Inventory.getIndexForSlot(v2)];
 					Item invSlotItem = invSlot.getItem();
-					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem)) {
-						if (selectedItemWasInSlot == InventorySlot.None) {
+					if (invSlotItem != null && characterSheet.characterSheet.inventory.itemCanStackWith(invSlotItem, selectedItem))  {
+						if (selectedItemWasInSlot == InventorySlot.None)  {
 							t.removeItem(selectedItem,1);
 							//u.useMinor(false,false);
 						}
@@ -997,32 +994,32 @@ public class BaseManager : MonoBehaviour {
 				break;
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots)  {
 			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 			//	Vector2 v2 = UnitGUI.getIndexOfSlot(slot);
 				bool removed = false;
-				switch (slot) {
+				switch (slot)  {
 				case InventorySlot.Frame:
-					if (selectedItem is Frame && frame==null) {
+					if (selectedItem is Frame && frame==null)  {
 						frame = (Frame)selectedItem;
 						removed = true;
 					}
 					break;
 				case InventorySlot.Applicator:
-					if (selectedItem is Applicator && applicator == null) {
+					if (selectedItem is Applicator && applicator == null)  {
 						applicator = (Applicator)selectedItem;
 						removed = true;
 					}
 					break;
 				case InventorySlot.Gear:
-					if (selectedItem is Gear && gear == null) {
+					if (selectedItem is Gear && gear == null)  {
 						gear = (Gear)selectedItem;
 						removed = true;
 					}
 					break;
 				case InventorySlot.TriggerEnergySource:
-					if ((trapOrTurret==1 ? selectedItem is Trigger : selectedItem is EnergySource) && energySourceOrTrigger == null) {
+					if ((trapOrTurret==1 ? selectedItem is Trigger : selectedItem is EnergySource) && energySourceOrTrigger == null)  {
 						energySourceOrTrigger = selectedItem;
 						removed = true;
 					}
@@ -1030,13 +1027,13 @@ public class BaseManager : MonoBehaviour {
 				default:
 					break;
 				}
-				if (removed) {
+				if (removed)  {
 					selectedItem = null;
-					if (frame!=null && applicator!=null && gear!=null && (energySourceOrTrigger!=null && (trapOrTurret==1 ? (energySourceOrTrigger is Trigger) : (energySourceOrTrigger is EnergySource)))) {
-						if (trapOrTurret==0) {
+					if (frame!=null && applicator!=null && gear!=null && (energySourceOrTrigger!=null && (trapOrTurret==1 ? (energySourceOrTrigger is Trigger) : (energySourceOrTrigger is EnergySource))))  {
+						if (trapOrTurret==0)  {
 							turret = new Turret(displayedCharacter.characterId, frame, applicator, gear, (EnergySource)energySourceOrTrigger);
 						}
-						else {
+						else  {
 							trap = new Trap(displayedCharacter.characterId, frame, applicator, gear, (Trigger)energySourceOrTrigger);
 						}
 					}
@@ -1044,8 +1041,8 @@ public class BaseManager : MonoBehaviour {
 				}
 			}
 		}
-/*		if (GameGUI.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight)) {
-			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null) {
+/*		if (GameGUI.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight))  {
+			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null)  {
 				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
 				t.addItem(selectedItem);
 				u.minorsLeft--;
@@ -1053,8 +1050,8 @@ public class BaseManager : MonoBehaviour {
 			}
 		}
 		else*/ 
-		if (selectedItemWasInSlot!=InventorySlot.None) {
-			switch (selectedItemWasInSlot) {
+		if (selectedItemWasInSlot!=InventorySlot.None)  {
+			switch (selectedItemWasInSlot)  {
 			case InventorySlot.Frame:
 				frame = (Frame)selectedItem;
 				break;
@@ -1068,20 +1065,20 @@ public class BaseManager : MonoBehaviour {
 				energySourceOrTrigger = selectedItem;
 				break;
 			case InventorySlot.TrapTurret:
-				if (selectedItem is Turret) {
+				if (selectedItem is Turret)  {
 					turret = (Turret)selectedItem;
 				}
-				else if (selectedItem is Trap) {
+				else if (selectedItem is Trap)  {
 					trap = (Trap)selectedItem;
 				}
 				break;
 			default:
-				if (displayedCharacter.characterSheet.inventory.canInsertItemInSlot(selectedItem, UnitGUI.getIndexOfSlot(selectedItemWasInSlot))) {
+				if (displayedCharacter.characterSheet.inventory.canInsertItemInSlot(selectedItem, UnitGUI.getIndexOfSlot(selectedItemWasInSlot)))  {
 					displayedCharacter.characterSheet.inventory.insertItemInSlot(selectedItem, UnitGUI.getIndexOfSlot(selectedItemWasInSlot));
 				}
-				else {
+				else  {
 					int slot1 = UnitGUI.getLinearIndexFromIndex(UnitGUI.getIndexOfSlot(selectedItemWasInSlot));
-					if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(displayedCharacter.characterSheet.inventory.inventory[slot1].getItem(),selectedItem)) {
+					if (slot1 > -1 && characterSheet.characterSheet.inventory.itemCanStackWith(displayedCharacter.characterSheet.inventory.inventory[slot1].getItem(),selectedItem))  {
 						displayedCharacter.characterSheet.inventory.stackItemWith(displayedCharacter.characterSheet.inventory.inventory[slot1].getItem(),selectedItem);
 					}
 				}
@@ -1095,7 +1092,7 @@ public class BaseManager : MonoBehaviour {
 
 
 	int trapOrTurret = 0;
-	public void drawWorkbenchGUI() {
+	public void drawWorkbenchGUI()  {
 		float xOrig = (Screen.width - backgroundSize.x)/2.0f;
 		float yOrig = (Screen.height - backgroundSize.y)/2.0f;
 		float boxX = xOrig;
@@ -1112,14 +1109,14 @@ public class BaseManager : MonoBehaviour {
 		GUI.Label(new Rect(boxX + (backgroundSize.x - titleSize.x)/2.0f, y, titleSize.x, titleSize.y), titleContent, st);
 		y += titleSize.y + 5.0f;
 		int oldTr = trapOrTurret;
-		trapOrTurret = GUI.SelectionGrid(new Rect(x, y, 218.0f, 25.0f), trapOrTurret, new string[]{"Turret","Trap"}, 2);
-		if (oldTr != trapOrTurret && frame!=null) {
-			if ((trapOrTurret == 0 && turret == null) || (trapOrTurret==1 && trap==null)) {
-				if (frame!=null && applicator!=null && gear!=null && (energySourceOrTrigger!=null && (trapOrTurret==1 ? (energySourceOrTrigger is Trigger) : (energySourceOrTrigger is EnergySource)))) {
-					if (trapOrTurret==0) {
+		trapOrTurret = GUI.SelectionGrid(new Rect(x, y, 218.0f, 25.0f), trapOrTurret, new string[] {"Turret","Trap"}, 2);
+		if (oldTr != trapOrTurret && frame!=null)  {
+			if ((trapOrTurret == 0 && turret == null) || (trapOrTurret==1 && trap==null))  {
+				if (frame!=null && applicator!=null && gear!=null && (energySourceOrTrigger!=null && (trapOrTurret==1 ? (energySourceOrTrigger is Trigger) : (energySourceOrTrigger is EnergySource))))  {
+					if (trapOrTurret==0)  {
 						turret = new Turret(displayedCharacter.characterId, frame, applicator, gear, (EnergySource)energySourceOrTrigger);
 					}
-					else {
+					else  {
 						trap = new Trap(displayedCharacter.characterId, frame, applicator, gear, (Trigger)energySourceOrTrigger);
 					}
 				}
@@ -1137,20 +1134,20 @@ public class BaseManager : MonoBehaviour {
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 
-		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
 			Rect r = getInventorySlotRect(slot, inventX, inventY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				GUI.DrawTexture(r, UnitGUI.getInventoryHoverBackground());
-				if (selectedItem!=null) {
+				if (selectedItem!=null)  {
 					Vector2 startPos = UnitGUI.getIndexOfSlot(slot);
-					foreach(Vector2 cell in selectedItem.getShape()) {
+					foreach(Vector2 cell in selectedItem.getShape())  {
 						Vector2 pos = startPos;
 						pos.x += cell.x - selectedCell.x;
 						pos.y += cell.y - selectedCell.y;
 						if (pos.x == startPos.x && pos.y == startPos.y) continue;
 						//	Debug.Log(startPos + "   " + pos);
 						InventorySlot newSlot = UnitGUI.getInventorySlotFromIndex(pos);
-						if (newSlot != InventorySlot.None) {
+						if (newSlot != InventorySlot.None)  {
 							Rect r2 = getInventorySlotRect(newSlot, inventX, inventY);
 							GUI.DrawTexture(r2, UnitGUI.getInventoryHoverBackground());
 						}
@@ -1160,10 +1157,10 @@ public class BaseManager : MonoBehaviour {
 			}
 		}
 		bool doTrapTurret = true;
-		if (doTrapTurret) {
+		if (doTrapTurret)  {
 			InventorySlot slot = InventorySlot.TrapTurret;
 			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				GUI.DrawTexture(r, UnitGUI.getArmorHoverBackground());
 			}
 			GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
@@ -1176,7 +1173,7 @@ public class BaseManager : MonoBehaviour {
 			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
 			GUI.DrawTexture(new Rect(r.x + inventoryCellSize,r.y + inventoryCellSize*2 - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
 			Item i = (trapOrTurret==0 ? (Item)turret : (Item)trap);
-			if (i != null && i.inventoryTexture != null) {
+			if (i != null && i.inventoryTexture != null)  {
 				float w = i.getSize().x*inventoryCellSize;
 				float h = i.getSize().y*inventoryCellSize;
 				x = r.x;
@@ -1187,17 +1184,17 @@ public class BaseManager : MonoBehaviour {
 //				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots)  {
 			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
-			if (r.Contains(mousePos)) {
+			if (r.Contains(mousePos))  {
 				GUI.DrawTexture(r, UnitGUI.getArmorHoverBackground());
 				break;
 			}
 
 		}
-		foreach (InventorySlot slot in UnitGUI.trapTurretSlots) {
+		foreach (InventorySlot slot in UnitGUI.trapTurretSlots)  {
 			Rect r = getInventorySlotRect(slot, trapsTurretsX, trapsTurretsY);
-			if (slot==InventorySlot.TriggerEnergySource && energySourceOrTrigger != null && (trapOrTurret==1 ? (energySourceOrTrigger is EnergySource) : (energySourceOrTrigger is Trigger))) {
+			if (slot==InventorySlot.TriggerEnergySource && energySourceOrTrigger != null && (trapOrTurret==1 ? (energySourceOrTrigger is EnergySource) : (energySourceOrTrigger is Trigger)))  {
 				GUI.DrawTexture(r, UnitGUI.getArmorRedBackground());
 			}
 			GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
@@ -1213,7 +1210,7 @@ public class BaseManager : MonoBehaviour {
 			string s = "";
 			int largeSize = 14;
 			int smallSize = 10;
-			switch (slot) {
+			switch (slot)  {
 			case InventorySlot.Frame:
 				i = frame;
 				s = UnitGUI.getSmallCapsString("Frame", smallSize);
@@ -1238,7 +1235,7 @@ public class BaseManager : MonoBehaviour {
 			Vector2 size = sty.CalcSize(cont);
 			GUI.Label(new Rect(r.x + (r.width - size.x)/2.0f, r.y - size.y, size.x, size.y), cont, sty);
 			//displayedCharacter.characterSheet.characterLoadout.getItemInSlot(slot);
-			if (i != null && i.inventoryTexture != null) {
+			if (i != null && i.inventoryTexture != null)  {
 				float w = i.getSize().x*inventoryCellSize;
 				float h = i.getSize().y*inventoryCellSize;
 				x = r.x;
@@ -1249,7 +1246,7 @@ public class BaseManager : MonoBehaviour {
 //				GUI.DrawTexture(new Rect(x, y, w, h), i.inventoryTexture);
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
 			Rect r = getInventorySlotRect(slot, inventX, inventY);
 			GUI.DrawTexture(new Rect(r.x,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
 			GUI.DrawTexture(new Rect(r.x + inventoryCellSize - inventoryLineThickness,r.y,inventoryLineThickness, inventoryCellSize),UnitGUI.getInventoryLineTall());
@@ -1258,7 +1255,7 @@ public class BaseManager : MonoBehaviour {
 			GUI.DrawTexture(new Rect(r.x,r.y + inventoryCellSize - inventoryLineThickness,inventoryCellSize, inventoryLineThickness),UnitGUI.getInventoryLineWide());
 		}
 		GUIStyle stackSt = UnitGUI.getStackStyle();
-		foreach (InventorySlot slot in UnitGUI.inventorySlots) {
+		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
 			Vector2 vec = UnitGUI.getIndexOfSlot(slot);
 			int ind = UnitGUI.getLinearIndexFromIndex(vec);
 			InventoryItemSlot isl = displayedCharacter.characterSheet.inventory.inventory[ind];
@@ -1267,7 +1264,7 @@ public class BaseManager : MonoBehaviour {
 			Vector2 origin = getInventorySlotPos(slot, inventX, inventY);
 			Vector2 size = i.getSize();
 //			GUI.DrawTexture(new Rect(origin.x,origin.y, size.x*inventoryCellSize,size.y*inventoryCellSize),i.inventoryTexture);
-			if (i.stackSize()>1) {
+			if (i.stackSize()>1)  {
 				Vector2 bottomRight = i.getBottomRightCell();
 				bottomRight.x *= inventoryCellSize - inventoryLineThickness;
 				bottomRight.y *= inventoryCellSize - inventoryLineThickness;
@@ -1276,35 +1273,35 @@ public class BaseManager : MonoBehaviour {
 				GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
 			}
 		}/*
-		if (mapGenerator != null) {
+		if (mapGenerator != null)  {
 			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
 			//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
 			float div = 20.0f;
 			float height = div;
-			foreach (Item i in groundItems) {
+			foreach (Item i in groundItems)  {
 				if (i.inventoryTexture==null) continue;
 				height += i.getSize().y*inventoryCellSize + div;
 			}
 			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
 			y = div + groundY;
 			float mid = groundX + groundWidth/2.0f;
-			foreach (Item i in groundItems) {
+			foreach (Item i in groundItems)  {
 				if (i.inventoryTexture==null) continue;
 				Vector2 size = i.getSize();
-				if (i!=selectedItem) {
+				if (i!=selectedItem)  {
 					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
 				}
 				y += size.y*inventoryCellSize + div;
 			}
 			GUI.EndScrollView();
 		}*/
-		if (selectedItem != null) {
+		if (selectedItem != null)  {
 			Vector2 size = selectedItem.getSize();
 			Vector2 pos = selectedItemPos;
 			pos.y += (mousePos.y - selectedMousePos.y);
 			pos.x += (mousePos.x - selectedMousePos.x);
 //			GUI.DrawTexture(new Rect(pos.x, pos.y,size.x*inventoryCellSize, size.y*inventoryCellSize), selectedItem.inventoryTexture);
-			if (selectedItem.stackSize()>1) {
+			if (selectedItem.stackSize()>1)  {
 				Vector2 bottomRight = selectedItem.getBottomRightCell();
 				bottomRight.x *= inventoryCellSize - inventoryLineThickness;
 				bottomRight.y *= inventoryCellSize - inventoryLineThickness;
@@ -1321,17 +1318,17 @@ public class BaseManager : MonoBehaviour {
 
 		Vector2 cancelButtonSize = new Vector2(100.0f, 40.0f);
 		float buttonY = boxY + backgroundSize.y - cancelButtonSize.y - 40.0f;
-		if (GUI.Button(new Rect((Screen.width - cancelButtonSize.x)/2.0f, buttonY, cancelButtonSize.x, cancelButtonSize.y), "Done")) {
+		if (GUI.Button(new Rect((Screen.width - cancelButtonSize.x)/2.0f, buttonY, cancelButtonSize.x, cancelButtonSize.y), "Done"))  {
 			displayedCharacter = null;
 		}
 
 	}
 
 					
-	public bool guiContainsMouse() {
+	public bool guiContainsMouse()  {
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
-		if (baseState == BaseState.Barracks && levelingUpCharacter != null) {
+		if (baseState == BaseState.Barracks && levelingUpCharacter != null)  {
 			Rect levelingUpRect = new Rect((Screen.width - backgroundSize.x)/2.0f, (Screen.height - backgroundSize.y)/2.0f, backgroundSize.x, backgroundSize.y);
 			if (levelingUpRect.Contains(mousePos)) return true;
 		}
@@ -1339,8 +1336,7 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	
-	int calculateBoxHeight(int n)
-	{
+	int calculateBoxHeight(int n)  {
 		int height = 0;
 		
 		height = 20 * n;
@@ -1348,8 +1344,7 @@ public class BaseManager : MonoBehaviour {
 		return height;
 	}
 	
-	int calculateMod(int abilityScore)
-	{
+	int calculateMod(int abilityScore)  {
 		return abilityScore/2;
 	}
 
@@ -1374,8 +1369,8 @@ public class BaseManager : MonoBehaviour {
 	int selectedWeaponFocus = -1;
 	int selectedRace = -1;
 	ClassFeature[] possibleFeatures;
-	public bool canGoNextPage() {
-		switch (page) {
+	public bool canGoNextPage()  {
+		switch (page)  {
 		case 0:
 			return abilityScorePointsAvailable == 0;
 		case 1:
@@ -1387,16 +1382,16 @@ public class BaseManager : MonoBehaviour {
 		}
 	}
 
-	public ClassFeature getSelectedFeature() {
+	public ClassFeature getSelectedFeature()  {
 		if (possibleFeatures.Length==0) return ClassFeature.None;
 		return (possibleFeatures.Length==1 ? possibleFeatures[0] : possibleFeatures[selectedFeature]);
 	}
 
-	public bool hasFinishedAllSelections() {
+	public bool hasFinishedAllSelections()  {
 		if (possibleFeatures.Length == 0) return true;
 		if (possibleFeatures.Length > 1 && selectedFeature < 0) return false;
 		ClassFeature feature = getSelectedFeature();
-		switch (feature) {
+		switch (feature)  {
 		case ClassFeature.Weapon_Focus:
 			return selectedWeaponFocus >= 0;
 		case ClassFeature.Favored_Race:
@@ -1406,14 +1401,11 @@ public class BaseManager : MonoBehaviour {
 		}
 	}
 	
-	int setSkillDecreaseButton(int skill, Rect r, int skillLowerBound)
-	{
-		if(skill == skillLowerBound)
-		{
+	int setSkillDecreaseButton(int skill, Rect r, int skillLowerBound)  {
+		if(skill == skillLowerBound)  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(r, "<"))
-		{
+		if(GUI.Button(r, "<"))  {
 			skillPointsAvailable++;
 			skill--;
 		}
@@ -1422,14 +1414,11 @@ public class BaseManager : MonoBehaviour {
 		return skill;
 	}
 	
-	int setSkillIncreaseButton(int skill, Rect r)
-	{
-		if(skillPointsAvailable == 0)
-		{
+	int setSkillIncreaseButton(int skill, Rect r)  {
+		if(skillPointsAvailable == 0)  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(r, ">"))
-		{
+		if(GUI.Button(r, ">"))  {
 			skillPointsAvailable--;
 			skill++;
 		}
@@ -1440,14 +1429,14 @@ public class BaseManager : MonoBehaviour {
 		
 	static Vector2 backgroundSize = new Vector2(500.0f, 500.0f);
 
-	public void drawLevelUpGUI() {
+	public void drawLevelUpGUI()  {
 		float xOrig = (Screen.width - backgroundSize.x)/2.0f;
 		float yOrig = (Screen.height - backgroundSize.y)/2.0f;
 		float boxX = xOrig;
 		float boxY = yOrig;
 		GUI.DrawTexture(new Rect(xOrig, yOrig, backgroundSize.x, backgroundSize.y), bottomSheetTexture);
 		yOrig +=50.0f;
-		switch (page) {
+		switch (page)  {
 		case 0:
 			xOrig = xOrig + (backgroundSize.x - cellWidth*16)/2.0f;
 			drawAbilityScoresGUI(xOrig, yOrig);
@@ -1465,28 +1454,28 @@ public class BaseManager : MonoBehaviour {
 		Vector2 cancelButtonSize = new Vector2(100.0f, 40.0f);
 		Vector2 otherButtonSize = new Vector2(80.0f, cancelButtonSize.y);
 		float buttonY = boxY + backgroundSize.y - cancelButtonSize.y - 40.0f;
-		if (GUI.Button(new Rect(boxX + 30.0f, buttonY, cancelButtonSize.x, cancelButtonSize.y), "Cancel")) {
+		if (GUI.Button(new Rect(boxX + 30.0f, buttonY, cancelButtonSize.x, cancelButtonSize.y), "Cancel"))  {
 			levelingUpCharacter = null;
 		}
 		if (page==0) GUI.enabled = false;
-		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x*2 - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), "Back")) {
+		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x*2 - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), "Back"))  {
 			page--;
 		}
 		GUI.enabled = canGoNextPage();
-		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), (page==2?"Finish":"Next"))) {
-			if (page == 2) {
-				levelingUpCharacter.characterSheet.skillScores.scores = new int[]{athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill}; 
+		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), (page==2?"Finish":"Next")))  {
+			if (page == 2)  {
+				levelingUpCharacter.characterSheet.skillScores.scores = new int[] {athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill}; 
 				levelingUpCharacter.characterSheet.abilityScores.setScores(sturdyScore, perceptionScore, techniqueScore, wellVersedScore);
-				if (selectedFeature != -1) {
+				if (selectedFeature != -1)  {
 					int[] oldFeatures = levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().chosenFeatures;
 					int[] newFeatures = new int[oldFeatures.Length+1];
 					for (int n=0;n<oldFeatures.Length;n++) newFeatures[n] = oldFeatures[n];
 					newFeatures[newFeatures.Length-1] = selectedFeature;
 					levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
 				}
-			//	if (possibleFeatures.Length>=1) {
+			//	if (possibleFeatures.Length>=1)  {
 				ClassFeature feature = getSelectedFeature();
-				switch (feature) {
+				switch (feature)  {
 				case ClassFeature.Weapon_Focus:
 					levelingUpCharacter.characterSheet.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
 					break;
@@ -1501,12 +1490,12 @@ public class BaseManager : MonoBehaviour {
 				levelingUpCharacter.saveCharacter();
 				levelingUpCharacter = null;
 			}
-			else {
+			else  {
 				page++;
 			}
 		}
 	}
-	public void drawFeatureGUI(float xOrig, float yOrig, Vector2 backgroundSize) {
+	public void drawFeatureGUI(float xOrig, float yOrig, Vector2 backgroundSize)  {
 		GUIStyle st = UnitGUI.getCourierStyle(24);
 		string title = UnitGUI.getSmallCapsString((possibleFeatures.Length==0 ? "No Class Feature Learned" : "Class Feature Learned:"), 17);
 		GUIContent titleContent = new GUIContent(title);
@@ -1516,15 +1505,15 @@ public class BaseManager : MonoBehaviour {
 		GUI.Label(new Rect(xOrig + (backgroundSize.x - titleSize.x)/2.0f, y, titleSize.x, titleSize.y), titleContent, st);
 		y += titleSize.y + 30.0f;
 		Vector2 buttonSize = new Vector2(150.0f, 30.0f);
-		if (possibleFeatures.Length>1) {
+		if (possibleFeatures.Length>1)  {
 			st.fontSize = 20;
 			string featureSelectTitle = UnitGUI.getSmallCapsString("Select a Feature:", 14);
 			GUIContent featureSelectTitleContent = new GUIContent(featureSelectTitle);
 			Vector2 featureSelectTitleSize = st.CalcSize(featureSelectTitleContent);
 			GUI.Label(new Rect(x, y, featureSelectTitleSize.x, featureSelectTitleSize.y), featureSelectTitleContent, st);
 			y += featureSelectTitleSize.y;
-			for (int n=0;n<possibleFeatures.Length;n++) {
-				if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), ClassFeatures.getName(possibleFeatures[n]))) {
+			for (int n=0;n<possibleFeatures.Length;n++)  {
+				if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), ClassFeatures.getName(possibleFeatures[n])))  {
 					if (selectedFeature == n) selectedFeature = -1;
 					else selectedFeature = n;
 				}
@@ -1532,7 +1521,7 @@ public class BaseManager : MonoBehaviour {
 			}
 			y += 10.0f;
 		}
-		if (possibleFeatures.Length==1 || selectedFeature >=0) {
+		if (possibleFeatures.Length==1 || selectedFeature >=0)  {
 			ClassFeature feature = getSelectedFeature();
 			st.fontSize = 20;
 			string featureName = ClassFeatures.getName(feature);
@@ -1546,7 +1535,7 @@ public class BaseManager : MonoBehaviour {
 			float featureDiscHeight = st.CalcHeight(featureDiscContent, backgroundSize.x - 60.0f);
 			GUI.Label(new Rect(x, y, backgroundSize.x - 60.0f, featureDiscHeight), featureDiscContent, st);
 			y += featureDiscHeight + 25.0f;
-			if (feature == ClassFeature.Weapon_Focus) {
+			if (feature == ClassFeature.Weapon_Focus)  {
 				st.fontSize = 20;
 				GUIContent selectTitleString = new GUIContent(UnitGUI.getSmallCapsString("Select a Weapon Focus:", 14));
 				Vector2 selectTitleSize = st.CalcSize(selectTitleString);
@@ -1554,9 +1543,9 @@ public class BaseManager : MonoBehaviour {
 				y += selectTitleSize.y + 5.0f;
 				GUIContent selectedString = new GUIContent(UnitGUI.getSmallCapsString("Selected", 14));
 				Vector2 selectedSize = st.CalcSize(selectedString);
-				string[] focuses = new string[]{"Piercing","Slashing","Crushing"};
-				for (int n=0;n<focuses.Length;n++) {
-					if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), focuses[n])) {
+				string[] focuses = new string[] {"Piercing","Slashing","Crushing"};
+				for (int n=0;n<focuses.Length;n++)  {
+					if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), focuses[n]))  {
 						if (selectedWeaponFocus == n) selectedWeaponFocus = -1;
 						else selectedWeaponFocus = n;
 					}
@@ -1564,7 +1553,7 @@ public class BaseManager : MonoBehaviour {
 					y += buttonSize.y;
 				}
 			}
-			else if (feature == ClassFeature.Favored_Race) {
+			else if (feature == ClassFeature.Favored_Race)  {
 				st.fontSize = 20;
 				GUIContent selectTitleString = new GUIContent(UnitGUI.getSmallCapsString("Select a Favored Race:", 14));
 				Vector2 selectTitleSize = st.CalcSize(selectTitleString);
@@ -1572,9 +1561,9 @@ public class BaseManager : MonoBehaviour {
 				y += selectTitleSize.y + 5.0f;
 				GUIContent selectedString = new GUIContent(UnitGUI.getSmallCapsString("Selected", 14));
 				Vector2 selectedSize = st.CalcSize(selectedString);
-				string[] focuses = new string[]{"Berrid","Ashpian","Rorrul"};
-				for (int n=0;n<focuses.Length;n++) {
-					if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), focuses[n])) {
+				string[] focuses = new string[] {"Berrid","Ashpian","Rorrul"};
+				for (int n=0;n<focuses.Length;n++)  {
+					if (GUI.Button(new Rect(x, y, buttonSize.x, buttonSize.y), focuses[n]))  {
 						if (selectedRace == n) selectedRace = -1;
 						else selectedRace = n;
 					}
@@ -1585,7 +1574,7 @@ public class BaseManager : MonoBehaviour {
 		}
 	}
 
-	public void drawSkillScoresGUI(float xOrig, float yOrig) {
+	public void drawSkillScoresGUI(float xOrig, float yOrig)  {
 		float x = xOrig, y = yOrig;
 		GUI.Box(new Rect(x, y, cellWidth*18, cellHeight*2), "Character Creation: Skills");
 		y += cellHeight*2;
@@ -1726,7 +1715,7 @@ public class BaseManager : MonoBehaviour {
 		GUI.Box(new Rect(x, y, cellWidth*2, cellHeight), (politicalSkill + calculateMod(wellVersedScore) + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getPoliticalModifier()).ToString());
 	}
 
-	public void drawAbilityScoresGUI(float xOrig, float yOrig) {
+	public void drawAbilityScoresGUI(float xOrig, float yOrig)  {
 		float x = xOrig;
 		float y = yOrig;
 		GUI.Box(new Rect(x, y, cellWidth*11, cellHeight*2), "Character Creation: Ability Scores");
@@ -1740,12 +1729,10 @@ public class BaseManager : MonoBehaviour {
 
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Sturdy:");
 		x += cellWidth*5;
-		if(sturdyScore == levelingUpCharacter.characterSheet.abilityScores.getSturdy())
-		{
+		if(sturdyScore == levelingUpCharacter.characterSheet.abilityScores.getSturdy())  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))  {
 			abilityScorePointsAvailable++;
 			sturdyScore--;
 		}
@@ -1754,12 +1741,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), sturdyScore.ToString());
 		x += cellWidth*4;
-		if(abilityScorePointsAvailable == 0)
-		{
+		if(abilityScorePointsAvailable == 0)  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))  {
 			abilityScorePointsAvailable--;
 			sturdyScore++;
 		}
@@ -1771,12 +1756,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Perception:");
 		x += cellWidth*5;
-		if(perceptionScore == levelingUpCharacter.characterSheet.abilityScores.getPerception(0))
-		{
+		if(perceptionScore == levelingUpCharacter.characterSheet.abilityScores.getPerception(0))  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))  {
 			abilityScorePointsAvailable++;
 			perceptionScore--;
 		}
@@ -1785,12 +1768,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), perceptionScore.ToString());
 		x += cellWidth*4;
-		if(abilityScorePointsAvailable == 0)
-		{
+		if(abilityScorePointsAvailable == 0)  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))  {
 			abilityScorePointsAvailable--;
 			perceptionScore++;
 		}
@@ -1802,12 +1783,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Technique:");
 		x += cellWidth*5;
-		if(techniqueScore == levelingUpCharacter.characterSheet.abilityScores.getTechnique())
-		{
+		if(techniqueScore == levelingUpCharacter.characterSheet.abilityScores.getTechnique())  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))  {
 			abilityScorePointsAvailable++;
 			techniqueScore--;
 		}
@@ -1816,12 +1795,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), techniqueScore.ToString());
 		x += cellWidth*4;
-		if(abilityScorePointsAvailable == 0)
-		{
+		if(abilityScorePointsAvailable == 0)  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))  {
 			abilityScorePointsAvailable--;
 			techniqueScore++;
 		}
@@ -1833,12 +1810,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*5, cellHeight), "Well-Versed:");
 		x += cellWidth*5;
-		if(wellVersedScore == levelingUpCharacter.characterSheet.abilityScores.getWellVersed())
-		{
+		if(wellVersedScore == levelingUpCharacter.characterSheet.abilityScores.getWellVersed())  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), "<"))  {
 			abilityScorePointsAvailable++;
 			wellVersedScore--;
 		}
@@ -1847,12 +1822,10 @@ public class BaseManager : MonoBehaviour {
 		
 		GUI.Box(new Rect(x, y, cellWidth*4, cellHeight), wellVersedScore.ToString());
 		x += cellWidth*4;
-		if(abilityScorePointsAvailable == 0)
-		{
+		if(abilityScorePointsAvailable == 0)  {
 			GUI.enabled = false;
 		}
-		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))
-		{
+		if(GUI.Button(new Rect(x, y, cellWidth, cellHeight), ">"))  {
 			abilityScorePointsAvailable--;
 			wellVersedScore++;
 		}
@@ -1889,8 +1862,8 @@ public class BaseManager : MonoBehaviour {
 	}
 
 	static GUIStyle unitInfoStyle;
-	static GUIStyle getUnitInfoStyle(int fontSize) {
-		if (unitInfoStyle==null) {
+	static GUIStyle getUnitInfoStyle(int fontSize)  {
+		if (unitInfoStyle==null)  {
 			unitInfoStyle = new GUIStyle("Label");
 			unitInfoStyle.font = Resources.Load<Font>("Fonts/Courier New");
 			unitInfoStyle.active.textColor = unitInfoStyle.normal.textColor = unitInfoStyle.hover.textColor = Color.black;

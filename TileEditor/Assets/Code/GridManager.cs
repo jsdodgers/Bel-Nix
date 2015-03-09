@@ -44,12 +44,12 @@ public class GridManager : MonoBehaviour {
 	bool spaceDown;
 	bool escapeDown;
 
-	bool shiftDraggin = false;
+	public bool shiftDraggin = false;
 	bool middleDraggin = false;
 	bool normalDraggin = false;
 	bool rightDraggin = false;
-	bool wasShiftDraggin = false;
-	bool shiftDragginCancelled = false;
+	public bool wasShiftDraggin = false;
+	public bool shiftDragginCancelled = false;
 	Vector2 startSquare;
 	Vector2 lastPos;
 	Vector3 startSquareActual;
@@ -404,6 +404,7 @@ public class GridManager : MonoBehaviour {
 			lastPos = posActual;
 		}
 		else if (shiftDragginCancelled) {
+			Debug.Log("Shift Cancelled");
 			if (gui.mapMode==0) {
 				Destroy(mouseOver);
 				mouseOver = null;
@@ -423,6 +424,7 @@ public class GridManager : MonoBehaviour {
 			shiftDragginCancelled = false;
 		}
 		else if (wasShiftDraggin) {
+			Debug.Log("WAs Shift Draggin");
 			Vector3 v3 = Input.mousePosition;
 			v3.z = 10.0f;
 			v3 = mainCamera.ScreenToWorldPoint(v3);
@@ -623,6 +625,7 @@ public class GridManager : MonoBehaviour {
 					//Debug.Log ("Grid size not compatable: (" + int.Parse(tiles[0]) + "," + int.Parse(tiles[1]) + ") and (" + gridX + "," + gridY + ")");
 				}
 			}
+//			Debug.Log(text);
 		}
 	}
 
