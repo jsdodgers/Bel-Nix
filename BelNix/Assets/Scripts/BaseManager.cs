@@ -5,6 +5,20 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 using System.IO;
+using UnityEngine.UI;
+
+[System.Serializable]
+public class BlackMarketItem {
+	public EditorItem editorItem;
+	public Item item;
+	public void setupItem() { item = editorItem.getItem(); }
+}
+[System.Serializable]
+public class BlackMarketSection {
+	public string sectionName = "";
+	public List<BlackMarketItem> items = new List<BlackMarketItem>();
+	public void setupItems() { foreach (BlackMarketItem i in items) i.setupItem(); }
+}
 
 public class BaseManager : MonoBehaviour  {
 
@@ -15,11 +29,30 @@ public class BaseManager : MonoBehaviour  {
         // This has to be subtracted from whenever a purchase is made
 	// (or upkeep is charged)
 	public enum BaseState  { Save, Mission, Barracks, Infirmary, Engineering, None };
+	[Space(10)]
+	[Header("Black Market")]
+	public List<BlackMarketSection> blackMarket = new List<BlackMarketSection>();
+	public GameObject blackMarketItemPrefab;
+	public Transform blackMarketScrollContent;
+	public Scrollbar blackMarketScrollBar;
+	public GameObject blackMarketCanvas;
+	public Transform blackMarketTabContent;
+	public GameObject blackMarketTabPrefab;
+	public Text blackMarketFundsText;
+	public BlackMarketSection currentSection = null;
+	
+	[Space(20)]
+	[SerializeField]
+	private InventoryGUI inventory; 
+	[SerializeField]
+	private GameObject baseGUI;
+
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
 	Character levelingUpCharacter = null;
-	List<Character> units;
+	public List<Character> units;
+	public Stash stash = new Stash();
 	string saveName = "";
 	string[] saves;
 //	bool saving = false;
@@ -46,11 +79,73 @@ public class BaseManager : MonoBehaviour  {
 	Vector3 lastPos = new Vector3();
 	static Texture2D barracksTexture;
 	static Texture2D bottomSheetTexture;
-    [SerializeField]
-    private InventoryGUI inventory; 
-    [SerializeField]
-    private GameObject baseGUI;
 	// Use this for initialization
+
+	
+	void Awake() {
+		stash.loadStash();
+		foreach (BlackMarketSection section in blackMarket) {
+			section.setupItems();
+		}
+		currentSection = blackMarket[0];
+	}
+	public void openBlackMarket() {
+		blackMarketCanvas.SetActive(true);
+		setUpTabs();
+		if (currentSection != null) {
+			openSection(currentSection);
+		}
+		else {
+			currentSection = blackMarket[0];
+			openSection(currentSection);
+		}
+
+	}
+	public void setUpTabs() {
+		for (int n=blackMarketTabContent.childCount-1;n>=0;n--) {
+			GameObject.Destroy(blackMarketTabContent.GetChild(n).gameObject);
+		}
+		foreach (BlackMarketSection section in blackMarket) {
+			GameObject sec = (GameObject)Instantiate(blackMarketTabPrefab);
+			BlackMarketTabButton tabButton = sec.GetComponent<BlackMarketTabButton>();
+			tabButton.setupTab(section, this);
+			sec.transform.SetParent(blackMarketTabContent, false);
+		}
+	}
+	public void setCanAffordItems() {
+		blackMarketFundsText.text = UnitGUI.getSmallCapsString("Funds: " + stash.moneyString(), 18);
+		for (int n=0;n<blackMarketScrollContent.childCount;n++) {
+			BlackMarketItemContainer ic = blackMarketScrollContent.GetChild(n).GetComponent<BlackMarketItemContainer>();
+			ic.setCanAfford();
+		}
+	}
+	public void closeBlackMarket() {
+		blackMarketCanvas.SetActive(false);
+	}
+	public void openSection(BlackMarketSection section) {
+		currentSection = section;
+		for (int n=blackMarketScrollContent.childCount-1;n>=0;n--) {
+			GameObject.Destroy(blackMarketScrollContent.GetChild(n).gameObject);
+		}
+		foreach (BlackMarketItem item in section.items) {
+			GameObject newItem = (GameObject)Instantiate(blackMarketItemPrefab);
+			BlackMarketItemContainer container = newItem.GetComponent<BlackMarketItemContainer>();
+			container.setUp(item, this);
+			newItem.transform.SetParent(blackMarketScrollContent, false);
+		}
+		blackMarketScrollBar.value = 0.9990f;
+		Invoke("setBlackMarketScrollBar", 0.0108f);
+	}
+
+	public void setBlackMarketScrollBar() {
+		blackMarketScrollBar.value = 1.0f;
+	}
+	public void buyItem(Item i) {
+		stash.spendMoney(i.getPrice());
+		stash.addItem(i);
+		setCanAffordItems();
+	}
+
 	void Start ()  {
 	//	Item item = new Turret(new TestFrame(), new TestApplicator(), new TestGear(), new TestEnergySource());
 	//	Item item = Item.deserializeItem((ItemCode)4,"5,,124,0,Units/Turrets/TurretPlaceholder,0,11,2:Test Frame:0:0::0:65,14,0:Test Applicator:30:0:Units/Turrets/Applicator:0:0:1:1:6:0:1:5:70:0:0,15,6:Test Gear:0:0:Units/Turrets/Gear:0,12,6:Test Energy Source:0:0:Units/Turrets/EnergySource:0:2");
@@ -69,6 +164,12 @@ public class BaseManager : MonoBehaviour  {
 			ch.loadCharacterFromTextFile(chars[n]);
 			ch.characterId = chars[n];
 			units.Add(ch);
+			if (ch.characterSheet.inventory.purse.money > 0) {
+				stash.addMoney(ch.characterSheet.inventory.purse.money);
+				ch.characterSheet.inventory.purse.money = 0;
+				ch.saveCharacter();
+				setCanAffordItems();
+			}
 		}
         InventoryGUI.setInventoryGUI(inventory);
         //InventoryGUI.setupInvent();
@@ -237,12 +338,16 @@ public class BaseManager : MonoBehaviour  {
 				}
 			}
 			if ((commandDown && Input.GetKey (KeyCode.RightBracket)) || Input.GetKeyDown(KeyCode.RightBracket))  {
-				units[0].characterSheet.inventory.purse.receiveMoney(10);
-				units[0].saveCharacter();
+			//	units[0].characterSheet.inventory.purse.receiveMoney(10);
+			//	units[0].saveCharacter();
+				stash.addMoney(10);
+				setCanAffordItems();
 			}
 			if ((commandDown && Input.GetKey (KeyCode.LeftBracket)) || Input.GetKeyDown(KeyCode.LeftBracket))  {
-				units[0].characterSheet.inventory.purse.spendMoney(10);
-				units[0].saveCharacter();
+			//	units[0].characterSheet.inventory.purse.spendMoney(10);
+			//	units[0].saveCharacter();
+				stash.spendMoney(10);
+				setCanAffordItems();
 			}
 		}
 		if (expChanged!=null)  {
@@ -338,6 +443,9 @@ public class BaseManager : MonoBehaviour  {
 					savesSt += save + "\n";
 				}
 			}
+			if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
+				openBlackMarket();
+			}
 	//		Vector3 mousePos = Input.mousePosition;
 	//		mousePos.y = Screen.height - mousePos.y;
 			GUIContent toolContent = new GUIContent(tooltip);
@@ -418,7 +526,7 @@ public class BaseManager : MonoBehaviour  {
 			y += 30.0f;
 			float x = boxOrigin.x + 5.0f;
 			int cost = perUnitInfirmaryCost * units.Count;
-			bool enabled = units[0].characterSheet.inventory.purse.enoughMoney(cost);
+			bool enabled = stash.canAfford(cost);//units[0].characterSheet.inventory.purse.enoughMoney(cost);
 			bool enabled2 = false;
 			foreach (Character c in units)  {
 				CombatScores cs = c.characterSheet.combatScores;
@@ -427,8 +535,8 @@ public class BaseManager : MonoBehaviour  {
 					break;
 				}
 			}
-			Purse p = units[0].characterSheet.inventory.purse;
-			GUIContent infContent = new GUIContent((enabled2 ? (enabled ? "Rest for the day.\nIt will cost " + Purse.moneyString(cost) + " to rest.\n\n" : "You do not have enough money to rest. \nIt will cost " + cost + "c to rest.\n\n") : "All of your units are fully rested.\n\n") + "Purse: " + p.moneyString());
+		//	Purse p = units[0].characterSheet.inventory.purse;
+			GUIContent infContent = new GUIContent((enabled2 ? (enabled ? "Rest for the day.\nIt will cost " + Purse.moneyString(cost) + " to rest.\n\n" : "You do not have enough money to rest. \nIt will cost " + cost + "c to rest.\n\n") : "All of your units are fully rested.\n\n") + "Purse: " + stash.moneyString());
 			float infSize = GUI.skin.label.CalcHeight(infContent, boxSize.x - 10.0f);
 			GUI.Label(new Rect(x, y, boxSize.x - 10.0f, infSize), infContent);
 			y += infSize + 5.0f;
@@ -444,7 +552,9 @@ public class BaseManager : MonoBehaviour  {
 					int maxHealth = c.characterSheet.combatScores.getMaxHealth();
 					bool changed = false;
 					if (n==0)  {
-						c.characterSheet.inventory.purse.spendMoney(cost);
+						//c.characterSheet.inventory.purse.spendMoney(cost);
+						stash.spendMoney(cost);
+						setCanAffordItems();
 						changed = true;
 					}
 					if (health < maxHealth)  {
@@ -1388,6 +1498,7 @@ public class BaseManager : MonoBehaviour  {
 			return false;
 		}
 	}
+
 
 	public ClassFeature getSelectedFeature()  {
 		if (possibleFeatures.Length==0) return ClassFeature.None;

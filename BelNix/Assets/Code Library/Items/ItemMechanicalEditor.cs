@@ -90,6 +90,9 @@ public class Turret : Item, ItemMechanical  {
 	public EnergySource energySource;
 	public string creatorId = "";
 	const int range = 5;
+	public override string getBlackMarketText() {
+		return itemName + "\nFrame: " + frame.itemName + "\nGear: " + gear.itemName + "\nApplicator: " + applicator.itemName + "\nEnergy Source: " + energySource.itemName;
+	}
 	public StackType getStackType()  {
 		return StackType.Turret;
 	}
@@ -186,6 +189,9 @@ public class Trap : Item, ItemMechanical  {
 	public Trigger trigger;
 	public string creatorId = "";
 	public bool removeTrap = false;
+	public override string getBlackMarketText() {
+		return itemName + "\nFrame: " + frame.itemName + "\nGear: " + gear.itemName + "\nApplicator: " + applicator.itemName + "\nTrigger: " + trigger.itemName;
+	}
 	public StackType getStackType()  {
 		return StackType.Trap;
 	}
@@ -259,6 +265,9 @@ public class Frame : Item, ItemMechanical  {
 	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.Frame;
+	}
+	public override string getBlackMarketText() {
+		return itemName + "\nDurability: " + getDurability() + "\nHardness: " + getHardness() + "\nSize: " + getSize();
 	}
 	public Frame()  {
 		itemStackType = ItemStackType.Frame;
@@ -487,6 +496,9 @@ public class EnergySource :  Item, ItemMechanical  {
 		int curr = numSplit;
 		turnsLeft = getMaxTurns();// int.Parse(split[curr++]);
 	}
+	public override string getBlackMarketText() {
+		return itemName + "\nLasts " + getMaxTurns() + " Turns";
+	}
 	public override ItemCode getItemCode ()  {
 		return ItemCode.EnergySource;
 	}
@@ -517,7 +529,7 @@ public class TestEnergySource : EnergySource  {
 		return ItemCode.TestEnergySource;
 	}
 	public override int getMaxTurns()  {
-		return 2;
+		return 3;
 	}
 	public TestEnergySource()  {
 		itemName = "Test Energy Source";
@@ -583,6 +595,10 @@ public class Gear :  Item, ItemMechanical  {
 	public Gear()  {
 
 	}
+	public override string getBlackMarketText() {
+		return itemName + "\n" + additionalDamage() + " Additional Damage";
+	}
+
 	public override ItemCode getItemCode ()  {
 		return ItemCode.Gear;
 	}
@@ -661,6 +677,9 @@ public class GearM3 : Gear  {
 public class Trigger : Item, ItemMechanical  {
 	public StackType getStackType()  {
 		return StackType.Trigger;
+	}
+	public override string getBlackMarketText() {
+		return itemName + "\nTriggers " + triggerTimes() + " Times";
 	}
 	public override string getItemData (string delim)  {
 		return base.getItemData (delim) + delim +
