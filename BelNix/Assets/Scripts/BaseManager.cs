@@ -547,7 +547,7 @@ public class BaseManager : MonoBehaviour  {
 	void OnGUI()  {
 		hoveredCharacter = null;
 		if (baseState == BaseState.None)  {
-			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
+			if (GUI.Button(new Rect(0, 0, 150, 75), "Save Game"))  {
 				saves = Saves.getSaveFiles();
 				baseState = BaseState.Save;
 				oldSaveName = saveName;
@@ -557,18 +557,19 @@ public class BaseManager : MonoBehaviour  {
 					savesSt += save + "\n";
 				}
 			}
-			if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
+			if (GUI.Button(new Rect(Screen.width/4, 0, 150, 75), "Black Market")) {
 				openBlackMarket();
 			}
 	//		Vector3 mousePos = Input.mousePosition;
 	//		mousePos.y = Screen.height - mousePos.y;
 			GUIContent toolContent = new GUIContent(tooltip);
 			GUIStyle st = GUI.skin.label;
+			st.fontSize = 24;
 			Vector2 size = st.CalcSize(toolContent);
-			float x = Screen.width - size.x - 5.0f;
+			float x = Screen.width/2 - size.x/2;
 	//		if (x + size.x + 5.0f > Screen.width) x = mousePos.x - size.x;//x = Screen.width - size.x - 5.0f;
 	//		float y = mousePos.y - size.y;
-			float y = 0.0f;	
+			float y = 80.0f;	
 			GUI.Label(new Rect(x, y, size.x, size.y), toolContent, st);
 		}
 		else if (baseState == BaseState.Mission)  {
