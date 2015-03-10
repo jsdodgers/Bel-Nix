@@ -548,10 +548,6 @@ public class BattleGUI : MonoBehaviour  {
     // Display in the UI whose turn it is
 	void updatePlayerTurnText()  {
 		float t = Time.time;
-		if (t - playerTurnTextStartTime > textColorTime)  {
-			doPlayerText = false;
-			return;
-		}
 	/*	if (t - playerTurnTextStartTime <= textColorAlphaTime)  {
 			Debug.Log(textColorAlphaScale + "  " + playerTurnTextColor.a + "  " + Time.deltaTime + "  " + (Time.deltaTime * textColorAlphaScale));
 			playerTurnTextColor.a += Time.deltaTime*textColorAlphaScale;
@@ -560,6 +556,10 @@ public class BattleGUI : MonoBehaviour  {
 			playerTurnTextColor.a -= Time.deltaTime * textColorAlphaScale;
 		}
 		playerTurnTextObject.color = playerTurnTextColor;
+		if (t - playerTurnTextStartTime > textColorTime)  {
+			doPlayerText = false;
+			return;
+		}
 	}
 
 	public static void setPlayerTurnText(string text, Color color, float time = 1)  {
