@@ -1299,6 +1299,8 @@ public class MapGenerator : MonoBehaviour  {
 
 	public Unit nextPlayer()  {
 		if (gameState != GameState.Playing) return null;
+		if (InventoryGUI.isShown) InventoryGUI.setInventoryShown(false);
+		if (BattleGUI.pauseMenuOpen) BattleGUI.showPauseMenu(false);
 		GameGUI.selectMovementType(MovementType.None);
 		GameGUI.selectStandardType(StandardType.None);
 		GameGUI.selectMinorType(MinorType.None);
@@ -2302,15 +2304,21 @@ public class MapGenerator : MonoBehaviour  {
 			deleteCurrentTrap();
 		}
 		if (Input.GetKeyDown(KeyCode.Escape))  {// && !normalDraggin && !shiftDraggin)  {
-			if (RightClickMenu.shown)  {
+			if (BattleGUI.loadMenuOpen) {
+				BattleGUI.battleGUI.setLoadGameCanvasShown(false);
+			}
+			else if (BattleGUI.pauseMenuOpen) {
+				BattleGUI.showPauseMenu(false);
+			}
+			else if (RightClickMenu.shown)  {
 				RightClickMenu.hideMenu(true);
 			}
 			else if (InventoryGUI.isShown) {//UnitGUI.inventoryOpen)  {
 			//	UnitGUI.clickTab(Tab.B);
 				InventoryGUI.setInventoryShown(false);
 			}
-			else if (RightClickMenu.shown)  {
-				RightClickMenu.hideMenu();
+			else if (BattleGUI.examineShown) {
+				BattleGUI.hideExamine();
 			}
 			else  {
 				if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Lay_Trap || GameGUI.selectedStandardType == StandardType.Place_Turret) && GameGUI.selectedTrapTurret)  {
