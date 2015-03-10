@@ -3015,7 +3015,7 @@ public class MapGenerator : MonoBehaviour  {
                 }
             }
             else  {
-                BattleGUI.setCharacterInfoVisibility(false);
+              //  BattleGUI.setCharacterInfoVisibility(false);
             }
 		}
 	
