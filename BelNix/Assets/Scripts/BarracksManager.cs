@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class BarracksManager : MonoBehaviour {
 
     List<Character> characters;
-    GameObject barracksEntryTemplate;
+    //GameObject barracksEntryTemplate;
     [SerializeField] private GameObject barracksRoster;
     [SerializeField] private GameObject scrollBar;
 	public static bool isShown;
