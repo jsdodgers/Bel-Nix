@@ -50,8 +50,13 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+
+	[Space(20)]
+	[Header("End Game")]
 	[SerializeField] private GameObject endGameUnitPrefab;
 	[SerializeField] private GameObject endGameUnitsContent;
+	[SerializeField] private GameObject endGameRewardPrefab;
+	[SerializeField] private Transform endGameRewardContent;
 	private int currentPauseCanvas = 0;
 	private int currentGameOverCanvas = 0;
 	[SerializeField] private Canvas[] pauseButtons;
@@ -254,12 +259,12 @@ public class BattleGUI : MonoBehaviour  {
 		speedUpAI = speed;
 	}
 
-	public static void setEndGameUnits(int c, int exp, bool won)  {
-		battleGUI.setEndGameUnitsActually(c, exp, won);
+	public static void setEndGameUnits(int c, int exp, bool won, List<Item> rewards)  {
+		battleGUI.setEndGameUnitsActually(c, exp, won, rewards);
 
 	}
 
-	void setEndGameUnitsActually(int c, int exp, bool won)  {
+	void setEndGameUnitsActually(int c, int exp, bool won, List<Item> rewards)  {
 		endGameCanvas.SetActive(true);
 		gameEndMenu.setValues(c, exp, won);
 		for (int n = endGameUnitsContent.transform.childCount-1; n >= 0; n--)  {
@@ -271,11 +276,23 @@ public class BattleGUI : MonoBehaviour  {
 		foreach (Unit u in mapGenerator.deadUnits)  {
 			createEndGameObjectFor(u);
 		}
+		if (won && rewards != null) {
+			foreach (Item i in rewards) {
+				createEndGameRewardObjectFor(i);
+			}
+		}
 		Invoke("setGameOverScrollBar", .05f);
 	}
 
 	void setGameOverScrollBar()  {
 		gameOverUnitsScrollBar.value = 1;
+	}
+
+	void createEndGameRewardObjectFor(Item i) {
+		if (i.inventoryTexture == null) return;
+		GameObject go = GameObject.Instantiate(endGameRewardPrefab) as GameObject;
+		go.transform.FindChild("Image").GetComponent<Image>().sprite = i.inventoryTexture;
+		go.transform.SetParent(endGameRewardContent, false);
 	}
 
 	void createEndGameObjectFor(Unit u)  {
