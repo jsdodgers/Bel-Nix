@@ -206,6 +206,7 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public void setActive(bool active)  {
+		if (active && !aiActive) displayActivatedSprite();
 		aiActive = active;
 		if (active) mapGenerator.fadeInMusic();
 		BattleGUI.writeToConsole(getName() + " has been " + (active?"":"de") + "activated!");
@@ -788,6 +789,7 @@ public class Unit : MonoBehaviour  {
 		//		getMarkSprite().enabled = marked;
 		setMarkPosition();
 	}
+
 	
 	public void setSelected()  {
 		return;
@@ -870,7 +872,34 @@ public class Unit : MonoBehaviour  {
 			getMark().transform.position = new Vector3(transform.position.x, posY, getMark().transform.position.z);
 		}
 	}
-	
+
+	float activatedTime = 0.0f;
+	bool activatedSpriteDisplay = false;
+	public void displayActivatedSprite() {
+		activatedTime = Time.time;
+		activatedSpriteDisplay = true;
+		setActivatedPosition();
+		getActivatedTrans().gameObject.SetActive(true);
+		}
+
+	public void setActivatedPosition() {
+		if (activatedSpriteDisplay) {
+			float length = 0.8f;
+			float speed = 4.0f;
+			float end = 0.5f;
+			float start = -0.2f;
+			float time = Time.time - activatedTime;
+			float added = Mathf.Min(end, time * speed + start);
+			float posY = transform.position.y + start + added;
+			getActivatedTrans().eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+			getActivatedTrans().position = new Vector3(transform.position.x, posY, getActivatedTrans().position.z);
+			if (time >= length) {
+				getActivatedTrans().gameObject.SetActive(false);
+				activatedSpriteDisplay = false;
+			}
+		}
+	}
+
 	public void setTargetObjectScale()  {
 		if (isSelected || isTarget)  {
 			float factor = 1.0f/10.0f;
@@ -2903,6 +2932,14 @@ public class Unit : MonoBehaviour  {
 		}
 		return markTrans;
 	}
+
+	Transform activatedTrans = null;
+	public Transform getActivatedTrans() {
+		if (activatedTrans == null) {
+			activatedTrans = transform.FindChild("Activated");
+		}
+		return activatedTrans;
+	}
 	
 	public SpriteRenderer[] getMarkSprite()  {
 		if (markSprite == null)  {
@@ -2968,6 +3005,12 @@ public class Unit : MonoBehaviour  {
 			}
 			//	getMarkSprite().sortingOrder = MapGenerator.markOrder;
 		}
+		if (getActivatedTrans() != null) {
+			getActivatedTrans().gameObject.SetActive(false);
+			foreach (SpriteRenderer sr in getActivatedTrans().GetComponentsInChildren<SpriteRenderer>()) {
+				sr.sortingOrder = MapGenerator.markOrder;
+			}
+		}
 		foreach (EditorItem i in droppedItemsEditor)  {
 			droppedItems.Add(i.getItem());
 		}
@@ -3023,6 +3066,7 @@ public class Unit : MonoBehaviour  {
 		setLayer();
 		setTargetObjectScale();
 		setMarkPosition();
+		setActivatedPosition();
 		setTrailRendererPosition();
 		setCircleScale();
 	}

@@ -2219,6 +2219,11 @@ public class MapGenerator : MonoBehaviour  {
 			else if (Input.GetKeyDown(KeyCode.D))  {
 				gameMaster = !gameMaster;
 			}
+			else if (Input.GetKeyDown(KeyCode.Alpha9)) {
+				foreach (Unit e in enemies) {
+					e.displayActivatedSprite();
+				}
+			}
 		}
 	/*	if (Input.GetKeyDown(KeyCode.Alpha7))  {
 			setOverlay();
@@ -3280,7 +3285,7 @@ public class MapGenerator : MonoBehaviour  {
 				selectionCurrentIndex = -1;
 			}
 		}
-		if (mouseUp && !shiftDraggin && !mouseDownGUI && !rightDraggin && !shiftRightDraggin && leftClickIsMakingSelection())  {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0)  {
+		if (mouseUp && !shiftDraggin && !mouseDownGUI && !rightDraggin && !shiftRightDraggin && leftClickIsMakingSelection() && isInPriority())  {// && getCurrentUnit()==selectedUnit && selectedUnits.Count == 0)  {
 			if (lastHit)  {
 //				selectedUnit.attackEnemy = null;
 
