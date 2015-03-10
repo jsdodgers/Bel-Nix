@@ -3939,6 +3939,7 @@ public class Unit : MonoBehaviour  {
 
     //private static ScreenShaker screenShaker; 
 	public void dealDamage()  {
+		Unit e = attackEnemy;
 
 		bool animate = false;
 		if (!damageCalculated)  {
@@ -3952,8 +3953,8 @@ public class Unit : MonoBehaviour  {
 		attackEnemy.activateAITo(this);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
         if (didHit) {
-            attackEnemy.damage(wapoon, this, animate);
-            BloodScript.spillBlood(this, attackEnemy, wapoon);
+			attackEnemy.damage(wapoon, this, animate);
+            BloodScript.spillBlood(this, e, wapoon);
             if (crit) {
               	 ScreenShaker screenShaker = new ScreenShaker();
                 screenShaker.shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
