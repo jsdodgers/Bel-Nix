@@ -2943,7 +2943,8 @@ public class Unit : MonoBehaviour  {
 	
 	public SpriteRenderer[] getMarkSprite()  {
 		if (markSprite == null)  {
-			markSprite = getMark().GetComponentsInChildren<SpriteRenderer>();//.GetComponent<SpriteRenderer>();
+			if (getMark() == null) markSprite = new SpriteRenderer[0];
+			else markSprite = getMark().GetComponentsInChildren<SpriteRenderer>();//.GetComponent<SpriteRenderer>();
 		}
 		return markSprite;
 	}
