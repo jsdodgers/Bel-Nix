@@ -672,13 +672,41 @@ public class MapGenerator : MonoBehaviour  {
 
 	public void playerWon()  {
 		restPlayers();
+		foreach (Tile t in tiles) {
+			if (t.hasCharacter() && t.getCharacter() is TurretUnit) {
+				TurretUnit tu = (t.getCharacter() as TurretUnit);
+				Turret tur = tu.turret;
+				if ((tu.owner == null || !addItem(tu.owner, tur)) && !stash.hasItem(tur)) stash.addItem(tur);
+			}
+			if (t.hasTrap()) {
+				Trap tr = t.getTrap().trap;
+				if ((t.getTrap().owner == null || !addItem (t.getTrap().owner, tr)) && !stash.hasItem(tr)) stash.addItem(tr);
+			}
+		}
 		rewardPlayer(mainUnit);
 		savePlayers();
 		deleteDeadPlayers();
-		
 		BattleGUI.setEndGameUnits(copperReward, experienceReward, true);
 	}
 
+	public bool addItem(Unit u, Item i) {
+		if (u.isDead()) return false;
+		foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+			InventoryItemSlot slot = u.characterSheet.characterSheet.inventory.inventory[sl - InventorySlot.Zero];
+			if (slot.item != null && u.characterSheet.characterSheet.inventory.itemCanStackWith(slot.item, i)) {
+				slot.item.addToStack(i);
+				return true;
+			}
+		}
+		foreach (InventorySlot sl in UnitGUI.inventorySlots) {
+			if (u.characterSheet.characterSheet.inventory.canInsertItemInSlot(i, UnitGUI.getIndexOfSlot(sl))) {
+				u.characterSheet.characterSheet.inventory.insertItemInSlot(i, UnitGUI.getIndexOfSlot(sl));
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public void restPlayers()  {
 		foreach (Unit u in outOfGameUnits)  {
 			CombatScores cs = u.characterSheet.characterSheet.combatScores;

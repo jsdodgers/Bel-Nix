@@ -31,6 +31,10 @@ public class Stash {
 		saveStash();
 	}
 
+	public bool hasItem(Item i) {
+		return items.Contains(i);
+	}
+
 	public void addMoney(int mon) {
 		money += mon;
 		saveStash();
