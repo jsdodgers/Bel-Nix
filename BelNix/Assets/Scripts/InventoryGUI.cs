@@ -443,6 +443,7 @@ public class InventoryGUI : MonoBehaviour  {
 		selectedUnit = u;
 		selectedCharacter = cs;
 		if (cs == null && u != null) selectedCharacter = u.characterSheet;
+	
 		GameObject[] inventoryParents = new GameObject[]  {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
 		/*		GameObject[] oldInventory = GameObject.FindGameObjectsWithTag("inventoryitem");
 		for (int n = oldInventory.Length-1;n >= 0; n--)  {
@@ -498,6 +499,8 @@ public class InventoryGUI : MonoBehaviour  {
 		}
 		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
 			Item i = selectedCharacter.characterSheet.characterLoadout.getItemInSlot(slot);
+			//	foreach (InventorySlot sl in UnitGUI.armorSlots)
+
 			if (i != null && i.inventoryTexture != null)  {
 				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
 				invP.name = "InventoryItem";
@@ -543,6 +546,15 @@ public class InventoryGUI : MonoBehaviour  {
 					default:
 						break;
 					}
+				}
+			}
+			else {
+				Transform amr = getArmourParent(slot).transform;
+				Transform can = amr.FindChild("Canvas");
+				if (can) {
+					RectTransform rrt = can.GetComponent<RectTransform>();
+					rrt.sizeDelta= new Vector2(64.0f, 64.0f);
+					rrt.anchoredPosition = new Vector2(0.0f, 0.0f);
 				}
 			}
 		}

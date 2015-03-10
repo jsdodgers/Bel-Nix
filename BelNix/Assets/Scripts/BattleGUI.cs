@@ -641,15 +641,8 @@ public class BattleGUI : MonoBehaviour  {
         
         previousUnit = unit;
 
-        // Set CharacterInformation panels
-        //setAtAGlanceText(unit.getAtAGlanceString());
-        //setStatsText(0, unit.getCharacterStatsString1());
-        //setStatsText(1, unit.getCharacterStatsString2());
-        //setStatsText(2, unit.getCharacterStatsString3());
-        //setStatsText(3, unit.getCharacterStatsString4());
-        //setCharacterInfoText(unit.getCharacterInfoString());
-        //setClassFeatures(unit.getClassFeatureStrings());
-		setupGUI(unit);
+
+		setupUnitGUI(unit);
 //        disableAllButtons();
         
         hideActionArms();
@@ -863,7 +856,7 @@ public class BattleGUI : MonoBehaviour  {
 
 
     // Set the text for the Character Information panel in the upper right corner
-	public static void setupGUI(Unit unit) {
+	public static void setupUnitGUI(Unit unit) {
 		setAtAGlanceText(unit.getAtAGlanceString());
 		setStatsText(0, unit.getCharacterStatsString1());
 		setStatsText(1, unit.getCharacterStatsString2());
@@ -880,8 +873,7 @@ public class BattleGUI : MonoBehaviour  {
 	}
 
 	public static void setMugshotSpritesAndColors(Unit unit) {
-		if(unit.characterSheet.characterSheet.personalInformation.getCharacterSex() == CharacterSex.Female)
-		{
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterSex() == CharacterSex.Female) {
 			battleGUI.mugshotSkin.enabled = false;
 			battleGUI.mugshotPrimary.enabled = false;
 			battleGUI.mugshotAccessories.enabled = false;
@@ -891,8 +883,7 @@ public class BattleGUI : MonoBehaviour  {
 			battleGUI.mugshotFemaleSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
 			battleGUI.mugshotFemalePrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
 		}
-		else
-		{
+		else {
 			battleGUI.mugshotFemaleSkin.enabled = false;
 			battleGUI.mugshotFemalePrimary.enabled = false;
 			battleGUI.mugshotFemaleAccessories.enabled = false;
@@ -903,14 +894,12 @@ public class BattleGUI : MonoBehaviour  {
 			battleGUI.mugshotPrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
 		}
 
-		if(unit.characterSheet.characterSheet.personalInformation.getCharacterHairStyle().hairStyle == 0)
-		{
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterHairStyle().hairStyle == 0) {
 			battleGUI.mugshotPonyTail.enabled = false;
 			battleGUI.mugshotShortHair.enabled = true;
 			battleGUI.mugshotShortHair.color = unit.characterSheet.characterSheet.characterColors.headColor;
 		}
-		else
-		{
+		else {
 			battleGUI.mugshotShortHair.enabled = false;
 			battleGUI.mugshotPonyTail.enabled = true;
 			battleGUI.mugshotPonyTail.color = unit.characterSheet.characterSheet.characterColors.headColor;

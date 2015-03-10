@@ -1231,7 +1231,7 @@ public class GameGUI : MonoBehaviour  {
 					selectionUnitScrollPosition.y = Mathf.Min(scrollHeight - Screen.height, selectionUnitScrollPosition.y + amount);
 				}
 			}
-			if (mapGenerator.playerTransform.childCount > 0)  {
+			if (mapGenerator.playerTransform.childCount > mapGenerator.mapPlayerUnits.Count)  {
 				if (GUI.Button(beginButtonRect(), "Engage", getBeginButtonStyle()))  {
 					mapGenerator.enterPriority();
 					foreach (Unit u in mapGenerator.priorityOrder)  {
