@@ -1782,7 +1782,7 @@ public class Unit : MonoBehaviour  {
 		if (minorsLeft > 0)  {
 			if (hasClassFeature(ClassFeature.Mark))  {
 				foreach (KnownUnit ku in knownEnemies)  {
-					if (!markedUnits.Contains(ku.knownUnit))  {
+					if (!markedUnits.Contains(ku.knownUnit) && !(ku.knownUnit is TurretUnit))  {
 						if (hasLineOfSightToUnit(ku.knownUnit))  {
 							aiMark(ku.knownUnit);
 							return;
