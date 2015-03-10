@@ -89,6 +89,8 @@ public class UITooltip : MonoBehaviour  {
 			// Standard actions
 		case "Button - Attack":
 			return "Attack: \n" + "Attack an enemy within range.";
+		case "Button - Heal":
+			return "Heal:\n" + "Heal an ally with your medicinal.";
 		case "Button - Over Clock":
 			return "Over Clock: \n" + ClassFeatures.getTooltipDescription(ClassFeature.Over_Clock);
 		case "Button - Throw":

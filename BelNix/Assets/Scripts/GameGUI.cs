@@ -1280,6 +1280,7 @@ public class GameGUI : MonoBehaviour  {
 		}
 		// Show Win/Lose screen if the game is over
 		if (mapGenerator.gameState != GameState.Playing)  {
+			return;
 			GUIContent content = new GUIContent((mapGenerator.gameState==GameState.Won ? "You Won!" : "You Lost!"));
 			GUIStyle st = (mapGenerator.gameState==GameState.Won?getWonStyle():getLostStyle());
 

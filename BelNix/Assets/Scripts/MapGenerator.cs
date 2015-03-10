@@ -683,10 +683,16 @@ public class MapGenerator : MonoBehaviour  {
 				if ((t.getTrap().owner == null || !addItem (t.getTrap().owner, tr)) && !stash.hasItem(tr)) stash.addItem(tr);
 			}
 		}
+		List<Item> items = new List<Item>();
+		foreach (EditorItem item in rewardItems) {
+			Item i = item.getItem ();
+			items.Add (i);
+			stash.addItem(i);
+		}
 		rewardPlayer(mainUnit);
 		savePlayers();
 		deleteDeadPlayers();
-		BattleGUI.setEndGameUnits(copperReward, experienceReward, true);
+		BattleGUI.setEndGameUnits(copperReward, experienceReward, true, items);
 	}
 
 	public bool addItem(Unit u, Item i) {
@@ -738,7 +744,7 @@ public class MapGenerator : MonoBehaviour  {
 
 	public void playerLost()  {
 		
-		BattleGUI.setEndGameUnits(copperReward, experienceReward, false);
+		BattleGUI.setEndGameUnits(copperReward, experienceReward, false, null);
 	}
 
     public void rewardPlayer(Unit mainCharacter) {
@@ -762,9 +768,6 @@ public class MapGenerator : MonoBehaviour  {
 		}
 //        mainCharacter.characterSheet.characterSheet.inventory.purse.receiveMoney(copperReward, 0, 0);
 		stash.addMoney(copperReward);
-		foreach (EditorItem item in rewardItems) {
-			stash.addItem(item.getItem());
-		}
     }
 
 	public static float getAngle(Vector3 start, Vector3 end)  {
@@ -3015,7 +3018,7 @@ public class MapGenerator : MonoBehaviour  {
                 }
             }
             else  {
-                BattleGUI.setCharacterInfoVisibility(false);
+              //  BattleGUI.setCharacterInfoVisibility(false);
             }
 		}
 	
