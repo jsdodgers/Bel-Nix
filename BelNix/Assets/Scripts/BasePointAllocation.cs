@@ -40,6 +40,11 @@ public class BasePointAllocation : AbstractPointAllocation {
         minPolitical    = political;
     }
 
+    protected override void extraOnClickLogic()
+    {
+        barracksEntry.tryEnablingClassFeatureButton(this);
+        Debug.Log("Click!");
+    }
     protected override int calculateSkill(int skill, int abilityScore, int skillNumber)
     {
         int skillTotal = 0;
@@ -67,5 +72,10 @@ public class BasePointAllocation : AbstractPointAllocation {
         composure += technique;
         composure += well_versed;
         return composure;
+    }
+
+    public bool finishedAssigningPoints()
+    {
+        return (totalPoints <= 0) && (totalSkillPoints <= 0);
     }
 }

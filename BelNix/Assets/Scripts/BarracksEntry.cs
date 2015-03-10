@@ -42,6 +42,8 @@ public class BarracksEntry : MonoBehaviour  {
     private Mastery mastery;
     private Knowledge knowledge;
 
+    [SerializeField] private Button confirmLevelUpButton;
+
 	// Use this for initialization
 	void Awake ()  { 
         storeChildren();
@@ -242,11 +244,45 @@ public class BarracksEntry : MonoBehaviour  {
         int[] skillScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getSkills();
         levelUp = new LevelUpContainer(){newAbilityScores=abilityScores, newSkillScores=skillScores};
         ClassFeature[] potentialFeatures = character.characterSheet.characterProgress.getCharacterClass().getPossibleFeatures(character.characterSheet.characterProgress.getCharacterLevel() + 1);
-        GameObject.Find("Base").GetComponent<BaseManager>().enableNewClassFeaturePrompt(potentialFeatures, this);
+        //Debug.Log(potentialFeatures);
+        if (potentialFeatures.Length > 0)
+            GameObject.Find("Base").GetComponent<BaseManager>().enableNewClassFeaturePrompt(potentialFeatures, this);
+        //saveCharacter(levelUp);
+        //Debug.Log(ClassFeatures.getName(potentialFeatures[0]) + ((potentialFeatures[1] == null) ? "" : ClassFeatures.getName(potentialFeatures[1])));
     }
-    public void receiveClassFeatureChoice(ClassFeature chosenFeature)
+    public void receiveClassFeatureChoice(ClassFeature chosenFeature, int selectedOption)
     {
         levelUp.newClassFeature = chosenFeature;
+        levelUp.selectedFeature = selectedOption;
+        saveCharacter(levelUp);
+        // Save character
+    }
+    private void saveCharacter(LevelUpContainer newStuff)
+    {
+        character.characterSheet.abilityScores.setScores(levelUp.newAbilityScores[0], levelUp.newAbilityScores[1], levelUp.newAbilityScores[2], levelUp.newAbilityScores[3]);
+        character.characterSheet.skillScores.scores = levelUp.newSkillScores;
+        
+        // selectedFeature is the option (the first or second button) the user clicked while choosing between skills.
+
+        int[] oldFeatures = character.characterSheet.characterProgress.getCharacterClass().chosenFeatures;
+        int[] newFeatures = new int[oldFeatures.Length + 1];
+        for (int n = 0; n < oldFeatures.Length; n++) newFeatures[n] = oldFeatures[n];
+        newFeatures[newFeatures.Length - 1] = levelUp.selectedFeature;
+        character.characterSheet.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
+
+        character.characterSheet.characterProgress.incrementLevel();
+        character.saveCharacter();
+        assignCharacter(character);
+            //Debug.Log("Saving Character");
+    }
+
+
+    public void tryEnablingClassFeatureButton(BasePointAllocation pointAllocator)
+    {
+        if (pointAllocator.finishedAssigningPoints())
+            confirmLevelUpButton.interactable = true;
+        else
+            confirmLevelUpButton.interactable = false;
     }
 
     private struct LevelUpContainer
@@ -254,5 +290,6 @@ public class BarracksEntry : MonoBehaviour  {
         public int[] newAbilityScores;
         public int[] newSkillScores;
         public ClassFeature newClassFeature;
+        public int selectedFeature;
     }
 }

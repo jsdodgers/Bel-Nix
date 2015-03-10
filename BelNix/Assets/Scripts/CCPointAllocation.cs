@@ -95,6 +95,9 @@ public class CCPointAllocation : AbstractPointAllocation  {
 	}
     */
 
+    protected override void extraOnClickLogic()
+    {
+    }
 
 	protected override int calculateSkill(int skill, int abilityScore, int skillNumber)  {
 		int skillTotal = 0;
