@@ -151,6 +151,10 @@ public class RightClickButton : MonoBehaviour  {
 		if (action.standardTypes.Contains(StandardType.PickUpTurret)) {
 			u.pickUpTurretTile = action.actualTile;//(action.actualTile.getCharacter() as TurretUnit).turret;
 		}
+		if (action.standardTypes.Contains(StandardType.MoveBody)) {
+			u.moveUnit = action.actualTile.getCharacter();
+			MapGenerator.mg.resetRanges();
+		}
 		RightClickMenu.hideMenu(true);
 	}
 }

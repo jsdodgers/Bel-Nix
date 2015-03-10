@@ -40,7 +40,7 @@ public class KnownUnit  {
 
 public enum UnitMovement  {Move, BackStep, Escape, None}
 public enum MovementType  {Move, BackStep, Recover, None}
-public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal, PickUpTurret, PickUpTrap}
+public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal, PickUpTurret, PickUpTrap, MoveBody}
 public enum ActionType  {None, Movement, Standard, Minor}
 public enum MinorType  {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None, TurretOn, TurretOff}
 public enum Affliction  {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
@@ -131,6 +131,7 @@ public class Unit : MonoBehaviour  {
 	public Tile pickUpTrapTile;
 	public bool rotating = false;
 	public bool rotating2 = false;
+	public Unit moveUnit = null;
 
 	public bool attacking = false;
 	public bool attackAnimating = false;
@@ -520,6 +521,8 @@ public class Unit : MonoBehaviour  {
 			return "Pick Up Trap";
 		case StandardType.PickUpTurret:
 			return "Pick Up Turret";
+		case StandardType.MoveBody:
+			return "Move Body";
 		default:
 			return standard.ToString();
 		}

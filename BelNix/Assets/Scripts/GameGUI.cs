@@ -338,7 +338,8 @@ public class GameGUI : MonoBehaviour  {
 				((selectedStandard && (selectedStandardType == StandardType.Place_Turret)) && mapGenerator.turretBeingPlaced != null) ||
 				((selectedStandard && (selectedStandardType == StandardType.Lay_Trap)) && mapGenerator.currentTrap.Count>0) ||
 				((selectedMinor && (selectedMinorType == MinorType.Mark || selectedMinorType == MinorType.Escape)) && mapGenerator.getCurrentUnit().attackEnemy != null) ||
-				((selectedMinor && (selectedMinorType == MinorType.Stealth || (selectedMinorType == MinorType.OneOfMany && oneOfManyConfirm))));
+				((selectedMinor && (selectedMinorType == MinorType.Stealth || (selectedMinorType == MinorType.OneOfMany && oneOfManyConfirm)))) ||
+				(mapGenerator.selectedUnit != null && mapGenerator.selectedUnit.moveUnit != null);
 	}
 
 	public static bool mouseIsOnGUI()  {
