@@ -8,8 +8,17 @@ public class BlackMarketTabButton : MonoBehaviour {
 	public BlackMarketSection blackMarketSection;
 	public Text tabText;
 	BaseManager baseManager;
+	public bool sell;
+	/*
+	public void setupTab(BlackMarketSection section, string tabName, BaseManager bm) {
+		sell = true;
+		blackMarketSection = section;
+		tabText.text = tabName;
+		baseManager = bm;
+	}*/
 
-	public void setupTab(BlackMarketSection section, BaseManager bm) {
+	public void setupTab(BlackMarketSection section, BaseManager bm, bool selling) {//, bool sell) {
+		this.sell = selling;//ssection.sectionName == "Sell";
 		blackMarketSection = section;
 		baseManager = bm;
 		tabText.text = section.sectionName;
@@ -19,7 +28,7 @@ public class BlackMarketTabButton : MonoBehaviour {
 
 	public void clickTab() {
 		if (baseManager.currentSection != blackMarketSection)
-			baseManager.openSection(blackMarketSection);
+			baseManager.openSection(blackMarketSection, sell);
 	}
 
 	// Use this for initialization
