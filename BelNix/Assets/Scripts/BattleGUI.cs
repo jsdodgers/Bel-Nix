@@ -52,6 +52,12 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private ButtonSwap actionsButton;
 
 	[Space(20)]
+	[Header("Mugshot")]
+	[SerializeField] private Image mugshotSkin;
+	[SerializeField] private Image mugshotShortHair, mugshotAccessories, mugshotPrimary;
+	[SerializeField] private Image mugshotFemaleSkin, mugshotPonyTail, mugshotFemaleAccessories, mugshotFemalePrimary;
+
+	[Space(20)]
 	[Header("End Game")]
 	[SerializeField] private GameObject endGameUnitPrefab;
 	[SerializeField] private GameObject endGameUnitsContent;
@@ -521,13 +527,14 @@ public class BattleGUI : MonoBehaviour  {
         previousUnit = unit;
 
         // Set CharacterInformation panels
-        setAtAGlanceText(unit.getAtAGlanceString());
-        setStatsText(0, unit.getCharacterStatsString1());
-        setStatsText(1, unit.getCharacterStatsString2());
-        setStatsText(2, unit.getCharacterStatsString3());
-        setStatsText(3, unit.getCharacterStatsString4());
-        setCharacterInfoText(unit.getCharacterInfoString());
-        setClassFeatures(unit.getClassFeatureStrings());
+        //setAtAGlanceText(unit.getAtAGlanceString());
+        //setStatsText(0, unit.getCharacterStatsString1());
+        //setStatsText(1, unit.getCharacterStatsString2());
+        //setStatsText(2, unit.getCharacterStatsString3());
+        //setStatsText(3, unit.getCharacterStatsString4());
+        //setCharacterInfoText(unit.getCharacterInfoString());
+        //setClassFeatures(unit.getClassFeatureStrings());
+		setupGUI(unit);
 //        disableAllButtons();
         
         hideActionArms();
@@ -741,9 +748,58 @@ public class BattleGUI : MonoBehaviour  {
 
 
     // Set the text for the Character Information panel in the upper right corner
+	public static void setupGUI(Unit unit) {
+		setAtAGlanceText(unit.getAtAGlanceString());
+		setStatsText(0, unit.getCharacterStatsString1());
+		setStatsText(1, unit.getCharacterStatsString2());
+		setStatsText(2, unit.getCharacterStatsString3());
+		setStatsText(3, unit.getCharacterStatsString4());
+		setCharacterInfoText(unit.getCharacterInfoString());
+		setClassFeatures(unit.getClassFeatureStrings());
+		setMugshotSpritesAndColors(unit);
+	}
+
 	public static void setAtAGlanceText(string text)  {
 		if (battleGUI==null) return;
 		battleGUI.atAGlanceText.text = text;
+	}
+
+	public static void setMugshotSpritesAndColors(Unit unit) {
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterSex() == CharacterSex.Female)
+		{
+			battleGUI.mugshotSkin.enabled = false;
+			battleGUI.mugshotPrimary.enabled = false;
+			battleGUI.mugshotAccessories.enabled = false;
+			battleGUI.mugshotFemaleSkin.enabled = true;
+			battleGUI.mugshotFemalePrimary.enabled = true;
+			battleGUI.mugshotFemaleAccessories.enabled = true;
+			battleGUI.mugshotFemaleSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
+			battleGUI.mugshotFemalePrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
+		}
+		else
+		{
+			battleGUI.mugshotFemaleSkin.enabled = false;
+			battleGUI.mugshotFemalePrimary.enabled = false;
+			battleGUI.mugshotFemaleAccessories.enabled = false;
+			battleGUI.mugshotSkin.enabled = true;
+			battleGUI.mugshotPrimary.enabled = true;
+			battleGUI.mugshotAccessories.enabled = true;
+			battleGUI.mugshotSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
+			battleGUI.mugshotPrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
+		}
+
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterHairStyle().hairStyle == 0)
+		{
+			battleGUI.mugshotPonyTail.enabled = false;
+			battleGUI.mugshotShortHair.enabled = true;
+			battleGUI.mugshotShortHair.color = unit.characterSheet.characterSheet.characterColors.headColor;
+		}
+		else
+		{
+			battleGUI.mugshotShortHair.enabled = false;
+			battleGUI.mugshotPonyTail.enabled = true;
+			battleGUI.mugshotPonyTail.color = unit.characterSheet.characterSheet.characterColors.headColor;
+		}
 	}
 
 	public static void setStatsText(int statNum, string text)  {
