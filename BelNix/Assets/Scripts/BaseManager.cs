@@ -117,14 +117,14 @@ public class BaseManager : MonoBehaviour  {
 		foreach (BlackMarketSection section in blackMarket) {
 			GameObject sec = (GameObject)Instantiate(blackMarketTabPrefab);
 			BlackMarketTabButton tabButton = sec.GetComponent<BlackMarketTabButton>();
-			tabButton.setupTab(section, this);
+			tabButton.setupTab(section, this, false);
 			sec.transform.SetParent(blackMarketTabContent, false);
 		}
 		BlackMarketSection section2 = new BlackMarketSection();
 		section2.sectionName = "Sell";
 		GameObject sec2 = (GameObject)Instantiate(blackMarketTabPrefab);
 		BlackMarketTabButton tabButton2 = sec2.GetComponent<BlackMarketTabButton>();
-		tabButton2.setupTab(section2, this);
+		tabButton2.setupTab(section2, this, true);
 		sec2.transform.SetParent(blackMarketTabContent, false);
 	}
 	public void setCanAffordItems() {

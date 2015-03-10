@@ -17,8 +17,8 @@ public class BlackMarketTabButton : MonoBehaviour {
 		baseManager = bm;
 	}*/
 
-	public void setupTab(BlackMarketSection section, BaseManager bm) {//, bool sell) {
-		this.sell = section.sectionName == "Sell";
+	public void setupTab(BlackMarketSection section, BaseManager bm, bool selling) {//, bool sell) {
+		this.sell = selling;//ssection.sectionName == "Sell";
 		blackMarketSection = section;
 		baseManager = bm;
 		tabText.text = section.sectionName;

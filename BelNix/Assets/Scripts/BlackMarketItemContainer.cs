@@ -30,6 +30,7 @@ public class BlackMarketItemContainer : MonoBehaviour {
 		itemText.text = UnitGUI.getSmallCapsString(item.item.getBlackMarketText(), 12);
 		priceText.text = (selling ? item.item.getBlackMarketSellPriceText() :item.item.getBlackMarketPriceText());
 		itemImage.sprite = item.item.inventoryTexture;
+		if (selling) buyButton.transform.GetChild(0).GetComponent<Text>().text = "Sell";
 		Vector2 size = item.item.getSize() * 32.0f;
 		if (size.x > 90 || size.y > 90) size/=2.0f;
 		itemImage.GetComponent<RectTransform>().sizeDelta = size;
@@ -38,7 +39,7 @@ public class BlackMarketItemContainer : MonoBehaviour {
 
 	public void setCanAfford() {
 
-		int cost = item.item.copper + item.item.silver * 100 + item.item.gold * 10000;
+		int cost = item.item.getPrice();//.copper + item.item.silver * 100 + item.item.gold * 10000;
 		buyButton.interactable = selling || bm.stash.canAfford(cost);
 	}
 
