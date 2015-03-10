@@ -175,6 +175,14 @@ public class Item  {
 	public string getBlackMarketPriceText() {
 		return (gold == 0 ? "" : gold + "g ") + (silver == 0 && gold == 0 ? "" : silver + "s ") + copper + "c";
 	}
+
+	public string getBlackMarketSellPriceText() {
+		int price = Mathf.FloorToInt(getBlackMarketSellPrice());
+		return Purse.moneyString(price);
+	}
+	public int getBlackMarketSellPrice() {
+		return (int)(getPrice()/2.0f);
+	}
 	public int getPrice() {
 		return gold * 10000 + silver * 100 + copper;
 	}

@@ -101,11 +101,12 @@ public class BaseManager : MonoBehaviour  {
 		blackMarketCanvas.SetActive(true);
 		setUpTabs();
 		if (currentSection != null) {
-			openSection(currentSection);
+			openSection(currentSection, currentSell);
 		}
 		else {
 			currentSection = blackMarket[0];
-			openSection(currentSection);
+			currentSell = false;
+			openSection(currentSection, currentSell);
 		}
 
 	}
@@ -116,9 +117,15 @@ public class BaseManager : MonoBehaviour  {
 		foreach (BlackMarketSection section in blackMarket) {
 			GameObject sec = (GameObject)Instantiate(blackMarketTabPrefab);
 			BlackMarketTabButton tabButton = sec.GetComponent<BlackMarketTabButton>();
-			tabButton.setupTab(section, this);
+			tabButton.setupTab(section, this, false);
 			sec.transform.SetParent(blackMarketTabContent, false);
 		}
+		BlackMarketSection section2 = new BlackMarketSection();
+		section2.sectionName = "Sell";
+		GameObject sec2 = (GameObject)Instantiate(blackMarketTabPrefab);
+		BlackMarketTabButton tabButton2 = sec2.GetComponent<BlackMarketTabButton>();
+		tabButton2.setupTab(section2, this, true);
+		sec2.transform.SetParent(blackMarketTabContent, false);
 	}
 	public void setCanAffordItems() {
 		blackMarketFundsText.text = UnitGUI.getSmallCapsString("Funds: " + stash.moneyString(), 18);
@@ -130,16 +137,30 @@ public class BaseManager : MonoBehaviour  {
 	public void closeBlackMarket() {
 		blackMarketCanvas.SetActive(false);
 	}
-	public void openSection(BlackMarketSection section) {
+	bool currentSell = false;
+	public void openSection(BlackMarketSection section, bool sell) {
 		currentSection = section;
+		currentSell = sell;
 		for (int n=blackMarketScrollContent.childCount-1;n>=0;n--) {
 			GameObject.Destroy(blackMarketScrollContent.GetChild(n).gameObject);
 		}
-		foreach (BlackMarketItem item in section.items) {
-			GameObject newItem = (GameObject)Instantiate(blackMarketItemPrefab);
-			BlackMarketItemContainer container = newItem.GetComponent<BlackMarketItemContainer>();
-			container.setUp(item, this);
-			newItem.transform.SetParent(blackMarketScrollContent, false);
+		if (sell) {
+			foreach (Item item in stash.items) {
+				BlackMarketItem bmi = new BlackMarketItem();
+				bmi.item = item;
+				GameObject newItem = (GameObject)Instantiate(blackMarketItemPrefab);
+				BlackMarketItemContainer container = newItem.GetComponent<BlackMarketItemContainer>();
+				container.setUp(bmi, this, sell);
+				newItem.transform.SetParent(blackMarketScrollContent, false);
+			}
+		}
+		else {
+			foreach (BlackMarketItem item in section.items) {
+				GameObject newItem = (GameObject)Instantiate(blackMarketItemPrefab);
+				BlackMarketItemContainer container = newItem.GetComponent<BlackMarketItemContainer>();
+				container.setUp(item, this, sell);
+				newItem.transform.SetParent(blackMarketScrollContent, false);
+			}
 		}
 		setBlackMarketContentLayoutMinSize();
 	}
@@ -156,6 +177,13 @@ public class BaseManager : MonoBehaviour  {
 		stash.spendMoney(i.getPrice());
 		stash.addItem(i);
 		setCanAffordItems();
+	}
+
+	public void sellItem(Item i) {
+		stash.addMoney(Mathf.FloorToInt(i.getBlackMarketSellPrice()));
+		stash.removeItem(i);
+		setCanAffordItems();
+		openSection(currentSection, currentSell);
 	}
 	public void setInventory(Character character) {
 		InventoryGUI.setupInvent(character);
