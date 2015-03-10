@@ -1189,7 +1189,7 @@ public class MapGenerator : MonoBehaviour  {
 		float texHeight = Screen.height * scaleFactor;
 		float texX = ((Screen.width) * scaleFactor/2.0f - texWidth)/100.0f;
 		float texY = -texHeight/2.0f/100.0f;
-		Texture2D tex = makeTexBorder((int)texWidth, (int)texHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+		Texture2D tex = makeTexBorder((int)texWidth, (int)texHeight, new Color(136.0f/255.0f, 72.0f/255.0f, 10.0f/255.0f));
 		GameObject go = new GameObject();
 		go.name = "Selection";
 		SpriteRenderer sr = go.AddComponent<SpriteRenderer>();

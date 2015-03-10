@@ -276,11 +276,11 @@ public class BaseManager : MonoBehaviour  {
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 		tooltips = new Dictionary<string, string>();
 		tooltips.Add("barracks", "Barracks");
-		tooltips.Add("engineering", "Create Traps and Turrets");
+		tooltips.Add("engineering", "Workbench");
 		tooltips.Add("exit", "Exit to Main Menu");
-		tooltips.Add("map", "Open Map");
+		tooltips.Add("map", "Mission Map");
 		tooltips.Add("infirmary", "Infirmary");
-		tooltips.Add("newcharacter", "Create a new Character");
+		tooltips.Add("newcharacter", "Create a New Character");
 		int nn=0;
 		do  {
 			nn++;
