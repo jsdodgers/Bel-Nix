@@ -76,6 +76,7 @@ public class BaseManager : MonoBehaviour  {
 	Vector2 barracksScrollPos = new Vector2();
 
 	GameObject hoveredObject;
+	[SerializeField] private GameObject map;
 	[SerializeField] private GameObject barracks;
 	[SerializeField] private GameObject barracksEntryTemplate;
     [SerializeField] private GameObject newClassFeaturesPrompt;
@@ -193,8 +194,15 @@ public class BaseManager : MonoBehaviour  {
 
 
 
-
-
+	public bool mapShown = false;
+	public void enableMap() {
+		mapShown = true;
+		map.SetActive(true);
+	}
+	public void disableMap() {
+		mapShown = false;
+		map.SetActive(false);
+	}
 
 	public bool barracksShown = false;
 	public void enableBarracks() {
@@ -309,8 +317,9 @@ public class BaseManager : MonoBehaviour  {
 				if (hoveredObject.tag == "exit")
 					Application.LoadLevel(0);
 				else if (hoveredObject.tag=="map")  {
-					loadMapScrollPos = new Vector2();
-					baseState = BaseState.Mission;
+					enableMap();
+					//loadMapScrollPos = new Vector2();
+					//baseState = BaseState.Mission;
 				}
 				else if (hoveredObject.tag=="barracks")  {
 					//barracksScrollPos = new Vector2();
