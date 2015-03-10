@@ -222,13 +222,14 @@ public class BaseManager : MonoBehaviour  {
             newClassFeaturesPrompt.GetComponent<NewClassFeature>().format(newFeatures[0], newFeatures[1]);
         else
             newClassFeaturesPrompt.GetComponent<NewClassFeature>().format(newFeatures[0]);
+        Debug.Log(ClassFeatures.getName(newFeatures[0]));
     }
 
-    public void disableNewClassFeaturePrompt(ClassFeature selectedFeature)
+    public void disableNewClassFeaturePrompt(ClassFeature selectedFeature, int choiceNumber)
     {
         newClassFeaturesPromptShown = false;
         newClassFeaturesPrompt.SetActive(false);
-        entryWaitingOnFeatureSelection.receiveClassFeatureChoice(selectedFeature);
+        entryWaitingOnFeatureSelection.receiveClassFeatureChoice(selectedFeature, choiceNumber);
     }
 
 
@@ -357,6 +358,7 @@ public class BaseManager : MonoBehaviour  {
 				UnitGUI.deselectItem(displayedCharacter);
 			}*/
 		}
+        newClassFeaturesPrompt.SetActive(false);
 	}
 
 	

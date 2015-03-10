@@ -11,6 +11,7 @@ public class NewClassFeature : MonoBehaviour {
 
     private ClassFeature[] features;
     private ClassFeature currentFeature;
+    private int selectedFeature = 0;
     private const string defaultName = "<b>CHOOSE A CLASS FEATURE</b>";
     private const string defaultDescription = "You have gained a level! Choose a new class feature by clicking on a button above.";
 
@@ -21,6 +22,7 @@ public class NewClassFeature : MonoBehaviour {
 
     private void reset()
     {
+        featureButtonA.gameObject.SetActive(false);
         featureButtonB.gameObject.SetActive(false);
         confirmButton.gameObject.SetActive(false);
         features = new ClassFeature[2];
@@ -28,6 +30,7 @@ public class NewClassFeature : MonoBehaviour {
 
     public void format(ClassFeature feature)
     {
+        reset();
         features[0] = feature;
         setDescription(0);
         currentFeature = feature;
@@ -35,6 +38,7 @@ public class NewClassFeature : MonoBehaviour {
 
     public void format(ClassFeature featureA, ClassFeature featureB)
     {
+        featureButtonA.gameObject.SetActive(true);
         featureButtonB.gameObject.SetActive(true);
         confirmButton.gameObject.SetActive(true);
         backButton.gameObject.SetActive(false);
@@ -49,6 +53,7 @@ public class NewClassFeature : MonoBehaviour {
         descriptionField.text = ClassFeatures.getDescription(features[featureOption]);
         nameField.text = ClassFeatures.getName(features[featureOption]);
         currentFeature = features[featureOption];
+        selectedFeature = featureOption;
         if (features.Length > 1)
             confirmButton.interactable = true;
     }
@@ -64,6 +69,6 @@ public class NewClassFeature : MonoBehaviour {
     public void dismiss()
     {
         reset();
-        baseManager.disableNewClassFeaturePrompt(currentFeature);
+        baseManager.disableNewClassFeaturePrompt(currentFeature, selectedFeature);
     }
 }

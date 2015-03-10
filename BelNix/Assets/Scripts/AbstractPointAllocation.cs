@@ -75,6 +75,8 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
 	}
 
     protected abstract void subClassStart();
+    protected abstract void extraOnClickLogic();
+    
 	
 	// Update is called once per frame
 	void Update () {
@@ -153,6 +155,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                     break;
             }
             adjustTotalPoints(false);
+            extraOnClickLogic();
         }
     }
 
@@ -198,6 +201,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                     break;
             }
             adjustTotalSkillPoints(false);
+            extraOnClickLogic();
         }
     }
 
@@ -274,6 +278,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
             default:
                 break;
         }
+        extraOnClickLogic();
     }
 
     public void subtractSkillPoint(string skill)
@@ -347,5 +352,6 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
             default:
                 break;
         }
+        extraOnClickLogic();
     }
 }
