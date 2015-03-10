@@ -55,6 +55,7 @@ public class Unit : MonoBehaviour  {
 	bool doOverlay = false;
 	public List<Unit> markedUnits;
 	public List<KnownUnit> knownEnemies;
+	public int highestExamine = 0;
 
 	
 	[Header("AI Settings")]
@@ -164,7 +165,21 @@ public class Unit : MonoBehaviour  {
 	public List<TurretUnit> turrets;
 	
 	public GameObject damagePrefab;
-	
+
+
+	public void examineUnit(Unit u) {
+		int total = rollForSkill(Skill.Historical);
+		int skill = getSkill(Skill.Historical);
+		int roll = total - skill;
+		BattleGUI.writeToConsole(getName() + " examined " + u.getName() + " with a Historical check of " + total + "(" + roll + "+" + skill + ")");
+		u.setExamineAndShow(total);
+	}
+
+	public void setExamineAndShow(int examine) {
+		highestExamine = Mathf.Max(examine, highestExamine);
+		BattleGUI.showExamine(this);
+	}
+
 	public void loseOneOfMany()  {
 		oneOfManyMode = OneOfManyMode.None;
 		oneOfManyTurnsLeft = 0;
