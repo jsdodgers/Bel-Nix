@@ -76,6 +76,7 @@ public class BaseManager : MonoBehaviour  {
 	Vector2 barracksScrollPos = new Vector2();
 
 	GameObject hoveredObject;
+	[SerializeField] private GameObject map;
 	[SerializeField] private GameObject barracks;
 	[SerializeField] private GameObject barracksEntryTemplate;
     [SerializeField] private GameObject newClassFeaturesPrompt;
@@ -193,8 +194,15 @@ public class BaseManager : MonoBehaviour  {
 
 
 
-
-
+	public bool mapShown = false;
+	public void enableMap() {
+		mapShown = true;
+		map.SetActive(true);
+	}
+	public void disableMap() {
+		mapShown = false;
+		map.SetActive(false);
+	}
 
 	public bool barracksShown = false;
 	public void enableBarracks() {
@@ -268,11 +276,11 @@ public class BaseManager : MonoBehaviour  {
 		bottomSheetTexture = Resources.Load<Texture>("UI/bottom-sheet-long") as Texture2D;
 		tooltips = new Dictionary<string, string>();
 		tooltips.Add("barracks", "Barracks");
-		tooltips.Add("engineering", "Create Traps and Turrets");
+		tooltips.Add("engineering", "Workbench");
 		tooltips.Add("exit", "Exit to Main Menu");
-		tooltips.Add("map", "Open Map");
+		tooltips.Add("map", "Mission Map");
 		tooltips.Add("infirmary", "Infirmary");
-		tooltips.Add("newcharacter", "Create a new Character");
+		tooltips.Add("newcharacter", "Create a New Character");
 		int nn=0;
 		do  {
 			nn++;
@@ -309,8 +317,9 @@ public class BaseManager : MonoBehaviour  {
 				if (hoveredObject.tag == "exit")
 					Application.LoadLevel(0);
 				else if (hoveredObject.tag=="map")  {
-					loadMapScrollPos = new Vector2();
-					baseState = BaseState.Mission;
+					enableMap();
+					//loadMapScrollPos = new Vector2();
+					//baseState = BaseState.Mission;
 				}
 				else if (hoveredObject.tag=="barracks")  {
 					//barracksScrollPos = new Vector2();
@@ -538,7 +547,7 @@ public class BaseManager : MonoBehaviour  {
 	void OnGUI()  {
 		hoveredCharacter = null;
 		if (baseState == BaseState.None)  {
-			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
+			if (GUI.Button(new Rect(0, 0, 150, 75), "Save Game"))  {
 				saves = Saves.getSaveFiles();
 				baseState = BaseState.Save;
 				oldSaveName = saveName;
@@ -548,18 +557,19 @@ public class BaseManager : MonoBehaviour  {
 					savesSt += save + "\n";
 				}
 			}
-			if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
+			if (GUI.Button(new Rect(Screen.width/4, 0, 150, 75), "Black Market")) {
 				openBlackMarket();
 			}
 	//		Vector3 mousePos = Input.mousePosition;
 	//		mousePos.y = Screen.height - mousePos.y;
 			GUIContent toolContent = new GUIContent(tooltip);
 			GUIStyle st = GUI.skin.label;
+			st.fontSize = 24;
 			Vector2 size = st.CalcSize(toolContent);
-			float x = Screen.width - size.x - 5.0f;
+			float x = Screen.width/2 - size.x/2;
 	//		if (x + size.x + 5.0f > Screen.width) x = mousePos.x - size.x;//x = Screen.width - size.x - 5.0f;
 	//		float y = mousePos.y - size.y;
-			float y = 0.0f;	
+			float y = 80.0f;	
 			GUI.Label(new Rect(x, y, size.x, size.y), toolContent, st);
 		}
 		else if (baseState == BaseState.Mission)  {
