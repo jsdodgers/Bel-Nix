@@ -241,6 +241,9 @@ public class InventoryGUI : MonoBehaviour  {
 				}
 			}
 		}
+		else {
+			selectedCharacter.saveCharacter();
+		}
 	}
 
 	public bool sameAsOldStandards(StandardType[] standards) {
