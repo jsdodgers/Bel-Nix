@@ -180,7 +180,7 @@ public class BaseManager : MonoBehaviour  {
 	}
 
 	public void sellItem(Item i) {
-		stash.addMoney(Mathf.FloorToInt(i.getPrice()));
+		stash.addMoney(Mathf.FloorToInt(i.getBlackMarketSellPrice()));
 		stash.removeItem(i);
 		setCanAffordItems();
 		openSection(currentSection, currentSell);
