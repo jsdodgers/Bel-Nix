@@ -73,8 +73,8 @@ public class CharacterLoadoutActual  {
 	public bool canInsertItemInSlot(InventorySlot slot, Item item, InventorySlot fromSlot)  {
 		Item i = getItemInSlot(slot);
 		ActionType at = Inventory.getActionTypeForMovement(slot, fromSlot);
-		if (at == ActionType.Minor && character.unit.minorsLeft <= 0) return false;
-		if (at == ActionType.Standard && character.unit.usedStandard) return false;
+		if (character.unit != null && at == ActionType.Minor && character.unit.minorsLeft <= 0) return false;
+		if (character.unit != null && at == ActionType.Standard && character.unit.usedStandard) return false;
 		if (i != null)  {
 			if (fromSlot == InventorySlot.None) return false;
 			if (slot == InventorySlot.Shoulder)  {

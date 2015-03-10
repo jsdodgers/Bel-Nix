@@ -120,7 +120,8 @@ public class RightClickButton : MonoBehaviour  {
 			u.recover();
 		}
 		if (action.gameMasterTypes.Contains(GameMasterType.Damage1))  {
-			action.actualTile.getCharacter().damage(1, MapGenerator.mg.selectedUnit);
+			action.actualTile.getCharacter().damage(1, null);// MapGenerator.mg.selectedUnit);
+			Debug.Log(MapGenerator.mg.selectedUnit.getName());
 			action.actualTile.getCharacter().showDamage(1, true, false);
 		}
 		if (action.gameMasterTypes.Contains(GameMasterType.Heal1))  {
@@ -149,6 +150,10 @@ public class RightClickButton : MonoBehaviour  {
 		}
 		if (action.standardTypes.Contains(StandardType.PickUpTurret)) {
 			u.pickUpTurretTile = action.actualTile;//(action.actualTile.getCharacter() as TurretUnit).turret;
+		}
+		if (action.standardTypes.Contains(StandardType.MoveBody)) {
+			u.moveUnit = action.actualTile.getCharacter();
+			MapGenerator.mg.resetRanges();
 		}
 		RightClickMenu.hideMenu(true);
 	}

@@ -40,7 +40,7 @@ public class KnownUnit  {
 
 public enum UnitMovement  {Move, BackStep, Escape, None}
 public enum MovementType  {Move, BackStep, Recover, None}
-public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal, PickUpTurret, PickUpTrap}
+public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Throw, Place_Turret, Lay_Trap, InstillParanoia, None, Heal, PickUpTurret, PickUpTrap, MoveBody}
 public enum ActionType  {None, Movement, Standard, Minor}
 public enum MinorType  {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None, TurretOn, TurretOff}
 public enum Affliction  {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
@@ -73,6 +73,7 @@ public class Unit : MonoBehaviour  {
 	public bool attackDowned = false;
 	public bool onlyRetaliate = false;
 	public bool runsAway = true;
+	[Range(0,2)] public int minorsWhenFleeing = 2;
 	[Range(0,1)] public float attackWeakOrNear = 1.0f;
 	[Range(0,1)] public float attackComposureOrHealth = 0.5f;
 	[Range(0,1)] public float temperedHandsOftenness = 0.5f;
@@ -130,6 +131,7 @@ public class Unit : MonoBehaviour  {
 	public Tile pickUpTrapTile;
 	public bool rotating = false;
 	public bool rotating2 = false;
+	public Unit moveUnit = null;
 
 	public bool attacking = false;
 	public bool attackAnimating = false;
@@ -204,6 +206,7 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public void setActive(bool active)  {
+		if (active && !aiActive) displayActivatedSprite();
 		aiActive = active;
 		if (active) mapGenerator.fadeInMusic();
 		BattleGUI.writeToConsole(getName() + " has been " + (active?"":"de") + "activated!");
@@ -519,6 +522,8 @@ public class Unit : MonoBehaviour  {
 			return "Pick Up Trap";
 		case StandardType.PickUpTurret:
 			return "Pick Up Turret";
+		case StandardType.MoveBody:
+			return "Move Body";
 		default:
 			return standard.ToString();
 		}
@@ -784,6 +789,7 @@ public class Unit : MonoBehaviour  {
 		//		getMarkSprite().enabled = marked;
 		setMarkPosition();
 	}
+
 	
 	public void setSelected()  {
 		return;
@@ -866,7 +872,34 @@ public class Unit : MonoBehaviour  {
 			getMark().transform.position = new Vector3(transform.position.x, posY, getMark().transform.position.z);
 		}
 	}
-	
+
+	float activatedTime = 0.0f;
+	bool activatedSpriteDisplay = false;
+	public void displayActivatedSprite() {
+		activatedTime = Time.time;
+		activatedSpriteDisplay = true;
+		setActivatedPosition();
+		getActivatedTrans().gameObject.SetActive(true);
+		}
+
+	public void setActivatedPosition() {
+		if (activatedSpriteDisplay) {
+			float length = 0.8f;
+			float speed = 4.0f;
+			float end = 0.5f;
+			float start = -0.2f;
+			float time = Time.time - activatedTime;
+			float added = Mathf.Min(end, time * speed + start);
+			float posY = transform.position.y + start + added;
+			getActivatedTrans().eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+			getActivatedTrans().position = new Vector3(transform.position.x, posY, getActivatedTrans().position.z);
+			if (time >= length) {
+				getActivatedTrans().gameObject.SetActive(false);
+				activatedSpriteDisplay = false;
+			}
+		}
+	}
+
 	public void setTargetObjectScale()  {
 		if (isSelected || isTarget)  {
 			float factor = 1.0f/10.0f;
@@ -1725,7 +1758,7 @@ public class Unit : MonoBehaviour  {
 					actionTime = Time.time;
 				return;
 			}
-			if (closestDist > getAttackRange() && getHealthPercent() > .25f && enemy != null)  {
+			if (closestDist > getAttackRange() && (!runsAway || getHealthPercent() > .25f) && enemy != null)  {
 				aiMoveTowards(enemy);
 				usedMovement = true;
 				return;
@@ -1789,7 +1822,7 @@ public class Unit : MonoBehaviour  {
 			}
 		}
 		if (!usedMovement && (danger > 7 || getHealthPercent() < .25f))  {
-			Debug.Log("Move!");
+			Debug.Log("Move!  " + canBackStep() + "   " + (knownEnemiesWithinRange(1.0f, true, false) < 1) + "   " + runsAway);
 			if ((!canBackStep() || knownEnemiesWithinRange(1.0f, true, false) < 1) && runsAway)  {
 				Debug.Log("Move Away");
 				aiMoveAway();
@@ -1840,8 +1873,9 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public void aiEscape()  {
+		minorsLeft = Mathf.Min(minorsWhenFleeing, minorsLeft);
 		currentMoveDist = 2;
-		HashSet<Tile> escapeSteps = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, 2, 0, getAttackRange(), this);
+		HashSet<Tile> escapeSteps = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, 2, 0, getAttackRange(), this, false);//, 2 - minorsWhenFleeing);
 		mapGenerator.removeAllRanges(false);
 		aiRunAway(escapeSteps, true);
 		escapeUsed = true;
@@ -1858,17 +1892,19 @@ public class Unit : MonoBehaviour  {
 	}
 
 	public void aiMoveAway()  {
+		minorsLeft = Mathf.Min(minorsWhenFleeing, minorsLeft);
 		currentMoveDist = 5;
-		HashSet<Tile> movements = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, moveDistLeft, 0, getAttackRange(), this, false);
+		HashSet<Tile> movements = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, moveDistLeft, 0, getAttackRange(), this, false);//, 2 - minorsWhenFleeing);
 		mapGenerator.removeAllRanges(false);
 		aiRunAway(movements);
 		usedMovement = true;
 	}
 	
 	public void aiBackstepAway()  {
+		minorsLeft = Mathf.Min(minorsWhenFleeing, minorsLeft);
 		currentMoveDist = 1;
 		Debug.Log("backstep Away");
-		HashSet<Tile> backSteps = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, 1, 0, getAttackRange(), this, false);
+		HashSet<Tile> backSteps = mapGenerator.setCharacterCanStand((int)position.x, (int)-position.y, 1, 0, getAttackRange(), this, false);//, 2 - minorsWhenFleeing);
 		mapGenerator.removeAllRanges(false);
 		aiRunAway(backSteps, true);
 		usedMovement = true;
@@ -2896,6 +2932,14 @@ public class Unit : MonoBehaviour  {
 		}
 		return markTrans;
 	}
+
+	Transform activatedTrans = null;
+	public Transform getActivatedTrans() {
+		if (activatedTrans == null) {
+			activatedTrans = transform.FindChild("Activated");
+		}
+		return activatedTrans;
+	}
 	
 	public SpriteRenderer[] getMarkSprite()  {
 		if (markSprite == null)  {
@@ -2961,6 +3005,12 @@ public class Unit : MonoBehaviour  {
 			}
 			//	getMarkSprite().sortingOrder = MapGenerator.markOrder;
 		}
+		if (getActivatedTrans() != null) {
+			getActivatedTrans().gameObject.SetActive(false);
+			foreach (SpriteRenderer sr in getActivatedTrans().GetComponentsInChildren<SpriteRenderer>()) {
+				sr.sortingOrder = MapGenerator.markOrder;
+			}
+		}
 		foreach (EditorItem i in droppedItemsEditor)  {
 			droppedItems.Add(i.getItem());
 		}
@@ -3016,6 +3066,7 @@ public class Unit : MonoBehaviour  {
 		setLayer();
 		setTargetObjectScale();
 		setMarkPosition();
+		setActivatedPosition();
 		setTrailRendererPosition();
 		setCircleScale();
 	}

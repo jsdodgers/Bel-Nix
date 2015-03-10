@@ -289,6 +289,7 @@ public class Tile  {
 		Tile moveTurretTile = null;
 		float moveTurretTileDist = float.MaxValue;
 		bool hasTrapTurret = false;
+		bool canMoveBody = !u.usedStandard && hasCharacter() && getCharacter().deadOrDyingOrUnconscious() && u.mapGenerator.hasLineOfSight(uTile, this, 1, true);
 		Trap tr = null;
 		Turret tur = null;
 		if (hasCharacter()) {
@@ -586,6 +587,7 @@ public class Tile  {
 		if (canExamine) tileActions.Add(new TileAction(null, null, new MinorType[]  {MinorType.Examine}, this));
 //		if (canTurret) tileActions.Add(new TileAction(null, new StandardType[]  {StandardType.Place_Turret}, null, this));
 //		if (canTrap) tileActions.Add(new TileAction(null, new StandardType[]  {StandardType.Lay_Trap}, null, this));
+		if (canMoveBody) tileActions.Add(new TileAction(null, new StandardType[] {StandardType.MoveBody}, null, this));
 		if (MapGenerator.gameMaster)  {
 			if (hasCharacter())  {
 				tileActions.Add(new TileAction(new GameMasterType[]  {GameMasterType.Damage1}, this));

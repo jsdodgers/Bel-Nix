@@ -320,7 +320,6 @@ public class Weapon : Item  {
 		return itemName + "\n" + numberOfDamageDice + "d" + diceType + " " + (isRanged ? "Ranged" : "Melee") + " Damage" + "\nRange: " + range + "\nCrit: " + criticalChance + "%";
 	}
 	public override string getItemData(string delim)  {
-		Debug.Log("Weapon Get Data: " + itemName);
 		string shapeString = "0";
 		if (shape != null)  {
 			shapeString = shape.Length.ToString();
