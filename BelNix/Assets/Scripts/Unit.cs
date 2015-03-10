@@ -1782,7 +1782,7 @@ public class Unit : MonoBehaviour  {
 		if (minorsLeft > 0)  {
 			if (hasClassFeature(ClassFeature.Mark))  {
 				foreach (KnownUnit ku in knownEnemies)  {
-					if (!markedUnits.Contains(ku.knownUnit))  {
+					if (!markedUnits.Contains(ku.knownUnit) && !(ku.knownUnit is TurretUnit))  {
 						if (hasLineOfSightToUnit(ku.knownUnit))  {
 							aiMark(ku.knownUnit);
 							return;
@@ -2943,7 +2943,8 @@ public class Unit : MonoBehaviour  {
 	
 	public SpriteRenderer[] getMarkSprite()  {
 		if (markSprite == null)  {
-			markSprite = getMark().GetComponentsInChildren<SpriteRenderer>();//.GetComponent<SpriteRenderer>();
+			if (getMark() == null) markSprite = new SpriteRenderer[0];
+			else markSprite = getMark().GetComponentsInChildren<SpriteRenderer>();//.GetComponent<SpriteRenderer>();
 		}
 		return markSprite;
 	}
