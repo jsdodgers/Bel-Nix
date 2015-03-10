@@ -120,7 +120,8 @@ public class RightClickButton : MonoBehaviour  {
 			u.recover();
 		}
 		if (action.gameMasterTypes.Contains(GameMasterType.Damage1))  {
-			action.actualTile.getCharacter().damage(1, MapGenerator.mg.selectedUnit);
+			action.actualTile.getCharacter().damage(1, null);// MapGenerator.mg.selectedUnit);
+			Debug.Log(MapGenerator.mg.selectedUnit.getName());
 			action.actualTile.getCharacter().showDamage(1, true, false);
 		}
 		if (action.gameMasterTypes.Contains(GameMasterType.Heal1))  {

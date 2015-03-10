@@ -1079,7 +1079,7 @@ public class MapGenerator : MonoBehaviour  {
 			Unit curr = newlyActivatedUnits[0];
 			newlyActivatedUnits.RemoveAt(0);
 			foreach (Unit ee in enemies)  {
-				if (ee.attackedByUnits.Contains(player)) continue;// && (ee.knownEnemies.Count > 0 || ee.alertedAlly != null)) continue;
+				if (ee.attackedByUnits.Contains(player) || ee.team == player.team) continue;// && (ee.knownEnemies.Count > 0 || ee.alertedAlly != null)) continue;
 				if (ee.hasLineOfSightToUnit(curr))  {
 					if (!ee.aiActive) {
 						ee.setActive(true);
