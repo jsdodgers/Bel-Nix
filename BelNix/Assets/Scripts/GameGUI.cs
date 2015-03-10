@@ -546,9 +546,9 @@ public class GameGUI : MonoBehaviour  {
 	static GUIStyle getBeginButtonStyle()  {
 		if (beginButtonStyle == null)  {
 			beginButtonStyle = new GUIStyle("button");
-			Texture2D tex = makeTex((int)beginButtonWidth, (int)beginButtonHeight, new Color(30.0f/255.0f, 40.0f/255.0f, 210.0f/255.0f));
+			Texture2D tex = makeTex((int)beginButtonWidth, (int)beginButtonHeight, new Color(136.0f/255.0f, 72.0f/255.0f, 10.0f/255.0f));
 			beginButtonStyle.normal.background = beginButtonStyle.hover.background = beginButtonStyle.active.background = tex;
-			beginButtonStyle.normal.textColor = beginButtonStyle.hover.textColor = beginButtonStyle.active.textColor = Color.white;
+			beginButtonStyle.normal.textColor = beginButtonStyle.hover.textColor = beginButtonStyle.active.textColor = Color.black;
 		}
 		return beginButtonStyle;
 	}
