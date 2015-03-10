@@ -443,6 +443,9 @@ public class InventoryGUI : MonoBehaviour  {
 		selectedUnit = u;
 		selectedCharacter = cs;
 		if (cs == null && u != null) selectedCharacter = u.characterSheet;
+		foreach (InventorySlot sl in UnitGUI.armorSlots)
+			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().sizeDelta= new Vector2(64.0f, 64.0f);
+
 		GameObject[] inventoryParents = new GameObject[]  {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
 		/*		GameObject[] oldInventory = GameObject.FindGameObjectsWithTag("inventoryitem");
 		for (int n = oldInventory.Length-1;n >= 0; n--)  {

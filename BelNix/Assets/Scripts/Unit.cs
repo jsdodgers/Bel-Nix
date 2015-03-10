@@ -3636,7 +3636,7 @@ public class Unit : MonoBehaviour  {
 	public bool damageComposure(int damage, Unit u)  {
 		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState())  {
 			crushingHitSFX();
-			characterSheet.characterSheet.combatScores.loseComposure(damage);
+			loseComposure(damage);
 			if (characterSheet.characterSheet.combatScores.isInPrimalState())  {
 				inPrimal = true;
 				primalControl = 0;
@@ -3646,6 +3646,11 @@ public class Unit : MonoBehaviour  {
 			}
 		}
 		return false;
+	}
+
+	public void loseComposure(int damage) {
+		characterSheet.characterSheet.combatScores.loseComposure(damage);
+		if (mapGenerator.selectedUnit == this) BattleGUI.setupUnitGUI(this);
 	}
 
 	void doAttack()  {
@@ -4031,10 +4036,14 @@ public class Unit : MonoBehaviour  {
 	
 	public virtual void loseHealth(int amount)  {
 		characterSheet.characterSheet.combatScores.loseHealth(amount);
+		if (this == mapGenerator.selectedUnit)
+			BattleGUI.setupUnitGUI(this);
 	}
 
 	public virtual void gainHealth(int amount)  {
 		characterSheet.characterSheet.combatScores.addHealth(amount);
+		if (this == mapGenerator.selectedUnit)
+			BattleGUI.setupUnitGUI(this);
 	}
 
 	public virtual bool givesDecisiveStrike()  {
