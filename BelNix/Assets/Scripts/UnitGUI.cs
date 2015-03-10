@@ -84,7 +84,7 @@ public class UnitGUI  {
 				newS += ((char)i);
 			}
 			else  {
-				if (c == '\'' || c == '-' || c=='.' || c==',' || c=='+' || (c>='0' && c<='9'))  {
+				if (c == '\'' || c == '-' || c=='.' || c==',' || c=='+') {// || (c>='0' && c<='9'))  {
 					if (!inLowerCase)  {
 						newS += "<size=" + size + ">";
 						inLowerCase = true;

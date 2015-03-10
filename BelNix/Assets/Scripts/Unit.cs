@@ -55,6 +55,7 @@ public class Unit : MonoBehaviour  {
 	bool doOverlay = false;
 	public List<Unit> markedUnits;
 	public List<KnownUnit> knownEnemies;
+	public int highestExamine = 0;
 
 	
 	[Header("AI Settings")]
@@ -164,7 +165,21 @@ public class Unit : MonoBehaviour  {
 	public List<TurretUnit> turrets;
 	
 	public GameObject damagePrefab;
-	
+
+
+	public void examineUnit(Unit u) {
+		int total = rollForSkill(Skill.Historical);
+		int skill = getSkill(Skill.Historical);
+		int roll = total - skill;
+		BattleGUI.writeToConsole(getName() + " examined " + u.getName() + " with a Historical check of " + total + "(" + roll + "+" + skill + ")");
+		u.setExamineAndShow(total);
+	}
+
+	public void setExamineAndShow(int examine) {
+		highestExamine = Mathf.Max(examine, highestExamine);
+		BattleGUI.showExamine(this);
+	}
+
 	public void loseOneOfMany()  {
 		oneOfManyMode = OneOfManyMode.None;
 		oneOfManyTurnsLeft = 0;
@@ -3621,7 +3636,7 @@ public class Unit : MonoBehaviour  {
 	public bool damageComposure(int damage, Unit u)  {
 		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState())  {
 			crushingHitSFX();
-			characterSheet.characterSheet.combatScores.loseComposure(damage);
+			loseComposure(damage);
 			if (characterSheet.characterSheet.combatScores.isInPrimalState())  {
 				inPrimal = true;
 				primalControl = 0;
@@ -3631,6 +3646,11 @@ public class Unit : MonoBehaviour  {
 			}
 		}
 		return false;
+	}
+
+	public void loseComposure(int damage) {
+		characterSheet.characterSheet.combatScores.loseComposure(damage);
+		if (mapGenerator.selectedUnit == this) BattleGUI.setupUnitGUI(this);
 	}
 
 	void doAttack()  {
@@ -3919,6 +3939,7 @@ public class Unit : MonoBehaviour  {
 
     //private static ScreenShaker screenShaker; 
 	public void dealDamage()  {
+		Unit e = attackEnemy;
 
 		bool animate = false;
 		if (!damageCalculated)  {
@@ -3932,8 +3953,8 @@ public class Unit : MonoBehaviour  {
 		attackEnemy.activateAITo(this);
 		BattleGUI.writeToConsole(getName() + (didHit ? (overClockedAttack ? " over clocked " : (crit ? " critted " : " hit ")) : " missed ") + attackEnemy.getName() + (didHit ? " with " + (getWeapon() == null ?  getGenderString() + " fist " : getWeapon().itemName + " ") + "for " + wapoon + " damage!" : "!"), (team==0 ? Log.greenColor : Color.red));
         if (didHit) {
-            attackEnemy.damage(wapoon, this, animate);
-            BloodScript.spillBlood(this, attackEnemy, wapoon);
+			attackEnemy.damage(wapoon, this, animate);
+            BloodScript.spillBlood(this, e, wapoon);
             if (crit) {
               	 ScreenShaker screenShaker = new ScreenShaker();
                 screenShaker.shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
@@ -4016,10 +4037,14 @@ public class Unit : MonoBehaviour  {
 	
 	public virtual void loseHealth(int amount)  {
 		characterSheet.characterSheet.combatScores.loseHealth(amount);
+		if (this == mapGenerator.selectedUnit)
+			BattleGUI.setupUnitGUI(this);
 	}
 
 	public virtual void gainHealth(int amount)  {
 		characterSheet.characterSheet.combatScores.addHealth(amount);
+		if (this == mapGenerator.selectedUnit)
+			BattleGUI.setupUnitGUI(this);
 	}
 
 	public virtual bool givesDecisiveStrike()  {

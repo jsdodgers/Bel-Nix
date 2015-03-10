@@ -52,14 +52,31 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private ButtonSwap actionsButton;
 
 	[Space(20)]
+	[Header("Mugshot")]
+	[SerializeField] private Image mugshotSkin;
+	[SerializeField] private Image mugshotShortHair, mugshotAccessories, mugshotPrimary;
+	[SerializeField] private Image mugshotFemaleSkin, mugshotPonyTail, mugshotFemaleAccessories, mugshotFemalePrimary;
+
+	[Space(20)]
 	[Header("End Game")]
 	[SerializeField] private GameObject endGameUnitPrefab;
 	[SerializeField] private GameObject endGameUnitsContent;
 	[SerializeField] private GameObject endGameRewardPrefab;
 	[SerializeField] private Transform endGameRewardContent;
+
+	[Space(20)]
+	[Header("Examine")]
+	[SerializeField] private GameObject examineCanvas;
+	[SerializeField] private Text examineAtAGlanceText;
+	[SerializeField] private Text examineStatsText;
+	[SerializeField] private Text examineSkillsText;
+	[SerializeField] private Text examineInfoText;
+	[SerializeField] private Transform examineFeaturesContent;
+	[SerializeField] private Scrollbar examineFeaturesScrollBar;
+
 	private int currentPauseCanvas = 0;
 	private int currentGameOverCanvas = 0;
-	[SerializeField] private Canvas[] pauseButtons;
+	[Space(20)][SerializeField] private Canvas[] pauseButtons;
 	[SerializeField] private GameObject[] pauseWindows;
 	[SerializeField] private Canvas[] gameOverButtons;
 	[SerializeField] private GameObject[] gameOverWindows;
@@ -91,8 +108,8 @@ public class BattleGUI : MonoBehaviour  {
 	const float textColorTime = 1.5f;
 	const float textColorAlphaScale = 1.0f/textColorAlphaTime;
 	public static bool[] armsShown = new bool[3];
-	public bool pauseMenuOpen = false;
-	public bool loadMenuOpen = false;
+	public static bool pauseMenuOpen = false;
+	public static bool loadMenuOpen = false;
     
     // Numbers as indices aren't very informative. Let's use enums.
     public enum CIPanel  { Glance, Stats, Skills, Buttons };
@@ -326,6 +343,9 @@ public class BattleGUI : MonoBehaviour  {
 		GameGUI.escapeMenuOpen = pauseMenuOpen;
 
 	}
+	public static void showPauseMenu(bool shown = true) {
+		battleGUI.setPauseMenuShown(shown);
+	}
 
 	public void setPauseMenuShown(bool shown)  {
 		pauseMenuOpen = shown;
@@ -503,6 +523,107 @@ public class BattleGUI : MonoBehaviour  {
 		return UnitGUI.getSmallCapsString(str, 9);
 	}
 
+
+	public static void showExamine(Unit u) {
+		battleGUI.setExamineShown(true, u);
+	}
+	public static void hideExamine() {
+		battleGUI.removeExamine();
+	}
+
+	public void removeExamine() {
+		setExamineShown(false);
+	}
+	public static bool examineShown = false;
+	public void setExamineShown(bool shown, Unit u = null) {
+		examineCanvas.SetActive(shown);
+		examineShown = shown;
+		if (shown && u != null) {
+			setExamineTexts(u);
+		}
+	}
+
+	const int seeLevel = 3;
+	const int seeClass = 5;
+	const int seeHealth = 8;
+	const int seeComposure = 10;
+	const int seeStats = 13;
+	const int seeSkills = 15;
+	public void setExamineTexts(Unit u) {
+		int examine = u.highestExamine;
+		examineAtAGlanceText.text = UnitGUI.getSmallCapsString(u.getName() + "\nHealth:\n" + getHealthText(u) + "\nComposure:\n" + getComposureText(u), 13);
+		examineStatsText.text = getStatsText(u);
+		examineSkillsText.text = getSkillsText(u);
+		examineInfoText.text = getInfoText(u);
+		for (int n=examineFeaturesContent.childCount-1;n>=0;n--) {
+			GameObject.Destroy(examineFeaturesContent.GetChild(n).gameObject);
+		}
+		bool classShown = u.highestExamine >= seeClass;
+		if (classShown) {
+			foreach (string s in u.getClassFeatureStrings()) {
+				GameObject textToAdd = (GameObject)Instantiate(classFeaturePrefab); 
+				Text textComponent = textToAdd.GetComponent<Text>();
+				textComponent.text = s;
+				textToAdd.transform.SetParent(examineFeaturesContent);
+				textToAdd.GetComponent<RectTransform>().localScale = Vector2.one;
+			}
+		}
+		Invoke("scrollContentReset",0.1f);
+
+	}
+
+	public void scrollContentReset() {
+		examineFeaturesContent.GetComponent<LayoutElement>().minHeight = examineFeaturesContent.parent.GetComponent<RectTransform>().sizeDelta.y;
+		examineFeaturesScrollBar.value = 0.99f;
+		Invoke("examineFeaturesScrollBarReset",0.1f);
+	}
+
+	public void examineFeaturesScrollBarReset() {
+		examineFeaturesScrollBar.value = 1.0f;
+	}
+	
+	public string getInfoText(Unit u) {
+		bool levelShown = u.highestExamine >= seeLevel;
+		bool classShown = u.highestExamine >= seeClass;
+		return UnitGUI.getSmallCapsString("Level:" + (levelShown ? u.characterSheet.characterSheet.characterProgress.getCharacterLevel() + "" : "?") + "\n" + "Experience:" + (levelShown ? u.characterSheet.characterSheet.characterProgress.getCharacterExperience() + "/" + u.characterSheet.characterSheet.characterProgress.getCharacterLevel()*100 : "?/?") + 
+		                                  "\n" + (classShown ? u.characterSheet.characterSheet.characterProgress.getCharacterClass().getClassName().ToString() : "???") +
+		                                  "\n" + (classShown ? u.characterSheet.characterSheet.personalInformation.getCharacterRace().getRaceString() : "???") +
+		                                  "\n" + (classShown ? u.characterSheet.characterSheet.personalInformation.getCharacterBackgroundString() : "???"), 12);
+	}
+
+	public string getSkillsText(Unit u) {
+		string divString = "<size=6>\n\n</size>";
+		bool shown = u.highestExamine >= seeSkills;
+
+		return (shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Athletics) + "" : "?") + "\n" + (shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Melee) + "" : "?") + divString +
+			(shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Ranged) + "" : "?") + "\n" + (shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Stealth) + "" : "?") + divString +
+				(shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Mechanical) + "" : "?")  + "\n" + (shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Medicinal) + "" : "?") + divString +
+				(shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Historical) + "" : "?")  + "\n" + (shown ? u.characterSheet.characterSheet.skillScores.getScore(Skill.Political) + "" : "?");
+
+	}
+
+	public string getStatsText(Unit u) {
+		bool shown = u.highestExamine >= seeStats;
+		string sizeString = "<size=10>";
+		string sizeEnd = "</size>";
+		string divString = "<size=6>\n\n</size>";
+		
+		return "S" + sizeString + "TURDY" + sizeEnd + "\n" + (shown ? u.characterSheet.characterSheet.abilityScores.getSturdy() + "" : "?") + " (<size=13>MOD:" + (shown ? u.characterSheet.characterSheet.combatScores.getInitiative() + "" : "?") + "</size>)" +
+			divString + "P" + sizeString + "ERCEPTION" + sizeEnd + "\n" + (shown ? u.characterSheet.characterSheet.abilityScores.getPerception(0) + "" : "?") + " (<size=13>MOD:" + (shown ? u.characterSheet.characterSheet.combatScores.getCritical(false) + "" : "?") + "</size>)" +
+				divString + "T" + sizeString + "ECHNIQUE" + sizeEnd + "\n" + (shown ? u.characterSheet.characterSheet.abilityScores.getTechnique() + "" : "?") + " (<size=13>MOD:" + (shown ? u.characterSheet.characterSheet.combatScores.getHandling() + "" : "?") + "</size>)" +
+				divString + "W" + sizeString + "ELL-VERSED" + sizeEnd + "\n" + (shown ? u.characterSheet.characterSheet.abilityScores.getWellVersed() + "" : "?") + " (<size=13>MOD:" + (shown ? u.characterSheet.characterSheet.combatScores.getDominion() + "" : "?") + "</size>)";
+
+	}
+
+	public string getHealthText(Unit u) {
+		return u.highestExamine >= seeHealth ? u.getCurrentHealth() + "/" + u.getMaxHealth() : MapTooltip.getHealthCondition(u);
+	}
+
+	public string getComposureText(Unit u) {
+		return u.highestExamine >= seeComposure ? u.getCurrentComposure() + "/" + u.getMaxComposure() : "?/?";
+	}
+
+
     // Trigger everything that needs to happen at the beginning of a turn
     public static void beginTurn(Unit unit) {
         // Update the turn order
@@ -520,14 +641,8 @@ public class BattleGUI : MonoBehaviour  {
         
         previousUnit = unit;
 
-        // Set CharacterInformation panels
-        setAtAGlanceText(unit.getAtAGlanceString());
-        setStatsText(0, unit.getCharacterStatsString1());
-        setStatsText(1, unit.getCharacterStatsString2());
-        setStatsText(2, unit.getCharacterStatsString3());
-        setStatsText(3, unit.getCharacterStatsString4());
-        setCharacterInfoText(unit.getCharacterInfoString());
-        setClassFeatures(unit.getClassFeatureStrings());
+
+		setupUnitGUI(unit);
 //        disableAllButtons();
         
         hideActionArms();
@@ -741,9 +856,54 @@ public class BattleGUI : MonoBehaviour  {
 
 
     // Set the text for the Character Information panel in the upper right corner
+	public static void setupUnitGUI(Unit unit) {
+		setAtAGlanceText(unit.getAtAGlanceString());
+		setStatsText(0, unit.getCharacterStatsString1());
+		setStatsText(1, unit.getCharacterStatsString2());
+		setStatsText(2, unit.getCharacterStatsString3());
+		setStatsText(3, unit.getCharacterStatsString4());
+		setCharacterInfoText(unit.getCharacterInfoString());
+		setClassFeatures(unit.getClassFeatureStrings());
+		setMugshotSpritesAndColors(unit);
+	}
+
 	public static void setAtAGlanceText(string text)  {
 		if (battleGUI==null) return;
 		battleGUI.atAGlanceText.text = text;
+	}
+
+	public static void setMugshotSpritesAndColors(Unit unit) {
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterSex() == CharacterSex.Female) {
+			battleGUI.mugshotSkin.enabled = false;
+			battleGUI.mugshotPrimary.enabled = false;
+			battleGUI.mugshotAccessories.enabled = false;
+			battleGUI.mugshotFemaleSkin.enabled = true;
+			battleGUI.mugshotFemalePrimary.enabled = true;
+			battleGUI.mugshotFemaleAccessories.enabled = true;
+			battleGUI.mugshotFemaleSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
+			battleGUI.mugshotFemalePrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
+		}
+		else {
+			battleGUI.mugshotFemaleSkin.enabled = false;
+			battleGUI.mugshotFemalePrimary.enabled = false;
+			battleGUI.mugshotFemaleAccessories.enabled = false;
+			battleGUI.mugshotSkin.enabled = true;
+			battleGUI.mugshotPrimary.enabled = true;
+			battleGUI.mugshotAccessories.enabled = true;
+			battleGUI.mugshotSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
+			battleGUI.mugshotPrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
+		}
+
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterHairStyle().hairStyle == 0) {
+			battleGUI.mugshotPonyTail.enabled = false;
+			battleGUI.mugshotShortHair.enabled = true;
+			battleGUI.mugshotShortHair.color = unit.characterSheet.characterSheet.characterColors.headColor;
+		}
+		else {
+			battleGUI.mugshotShortHair.enabled = false;
+			battleGUI.mugshotPonyTail.enabled = true;
+			battleGUI.mugshotPonyTail.color = unit.characterSheet.characterSheet.characterColors.headColor;
+		}
 	}
 
 	public static void setStatsText(int statNum, string text)  {

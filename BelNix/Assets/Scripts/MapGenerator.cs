@@ -888,6 +888,7 @@ public class MapGenerator : MonoBehaviour  {
 		foreach (GameObject player in mapPlayers)  {
 			Vector3 pos = player.transform.position;
 			Player p = player.GetComponent<Player>();
+			mapPlayerUnits.Add (p);
 			int x = (int)(pos.x - 0.5f);
 			int y = (int)(pos.y + 0.5f);
 			p.setPosition(new Vector3(x, y, pos.z));
@@ -944,12 +945,13 @@ public class MapGenerator : MonoBehaviour  {
 		createSelectionUnits();
 		setOverlay();
 
-		
+
 		//		StartCoroutine(importGrid());
 //		Debug.Log(b4 + "\n\n" + after);
 //		Debug.Log(after);
 //		priorityOrder = priorityOrder.
 	}
+	public List<Unit> mapPlayerUnits = new List<Unit>();
 
 	public void addItemsToMap()  {
 		if (items == null) return;
@@ -1299,6 +1301,8 @@ public class MapGenerator : MonoBehaviour  {
 
 	public Unit nextPlayer()  {
 		if (gameState != GameState.Playing) return null;
+		if (InventoryGUI.isShown) InventoryGUI.setInventoryShown(false);
+		if (BattleGUI.pauseMenuOpen) BattleGUI.showPauseMenu(false);
 		GameGUI.selectMovementType(MovementType.None);
 		GameGUI.selectStandardType(StandardType.None);
 		GameGUI.selectMinorType(MinorType.None);
@@ -2302,15 +2306,21 @@ public class MapGenerator : MonoBehaviour  {
 			deleteCurrentTrap();
 		}
 		if (Input.GetKeyDown(KeyCode.Escape))  {// && !normalDraggin && !shiftDraggin)  {
-			if (RightClickMenu.shown)  {
+			if (BattleGUI.loadMenuOpen) {
+				BattleGUI.battleGUI.setLoadGameCanvasShown(false);
+			}
+			else if (BattleGUI.pauseMenuOpen) {
+				BattleGUI.showPauseMenu(false);
+			}
+			else if (RightClickMenu.shown)  {
 				RightClickMenu.hideMenu(true);
 			}
 			else if (InventoryGUI.isShown) {//UnitGUI.inventoryOpen)  {
 			//	UnitGUI.clickTab(Tab.B);
 				InventoryGUI.setInventoryShown(false);
 			}
-			else if (RightClickMenu.shown)  {
-				RightClickMenu.hideMenu();
+			else if (BattleGUI.examineShown) {
+				BattleGUI.hideExamine();
 			}
 			else  {
 				if (GameGUI.selectedStandard && (GameGUI.selectedStandardType == StandardType.Lay_Trap || GameGUI.selectedStandardType == StandardType.Place_Turret) && GameGUI.selectedTrapTurret)  {
@@ -2984,7 +2994,7 @@ public class MapGenerator : MonoBehaviour  {
             if (hit)  {
                 GameObject go = hit.collider.gameObject;
                 Unit uu = go.GetComponent<Unit>();
-                if (uu.team == 0)  {
+				if (uu.team == 0 && !mapPlayerUnits.Contains(uu))  {// tiles[(int)uu.position.x,(int)-uu.position.y].startingPoint) {
 			        selectedSelectionObject = go;
                     //				selectedUnit = go.GetComponent<Unit>();
                     //				selectedUnit.setSelected();

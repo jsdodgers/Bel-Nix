@@ -155,6 +155,10 @@ public class RightClickButton : MonoBehaviour  {
 			u.moveUnit = action.actualTile.getCharacter();
 			MapGenerator.mg.resetRanges();
 		}
+		if (action.minorTypes.Contains(MinorType.Examine)) {
+			u.examineUnit(action.actualTile.getCharacter());
+			u.useMinor(MinorType.Examine, false, false);
+		}
 		RightClickMenu.hideMenu(true);
 	}
 }
