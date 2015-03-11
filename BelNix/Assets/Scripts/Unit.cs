@@ -3977,9 +3977,12 @@ public class Unit : MonoBehaviour  {
         if (didHit) {
 			attackEnemy.damage(wapoon, this, animate);
             BloodScript.spillBlood(this, e, wapoon);
-            if (crit) {
-              	 ScreenShaker screenShaker = new ScreenShaker();
-                screenShaker.shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
+			if (crit) {
+				Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
+			}
+			else {
+				//	ScreenShaker screenShaker = new ScreenShaker();
+                Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             } 
         }
 		if (overClockedAttack)  {

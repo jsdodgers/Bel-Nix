@@ -2227,6 +2227,12 @@ public class MapGenerator : MonoBehaviour  {
 			else if (Input.GetKeyDown(KeyCode.D))  {
 				gameMaster = !gameMaster;
 			}
+			else if (Input.GetKeyDown(KeyCode.G)) {
+				getCurrentUnit().useStandard();
+			}
+			else if (Input.GetKeyDown(KeyCode.H)) {
+				getCurrentUnit().useMovement();
+			}
 			else if (Input.GetKeyDown(KeyCode.Alpha9)) {
 				foreach (Unit e in enemies) {
 					e.displayActivatedSprite();

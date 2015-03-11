@@ -19,7 +19,6 @@ public class ActionMarker : MonoBehaviour  {
     public void spark() {
         //GetComponent<Animator>().SetBool("Explode", true);
         sparks = (GameObject) Instantiate(sparkObject);
-        sparks.transform.SetParent(gameObject.transform, false);
         //sparks.transform.localPosition = Vector3.zero;
         //sparks.transform.localEulerAngles = Vector3.zero;
         //sparks.AddComponent<SetRenderQueue>();
@@ -27,7 +26,13 @@ public class ActionMarker : MonoBehaviour  {
         //sparks.GetComponent<Animator>().Play("Action_Marker_On");
         //Invoke("hideMarker", 0.25f);
         //Invoke("stopExploding", 0.51f);
+		Invoke("setParent",0.02f);
     }
+
+	public void setParent() {
+		sparks.transform.SetParent(gameObject.transform, false);
+
+	}
 
     private void hideMarker() {
         GetComponent<Image>().enabled = false;   
