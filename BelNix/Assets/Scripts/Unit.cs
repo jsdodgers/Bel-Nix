@@ -598,7 +598,7 @@ public class Unit : MonoBehaviour  {
 	public StandardType getStandardType(ClassFeature feature)  {
 		switch (feature)  {
 		case ClassFeature.Over_Clock:
-			if (getWeapon() is Medicinal) return StandardType.None;
+			if (getWeapon() is Medicinal || !(getWeapon() is WeaponMechanical) || (getWeapon() is WeaponMechanical && ((WeaponMechanical)getWeapon()).overClocked)) return StandardType.None;
 			return StandardType.OverClock;
 		case ClassFeature.Throw:
 			return StandardType.Throw;
@@ -3996,7 +3996,7 @@ public class Unit : MonoBehaviour  {
 		if (overClockedAttack)  {
 			Debug.Log("Over Clocked Attack!!!");
 			Weapon w = getWeapon();
-			if (w is ItemMechanical)  {
+			if (w is WeaponMechanical)  {
 				((WeaponMechanical)w).overClocked = true;
 			}
 		}

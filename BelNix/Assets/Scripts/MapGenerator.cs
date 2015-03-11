@@ -1385,7 +1385,7 @@ public class MapGenerator : MonoBehaviour  {
 				BattleGUI.setPlayerTurnText(selectedUnit.getName() + "'s Turn!", selectedUnit.team == 0 ? Log.greenColor : Color.red);
 			}
 			activateEnemies(selectedUnit);
-			if (someAIActive()) {
+			if (!someAIActive()) {
 				foreach (Unit u in players) {
 					if (!u.deadOrDyingOrUnconscious()) {
 						u.resetPerEncounters();
