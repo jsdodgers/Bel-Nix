@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 using System.IO;
+using System.Linq;
 using UnityEngine.UI;
 
 [System.Serializable]
@@ -1052,12 +1053,16 @@ public class BaseManager : MonoBehaviour  {
 				baseState = BaseState.None;
 				saveName = oldSaveName;
 			}
+			bool en = GUI.enabled;
+			GUI.enabled = !string.IsNullOrEmpty(saveName);
 			if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Save"))  {
 				Saves.saveAs(saveName);
 				baseState = BaseState.None;
 			}
+			GUI.enabled = en;
 			float textFieldHeight = 25.0f;
 			saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
+			saveName = Path.GetInvalidFileNameChars().Aggregate(saveName, (current, c) => current.Replace(c+"", ""));
 			float savesHeight = 0.0f;
 			GUIStyle st = getSaveButtonsStyle();
 			foreach (string save in saves)  {
