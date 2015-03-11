@@ -81,6 +81,13 @@ public class BaseManager : MonoBehaviour  {
 	[SerializeField]
 	private GameObject baseGUI;
 
+	[Space(20)]
+	[Header("Infirmary")]
+	[SerializeField] private GameObject infirmaryCanvas;
+	[SerializeField] private Text infirmaryText;
+	[SerializeField] private Text infirmaryPurseText;
+	[SerializeField] private Button infirmaryRestButton;
+
 	private BaseState baseState = BaseState.None;
 	Character displayedCharacter = null;
 	Character hoveredCharacter = null;
@@ -232,6 +239,72 @@ public class BaseManager : MonoBehaviour  {
 		InventoryGUI.clearLootItems();
 		InventoryGUI.setLootItems(stash.items, null, stash);
 	}
+
+
+	public int infirmaryCost = 0;
+	public bool infirmaryOpen = false;
+	public void setInfirmaryOpen(bool open) {
+		infirmaryOpen = open;
+		somethingOpen = open;
+		infirmaryCanvas.SetActive(open);
+	}
+
+	public void openInfirmary() {
+		resetInfirmaryText();
+		setInfirmaryOpen(true);
+	}
+
+	public void closeInfirmary() {
+		setInfirmaryOpen(false);
+	}
+
+	public void resetInfirmaryText() {
+		infirmaryCost = perUnitInfirmaryCost * units.Count;
+		bool enabled = stash.canAfford(infirmaryCost);//units[0].characterSheet.inventory.purse.enoughMoney(cost);
+		bool enabled2 = false;
+		foreach (Character c in units)  {
+			CombatScores cs = c.characterSheet.combatScores;
+			if (cs.getCurrentHealth() < cs.getMaxHealth() || cs.getCurrentComposure() < cs.getMaxComposure())  {
+				enabled2 = true;
+				break;
+			}
+		}
+		//	Purse p = units[0].characterSheet.inventory.purse;
+//		GUI.enabled = enabled && enabled2;
+		infirmaryRestButton.interactable = enabled && enabled2;
+		string t = "";
+		if (!enabled2) t = "<b>ALL UNITS ARE FULLY RESTED</b>";
+		else if (!enabled) t = "<b>YOU CANNOT AFFORD TO REST\n\nIT WILL COST " + Purse.moneyString(infirmaryCost) + " TO REST YOUR UNITS</b>";
+		else t = "<b>REST FOR THE DAY\n\nIT WILL COST " + Purse.moneyString(infirmaryCost) + " TO REST YOUR UNITS</b>";
+		infirmaryText.text = t;
+		infirmaryPurseText.text = "<b>PURSE: " + stash.moneyString() + "</b>";
+	}
+
+	public void restUnits() {
+		stash.spendMoney(infirmaryCost);
+		setCanAffordItems();
+		for (int n=0;n<units.Count;n++)  {
+			Character c = units[n];
+			int health = c.characterSheet.combatScores.getCurrentHealth();
+			int maxHealth = c.characterSheet.combatScores.getMaxHealth();
+			bool changed = false;
+			if (health < maxHealth)  {
+				if (health < 0) c.characterSheet.combatScores.addHealth(1);
+				else c.characterSheet.combatScores.setHealth(maxHealth);
+				changed = true;
+			}
+			if (c.characterSheet.combatScores.getCurrentComposure() < c.characterSheet.combatScores.getMaxComposure())  {
+				c.characterSheet.combatScores.setComposure(c.characterSheet.combatScores.getMaxComposure());
+				changed = true;
+			}
+			if (changed)  {
+				c.saveCharacter();
+			}
+		}
+		resetInfirmaryText();
+	}
+
+
 
 	public bool levelUpShown = false;
 	public void setLevelUpShown(bool shown) {
@@ -644,7 +717,8 @@ public class BaseManager : MonoBehaviour  {
 					Application.LoadLevel(1);
 				}
 				else if (hoveredObject.tag=="infirmary")  {
-					baseState = BaseState.Infirmary;
+					openInfirmary();
+//					baseState = BaseState.Infirmary;
 				}
 				else if (hoveredObject.tag=="engineering")  {
 					barracksScrollPos = new Vector2();
@@ -795,8 +869,8 @@ public class BaseManager : MonoBehaviour  {
 			else if (mapShown) {
 				disableMap();
 			}
-			else if (baseState == BaseState.Infirmary) {
-				baseState = BaseState.None;
+			else if (infirmaryOpen) {
+				setInfirmaryOpen(false);
 			}
 			else if (baseState == BaseState.Engineering) {
 				baseState = BaseState.None;
@@ -1341,6 +1415,7 @@ public class BaseManager : MonoBehaviour  {
 		selectItem(characterSheet, null, null);
 	}
 	public void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u)  {
+		return;
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
