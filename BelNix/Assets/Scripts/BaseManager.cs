@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,6 +42,38 @@ public class BaseManager : MonoBehaviour  {
 	public Text blackMarketFundsText;
 	public BlackMarketSection currentSection = null;
 	
+	[Space(20)]
+	[Header("Level Up GUI")]
+	[SerializeField] private GameObject levelUpCanvas;
+	[SerializeField] private GameObject levelUpClassFeaturesContainer;
+	[SerializeField] private GameObject levelUpClassFeatureButtonParent;
+	[SerializeField] private Button[] levelUpClassFeatureButtons;
+	[SerializeField] private Text levelUpClassFeatureHeaderText;
+	[SerializeField] private Text levelUpClassFeatureDescriptionText;
+	[SerializeField] private GameObject levelUpWeaponFocusText;
+	[SerializeField] private GameObject levelUpWeaponFocusButtonParent;
+	[SerializeField] private Button[] levelUpWeaponFocusButtons;
+	[SerializeField] private GameObject levelUpFavoredRaceText;
+	[SerializeField] private GameObject levelUpFavoredRaceButtonParent;
+	[SerializeField] private Button[] levelUpFavoredRaceButtons;
+	[SerializeField] private Button levelUpCancelButton;
+	[SerializeField] private Button levelUpBackButton;
+	[SerializeField] private Button levelUpNextButton;
+	[SerializeField] private Button levelUpFinishedButton;
+	[SerializeField] private GameObject levelUpAbilityScoresContainer;
+	[SerializeField] private Text levelUpAbilityPointsAvailableText;
+	[SerializeField] private Text[] levelUpAbilityScoreTexts;
+	[SerializeField] private Text[] levelUpAbilityModTexts;
+	[SerializeField] private Text healthText;
+	[SerializeField] private Text composureText;
+	[SerializeField] private Button[] levelUpAbilityScoreMinusButtons;
+	[SerializeField] private Button[] levelUpAbilityScorePlusButtons;
+	[SerializeField] private GameObject levelUpSkillScoresContainer;
+	[SerializeField] private Text levelUpSkillPointsAvailableText;
+	[SerializeField] private Text[] levelUpSkillScoreTexts;
+	[SerializeField] private Button[] levelUpSkillScoreMinusButtons;
+	[SerializeField] private Button[] levelUpSkillScorePlusButtons;
+
 	[Space(20)]
 	[SerializeField]
 	private InventoryGUI inventory; 
@@ -99,7 +131,8 @@ public class BaseManager : MonoBehaviour  {
 		currentSection = blackMarket[0];
 	}
 	public void openBlackMarket() {
-		blackMarketCanvas.SetActive(true);
+//		blackMarketCanvas.SetActive(true);
+		setBlackMarketOpen(true);
 		setUpTabs();
 		if (currentSection != null) {
 			openSection(currentSection, currentSell);
@@ -136,7 +169,14 @@ public class BaseManager : MonoBehaviour  {
 		}
 	}
 	public void closeBlackMarket() {
-		blackMarketCanvas.SetActive(false);
+		setBlackMarketOpen(false);
+	}
+	bool blackMarketOpen = false;
+	bool somethingOpen = false;
+	public void setBlackMarketOpen(bool open) {
+		blackMarketCanvas.SetActive(open);
+		blackMarketOpen = open;
+		somethingOpen = open;
 	}
 	bool currentSell = false;
 	public void openSection(BlackMarketSection section, bool sell) {
@@ -192,25 +232,298 @@ public class BaseManager : MonoBehaviour  {
 		InventoryGUI.setLootItems(stash.items, null, stash);
 	}
 
+	public bool levelUpShown = false;
+	public void setLevelUpShown(bool shown) {
+		levelUpShown = shown;
+		levelUpCanvas.SetActive(shown);
+		if (shown) {
+			setLevelUpInformation();
+			setPage(page);
+			setSkillScoresEnabled();
+			setAbilityScoresEnabled();
+			setBottomButtonsEnabled();
+		}
+	}
+	int[] skillScores = new int[8];
+	int[] abilityScores = new int[4];
+	public void beginLevelUp(Character u) {
+		Debug.Log("Begin level up!");
+		levelingUpCharacter = u;
+		abilityScorePointsAvailable = 2;
+		skillPointsAvailable = 1;
+		
+		AbilityScores unitAbilityScores = u.characterSheet.abilityScores;
+		abilityScores = unitAbilityScores.getScoreArray();
+		setAbilityScoresFromArray();
+
+		SkillScores unitSkillScores = u.characterSheet.skillScores;
+		for (int n=0;n<8;n++) skillScores[n] = unitSkillScores.scores[n];
+		setSkillScoresFromArray();
+		
+		selectedFeature = -1;
+		possibleFeatures = u.characterSheet.characterProgress.getCharacterClass().getPossibleFeatures(u.characterSheet.characterProgress.getCharacterLevel()+1);
+		if (possibleFeatures.Length == 1) selectedFeature = 0;
+		page = 0;
+		selectedWeaponFocus = -1;
+		selectedRace = -1;
+		setLevelUpShown(true);
+	}
+	public void setAbilityScoresFromArray() {
+		sturdyScore = abilityScores[0];
+		perceptionScore = abilityScores[1];
+		techniqueScore = abilityScores[2];
+		wellVersedScore = abilityScores[3];
+	}
+	public void setSkillScoresFromArray() {
+		athleticsSkill  = skillScores[0];
+		meleeSkill      = skillScores[1];
+		rangedSkill     = skillScores[2];
+		stealthSkill    = skillScores[3];
+		mechanicalSkill = skillScores[4];
+		medicinalSkill  = skillScores[5];
+		historicalSkill = skillScores[6];
+		politicalSkill  = skillScores[7];
+	}
+
+	public void increaseSkillScore(int score) {
+		skillPointsAvailable--;
+		skillScores[score]++;
+		setSkillScoresFromArray();
+		setLevelUpInformation();
+		setSkillScoresEnabled();
+		setBottomButtonsEnabled();
+	}
+
+	public void decreaseSkillScore(int score) {
+		skillPointsAvailable++;
+		skillScores[score]--;
+		setSkillScoresFromArray();
+		setLevelUpInformation();
+		setSkillScoresEnabled();
+		setBottomButtonsEnabled();
+	}
+
+	public void increaseAbilityScore(int score) {
+		abilityScorePointsAvailable--;
+		abilityScores[score]++;
+		setAbilityScoresFromArray();
+		setLevelUpInformation();
+		setAbilityScoresEnabled();
+		setBottomButtonsEnabled();
+	}
+
+	public void decreaseAbilityScore(int score) {
+		abilityScorePointsAvailable++;
+		abilityScores[score]--;
+		setAbilityScoresFromArray();
+		setLevelUpInformation();
+		setAbilityScoresEnabled();
+		setBottomButtonsEnabled();
+	}
+
+	public int getIndexOfButton(Button[] bs, Button b) {
+		for (int n=0;n<bs.Length;n++) if (bs[n]==b) return n;
+		return -1;
+	}
+
+	Button selectedClassFeatureButton = null;
+	public void selectClassFeature(Button b) {
+		int cf = getIndexOfButton(levelUpClassFeatureButtons, b);
+		if (selectedClassFeatureButton != null) selectedClassFeatureButton.GetComponent<Animator>().SetBool("Selected", false);
+		selectedClassFeatureButton = b;
+		selectedClassFeatureButton.GetComponent<Animator>().SetBool("Selected", true);
+		selectedFeature = cf;
+		setLevelUpInformation();
+		setBottomButtonsEnabled();
+	}
+	
+	Button selectedWeaponFocusButton = null;
+	public void selectWeaponFocus(Button b) {
+		int weaponFocus = getIndexOfButton(levelUpWeaponFocusButtons, b);
+		if (selectedWeaponFocusButton != null) selectedWeaponFocusButton.GetComponent<Animator>().SetBool("Selected", false);
+		selectedClassFeatureButton = (weaponFocus == selectedWeaponFocus ? null : b);
+		if (selectedWeaponFocusButton != null) selectedWeaponFocusButton.GetComponent<Animator>().SetBool("Selected", true);
+		selectedWeaponFocus = (weaponFocus == selectedWeaponFocus ? -1 : weaponFocus);
+		setLevelUpInformation();
+		setBottomButtonsEnabled();
+	}
+	
+	Button selectedFavouredRaceButton = null;
+	public void selectFavouredRace(Button b) {
+		int race = getIndexOfButton(levelUpFavoredRaceButtons, b);
+		if (selectedFavouredRaceButton != null) selectedFavouredRaceButton.GetComponent<Animator>().SetBool("Selected", false);
+		selectedFavouredRaceButton = (race == selectedRace ? null : b);
+		if (selectedFavouredRaceButton != null) selectedFavouredRaceButton.GetComponent<Animator>().SetBool("Selected", true);
+		selectedRace = (race == selectedRace ? -1 : race);
+		setLevelUpInformation();
+		setBottomButtonsEnabled();
+	}
+
+	public void levelUpNextPage() {
+		setPage(++page);
+	}
+
+	public void levelUpPreviousPage() {
+		setPage(--page);
+	}
+
+	public void levelUpFinished() {
+		levelUpCharacter();
+		setLevelUpShown(false);
+	}
+
+	public void levelUpCancel() {
+		setLevelUpShown(false);
+	}
+
+	public void setPage(int p) {
+	//	Debug.Log("Page: " + p);
+		GameObject[] levelUpPages = new GameObject[] {levelUpAbilityScoresContainer, levelUpSkillScoresContainer, levelUpClassFeaturesContainer};
+		for (int n=0;n<levelUpPages.Length;n++) {
+			levelUpPages[n].SetActive(n == p);
+		}
+		setBottomButtonsEnabled();
+		if (p == 2) {
+			if (selectedClassFeatureButton != null) selectedClassFeatureButton.GetComponent<Animator>().SetBool("Selected", true);
+			if (selectedFavouredRaceButton != null) selectedFavouredRaceButton.GetComponent<Animator>().SetBool("Selected", true);
+			if (selectedWeaponFocusButton != null) selectedWeaponFocusButton.GetComponent<Animator>().SetBool("Selected", true);
+		}
+	}
+
+	public void setBottomButtonsEnabled() {
+		levelUpBackButton.interactable = page != 0;
+		levelUpNextButton.interactable = levelUpFinishedButton.interactable = pageFinished();
+		levelUpNextButton.gameObject.SetActive(page != 2);
+		levelUpFinishedButton.gameObject.SetActive(page == 2);
+	}
+	public void setAbilityScoresEnabled() {
+		for (int n=0;n<4;n++) {
+			levelUpAbilityScoreMinusButtons[n].interactable = levelingUpCharacter.characterSheet.abilityScores.getScoreArray()[n] < abilityScores[n];
+			levelUpAbilityScorePlusButtons[n].interactable = abilityScorePointsAvailable > 0;
+		}
+
+	}
+	public void setSkillScoresEnabled() {
+		for (int n=0;n<8;n++) {
+			levelUpSkillScoreMinusButtons[n].interactable = levelingUpCharacter.characterSheet.skillScores.scores[n] < skillScores[n];
+			levelUpSkillScorePlusButtons[n].interactable = skillPointsAvailable > 0;
+		}
+	}
+
+	public bool pageFinished() {
+		return canGoNextPage();
+		switch (page) {
+		default:
+			return true;
+		}
+	}
+
+	public string notChosenHeader() {
+		return "<b>CHOOSE A CLASS FEATURE</b>";
+	}
+
+	public string notChosenDescription() {
+		return "You have gained a level! \nChoose a new class feature by clicking on a button above.";
+	}
+
+	public string getClassFeatureName() {
+		if (possibleFeatures.Length == 0) return "NO CLASS FEATURE LEARNED";
+		if (selectedFeature < 0 || selectedFeature >= possibleFeatures.Length) return notChosenHeader();
+		return "<b>" + ClassFeatures.getName(possibleFeatures[selectedFeature]).ToUpper() + "</b>";
+	}
+	public string getClassFeatureDescription() {
+		if (possibleFeatures.Length == 0) return "";
+		if (selectedFeature < 0 || selectedFeature >= possibleFeatures.Length) return notChosenDescription();
+		return ClassFeatures.getDescription(possibleFeatures[selectedFeature]);
+	}
+
+	public ClassFeature getSelectedClassFeature() {
+		if (possibleFeatures.Length == 0 || selectedFeature < 0 || selectedFeature >= possibleFeatures.Length)
+			return ClassFeature.None;
+		return possibleFeatures[selectedFeature];
+	}
+
+	public void setLevelUpInformation() {
+		levelUpAbilityPointsAvailableText.text = abilityScorePointsAvailable.ToString();
+		levelUpAbilityScoreTexts[0].text = sturdyScore.ToString();
+		levelUpAbilityScoreTexts[1].text = perceptionScore.ToString();
+		levelUpAbilityScoreTexts[2].text = techniqueScore.ToString();
+		levelUpAbilityScoreTexts[3].text = wellVersedScore.ToString();
+		levelUpAbilityModTexts[0].text =calculateMod(sturdyScore).ToString();
+		levelUpAbilityModTexts[1].text =calculateMod(perceptionScore).ToString();
+		levelUpAbilityModTexts[2].text =calculateMod(techniqueScore).ToString();
+		levelUpAbilityModTexts[3].text =calculateMod(wellVersedScore).ToString();
+		healthText.text = (sturdyScore + perceptionScore + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getHealthModifier() + levelingUpCharacter.characterSheet.personalInformation.getCharacterRace().getHealthModifier()).ToString();
+		composureText.text = (techniqueScore + wellVersedScore + levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getComposureModifier() + levelingUpCharacter.characterSheet.personalInformation.getCharacterRace().getComposureModifier()).ToString();
+		int[] mods = levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().getClassModifiers().getSkillModifiers();
+		for (int n=0;n<8;n++) {
+			levelUpSkillScoreTexts[n].text = (calculateMod(abilityScores[n/2]) + skillScores[n] + mods[n]).ToString();
+		}
+		levelUpSkillPointsAvailableText.text = skillPointsAvailable.ToString();
+		levelUpClassFeatureButtonParent.SetActive(possibleFeatures.Length > 1);
+		if (possibleFeatures.Length > 1) {
+			for (int n=0;n<2;n++)	
+				levelUpClassFeatureButtons[n].transform.FindChild("Text").GetComponent<Text>().text = ClassFeatures.getName(possibleFeatures[n]);
+		}
+		levelUpClassFeatureHeaderText.text = getClassFeatureName();
+		levelUpClassFeatureDescriptionText.text = getClassFeatureDescription();
+		levelUpWeaponFocusButtonParent.SetActive(getSelectedClassFeature()==ClassFeature.Weapon_Focus);
+		levelUpWeaponFocusText.SetActive(getSelectedClassFeature()==ClassFeature.Weapon_Focus);
+		levelUpFavoredRaceButtonParent.SetActive(getSelectedClassFeature()==ClassFeature.Favored_Race);
+		levelUpFavoredRaceText.SetActive(getSelectedClassFeature()==ClassFeature.Favored_Race);
+	}
+
+	public void levelUpCharacter() {
+		levelingUpCharacter.characterSheet.skillScores.scores = skillScores;// new int[] {athleticsSkill, meleeSkill, rangedSkill, stealthSkill, mechanicalSkill, medicinalSkill, historicalSkill, politicalSkill}; 
+		levelingUpCharacter.characterSheet.abilityScores.setScores(sturdyScore, perceptionScore, techniqueScore, wellVersedScore);
+		if (possibleFeatures.Length > 1)  {
+			int[] oldFeatures = levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().chosenFeatures;
+			int[] newFeatures = new int[oldFeatures.Length+1];
+			for (int n=0;n<oldFeatures.Length;n++) newFeatures[n] = oldFeatures[n];
+			newFeatures[newFeatures.Length-1] = selectedFeature;
+			levelingUpCharacter.characterSheet.characterProgress.getCharacterClass().chosenFeatures = newFeatures;
+		}
+		//	if (possibleFeatures.Length>=1)  {
+		ClassFeature feature = getSelectedClassFeature();
+		switch (feature)  {
+		case ClassFeature.Weapon_Focus:
+			levelingUpCharacter.characterSheet.characterProgress.setWeaponFocus(selectedWeaponFocus + 1);
+			break;
+		case ClassFeature.Favored_Race:
+			levelingUpCharacter.characterSheet.characterProgress.setFavoredRace(selectedRace + 1);
+			break;
+		default:
+			break;
+		}
+		//	}
+		levelingUpCharacter.characterSheet.characterProgress.incrementLevel();
+		levelingUpCharacter.saveCharacter();
+		BarracksManager.updateCharacterEntry(levelingUpCharacter);
+		levelingUpCharacter = null;
+	}
 
 
 	public bool mapShown = false;
 	public void enableMap() {
 		mapShown = true;
+		somethingOpen = true;
 		map.SetActive(true);
 	}
 	public void disableMap() {
 		mapShown = false;
+		somethingOpen = false;
 		map.SetActive(false);
 	}
 
 	public bool barracksShown = false;
 	public void enableBarracks() {
 		barracksShown = true;
+		somethingOpen = true;
 		barracks.SetActive(true);
 	}
 	public void disableBarracks() {
 		barracksShown = false;
+		somethingOpen = false;
 		barracks.SetActive(false);
 	}
 	public void initializeBarracks(List<Character> characterList) {
@@ -221,23 +534,21 @@ public class BaseManager : MonoBehaviour  {
 
     public bool newClassFeaturesPromptShown = false;
     private BarracksEntry entryWaitingOnFeatureSelection;
-    public void enableNewClassFeaturePrompt(ClassFeature[] newFeatures, BarracksEntry originator)
-    {
-        entryWaitingOnFeatureSelection = originator;
+    public void enableNewClassFeaturePrompt(ClassFeature[] newFeatures, BarracksEntry originator) {
+     /*   entryWaitingOnFeatureSelection = originator;
         newClassFeaturesPromptShown = true;
         newClassFeaturesPrompt.SetActive(true);
         if (newFeatures.Length > 1)
             newClassFeaturesPrompt.GetComponent<NewClassFeature>().format(newFeatures[0], newFeatures[1]);
         else
             newClassFeaturesPrompt.GetComponent<NewClassFeature>().format(newFeatures[0]);
-        Debug.Log(ClassFeatures.getName(newFeatures[0]));
+        Debug.Log(ClassFeatures.getName(newFeatures[0]));*/
     }
 
-    public void disableNewClassFeaturePrompt(ClassFeature selectedFeature, int choiceNumber)
-    {
+    public void disableNewClassFeaturePrompt(ClassFeature selectedFeature, int choiceNumber) {/*
         newClassFeaturesPromptShown = false;
         newClassFeaturesPrompt.SetActive(false);
-        entryWaitingOnFeatureSelection.receiveClassFeatureChoice(selectedFeature, choiceNumber);
+        entryWaitingOnFeatureSelection.receiveClassFeatureChoice(selectedFeature, choiceNumber);*/
     }
 
 
@@ -308,8 +619,8 @@ public class BaseManager : MonoBehaviour  {
 	}
 
 	void handleMouseClick()  {
-        if(EventSystem.current.IsPointerOverGameObject())
-            return;
+      //  if(EventSystem.current.IsPointerOverGameObject())
+        //    return;
         Vector2 mouse = Input.mousePosition;
 		mouse.y = Screen.height - mouse.y;
 		if (Input.GetMouseButtonDown(0))  {
@@ -324,8 +635,8 @@ public class BaseManager : MonoBehaviour  {
 				else if (hoveredObject.tag=="barracks")  {
 					//barracksScrollPos = new Vector2();
 					//displayedCharacter = null;
-					//baseState = BaseState.Barracks;
-                   enableBarracks();
+				//	baseState = BaseState.Barracks;
+                 	enableBarracks();
 				}
 				else if (hoveredObject.tag=="newcharacter")  {
 					PlayerPrefs.SetInt("playercreatefrom", Application.loadedLevel);
@@ -367,7 +678,7 @@ public class BaseManager : MonoBehaviour  {
 				UnitGUI.deselectItem(displayedCharacter);
 			}*/
 		}
-        newClassFeaturesPrompt.SetActive(false);
+//        newClassFeaturesPrompt.SetActive(false);
 	}
 
 	
@@ -398,6 +709,7 @@ public class BaseManager : MonoBehaviour  {
 	bool controlDown = false;
 	bool commandDown = false;
 	Character expChanged = null;
+	public static Character currentHoverCharacter = null;
 	void handleKeys()  {
 		shiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 		altDown = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
@@ -420,25 +732,28 @@ public class BaseManager : MonoBehaviour  {
 			}
 		}
 		if (shiftDown && controlDown && (altDown || commandDown))  {
-			if (displayedCharacter != null)  {
+			if (currentHoverCharacter != null)  {
 				if ((commandDown && Input.GetKey(KeyCode.Minus)) || Input.GetKeyDown(KeyCode.Minus))  {
-					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
-					expChanged = displayedCharacter;
-					displayedCharacter.characterSheet.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterSheet.characterProgress.getCharacterExperience()-100));
-					displayedCharacter.saveCharacter();
+					if (expChanged != null && expChanged != currentHoverCharacter) expChanged.saveCharacter();
+					expChanged = currentHoverCharacter;
+					currentHoverCharacter.characterSheet.characterProgress.setExperience(Mathf.Max(0,currentHoverCharacter.characterSheet.characterProgress.getCharacterExperience()-100));
+					currentHoverCharacter.saveCharacter();
+					BarracksManager.updateCharacterEntry(currentHoverCharacter);
 				}
 				if ((commandDown && Input.GetKey(KeyCode.Equals)) || Input.GetKeyDown(KeyCode.Equals))  {
-					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
-					expChanged = displayedCharacter;
-					displayedCharacter.characterSheet.characterProgress.addExperience(100);
-					displayedCharacter.saveCharacter();
+					if (expChanged != null && expChanged != currentHoverCharacter) expChanged.saveCharacter();
+					expChanged = currentHoverCharacter;
+					currentHoverCharacter.characterSheet.characterProgress.addExperience(100);
+					currentHoverCharacter.saveCharacter();
+					BarracksManager.updateCharacterEntry(currentHoverCharacter);
 				}
 				if ((commandDown && Input.GetKey(KeyCode.Alpha9)) || Input.GetKeyDown(KeyCode.Alpha9))  {
-					if (expChanged != null && expChanged != displayedCharacter) expChanged.saveCharacter();
-					expChanged = displayedCharacter;
+					if (expChanged != null && expChanged != currentHoverCharacter) expChanged.saveCharacter();
+					expChanged = currentHoverCharacter;
 					//displayedCharacter.characterProgress.setExperience(Mathf.Max(0,displayedCharacter.characterProgress.getCharacterExperience()-100));
-					displayedCharacter.characterSheet.characterProgress.setLevel(displayedCharacter.characterSheet.characterProgress.getCharacterLevel()-1);
-					displayedCharacter.saveCharacter();
+					currentHoverCharacter.characterSheet.characterProgress.setLevel(currentHoverCharacter.characterSheet.characterProgress.getCharacterLevel()-1);
+					currentHoverCharacter.saveCharacter();
+					BarracksManager.updateCharacterEntry(currentHoverCharacter);
 				}
 			}
 			if ((commandDown && Input.GetKey (KeyCode.RightBracket)) || Input.GetKeyDown(KeyCode.RightBracket))  {
@@ -462,11 +777,25 @@ public class BaseManager : MonoBehaviour  {
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {
 			if (InventoryGUI.isShown) {
-				InventoryGUI.selectedCharacter.saveCharacter();
 				InventoryGUI.setInventoryShown(false);
+			}
+			else if (levelUpShown) {
+				levelUpCancel();
 			}
 			else if (barracksShown) {
 				disableBarracks();
+			}
+			else if (blackMarketOpen) {
+				setBlackMarketOpen(false);
+			}
+			else if (mapShown) {
+				disableMap();
+			}
+			else if (baseState == BaseState.Infirmary) {
+				baseState = BaseState.None;
+			}
+			else if (baseState == BaseState.Engineering) {
+				baseState = BaseState.None;
 			}
 
 		}
@@ -474,7 +803,7 @@ public class BaseManager : MonoBehaviour  {
 
 	void handleDrag()  {
 		return;
-		var mPos = Input.mousePosition;
+		Vector3 mPos = Input.mousePosition;
 		mPos.z = 10.0f;
 		Vector3 pos1 = Camera.main.ScreenToWorldPoint(mPos);
 		if (((middleDraggin && Input.touchCount == oldTouchCount) || rightDraggin))  {//  && Input.mousePosition.x < Screen.width*(1-boxWidthPerc))  {
@@ -499,11 +828,14 @@ public class BaseManager : MonoBehaviour  {
 	float scale = 1.1f;
 
 	void handleMouseMovement()  {
-        if (hoveredObject != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            hoveredObject.transform.localScale = new Vector3(1, 1, 1);
-            return;
-        }
+		if (EventSystem.current.IsPointerOverGameObject() || somethingOpen) {
+	        if (hoveredObject != null)	{
+				hoveredObject.transform.localScale = new Vector3(1, 1, 1);
+			}
+			tooltip = "";
+			hoveredObject = null;
+			return;
+		}
 
         bool old = hoveredObject==null;
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<13);
@@ -547,7 +879,7 @@ public class BaseManager : MonoBehaviour  {
 	void OnGUI()  {
 		hoveredCharacter = null;
 		if (baseState == BaseState.None)  {
-			if (GUI.Button(new Rect(0, 0, 150, 75), "Save Game"))  {
+			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
 				saves = Saves.getSaveFiles();
 				baseState = BaseState.Save;
 				oldSaveName = saveName;
@@ -557,7 +889,7 @@ public class BaseManager : MonoBehaviour  {
 					savesSt += save + "\n";
 				}
 			}
-			if (GUI.Button(new Rect(Screen.width/4, 0, 150, 75), "Black Market")) {
+			if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
 				openBlackMarket();
 			}
 	//		Vector3 mousePos = Input.mousePosition;
@@ -1005,7 +1337,6 @@ public class BaseManager : MonoBehaviour  {
 		selectItem(characterSheet, null, null);
 	}
 	public void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u)  {
-		Debug.Log("Select Item");
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
@@ -1692,7 +2023,7 @@ public class BaseManager : MonoBehaviour  {
 		}
 		if (page==0) GUI.enabled = false;
 		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x*2 - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), "Back"))  {
-			page--;
+		//	page--;
 		}
 		GUI.enabled = canGoNextPage();
 		if (GUI.Button(new Rect(boxX + backgroundSize.x - otherButtonSize.x - 30.0f, buttonY, otherButtonSize.x, otherButtonSize.y), (page==2?"Finish":"Next")))  {
@@ -1724,7 +2055,7 @@ public class BaseManager : MonoBehaviour  {
 				levelingUpCharacter = null;
 			}
 			else  {
-				page++;
+			//	page++;
 			}
 		}
 	}

@@ -51,7 +51,7 @@ public class BarracksEntry : MonoBehaviour  {
         hidePanel(statsPanel);
         hidePanel(featuresPanel);
         hidePanel(options.panel);
-        hidePanel(pointAllocationPanel);
+     //   hidePanel(pointAllocationPanel);
 	}
 	
 	// Update is called once per frame
@@ -70,66 +70,47 @@ public class BarracksEntry : MonoBehaviour  {
 
     private void assignAtAGlance() {
         //Debug.Log(atAGlance.panel.name);
-        var characterSheet = character.characterSheet;
-        atAGlance.description.text = string.Format(atAGlance.description.text,
-            characterSheet.personalInformation.getCharacterName().fullName(), 
-            characterSheet.characterProgress.getCharacterClass().getClassName().ToString(),
-            characterSheet.personalInformation.getCharacterRace().getRaceString(), 
-            characterSheet.personalInformation.getCharacterBackgroundString());
-        atAGlance.status.text = string.Format(atAGlance.status.text,
-            characterSheet.characterProgress.getCharacterLevel().ToString(),
-            characterSheet.characterProgress.getCharacterExperience(),
-            characterSheet.characterProgress.getCharacterLevel() * 100,
-            characterSheet.combatScores.getCurrentHealth(),
-            characterSheet.combatScores.getMaxHealth(),
-            characterSheet.combatScores.getCurrentComposure(),
-            characterSheet.combatScores.getMaxComposure());
+        CharacterSheet characterSheet = character.characterSheet;
+        atAGlance.description.text = characterSheet.personalInformation.getCharacterName().fullName() + "\n" + characterSheet.characterProgress.getCharacterClass().getClassName().ToString() + "\n" + characterSheet.personalInformation.getCharacterRace().getRaceString() + " " + characterSheet.personalInformation.getCharacterBackgroundString();
+		int level = characterSheet.characterProgress.getCharacterLevel();
+		int exp = characterSheet.characterProgress.getCharacterExperience();
+		int expToLevel = level * 100;
+		atAGlance.status.text = (exp >= expToLevel ? "<size=16><color=green>(Level Up!)</color></size> " : "") + "Level: " + level + "\nExperience: " + exp + " / " + expToLevel + "\nHealth: " + characterSheet.combatScores.getCurrentHealth() + " / " +characterSheet.combatScores.getMaxHealth() + "\nComposure: " + characterSheet.combatScores.getCurrentComposure() + " / " +characterSheet.combatScores.getMaxComposure();
     }
 
     private void assignStats() {
-        var characterStats       = character.characterSheet.abilityScores;
-        var statModifiers        = character.characterSheet.combatScores;
-        var characterSkillScores = character.characterSheet.skillScores;
+        AbilityScores characterStats       = character.characterSheet.abilityScores;
+        CombatScores statModifiers        = character.characterSheet.combatScores;
+        SkillScores characterSkillScores = character.characterSheet.skillScores;
 
-        physique.sturdyAndMod.text = string.Format(physique.sturdyAndMod.text,
-            characterStats.getSturdy(),
-            statModifiers.getSturdyMod());
-        physique.athleticsAndMelee.text = string.Format(physique.athleticsAndMelee.text,
-            characterSkillScores.getScore(Skill.Athletics),
-            characterSkillScores.getScore(Skill.Melee));
+		physique.sturdyAndMod.text = "Sturdy: " + characterStats.getSturdy() + "\nMod: " + statModifiers.getSturdyMod();
+//            characterStats.getSturdy(),
+  //          statModifiers.getSturdyMod());
+        physique.athleticsAndMelee.text = "Athletics: " + characterSkillScores.getScore(Skill.Athletics) + "\nMelee: " + characterSkillScores.getScore(Skill.Melee);
 
-        prowess.perceptionAndMod.text = string.Format(prowess.perceptionAndMod.text,
-            characterStats.getPerception(),
-            statModifiers.getPerceptionMod());
-        prowess.rangedAndStealth.text = string.Format(prowess.rangedAndStealth.text,
-            characterSkillScores.getScore(Skill.Ranged),
-            characterSkillScores.getScore(Skill.Stealth));
+        prowess.perceptionAndMod.text = "Perception: " + characterStats.getPerception() + "\nMod: " + statModifiers.getPerceptionMod();
+        prowess.rangedAndStealth.text = "Ranged: " + characterSkillScores.getScore(Skill.Ranged) + "\nStealth: " + characterSkillScores.getScore(Skill.Stealth);
 
-        mastery.techniqueAndMod.text = string.Format(mastery.techniqueAndMod.text,
-            characterStats.getTechnique(),
-            statModifiers.getTechniqueMod());
-        mastery.mechanicalAndMedicinal.text = string.Format(mastery.mechanicalAndMedicinal.text,
-            characterSkillScores.getScore(Skill.Mechanical),
-            characterSkillScores.getScore(Skill.Medicinal));
+        mastery.techniqueAndMod.text = "Technique: " + characterStats.getTechnique() + "\nMod: " + statModifiers.getTechniqueMod();
+        mastery.mechanicalAndMedicinal.text = "Mechanical: " + characterSkillScores.getScore(Skill.Mechanical) + "\nMedicinal: " + characterSkillScores.getScore(Skill.Medicinal);
 
-        knowledge.wellVersedAndMod.text = string.Format(knowledge.wellVersedAndMod.text,
-            characterStats.getWellVersed(),
-            statModifiers.getWellVersedMod());
-        knowledge.historicalAndPolitical.text = string.Format(knowledge.historicalAndPolitical.text,
-            characterSkillScores.getScore(Skill.Historical),
-            characterSkillScores.getScore(Skill.Political));
+        knowledge.wellVersedAndMod.text = "Well-Versed: " + characterStats.getWellVersed() + "\nMod: " + statModifiers.getWellVersedMod();
+        knowledge.historicalAndPolitical.text = "Historical: " + characterSkillScores.getScore(Skill.Historical) + "\nPolitical: " + characterSkillScores.getScore(Skill.Political);
     }
     private void assignClassFeatures() {
-        var characterProgress = character.characterSheet.characterProgress;
+        CharacterProgress characterProgress = character.characterSheet.characterProgress;
         int characterLevel = characterProgress.getCharacterLevel();
-        ClassFeature[] features = characterProgress.getCharacterClass().getPossibleFeatures(characterLevel);
+   //     ClassFeature[] features = characterProgress.getCharacterClass().getPossibleFeatures(characterLevel);
+		ClassFeature[] features = characterProgress.getClassFeatures();
         GameObject featureList = featuresPanel.transform.FindChild("Panel - Feature List").gameObject;
         GameObject exampleText = featureList.transform.GetChild(0).gameObject;
-        foreach (var feature in features) {
+		for (int n=featureList.transform.childCount-1;n>0;n--) GameObject.Destroy(featureList.transform.GetChild(n).gameObject);
+        foreach (ClassFeature feature in features) {
             GameObject newText = (GameObject)Instantiate(exampleText);
-            newText.transform.SetParent(featureList.transform);
+            newText.transform.SetParent(featureList.transform, false);
             newText.GetComponent<Text>().text = ClassFeatures.getName(feature);
         }
+//		exampleText.SetActive(false);
         Destroy(exampleText);
     }
     private void assignInventory() {
@@ -152,7 +133,7 @@ public class BarracksEntry : MonoBehaviour  {
         };
         featuresPanel = this.gameObject.transform.FindChild("Panel - Class Features").gameObject;
         statsPanel = this.gameObject.transform.FindChild("Panel - Character Stats").gameObject;
-        pointAllocationPanel = this.gameObject.transform.FindChild("Panel - Ability Scores").gameObject;
+//        pointAllocationPanel = this.gameObject.transform.FindChild("Panel - Ability Scores").gameObject;
         Transform physiquePanel = statsPanel.transform.FindChild("Panel - Physique Stats");
         physique = new Physique() {
             panel = physiquePanel.gameObject,
@@ -184,6 +165,14 @@ public class BarracksEntry : MonoBehaviour  {
 		if (character.characterSheet.characterProgress.canLevelUp())
 			options.levelUp.interactable = true;
 	}
+	public void showLevelUp() {
+		GameObject basee = (GameObject)GameObject.Find("Base");
+		if (basee != null) {
+			BaseManager bm = basee.GetComponent<BaseManager>();
+//			bm.setInventory(character);
+			bm.beginLevelUp(character);
+		}
+	}
 
 	public void toggleInventory() {
 		if (InventoryGUI.isShown)
@@ -206,15 +195,16 @@ public class BarracksEntry : MonoBehaviour  {
         if (panel == statsPanel)
         {
             hidePanel(featuresPanel);
-            hidePanel(pointAllocationPanel);
+         //   hidePanel(pointAllocationPanel);
         }
         if (panel == featuresPanel)
         {
             hidePanel(statsPanel);
-            hidePanel(pointAllocationPanel);
+       //     hidePanel(pointAllocationPanel);
         }
-        if (panel == pointAllocationPanel)
+       if (panel == pointAllocationPanel)
         {
+			return;
             hidePanel(featuresPanel);
             hidePanel(statsPanel);
         }
@@ -229,7 +219,7 @@ public class BarracksEntry : MonoBehaviour  {
     }
     public void onStopHovering()
     {
-        if (statsPanel.activeSelf || featuresPanel.activeSelf || pointAllocationPanel.activeSelf)
+        if (statsPanel.activeSelf || featuresPanel.activeSelf)// || pointAllocationPanel.activeSelf)
             return;
         else
         {
@@ -240,6 +230,7 @@ public class BarracksEntry : MonoBehaviour  {
     private LevelUpContainer levelUp;
     public void submitLevelUp()
     {
+		return;
         int[] abilityScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getScores();
         int[] skillScores = pointAllocationPanel.GetComponent<BasePointAllocation>().getSkills();
         levelUp = new LevelUpContainer(){newAbilityScores=abilityScores, newSkillScores=skillScores};
@@ -279,6 +270,7 @@ public class BarracksEntry : MonoBehaviour  {
 
     public void tryEnablingClassFeatureButton(BasePointAllocation pointAllocator)
     {
+		return;
         if (pointAllocator.finishedAssigningPoints())
             confirmLevelUpButton.interactable = true;
         else
