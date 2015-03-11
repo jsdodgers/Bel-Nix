@@ -3572,7 +3572,9 @@ public class Unit : MonoBehaviour  {
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			attackEnemy.activateAITo(this);
-			if (didHit)  {
+			if (didHit)  {	
+				BattleGUI.writeToConsole(getName() + " damaged " + attackEnemy.getName() + "'s composure with Intimidate for " + wapoon + " damage!", (team==0 ? Log.greenColor : Color.red));
+
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
 					primalControlUnit = attackEnemy;
 					intimidated = true;
@@ -3590,6 +3592,7 @@ public class Unit : MonoBehaviour  {
 				attackEnemy.setRotationToCharacter(this);
 			}
 			else  {
+				BattleGUI.writeToConsole(getName() + " missed " + attackEnemy.getName() + " with Invoke!", Color.gray);//(team==0 ? Log.greenColor : Color.red));
 				resetIntimidate();
 			}
 		}
@@ -3619,6 +3622,8 @@ public class Unit : MonoBehaviour  {
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			attackEnemy.activateAITo(this);
 			if (didHit)  {
+				BattleGUI.writeToConsole(getName() + " damaged " + attackEnemy.getName() + "'s composure with Invoke for " + wapoon + " damage!", (team==0 ? Log.greenColor : Color.red));
+
 				attackEnemy.setRotationToCharacter(this);
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
 					primalControlUnit = attackEnemy;
@@ -3637,6 +3642,8 @@ public class Unit : MonoBehaviour  {
 			}	
 			else  {
 				resetInvoke();
+				BattleGUI.writeToConsole(getName() + " missed " + attackEnemy.getName() + " with Invoke!", Color.gray);//(team==0 ? Log.greenColor : Color.red));
+
 			}
 		}
 	}
@@ -3941,6 +3948,10 @@ public class Unit : MonoBehaviour  {
 			if (med.numberOfUses <= 0)  {
 				characterSheet.characterSheet.characterLoadout.removeItemFromSlot(InventorySlot.RightHand);
 			}
+			BattleGUI.writeToConsole(getName() + " healed " + attackEnemy.getName() + " with "  + getWeapon().itemName + " for " + gained + " health!", (team==0 ? Log.greenColor : Color.red));
+		}
+		else {
+			BattleGUI.writeToConsole(getName() + " missed " + attackEnemy.getName() + " with " + getWeapon().itemName + "!" , Color.gray);//(team==0 ? Log.greenColor : Color.red));
 		}
 		attackEnemy.showHitpoints(gained, kitHit);
 		healAnimating = false;
