@@ -7,10 +7,10 @@ public class TurretUnit : MechanicalUnit  {
 	public Direction direction;
 	public Unit owner;
 	public bool isOn = true;
+    //private AudioClip turretFire;
 
 	// Use this for initialization
 	void Start ()  {
-	
 	}
 	
 	// Update is called once per frame
@@ -212,12 +212,24 @@ public class TurretUnit : MechanicalUnit  {
 		return fireOnTile(t.getTile(direction), distLeft-1);
 	}
 
+    //private float oldVolume;
 	public void fire()  {
 		Debug.Log("Turret Fire");
 		Debug.Log(turret.hasUsesLeft() + " " + turret.turnsLeft() + "  " + turret.maxTurns());
+        //AudioSource source = GetComponent<AudioSource>();
+        ////source.clip = turretFire;
+        //oldVolume = source.volume;
+        //source.volume = 0.4f;
+        //Invoke("resetAudio", 0.6f);
 		if (!isOn || !turret.hasUsesLeft()) return;
+        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("turret-shoot", 0.2f);
 		fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5);
 		turret.use();
 	}
-
+    /*
+    private void resetAudio()
+    {
+        //GetComponent<AudioSource>().volume = oldVolume;
+    }
+    */
 }

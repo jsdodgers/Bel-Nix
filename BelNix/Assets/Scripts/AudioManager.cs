@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class AudioManager : MonoBehaviour  {
 	public GameObject phazingMusic;
@@ -8,7 +9,10 @@ public class AudioManager : MonoBehaviour  {
 	AudioSource cMusic;
 	Animator anim;
 	CleanMusicLoop cml;
-
+    Dictionary<string, AudioClip> clipList;
+    GameObject SFXContainer;
+    AudioSource SFXPlayer;
+    
 	[SerializeField] private float transitionTime;
 	// Use this for initialization
 	void Start ()  {
@@ -20,7 +24,35 @@ public class AudioManager : MonoBehaviour  {
 		if (constantMusic != null)  {
 			cMusic = constantMusic.GetComponent<AudioSource>();
 		}
+        clipList = new Dictionary<string, AudioClip>();
+        SFXContainer = new GameObject("SFX Player", typeof(AudioSource));
+        SFXContainer.transform.SetParent(transform);
+        SFXPlayer = SFXContainer.GetComponent<AudioSource>();
+        SFXPlayer.playOnAwake = false;
+        loadSFX();
 	}
+
+    private void loadSFX()
+    {
+        for (int i = 0; i < 4; i++)
+            importAudioClip("footstep" + i, "footstep" + i);
+        importAudioClip("turret-shoot", "turret-shoot");
+        importAudioClip("zap", "zapv1");
+    }
+    public void importAudioClip(string key, string filename)
+    {
+        clipList.Add(key, Resources.Load<AudioClip>("Audio/SFX/" + filename));
+    }
+
+    public void playAudioClip(string clipName, float volume)
+    {
+        AudioClip clip;
+        clipList.TryGetValue(clipName, out clip);
+        if (clip != null)
+            SFXPlayer.clip = clip;
+        SFXPlayer.volume = volume;
+        SFXPlayer.Play();
+    }
 
 	public void invokeFadeInMusic()  {
 		if(phazingMusic != null)  {
