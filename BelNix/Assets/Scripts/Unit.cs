@@ -290,18 +290,6 @@ public class Unit : MonoBehaviour  {
 		}
 		return false;
 	}
-	/*
-	public void setGUIToThis()  {
-		BattleGUI.setAtAGlanceText(getAtAGlanceString());
-		BattleGUI.setStatsText(0,getCharacterStatsString1());
-		BattleGUI.setStatsText(1,getCharacterStatsString2());
-		BattleGUI.setStatsText(2,getCharacterStatsString3());
-		BattleGUI.setStatsText(3,getCharacterStatsString4());
-		BattleGUI.setCharacterInfoText(getCharacterInfoString());
-		BattleGUI.setClassFeatures(getClassFeatureStrings());
-		BattleGUI.disableAllButtons();
-		BattleGUI.enableButtons(getMinorTypes(), getMovementTypes(), getStandardTypes());
-	}*/
 	
 	public string[] getClassFeatureStrings()  {
 		
@@ -1453,7 +1441,7 @@ public class Unit : MonoBehaviour  {
 				enemyDist = closestUnitDist(true);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
 				Debug.Log(enemy.getName() + "  " + enemyDist);
 			}
-			if (!usedMovement)  {
+			if (!usedMovement && enemy != null)  {
 				if (isProne())  {
 					recover();
 					return;
@@ -1498,7 +1486,7 @@ public class Unit : MonoBehaviour  {
 			}
 			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
 			//	usedStandard = true;
-			if (!usedStandard)  {
+			if (!usedStandard && enemy!=null)  {
 				if (enemyDist <= 1.0f)  {
 					usedStandard = true;
 					attackEnemy = enemy;
@@ -1790,7 +1778,7 @@ public class Unit : MonoBehaviour  {
 			//	List<Unit> throwUnits = new List<Unit>();
 				foreach (KnownUnit ku in knownEnemies)  {
 					float dist = distanceFromUnit(ku.knownUnit, true);
-					if (dist <= 1.1f && !ku.knownUnit.isProne() && !ku.knownUnit.deadOrDyingOrUnconscious() && ku.knownUnit.team != team)  {
+					if (dist <= 1.1f && !ku.knownUnit.isProne() && !ku.knownUnit.deadOrDyingOrUnconscious() && ku.knownUnit.team != team && !(ku.knownUnit is TurretUnit))  {
 			//			throwUnits.Add(ku.knownUnit);
 						aiThrow(ku.knownUnit);
 						return;
@@ -1817,7 +1805,7 @@ public class Unit : MonoBehaviour  {
 		}
 		if (!usedStandard)  {
 			float attack = 1.0f;
-			if (hasClassFeature(ClassFeature.Intimidate) && enemy != null && enemy.getCurrentComposure() > 0)  {
+			if (hasClassFeature(ClassFeature.Intimidate) && enemy != null && enemy.getCurrentComposure() > 0 && !(enemy is TurretUnit))  {
 				attack  = Random.Range(0.0f,1.0f);
 			}
 			if (attack < attackComposureOrHealth && hasClassFeature(ClassFeature.Intimidate) && closestDist <= 1.1f)  {
@@ -4058,7 +4046,7 @@ public class Unit : MonoBehaviour  {
 	}
 
 	public void activateAITo(Unit u) {
-		if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit))  {
+		if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit) && !(u is TrapUnit) && !(this is TrapUnit))  {
 			addKnownUnit(u);
 			if (!aiActive) setActive(true);
 			mapGenerator.activateNearbyEnemies(this);
