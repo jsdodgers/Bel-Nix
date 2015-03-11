@@ -293,15 +293,21 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 		if (insertSlot == InventorySlot.None)  {
-			if (currentLootTile != null)
+			if (currentLootTile != null) {
 				currentLootTile.addItem(i);
-			else if (currentStash != null)
+				selectedItem.transform.SetParent(lootContent, false);
+				selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
+				selectedItem.GetComponent<LayoutElement>().ignoreLayout = false;
+				selectedItem.GetComponent<CanvasGroup>().blocksRaycasts = true;
+				selectedItem.transform.FindChild("Overlay").gameObject.SetActive(true);
+			}
+			else if (currentStash != null) {
+				addLootItem(i, 1);
+				foreach (Item s in i.stack) addLootItem(s);
 				currentStash.addItem(i);
-			selectedItem.transform.SetParent(lootContent, false);
-			selectedItem.GetComponent<InventoryItem>().slot = insertSlot;
-			selectedItem.GetComponent<LayoutElement>().ignoreLayout = false;
-			selectedItem.GetComponent<CanvasGroup>().blocksRaycasts = true;
-			selectedItem.transform.FindChild("Overlay").gameObject.SetActive(true);
+				GameObject.Destroy(selectedItem);
+			}
+
 		}
 		selectedItem = null;
 		List<Image> hoveredCopy = new List<Image>(overlayObjects);
@@ -475,43 +481,49 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 		}
 		foreach (Item i in items)  {
-			if (i.inventoryTexture != null)  {
-				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
-				invP.name = "InventoryItem";
-				invP.GetComponent<Image>().sprite = i.inventoryTexture;
-				Vector2 size = i.getSize() * 32.0f;
-				invP.GetComponent<RectTransform>().sizeDelta = size;
-				invP.transform.SetParent(lootContent.transform, false);
-				/*Vector2 v = 32.0f * Inventory.getSlotForIndex(iis.index);
+			addLootItem(i);
+		}
+	}
+
+	public void addLootItem(Item i, int stackSize = -1) {
+		
+		if (i.inventoryTexture != null)  {
+			GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
+			invP.name = "InventoryItem";
+			invP.GetComponent<Image>().sprite = i.inventoryTexture;
+			Vector2 size = i.getSize() * 32.0f;
+			invP.GetComponent<RectTransform>().sizeDelta = size;
+			invP.transform.SetParent(lootContent.transform, false);
+			/*Vector2 v = 32.0f * Inventory.getSlotForIndex(iis.index);
 				v.y *= -1;
 				invP.GetComponent<RectTransform>().anchoredPosition = v;*/
-				invP.GetComponent<InventoryItem>().item = i;
-				invP.GetComponent<InventoryItem>().slot = InventorySlot.None;
-				invP.transform.FindChild("Overlay").gameObject.SetActive(true);
-				invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
-				LayoutElement loe = invP.GetComponent<LayoutElement>();
-				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
-				cg.blocksRaycasts = true;
-				loe.ignoreLayout = false;
-				loe.preferredHeight = size.y;
-				loe.preferredWidth = size.x;
-				if (i is Armor)  {
-					switch (((Armor)i).armorType)  {
-					case ArmorType.Head:
-					case ArmorType.Chest:
-					case ArmorType.Shoulder:
-						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
-						break;
-					case ArmorType.Gloves:
-					case ArmorType.Pants:
-						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
-						break;
-					default:
-						break;
-					}
+			invP.GetComponent<InventoryItem>().item = i;
+			invP.GetComponent<InventoryItem>().slot = InventorySlot.None;
+			invP.transform.FindChild("Overlay").gameObject.SetActive(true);
+			if (stackSize == -1) stackSize = i.stackSize();
+			invP.transform.FindChild("Text").GetComponent<Text>().text = (stackSize > 1 ? stackSize + "" : "");
+			LayoutElement loe = invP.GetComponent<LayoutElement>();
+			CanvasGroup cg = invP.GetComponent<CanvasGroup>();
+			cg.blocksRaycasts = true;
+			loe.ignoreLayout = false;
+			loe.preferredHeight = size.y;
+			loe.preferredWidth = size.x;
+			if (i is Armor)  {
+				switch (((Armor)i).armorType)  {
+				case ArmorType.Head:
+				case ArmorType.Chest:
+				case ArmorType.Shoulder:
+					invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
+					break;
+				case ArmorType.Gloves:
+				case ArmorType.Pants:
+					invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
+					break;
+				default:
+					break;
 				}
-				Invoke("setLootScrollBar", 0.05f);
 			}
+			Invoke("setLootScrollBar", 0.05f);
 		}
 	}
 
