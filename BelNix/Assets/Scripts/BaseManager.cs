@@ -972,7 +972,7 @@ public class BaseManager : MonoBehaviour  {
 	void OnGUI()  {
 		hoveredCharacter = null;
 		if (baseState == BaseState.None)  {
-			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
+			/*if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
 				saves = Saves.getSaveFiles();
 				baseState = BaseState.Save;
 				oldSaveName = saveName;
@@ -981,7 +981,7 @@ public class BaseManager : MonoBehaviour  {
 				foreach (string save in saves)  {
 					savesSt += save + "\n";
 				}
-			}
+			}*/
 			/*if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
 				openBlackMarket();
 			}*/
