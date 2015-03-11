@@ -201,6 +201,9 @@ public class MapGenerator : MonoBehaviour  {
 	public Tile currentKeysTile;
 	public int currentKeysSize;
 
+	public GameObject helpCanvas = null;
+	public GameObject helpButton = null;
+
 	public AudioManager aManager;
 
 	public void resetCanSee(bool[,] old, bool resetTo = false)  {
@@ -2321,6 +2324,10 @@ public class MapGenerator : MonoBehaviour  {
 			}
 			else if (RightClickMenu.shown)  {
 				RightClickMenu.hideMenu(true);
+			}
+			else if (helpCanvas.activeSelf) {
+				helpCanvas.SetActive(false);
+				helpButton.SetActive(true);
 			}
 			else if (InventoryGUI.isShown) {//UnitGUI.inventoryOpen)  {
 			//	UnitGUI.clickTab(Tab.B);
