@@ -77,6 +77,7 @@ public class BaseManager : MonoBehaviour  {
 	[Space(20)]
 	[SerializeField]
 	private InventoryGUI inventory; 
+	[SerializeField] private GameObject helpPanel;
 	[SerializeField]
 	private GameObject baseGUI;
 
@@ -776,7 +777,10 @@ public class BaseManager : MonoBehaviour  {
 			}
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {
-			if (InventoryGUI.isShown) {
+			if (helpPanel.activeSelf) {
+				helpPanel.SetActive(false);
+			}
+			else if (InventoryGUI.isShown) {
 				InventoryGUI.setInventoryShown(false);
 			}
 			else if (levelUpShown) {

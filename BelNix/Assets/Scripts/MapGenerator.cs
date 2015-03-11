@@ -2345,7 +2345,8 @@ public class MapGenerator : MonoBehaviour  {
 		//		}
 				else  {
 		//			deselectAllUnits();
-					openEscapeMenu();
+					BattleGUI.showPauseMenu(true);
+			//		openEscapeMenu();
 				}
 			}
 //			else UnitGUI.openTab = Tab.None;
