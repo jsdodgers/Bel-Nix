@@ -10,6 +10,22 @@ public class ActionBars : MonoBehaviour  {
     [SerializeField] private float cursorBubbleRadius = 100.0f;
     private bool hidden = true;
 
+    public void delayedRetractActionArm(string armType, float delay)
+    {
+        StartCoroutine(retractActionArm(armType, delay));
+    }
+    private IEnumerator retractActionArm(string armType, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        foreach (GameObject actionArm in actionArms)
+        {
+            if (actionArm.name.Contains(armType))
+            {
+                actionArm.GetComponent<Animator>().SetBool("Hidden", true);
+            }
+        }
+    }
+
     private void updateBubbleCursor() {
         // Get the cursor position
         Vector2 cursorPos = Input.mousePosition;

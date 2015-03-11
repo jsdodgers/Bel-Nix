@@ -290,18 +290,6 @@ public class Unit : MonoBehaviour  {
 		}
 		return false;
 	}
-	/*
-	public void setGUIToThis()  {
-		BattleGUI.setAtAGlanceText(getAtAGlanceString());
-		BattleGUI.setStatsText(0,getCharacterStatsString1());
-		BattleGUI.setStatsText(1,getCharacterStatsString2());
-		BattleGUI.setStatsText(2,getCharacterStatsString3());
-		BattleGUI.setStatsText(3,getCharacterStatsString4());
-		BattleGUI.setCharacterInfoText(getCharacterInfoString());
-		BattleGUI.setClassFeatures(getClassFeatureStrings());
-		BattleGUI.disableAllButtons();
-		BattleGUI.enableButtons(getMinorTypes(), getMovementTypes(), getStandardTypes());
-	}*/
 	
 	public string[] getClassFeatureStrings()  {
 		
@@ -987,7 +975,7 @@ public class Unit : MonoBehaviour  {
 	public void useMinor(MinorType usedMinor, bool changeAnyway = true, bool changeAtAll = true)  {
 		minorsLeft--;
 		Debug.Log("Minors Used: " + minorsLeft);
-		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
+		//if (minorsLeft <= 0) BattleGUI.hideMinorArm();
 
         if (minorsLeft <= 0)
             onFinalMinor(usedMinor);
@@ -1001,24 +989,42 @@ public class Unit : MonoBehaviour  {
         
         
 	}
-	
+
+    public delegate void StandardEventHandler(Object source, StandardEventArgs args);
+    public event StandardEventHandler standardUsed;
+    protected void onStandardUsed()
+    {
+        if (standardUsed != null)
+            standardUsed(this, new StandardEventArgs() {unit=this});
+    }
+
 	public void useStandard()  {
 		usedStandard = true;
+        onStandardUsed();
 		if (GameGUI.selectedStandard && !isPerformingAnAction())  {
 			chooseNextBestActionType();
 		}
-		BattleGUI.hideStandardArm();
+		//BattleGUI.hideStandardArm();
 		if (oneOfManyMode == OneOfManyMode.Hidden) loseOneOfMany();
 	}
+
+    public delegate void MovementEventHandler(Object source, MovementEventArgs args);
+    public event MovementEventHandler movementUsed;
+    protected void onMovementUsed()
+    {
+        if (movementUsed != null)
+            movementUsed(this, new MovementEventArgs() {unit = this});
+    }
 	
 	public void useMovement()  {
 		usedMovement = true;
+        onMovementUsed();
 		currentMoveDist = 0;
 		moveDistLeft = 0;
 		if (GameGUI.selectedMovement && !isPerformingAnAction())  {
 			chooseNextBestActionType();
 		}
-		BattleGUI.hideMovementArm();
+		//BattleGUI.hideMovementArm();
 		if (oneOfManyMode == OneOfManyMode.Hidden) loseOneOfMany();
 	}
 	
@@ -1453,7 +1459,11 @@ public class Unit : MonoBehaviour  {
 				enemyDist = closestUnitDist(true);//, (getWeapon().isRanged ? VisibilityMode.Ranged : VisibilityMode.Melee));
 				Debug.Log(enemy.getName() + "  " + enemyDist);
 			}
-			if (!usedMovement)  {
+			if (!usedMovement && enemy != null)  {
+				if (isProne())  {
+					recover();
+					return;
+				}
 				if (enemyDist > 1)  {
 					currentMoveDist = 5;
 					List<Unit> units = new List<Unit>();
@@ -1494,7 +1504,7 @@ public class Unit : MonoBehaviour  {
 			}
 			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
 			//	usedStandard = true;
-			if (!usedStandard)  {
+			if (!usedStandard && enemy!=null)  {
 				if (enemyDist <= 1.0f)  {
 					usedStandard = true;
 					attackEnemy = enemy;
@@ -1505,7 +1515,7 @@ public class Unit : MonoBehaviour  {
 				}
 			}
 			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
-			if ((usedStandard || enemyDist > 1.0f) && (usedMovement || enemyDist <= 1.0f))  {
+		//	if ((usedStandard || enemyDist > 1.0f) && (usedMovement || enemyDist <= 1.0f))  {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0)  {
 					inPrimal = false;
@@ -1514,7 +1524,7 @@ public class Unit : MonoBehaviour  {
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
 				mapGenerator.nextPlayer();
-			}
+		//	}
 		}
 		else if (ps == PrimalState.Passive)  {
 			primalTurnsLeft--;
@@ -1590,8 +1600,10 @@ public class Unit : MonoBehaviour  {
 				mapGenerator.setPlayerPath(currentPath);
 				startMoving(false);
 				usedMovement = true;
+				return;
 			}
-			else  {
+		}
+		//	else  {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0)  {
 					inPrimal = false;
@@ -1600,8 +1612,8 @@ public class Unit : MonoBehaviour  {
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
 				mapGenerator.nextPlayer();
-			}
-		}
+		//	}
+	//	}
 	}
 	
 	public VisibilityMode attackVisibilityMode()  {
@@ -1784,7 +1796,7 @@ public class Unit : MonoBehaviour  {
 			//	List<Unit> throwUnits = new List<Unit>();
 				foreach (KnownUnit ku in knownEnemies)  {
 					float dist = distanceFromUnit(ku.knownUnit, true);
-					if (dist <= 1.1f && !ku.knownUnit.isProne() && !ku.knownUnit.deadOrDyingOrUnconscious() && ku.knownUnit.team != team)  {
+					if (dist <= 1.1f && !ku.knownUnit.isProne() && !ku.knownUnit.deadOrDyingOrUnconscious() && ku.knownUnit.team != team && !(ku.knownUnit is TurretUnit))  {
 			//			throwUnits.Add(ku.knownUnit);
 						aiThrow(ku.knownUnit);
 						return;
@@ -1811,7 +1823,7 @@ public class Unit : MonoBehaviour  {
 		}
 		if (!usedStandard)  {
 			float attack = 1.0f;
-			if (hasClassFeature(ClassFeature.Intimidate) && enemy != null && enemy.getCurrentComposure() > 0)  {
+			if (hasClassFeature(ClassFeature.Intimidate) && enemy != null && enemy.getCurrentComposure() > 0 && !(enemy is TurretUnit))  {
 				attack  = Random.Range(0.0f,1.0f);
 			}
 			if (attack < attackComposureOrHealth && hasClassFeature(ClassFeature.Intimidate) && closestDist <= 1.1f)  {
@@ -3557,7 +3569,12 @@ public class Unit : MonoBehaviour  {
 					primalControlUnit = attackEnemy;
 					intimidated = true;
 					invoked = false;
-					BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					if (team == 0) {
+						BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					}
+					else {
+						setPrimalControl(1);
+					}
 				}
 				else  {
 					resetIntimidate();
@@ -3599,7 +3616,12 @@ public class Unit : MonoBehaviour  {
 					primalControlUnit = attackEnemy;
 					invoked = true;
 					intimidated = false;
-					BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					if (team == 0) {
+						BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					}
+					else {
+						setPrimalControl(1);
+					}
 				}
 				else  {
 					resetInvoke();
@@ -3955,9 +3977,12 @@ public class Unit : MonoBehaviour  {
         if (didHit) {
 			attackEnemy.damage(wapoon, this, animate);
             BloodScript.spillBlood(this, e, wapoon);
-            if (crit) {
-              	 ScreenShaker screenShaker = new ScreenShaker();
-                screenShaker.shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
+			if (crit) {
+				Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
+			}
+			else {
+				//	ScreenShaker screenShaker = new ScreenShaker();
+                Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             } 
         }
 		if (overClockedAttack)  {
@@ -4052,7 +4077,7 @@ public class Unit : MonoBehaviour  {
 	}
 
 	public void activateAITo(Unit u) {
-		if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit))  {
+		if (!playerControlled && !isAwareOf(u) && !(this is TurretUnit) && !(u is TrapUnit) && !(this is TrapUnit))  {
 			addKnownUnit(u);
 			if (!aiActive) setActive(true);
 			mapGenerator.activateNearbyEnemies(this);
@@ -4165,4 +4190,15 @@ public class Unit : MonoBehaviour  {
 public class MinorEventArgs : System.EventArgs {
     public Unit unit;
     public MinorType minorType;
+}
+
+public class StandardEventArgs : System.EventArgs
+{
+    public Unit unit;
+    //public StandardType standardType;
+}
+
+public class MovementEventArgs : System.EventArgs
+{
+    public Unit unit;
 }

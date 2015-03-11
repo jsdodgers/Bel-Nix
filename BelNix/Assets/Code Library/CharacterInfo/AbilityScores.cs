@@ -17,6 +17,7 @@ public class AbilityScores {
 	public int getPerception(int additional = 0)		 {return perception + additional;}
 	public int getTechnique()		 {return technique;}
 	public int getWellVersed()		 {return well_versed;}
+	public int[] getScoreArray() 	{return new int[] {sturdy, perception, technique, well_versed};}
 }
 
 

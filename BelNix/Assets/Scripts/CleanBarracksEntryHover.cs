@@ -18,11 +18,15 @@ public class CleanBarracksEntryHover : MonoBehaviour, IPointerEnterHandler, IPoi
 
     public void OnPointerEnter(PointerEventData e)
     {
-        entry.GetComponent<BarracksEntry>().showPanel(options);
+		BarracksEntry be = entry.GetComponent<BarracksEntry>();
+		BaseManager.currentHoverCharacter = be.character;
+        be.showPanel(options);
     }
 
     public void OnPointerExit(PointerEventData e)
     {
-        entry.GetComponent<BarracksEntry>().onStopHovering();
+		BarracksEntry be = entry.GetComponent<BarracksEntry>();
+		BaseManager.currentHoverCharacter = null;
+		be.onStopHovering();
     }
 }

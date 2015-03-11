@@ -95,7 +95,7 @@ public class CCPointAllocation : AbstractPointAllocation  {
 	}
     */
 
-    protected override void extraOnClickLogic()
+    public override void extraOnClickLogic()
     {
     }
 
