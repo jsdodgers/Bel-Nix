@@ -44,7 +44,7 @@ public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Thr
 public enum ActionType  {None, Movement, Standard, Minor}
 public enum MinorType  {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None, TurretOn, TurretOff}
 public enum Affliction  {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
-public enum InventorySlot  {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
+public enum InventorySlot  {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, TrapFrame, TrapApplicator, TrapGear, Trigger, EnergySource, None, Trap, Turret, TurretFrame, TurretApplicator, TurretGear, TurretGear2, None2}
 public enum OneOfManyMode  {Hidden = 0, Hit, Damage, AC, Movement, None};
 public class Unit : MonoBehaviour  {
 	[SerializeField] private EditorItem[] droppedItemsEditor = new EditorItem[]  {};

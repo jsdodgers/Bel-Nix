@@ -383,7 +383,7 @@ public class Character {
 		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
 			Item i = characterSheet.characterLoadout.getItemInSlot(slot);
 			if (i != null)  {
-				if (characterSheet.personalInformation.getCharacterName().firstName == "v") Debug.Log("GUI Slot: " + slot + "  " + (i is Weapon) + "   " + (i is Medicinal));
+//				if (characterSheet.personalInformation.getCharacterName().firstName == "v") Debug.Log("GUI Slot: " + slot + "  " + (i is Weapon) + "   " + (i is Medicinal));
 				inventorySize++;
 				inventoryString += getArmorSlotIndex(slot) + delimiter;
 				inventoryString += (int)i.getItemCode() + delimiter;

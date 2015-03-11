@@ -52,6 +52,16 @@ public class InventoryGUI : MonoBehaviour  {
 	[SerializeField] private GameObject inventoryLeftHand;
 	[SerializeField] private GameObject inventoryLegs;
 	[SerializeField] private GameObject inventoryBoots;
+	[SerializeField] private GameObject turretFrame;
+	[SerializeField] private GameObject turretApplicator;
+	[SerializeField] private GameObject turretGear;
+	[SerializeField] private GameObject turretEnergySource;
+	[SerializeField] private GameObject turretInventory;
+	[SerializeField] private GameObject trapFrame;
+	[SerializeField] private GameObject trapApplicator;
+	[SerializeField] private GameObject trapGear;
+	[SerializeField] private GameObject trapTrigger;
+	[SerializeField] private GameObject trapInventory;
 	[SerializeField] private Text inventoryAC;
 	[SerializeField] private Transform lootContent;
 	[SerializeField] private GameObject lootOverlay;
@@ -77,6 +87,7 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	void setACText()  {
+		if (inventoryAC == null) return;
 		if (selectedCharacter == null && selectedUnit == null) return;
 		inventoryAC.text = "AC: " + (selectedUnit != null ? selectedUnit.getAC() :selectedCharacter.characterSheet.characterLoadout.getAC());
 	}
@@ -97,11 +108,15 @@ public class InventoryGUI : MonoBehaviour  {
 		}
 		CharacterSheet cs = selectedCharacter.characterSheet;
 		Item i = selectedItem.GetComponent<InventoryItem>().item;
-		InventorySlot insertSlot = originalSlot;
+		InventorySlot insertSlot = (originalSlot == InventorySlot.Trap || originalSlot == InventorySlot.Turret ? InventorySlot.None : originalSlot);
 		if (overlayObjects.Count > 0)  {
 			InventorySlot sl = overlayObjects[0].GetComponent<InventoryItem>().slot;
 			if (sl == InventorySlot.None)  {
 				insertSlot = sl;
+			}
+			else if (BaseManager.trapTurretInventorySlots.Contains(sl)) {
+				if (baseManager.canInsertItem(i, sl))
+					insertSlot = sl;
 			}
 			else if (UnitGUI.armorSlots.Contains(sl))  {
 				if (cs.characterLoadout.canInsertItemInSlot(sl, i, originalSlot))  {
@@ -186,6 +201,71 @@ public class InventoryGUI : MonoBehaviour  {
 			}
 			
 		}
+		else if (BaseManager.trapTurretInventorySlots.Contains(insertSlot) && !(i is Turret) && !(i is Trap))  {
+			Debug.Log("Trap Turret");
+			Item i2 = baseManager.getTrapTurretInSlot(insertSlot);
+			GameObject oldItem = null;
+			if (i2 != null)  {
+				oldItem = getArmourParent(insertSlot).transform.FindChild("InventoryItem").gameObject;
+			}
+			baseManager.setItemInSlot(insertSlot, i);
+//			cs.characterLoadout.setItemInSlot(insertSlot,i);
+			Vector2 size = i.getSize() * 32.0f;
+			GameObject armourParent = getArmourParent(insertSlot);
+			selectedItem.transform.SetParent(armourParent.transform, false);
+			Vector2 v = new Vector2();
+			v.x = 32.0f - size.x/2.0f;
+			if (size.y >= 64.0f)  {
+				v.y = -64.0f + size.y;
+			}
+			else v.y = -32.0f + size.y/2.0f;
+			selectedItem.GetComponent<RectTransform>().anchoredPosition = v;
+			selectedItem.GetComponent<InventoryItem>().slot = originalSlot;
+			GameObject canv = armourParent.transform.FindChild("Canvas").gameObject;//.FindChild("Overlay");
+			RectTransform rt = canv.GetComponent<RectTransform>();
+			rt.anchoredPosition = v;
+			rt.sizeDelta = size;
+			i = i2;
+			if (i != null)  {
+				selectedItem = oldItem;
+				InventorySlot sl = originalSlot;
+				Vector2 vSlot = UnitGUI.getIndexOfSlot(sl);
+				//	vSlot -= selectedCell;
+				sl = UnitGUI.getInventorySlotFromIndex(vSlot);
+				int iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
+				Debug.Log("Drop has item: " + sl + "  " + vSlot + "   " + iSlot + "  " + selectedCell);
+				Item inSlot = (iSlot <0 || iSlot >= 16 ? null : cs.inventory.inventory[iSlot].getItem());
+				if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)))  {
+					insertSlot = sl;
+				}
+				else  {
+					foreach (InventorySlot sl2 in UnitGUI.inventorySlots)  {
+						sl = sl2;
+						vSlot = UnitGUI.getIndexOfSlot(sl);
+						iSlot = UnitGUI.getLinearIndexFromIndex(vSlot);
+						inSlot = cs.inventory.inventory[iSlot].getItem();
+						if (cs.inventory.canInsertItemInSlot(i, vSlot) || (inSlot != null && cs.inventory.itemCanStackWith(inSlot, i)))  {
+							insertSlot = sl;
+							break;
+						}
+						
+					}
+				}
+				Debug.Log("Drop has item2: " + insertSlot + "  " + vSlot + "   " + iSlot + "  " + selectedCell);
+				selectedCell = new Vector2(0,0);
+			}
+			if (!(baseManager.turretFrame == null || baseManager.turretApplicator == null || baseManager.turretGear == null || baseManager.energySource == null)) createTurret();
+			if (!(baseManager.trapFrame == null || baseManager.trapApplicator == null || baseManager.trapGear == null || baseManager.trigger == null)) createTrap();
+
+			if (selectedUnit != null) {
+				selectedUnit.idleAnimation(false);
+				selectedUnit.Invoke("beginIdle",0.05f);
+			}
+			
+		}
+		else {
+			Debug.Log("Insert Slot: " + insertSlot + "  Original: " + originalSlot);
+		}
 		if (UnitGUI.inventorySlots.Contains(insertSlot))  {
 			if (cs.inventory.canInsertItemInSlot(i, UnitGUI.getIndexOfSlot(insertSlot)))  {
 				cs.inventory.insertItemInSlot(i, UnitGUI.getIndexOfSlot(insertSlot));
@@ -229,7 +309,7 @@ public class InventoryGUI : MonoBehaviour  {
 			mouseHoverLeave(im);
 			mouseHoverEnter(im);
 		}
-		setACText();
+		if (inventoryHead != null) setACText();
 		setLootInteractable(true);
 		if (selectedUnit != null) {
 			if (at == ActionType.Minor) selectedUnit.useMinor(MinorType.Loot, false, false);
@@ -256,13 +336,13 @@ public class InventoryGUI : MonoBehaviour  {
 	public static void selectItem()  {
 		inventoryGUI.selectItem((inventoryGUI.overlayObjects.Count > 0 ? inventoryGUI.overlayObjects[0] : null));
 	}
-
 	StandardType[] beforeItemStandards = null;
 	public void selectItem(Image overlayObject)  {
 		beforeItemStandards = (selectedUnit != null ? selectedUnit.getStandardTypes() : new StandardType[0]);
 		InventoryItem ii = overlayObject.GetComponent<InventoryItem>();
 		InventorySlot sl = ii.slot;
 		Item i = null;
+		Debug.Log(sl + ": " + overlayObjects.Count);
 		if (sl == InventorySlot.None)  {
 			Debug.Log(overlayObjects.Count);
 			InventoryItem iii = overlayObject.transform.parent.GetComponent<InventoryItem>();
@@ -290,6 +370,24 @@ public class InventoryGUI : MonoBehaviour  {
 			ItemReturn i2 = selectedCharacter.characterSheet.inventory.removeItemFromSlot(sl);
 			i = i2.item;
 			originalSlot = UnitGUI.getInventorySlotFromIndex(UnitGUI.getIndexOfSlot(sl) - i2.slot);
+		}
+		else if (BaseManager.trapTurretInventorySlots.Contains(sl)) {
+			i = baseManager.removeTrapTurretInSlot(sl);// selectedCharacter.characterSheet.characterLoadout.removeItemFromSlot(sl);
+			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().sizeDelta= new Vector2(64.0f, 64.0f);
+			getArmourParent(sl).transform.FindChild("Canvas").GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 0.0f);
+			originalSlot = sl;
+			if (baseManager.turretFrame == null || baseManager.turretApplicator == null || baseManager.turretGear == null || baseManager.energySource == null) removeTurret();
+			if (baseManager.trapFrame == null || baseManager.trapApplicator == null || baseManager.trapGear == null || baseManager.trigger == null) removeTrap();
+			if (sl == InventorySlot.Turret) {
+			//	originalSlot = InventorySlot.None;
+				removeTurretSupplies();
+			//	hideLoot = false;
+			}
+			else if (sl == InventorySlot.Trap) {
+			//	originalSlot = InventorySlot.None;
+				removeTrapSupplies();
+			//	hideLoot = false;
+			}
 		}
 		if (i == null) return;
 		GameObject[] items = GameObject.FindGameObjectsWithTag("inventoryitem");
@@ -338,9 +436,10 @@ public class InventoryGUI : MonoBehaviour  {
 	}
 	
 	public void clearLoot()  {
-		
-		lootMoneyText.gameObject.SetActive(false);
-		lootMoneyButton.gameObject.SetActive(false);
+		if (lootMoneyText != null) {
+			lootMoneyText.gameObject.SetActive(false);
+			lootMoneyButton.gameObject.SetActive(false);
+		}
 		for (int n = lootContent.childCount-1;n>=0;n--)  {
 			GameObject.Destroy(lootContent.GetChild(n).gameObject);
 		}
@@ -365,7 +464,7 @@ public class InventoryGUI : MonoBehaviour  {
 	public void setLoot(List<Item> items, Tile t, Stash s = null)  {
 		currentLootTile = t;
 		currentStash = s;
-		if (currentStash != null) {
+		if (currentStash != null && moneyText != null) {
 			moneyText.text = currentStash.moneyString().ToUpper();
 		}
 		else if (t != null) {
@@ -428,23 +527,28 @@ public class InventoryGUI : MonoBehaviour  {
 		lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value = lootContent.parent.GetComponent<ScrollRect>().verticalScrollbar.value+.0001f;
 	}
 
-	public static void setupInvent(Character cs) {
-		inventoryGUI.setupInventory(null, cs);
+	public static void setupInvent(Character cs, BaseManager bm = null) {
+		inventoryGUI.setupInventory(null, cs, bm);
 	}
 
 	public static void setupInvent(Unit u)  {
 		inventoryGUI.setupInventory(u, null);
 	}
 
-	
-	public void setupInventory(Unit u, Character cs)  {
-		lootMoneyText.gameObject.SetActive(false);
-		lootMoneyButton.gameObject.SetActive(false);
+	BaseManager baseManager = null;
+	public void setupInventory(Unit u, Character cs, BaseManager bm = null)  {
+		baseManager = bm;
+		if (lootMoneyText != null) {
+			lootMoneyText.gameObject.SetActive(false);
+			lootMoneyButton.gameObject.SetActive(false);
+		}
 		selectedUnit = u;
 		selectedCharacter = cs;
 		if (cs == null && u != null) selectedCharacter = u.characterSheet;
 	
-		GameObject[] inventoryParents = new GameObject[]  {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots};
+		GameObject[] inventoryParents = (inventoryHead != null ? 
+		                                 new GameObject[]  {inventorySlots, inventoryHead, inventoryShoulders, inventoryChest, inventoryGloves, inventoryRightHand, inventoryLeftHand, inventoryLegs, inventoryBoots} :
+		new GameObject[] {inventorySlots, turretFrame, turretApplicator, turretGear, turretEnergySource, turretInventory, trapFrame, trapApplicator, trapGear, trapTrigger, trapInventory});
 		/*		GameObject[] oldInventory = GameObject.FindGameObjectsWithTag("inventoryitem");
 		for (int n = oldInventory.Length-1;n >= 0; n--)  {
 			Debug.Log("Destroy " + n);
@@ -497,68 +601,78 @@ public class InventoryGUI : MonoBehaviour  {
 				}
 			}
 		}
-		foreach (InventorySlot slot in UnitGUI.armorSlots)  {
-			Item i = selectedCharacter.characterSheet.characterLoadout.getItemInSlot(slot);
-			//	foreach (InventorySlot sl in UnitGUI.armorSlots)
+		if (inventoryHead != null) {
+			foreach (InventorySlot slot in UnitGUI.armorSlots)  {
+				Item i = selectedCharacter.characterSheet.characterLoadout.getItemInSlot(slot);
+				//	foreach (InventorySlot sl in UnitGUI.armorSlots)
 
-			if (i != null && i.inventoryTexture != null)  {
-				GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
-				invP.name = "InventoryItem";
-				invP.GetComponent<Image>().sprite = i.inventoryTexture;
-				Vector2 size = i.getSize() * 32.0f;
-				invP.GetComponent<RectTransform>().sizeDelta = size;
-				invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
-				GameObject armourParent = getArmourParent(slot);
-				invP.transform.SetParent(armourParent.transform, false);
-				Vector2 v = new Vector2();
-				v.x = 32.0f - size.x/2.0f;
-				if (size.y >= 64.0f)  {
-					v.y = -64.0f + size.y;
+				if (i != null && i.inventoryTexture != null)  {
+					GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
+					invP.name = "InventoryItem";
+					invP.GetComponent<Image>().sprite = i.inventoryTexture;
+					Vector2 size = i.getSize() * 32.0f;
+					invP.GetComponent<RectTransform>().sizeDelta = size;
+					invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
+					GameObject armourParent = getArmourParent(slot);
+					invP.transform.SetParent(armourParent.transform, false);
+					Vector2 v = new Vector2();
+					v.x = 32.0f - size.x/2.0f;
+					if (size.y >= 64.0f)  {
+						v.y = -64.0f + size.y;
+					}
+					else v.y = -32.0f + size.y/2.0f;
+					invP.GetComponent<RectTransform>().anchoredPosition = v;
+					invP.GetComponent<InventoryItem>().item = i;
+					invP.GetComponent<InventoryItem>().slot = slot;
+					LayoutElement loe = invP.GetComponent<LayoutElement>();
+					CanvasGroup cg = invP.GetComponent<CanvasGroup>();
+					cg.blocksRaycasts = false;
+					loe.ignoreLayout = true;
+					loe.preferredHeight = size.y;
+					loe.preferredWidth = size.x;
+					GameObject canv = armourParent.transform.FindChild("Canvas").gameObject;//.FindChild("Overlay");
+					RectTransform rt = canv.GetComponent<RectTransform>();
+					rt.anchoredPosition = v;
+					rt.sizeDelta = size;
+					if (i is Armor)  {
+						switch (((Armor)i).armorType)  {
+						case ArmorType.Head:
+						case ArmorType.Chest:
+						case ArmorType.Shoulder:
+							invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
+							break;
+						case ArmorType.Gloves:
+						case ArmorType.Pants:
+							invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
+							break;
+							//	case ArmorType.Boots:
+							//		invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
+							//		break;
+						default:
+							break;
+						}
+					}
 				}
-				else v.y = -32.0f + size.y/2.0f;
-				invP.GetComponent<RectTransform>().anchoredPosition = v;
-				invP.GetComponent<InventoryItem>().item = i;
-				invP.GetComponent<InventoryItem>().slot = slot;
-				LayoutElement loe = invP.GetComponent<LayoutElement>();
-				CanvasGroup cg = invP.GetComponent<CanvasGroup>();
-				cg.blocksRaycasts = false;
-				loe.ignoreLayout = true;
-				loe.preferredHeight = size.y;
-				loe.preferredWidth = size.x;
-				GameObject canv = armourParent.transform.FindChild("Canvas").gameObject;//.FindChild("Overlay");
-				RectTransform rt = canv.GetComponent<RectTransform>();
-				rt.anchoredPosition = v;
-				rt.sizeDelta = size;
-				if (i is Armor)  {
-					switch (((Armor)i).armorType)  {
-					case ArmorType.Head:
-					case ArmorType.Chest:
-					case ArmorType.Shoulder:
-						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.primaryColor;
-						break;
-					case ArmorType.Gloves:
-					case ArmorType.Pants:
-						invP.GetComponent<Image>().color = selectedCharacter.characterSheet.characterColors.secondaryColor;
-						break;
-						//	case ArmorType.Boots:
-						//		invP.GetComponent<Image>().color = new Color(.7f,.7f,.2f);
-						//		break;
-					default:
-						break;
+				else {
+					Transform amr = getArmourParent(slot).transform;
+					Transform can = amr.FindChild("Canvas");
+					if (can) {
+						RectTransform rrt = can.GetComponent<RectTransform>();
+						rrt.sizeDelta= new Vector2(64.0f, 64.0f);
+						rrt.anchoredPosition = new Vector2(0.0f, 0.0f);
 					}
 				}
 			}
-			else {
-				Transform amr = getArmourParent(slot).transform;
-				Transform can = amr.FindChild("Canvas");
-				if (can) {
-					RectTransform rrt = can.GetComponent<RectTransform>();
-					rrt.sizeDelta= new Vector2(64.0f, 64.0f);
-					rrt.anchoredPosition = new Vector2(0.0f, 0.0f);
-				}
+			setACText();
+		}
+		else if (baseManager != null) {
+			foreach (InventorySlot slot in BaseManager.trapTurretInventorySlots)  {
+				Item i = baseManager.getTrapTurretInSlot(slot);
+				//	foreach (InventorySlot sl in UnitGUI.armorSlots)
+				
+				addTrapTurret(i, slot);
 			}
 		}
-		setACText();
 	}
 	public GameObject getArmourParent(InventorySlot slot)  {
 		switch (slot)  {
@@ -578,6 +692,27 @@ public class InventoryGUI : MonoBehaviour  {
 			return inventoryLegs;
 		case InventorySlot.Boots:
 			return inventoryBoots;
+		case InventorySlot.TurretFrame:
+			return turretFrame;
+		case InventorySlot.TurretApplicator:
+			return turretApplicator;
+		case InventorySlot.TurretGear2:
+			return turretGear;
+		case InventorySlot.EnergySource:
+			return turretEnergySource;
+		case InventorySlot.TrapFrame:
+			return trapFrame;
+		case InventorySlot.TrapApplicator:
+			return trapApplicator;
+		case InventorySlot.TrapGear:
+			return trapGear;
+		case InventorySlot.Trigger:
+			return trapTrigger;
+		case InventorySlot.Turret:
+			return turretInventory;
+		case InventorySlot.Trap:
+			return trapInventory;
+
 		default:
 			return inventorySlots;
 		}
@@ -608,6 +743,7 @@ public class InventoryGUI : MonoBehaviour  {
 		Color c = goodColor;
 		//	c.a = 103.0f/255.0f;
 		InventorySlot slot = overlayObject.GetComponent<InventoryItem>().slot;
+		Debug.Log(slot);
 		List<Image> otherImages = new List<Image>();
 		if (selectedItem == null)  {
 			if (UnitGUI.inventorySlots.Contains(slot))  {
@@ -632,6 +768,7 @@ public class InventoryGUI : MonoBehaviour  {
 		else  {
 			Item i = selectedItem.GetComponent<InventoryItem>().item;
 			ActionType at = Inventory.getActionTypeForMovement(slot, originalSlot);
+			Debug.Log(i.itemName);
 			if (UnitGUI.inventorySlots.Contains(slot))  {
 				Vector2 currentHighlightSlot = UnitGUI.getIndexOfSlot(slot);
 				Vector2 originSlot = currentHighlightSlot - selectedCell;
@@ -665,8 +802,16 @@ public class InventoryGUI : MonoBehaviour  {
 					c = badColor;
 				}
 			}
+			else if (BaseManager.trapTurretInventorySlots.Contains(slot)) {
+				if (!baseManager.canInsertItem(i, slot) || (i is Turret) || (i is Trap)) {
+					c = badColor;
+				}
+			}
 			else if (!canUseActionType(at))  {
 				c = badColor;
+			}
+			else {
+			//	c = badColor;
 			}
 		}
 		if (!overlayObjectList.ContainsKey(overlayObject))
@@ -674,6 +819,103 @@ public class InventoryGUI : MonoBehaviour  {
 		overlayObject.color = c;
 		
 		if (!overlayObjects.Contains(overlayObject)) overlayObjects.Add(overlayObject);
+	}
+
+	public void createTrap() {
+		Trap t = new Trap(selectedCharacter.characterId, baseManager.trapFrame, baseManager.trapApplicator, baseManager.trapGear, baseManager.trigger);
+		baseManager.setItemInSlot(InventorySlot.Trap, t);
+		addTrapTurret(t, InventorySlot.Trap);
+	}
+
+	public void createTurret() {
+		Turret t = new Turret(selectedCharacter.characterId, baseManager.turretFrame, baseManager.turretApplicator, baseManager.turretGear, baseManager.energySource);
+		baseManager.setItemInSlot(InventorySlot.Turret, t);
+		addTrapTurret(t, InventorySlot.Turret);
+	}
+
+	public void removeTrapSupplies() {
+		InventorySlot[] slots = new InventorySlot[] {InventorySlot.TrapFrame, InventorySlot.TrapGear, InventorySlot.TrapApplicator, InventorySlot.Trigger};
+		foreach (InventorySlot sl in slots) {
+			removeItem(sl);
+		}
+	}
+
+	public void removeTurretSupplies() {
+		
+		InventorySlot[] slots = new InventorySlot[] {InventorySlot.TurretFrame, InventorySlot.TurretGear2, InventorySlot.TurretApplicator, InventorySlot.EnergySource};
+		foreach (InventorySlot sl in slots) {
+			removeItem(sl);
+		}
+	}
+
+	public void removeTrap() {
+		removeItem(InventorySlot.Trap);
+	}
+
+	public void removeTurret() {
+		removeItem(InventorySlot.Turret);
+	}
+
+	public void removeItem(InventorySlot slot) {
+		Debug.Log(slot);
+		GameObject armourParent = getArmourParent(slot);
+		//GameObject go = 
+		Transform t = armourParent.transform;
+		Transform t2 = t.FindChild("InventoryItem");
+		if (t2 == null) return;
+		GameObject go = t2.gameObject;
+		if (go != null) {
+			GameObject.Destroy(go);
+		}
+		Transform can = t.FindChild("Canvas");
+		if (can) {
+			RectTransform rrt = can.GetComponent<RectTransform>();
+			rrt.sizeDelta= new Vector2(64.0f, 64.0f);
+			rrt.anchoredPosition = new Vector2(0.0f, 0.0f);
+		}
+		baseManager.removeTrapTurretInSlot(slot);
+	}
+
+	public void addTrapTurret(Item i, InventorySlot slot) {
+		if (i != null && i.inventoryTexture != null)  {
+			GameObject invP = GameObject.Instantiate(inventoryItemPrefab) as GameObject;
+			invP.name = "InventoryItem";
+			invP.GetComponent<Image>().sprite = i.inventoryTexture;
+			Vector2 size = i.getSize() * 32.0f;
+			invP.GetComponent<RectTransform>().sizeDelta = size;
+			invP.transform.FindChild("Text").GetComponent<Text>().text = (i.stackSize() > 1 ? i.stackSize() + "" : "");
+			GameObject armourParent = getArmourParent(slot);
+			invP.transform.SetParent(armourParent.transform, false);
+			Vector2 v = new Vector2();
+			v.x = 32.0f - size.x/2.0f;
+			if (size.y >= 64.0f)  {
+				v.y = -64.0f + size.y;
+			}
+			else v.y = -32.0f + size.y/2.0f;
+			invP.GetComponent<RectTransform>().anchoredPosition = v;
+			invP.GetComponent<InventoryItem>().item = i;
+			invP.GetComponent<InventoryItem>().slot = slot;
+			LayoutElement loe = invP.GetComponent<LayoutElement>();
+			CanvasGroup cg = invP.GetComponent<CanvasGroup>();
+			cg.blocksRaycasts = false;
+			loe.ignoreLayout = true;
+			loe.preferredHeight = size.y;
+			loe.preferredWidth = size.x;
+			GameObject canv = armourParent.transform.FindChild("Canvas").gameObject;//.FindChild("Overlay");
+			RectTransform rt = canv.GetComponent<RectTransform>();
+			rt.anchoredPosition = v;
+			rt.sizeDelta = size;
+			
+		}
+		else {
+			Transform amr = getArmourParent(slot).transform;
+			Transform can = amr.FindChild("Canvas");
+			if (can) {
+				RectTransform rrt = can.GetComponent<RectTransform>();
+				rrt.sizeDelta= new Vector2(64.0f, 64.0f);
+				rrt.anchoredPosition = new Vector2(0.0f, 0.0f);
+			}
+		}
 	}
 	
 	public bool canUseActionType(ActionType at)  {

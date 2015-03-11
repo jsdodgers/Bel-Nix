@@ -198,7 +198,7 @@ public class UnitGUI  {
 	
 	public static InventorySlot[] armorSlots = new InventorySlot[] {InventorySlot.Head,InventorySlot.Shoulder,InventorySlot.Back,InventorySlot.Chest,InventorySlot.Glove,InventorySlot.RightHand,InventorySlot.LeftHand,InventorySlot.Pants,InventorySlot.Boots};
 	public static InventorySlot[] inventorySlots = new InventorySlot[] {InventorySlot.Zero, InventorySlot.One,InventorySlot.Two,InventorySlot.Three,InventorySlot.Four,InventorySlot.Five,InventorySlot.Six,InventorySlot.Seven,InventorySlot.Eight,InventorySlot.Nine,InventorySlot.Ten,InventorySlot.Eleven, InventorySlot.Twelve, InventorySlot.Thirteen, InventorySlot.Fourteen, InventorySlot.Fifteen};
-	public static InventorySlot[] trapTurretSlots = new InventorySlot[] {InventorySlot.Frame, InventorySlot.Applicator, InventorySlot.Gear, InventorySlot.TriggerEnergySource};
+	public static InventorySlot[] trapTurretSlots = new InventorySlot[] {};//InventorySlot.Frame, InventorySlot.Applicator, InventorySlot.Gear, InventorySlot.TriggerEnergySource};
 	public static InventorySlot  getInventorySlotFromIndex(Vector2 index)  {
 		//		if (index.x <0 || index.y < 0 || index.x >3 || index.y >3) return InventorySlot.None;
 		//		int ind = (int)index.x + ((int)index.y)*4;
