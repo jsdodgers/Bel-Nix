@@ -103,6 +103,14 @@ public class BaseManager : MonoBehaviour  {
 	[SerializeField] private Sprite borderedBackground;
 	[SerializeField] private InventoryGUI workBenchGUI;
 
+	[Space(20)]
+	[Header("Save Game")]
+	[SerializeField] private GameObject savesCanvas;
+	[SerializeField] private GameObject savesPrefab;
+	[SerializeField] private InputField savesTextField;
+	[SerializeField] private Scrollbar savesScrollBar;
+	[SerializeField] private Transform savesScrollContainer;
+
 	string saveName = "";
 	string[] saves;
 //	bool saving = false;
@@ -311,6 +319,66 @@ public class BaseManager : MonoBehaviour  {
 		resetInfirmaryText();
 	}
 
+	public bool savesOpen = false;
+	public void setSavesOpen(bool open) {
+		savesOpen = open;
+		somethingOpen = open;
+		if (open) populateSaves();
+		savesCanvas.SetActive(open);
+	}
+
+	public void cancelSaves() {
+		saveName = oldSaveName;
+		setSavesOpen(false);
+	}
+
+	public void saveGame() {
+		Saves.saveAs(saveName);
+		setSavesOpen(false);
+	}
+	
+	public void populateSaves() {
+		saves = Saves.getSaveFiles();
+		oldSaveName = saveName;
+		for (int n=savesScrollContainer.childCount-1;n>=0;n--) {
+			GameObject.Destroy(savesScrollContainer.GetChild(n).gameObject);
+		}
+		foreach (string s in saves) {
+			GameObject save = GameObject.Instantiate(savesPrefab) as GameObject;
+			SaveButton sb = save.GetComponent<SaveButton>();
+			sb.baseManager = this;
+			Text t = save.transform.FindChild("Text").GetComponent<Text>();
+			t.text = s;
+			save.transform.SetParent(savesScrollContainer, false);
+		}
+		Invoke("setSaveScroll",0.03f);
+	/*	string savesSt = "";
+		foreach (string save in saves)  {
+			savesSt += save + "\n";
+		}*/
+
+	}
+	public void setSaveScroll() {
+		savesScrollBar.value = .99f;
+		savesScrollContainer.GetComponent<LayoutElement>().minHeight = savesScrollContainer.parent.GetComponent<RectTransform>().sizeDelta.y;
+		Invoke ("zeroSaveScroll",0.03f);
+	}
+
+	public void zeroSaveScroll() {
+		savesScrollBar.value = 1.0f;
+	}
+	
+	
+	public void setSaveText(InputField field) {
+		saveName = field.text;
+		saveName = Path.GetInvalidFileNameChars().Aggregate(saveName, (current, c) => current.Replace(c+"", ""));
+		field.text = saveName;
+	}
+
+	public void setSaveText(Text t) {
+		savesTextField.text = t.text;
+		saveName = t.text;
+	}
 
 
 	public bool levelUpShown = false;
@@ -739,14 +807,7 @@ public class BaseManager : MonoBehaviour  {
 					openBlackMarket();
 				}
 				else if (hoveredObject.tag=="savegame") {
-					saves = Saves.getSaveFiles();
-					baseState = BaseState.Save;
-					oldSaveName = saveName;
-					savesScrollPos = new Vector2();
-					string savesSt = "";
-					foreach (string save in saves)  {
-						savesSt += save + "\n";
-					}
+					setSavesOpen(true);
 				}
 			}
 		
@@ -894,6 +955,9 @@ public class BaseManager : MonoBehaviour  {
 			else if (InventoryGUI.isShown) {
 				InventoryGUI.setInventoryShown(false);
 				removeWorkBench();
+			}
+			else if (savesOpen) {
+				cancelSaves();
 			}
 			else if (levelUpShown) {
 				levelUpCancel();
@@ -1053,6 +1117,7 @@ public class BaseManager : MonoBehaviour  {
 			float buttonX2 = buttonX1 + buttonWidth + 20.0f;
 			if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel"))  {
 				baseState = BaseState.None;
+				Saves.saveAs(saveName);
 				saveName = oldSaveName;
 			}
 			bool en = GUI.enabled;
