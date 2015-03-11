@@ -904,6 +904,7 @@ public class MapGenerator : MonoBehaviour  {
 			player.GetComponent<SpriteRenderer>().color = p.characterSheet.characterSheet.characterColors.characterColor;
 			p.addHair();
 			p.setAllSpritesToRenderingOrder(playerArmorOrder);
+			p.setAllSpritesRenderQueue(1000);
 			//		e.deselect();
 			bbb++;
 		}
