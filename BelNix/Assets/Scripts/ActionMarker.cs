@@ -21,8 +21,6 @@ public class ActionMarker : MonoBehaviour  {
         //GetComponent<Animator>().SetBool("Explode", true);
         sparks = (GameObject) Instantiate(sparkObject);
         sparks.transform.SetParent(gameObject.transform, false);
-        if (GameObject.Find("MapGenerator").GetComponent<MapGenerator>().selectedUnit.team == 0)
-            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("zap", 0.025f);
         //sparks.transform.localPosition = Vector3.zero;
         //sparks.transform.localEulerAngles = Vector3.zero;
         //sparks.AddComponent<SetRenderQueue>();

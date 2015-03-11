@@ -10,8 +10,9 @@ public class AudioManager : MonoBehaviour  {
 	Animator anim;
 	CleanMusicLoop cml;
     Dictionary<string, AudioClip> clipList;
-    GameObject SFXContainer;
-    AudioSource SFXPlayer;
+    Queue<GameObject> SFXPlayers;
+    GameObject SFXContainerTemplate;
+    private const int MAX_SFXPLAYER_COUNT = 20;
     
 	[SerializeField] private float transitionTime;
 	// Use this for initialization
@@ -25,10 +26,10 @@ public class AudioManager : MonoBehaviour  {
 			cMusic = constantMusic.GetComponent<AudioSource>();
 		}
         clipList = new Dictionary<string, AudioClip>();
-        SFXContainer = new GameObject("SFX Player", typeof(AudioSource));
-        SFXContainer.transform.SetParent(transform);
-        SFXPlayer = SFXContainer.GetComponent<AudioSource>();
-        SFXPlayer.playOnAwake = false;
+        SFXPlayers = new Queue<GameObject>();
+        SFXContainerTemplate = new GameObject("SFX Player", typeof(AudioSource));
+        SFXContainerTemplate.transform.SetParent(transform);
+        SFXContainerTemplate.GetComponent<AudioSource>().playOnAwake = false;
         loadSFX();
 	}
 
@@ -38,6 +39,7 @@ public class AudioManager : MonoBehaviour  {
             importAudioClip("footstep" + i, "footstep" + i);
         importAudioClip("turret-shoot", "turret-shoot");
         importAudioClip("zap", "zapv1");
+        importAudioClip("blood-splash", "blood-splash");
     }
     public void importAudioClip(string key, string filename)
     {
@@ -48,8 +50,18 @@ public class AudioManager : MonoBehaviour  {
     {
         AudioClip clip;
         clipList.TryGetValue(clipName, out clip);
-        if (clip != null)
-            SFXPlayer.clip = clip;
+        if (clip == null)
+            return;
+
+        GameObject newSFXPlayer = (GameObject) Instantiate(SFXContainerTemplate);
+        newSFXPlayer.transform.SetParent(transform, false);
+        AudioSource SFXPlayer = newSFXPlayer.GetComponent<AudioSource>();
+        if (SFXPlayers.Count >= MAX_SFXPLAYER_COUNT)
+            Destroy(SFXPlayers.Dequeue());
+        SFXPlayers.Enqueue(newSFXPlayer);
+
+
+        SFXPlayer.clip = clip;
         SFXPlayer.volume = volume;
         SFXPlayer.Play();
     }
