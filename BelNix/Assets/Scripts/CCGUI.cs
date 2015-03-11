@@ -88,7 +88,6 @@ public class CCGUI : MonoBehaviour {
 		if (currObj != null) current = currObj.GetComponent<Selectable>();
 		if (Input.GetKeyDown(KeyCode.Tab) || shouldSelectFirst) {// || current == null || (current != first && current != last)) {
 		
-			Debug.Log ("Next: " + shouldSelectFirst);
 			shouldSelectFirst = false;
 //			system.firstSelectedGameObject
 //			Selectable next = system.currentSelectedGameObject.GetComponent<Selectable>().FindSelectableOnDown();
@@ -377,12 +376,14 @@ public class CCGUI : MonoBehaviour {
 		setState(currentState);
 	}
 
-	public void setFirstName(Text firstName)  {
+	public void setFirstName(InputField firstName)  {
 		characterName = firstName.text;
+		isNextAvailable();
 	}
 
-	public void setLastName(Text lastName)  {
+	public void setLastName(InputField lastName)  {
 		characterLastName = lastName.text;
+		isNextAvailable();
 	}
 
 	bool settingPrimary = true;
@@ -919,9 +920,15 @@ public class CCGUI : MonoBehaviour {
 	}
 
 	public void isNextAvailable()  {
+		Debug.Log("Next available");
 		switch (currentState)  {
 		case GUIState.CLASS:
 			progressionButtons[2].GetComponent<Button>().interactable = character.cClass != null;
+			return;
+		case GUIState.NAME:
+			bool next = !string.IsNullOrEmpty(characterName) && !string.IsNullOrEmpty(characterLastName);
+			Debug.Log("Next One: " + next + "|" + characterName + "|" + characterLastName + "|");
+			progressionButtons[3].GetComponent<Button>().interactable = next;
 			return;
 		default:
 			break;
