@@ -305,6 +305,7 @@ public class BaseManager : MonoBehaviour  {
 			}
 			if (changed)  {
 				c.saveCharacter();
+				BarracksManager.updateCharacterEntry(c);
 			}
 		}
 		resetInfirmaryText();
@@ -454,6 +455,7 @@ public class BaseManager : MonoBehaviour  {
 
 	public void levelUpCancel() {
 		setLevelUpShown(false);
+		levelingUpCharacter = null;
 	}
 
 	public void setPage(int p) {
