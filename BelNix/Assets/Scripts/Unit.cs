@@ -742,18 +742,19 @@ public class Unit : MonoBehaviour  {
 /*		else if (!usedMovement && !isProne())  {
 			GameGUI.selectMovementType(MovementType.Move);
 		}
-		else if (!usedStandard && !isProne())  {
-			GameGUI.selectStandardType(StandardType.Attack);
-		}*/
 		else if (!usedStandard && hasTurret() && !isProne() && !BattleGUI.aggressivelyEndTurn)  {
 			GameGUI.selectStandardType(StandardType.Place_Turret);
 		}
 		else if (!usedStandard && hasTrap() && !isProne() && !BattleGUI.aggressivelyEndTurn)  {
 			GameGUI.selectStandardType(StandardType.Lay_Trap);
-		}
+		}*/
 		else if (minorsLeft > 0 && !BattleGUI.aggressivelyEndTurn)  {
 			GameGUI.selectMinorType(MinorType.Stealth);
 		}
+        else if (!usedStandard && !isProne() && !BattleGUI.aggressivelyEndTurn)
+        {
+            GameGUI.selectStandardType(StandardType.Attack);
+        }
 		else if (!usedMovement)  {
 			GameGUI.selectMovementType(MovementType.Recover);
 		}
@@ -3098,6 +3099,13 @@ public class Unit : MonoBehaviour  {
 		setTrailRendererPosition();
 		setCircleScale();
 	}
+
+    public void playFootstep()
+    {
+        //GetComponent<AudioSource>().clip = footsteps[Random.Range(0, 4)];
+        //GetComponent<AudioSource>().Play();
+        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("footstep" + Random.Range(1, 5), 0.4f);
+    }
 
 	public void doLootAfterMovement()  {
 		if (lootTile != null && !moving)  {

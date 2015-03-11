@@ -670,7 +670,9 @@ public class BaseManager : MonoBehaviour  {
 		tooltips.Add("exit", "Exit to Main Menu");
 		tooltips.Add("map", "Mission Map");
 		tooltips.Add("infirmary", "Infirmary");
-		tooltips.Add("newcharacter", "Create a New Character");
+		tooltips.Add("newcharacter", "Hire New Character");
+		tooltips.Add("savegame", "Save Game");
+		tooltips.Add("blackmarket", "Black Market");
 		int nn=0;
 		do  {
 			nn++;
@@ -729,6 +731,19 @@ public class BaseManager : MonoBehaviour  {
 					barracksScrollPos = new Vector2();
 					displayedCharacter = null;
 					baseState = BaseState.Engineering;
+				}
+				else if (hoveredObject.tag=="blackmarket") {
+					openBlackMarket();
+				}
+				else if (hoveredObject.tag=="savegame") {
+					saves = Saves.getSaveFiles();
+					baseState = BaseState.Save;
+					oldSaveName = saveName;
+					savesScrollPos = new Vector2();
+					string savesSt = "";
+					foreach (string save in saves)  {
+						savesSt += save + "\n";
+					}
 				}
 			}
 		
@@ -923,7 +938,7 @@ public class BaseManager : MonoBehaviour  {
 		oldTouchCount = Input.touchCount;
 	}
 
-	float scale = 1.1f;
+	float scale = 1.01f;
 
 	void handleMouseMovement()  {
 		if (EventSystem.current.IsPointerOverGameObject() || somethingOpen) {
@@ -977,7 +992,7 @@ public class BaseManager : MonoBehaviour  {
 	void OnGUI()  {
 		hoveredCharacter = null;
 		if (baseState == BaseState.None)  {
-			if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
+			/*if (GUI.Button(new Rect(0, 0, 100, 50), "Save Game"))  {
 				saves = Saves.getSaveFiles();
 				baseState = BaseState.Save;
 				oldSaveName = saveName;
@@ -986,10 +1001,10 @@ public class BaseManager : MonoBehaviour  {
 				foreach (string save in saves)  {
 					savesSt += save + "\n";
 				}
-			}
-			if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
+			}*/
+			/*if (GUI.Button(new Rect(110, 0, 100, 50), "Black Market")) {
 				openBlackMarket();
-			}
+			}*/
 	//		Vector3 mousePos = Input.mousePosition;
 	//		mousePos.y = Screen.height - mousePos.y;
 			GUIContent toolContent = new GUIContent(tooltip);
