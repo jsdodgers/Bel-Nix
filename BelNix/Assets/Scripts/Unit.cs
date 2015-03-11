@@ -3104,7 +3104,7 @@ public class Unit : MonoBehaviour  {
     {
         //GetComponent<AudioSource>().clip = footsteps[Random.Range(0, 4)];
         //GetComponent<AudioSource>().Play();
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("footstep" + Random.Range(0, 4), 0.4f);
+        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("footstep" + Random.Range(1, 5), 0.4f);
     }
 
 	public void doLootAfterMovement()  {
