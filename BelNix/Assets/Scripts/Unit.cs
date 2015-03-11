@@ -3991,7 +3991,8 @@ public class Unit : MonoBehaviour  {
 			else {
 				//	ScreenShaker screenShaker = new ScreenShaker();
                 Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
-            } 
+            }
+            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("blunt-impact", 1.0f);
         }
 		if (overClockedAttack)  {
 			Debug.Log("Over Clocked Attack!!!");

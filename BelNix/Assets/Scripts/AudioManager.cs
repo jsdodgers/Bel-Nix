@@ -40,6 +40,7 @@ public class AudioManager : MonoBehaviour  {
         importAudioClip("turret-shoot", "turret-shoot");
         importAudioClip("zap", "zapv1");
         importAudioClip("blood-splash", "blood-splash");
+        importAudioClip("blunt-impact", "Combat-CrushHit");
     }
     public void importAudioClip(string key, string filename)
     {
