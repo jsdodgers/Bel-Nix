@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 using System.IO;
+using System.Linq;
 using UnityEngine.UI;
 
 [System.Serializable]
@@ -75,8 +76,7 @@ public class BaseManager : MonoBehaviour  {
 	[SerializeField] private Button[] levelUpSkillScorePlusButtons;
 
 	[Space(20)]
-	[SerializeField]
-	private InventoryGUI inventory; 
+	[SerializeField] private InventoryGUI inventory; 
 	[SerializeField] private GameObject helpPanel;
 	[SerializeField]
 	private GameObject baseGUI;
@@ -97,6 +97,19 @@ public class BaseManager : MonoBehaviour  {
 	[Space(10)]
 	[Header("Inventory")]
 	public Stash stash = new Stash();
+
+	[Space(10)]
+	[Header("WorkBench")]
+	[SerializeField] private Sprite borderedBackground;
+	[SerializeField] private InventoryGUI workBenchGUI;
+
+	[Space(20)]
+	[Header("Save Game")]
+	[SerializeField] private GameObject savesCanvas;
+	[SerializeField] private GameObject savesPrefab;
+	[SerializeField] private InputField savesTextField;
+	[SerializeField] private Scrollbar savesScrollBar;
+	[SerializeField] private Transform savesScrollContainer;
 
 	string saveName = "";
 	string[] saves;
@@ -234,8 +247,9 @@ public class BaseManager : MonoBehaviour  {
 		setCanAffordItems();
 		openSection(currentSection, currentSell);
 	}
-	public void setInventory(Character character) {
-		InventoryGUI.setupInvent(character);
+	public void setInventory(Character character, InventoryGUI invGUI = null) {
+		InventoryGUI.setInventoryGUI((invGUI == null ? inventory : invGUI));
+		InventoryGUI.setupInvent(character, this);
 		InventoryGUI.clearLootItems();
 		InventoryGUI.setLootItems(stash.items, null, stash);
 	}
@@ -299,11 +313,72 @@ public class BaseManager : MonoBehaviour  {
 			}
 			if (changed)  {
 				c.saveCharacter();
+				BarracksManager.updateCharacterEntry(c);
 			}
 		}
 		resetInfirmaryText();
 	}
 
+	public bool savesOpen = false;
+	public void setSavesOpen(bool open) {
+		savesOpen = open;
+		somethingOpen = open;
+		if (open) populateSaves();
+		savesCanvas.SetActive(open);
+	}
+
+	public void cancelSaves() {
+		saveName = oldSaveName;
+		setSavesOpen(false);
+	}
+
+	public void saveGame() {
+		Saves.saveAs(saveName);
+		setSavesOpen(false);
+	}
+	
+	public void populateSaves() {
+		saves = Saves.getSaveFiles();
+		oldSaveName = saveName;
+		for (int n=savesScrollContainer.childCount-1;n>=0;n--) {
+			GameObject.Destroy(savesScrollContainer.GetChild(n).gameObject);
+		}
+		foreach (string s in saves) {
+			GameObject save = GameObject.Instantiate(savesPrefab) as GameObject;
+			SaveButton sb = save.GetComponent<SaveButton>();
+			sb.baseManager = this;
+			Text t = save.transform.FindChild("Text").GetComponent<Text>();
+			t.text = s;
+			save.transform.SetParent(savesScrollContainer, false);
+		}
+		Invoke("setSaveScroll",0.03f);
+	/*	string savesSt = "";
+		foreach (string save in saves)  {
+			savesSt += save + "\n";
+		}*/
+
+	}
+	public void setSaveScroll() {
+		savesScrollBar.value = .99f;
+		savesScrollContainer.GetComponent<LayoutElement>().minHeight = savesScrollContainer.parent.GetComponent<RectTransform>().sizeDelta.y;
+		Invoke ("zeroSaveScroll",0.03f);
+	}
+
+	public void zeroSaveScroll() {
+		savesScrollBar.value = 1.0f;
+	}
+	
+	
+	public void setSaveText(InputField field) {
+		saveName = field.text;
+		saveName = Path.GetInvalidFileNameChars().Aggregate(saveName, (current, c) => current.Replace(c+"", ""));
+		field.text = saveName;
+	}
+
+	public void setSaveText(Text t) {
+		savesTextField.text = t.text;
+		saveName = t.text;
+	}
 
 
 	public bool levelUpShown = false;
@@ -448,6 +523,7 @@ public class BaseManager : MonoBehaviour  {
 
 	public void levelUpCancel() {
 		setLevelUpShown(false);
+		levelingUpCharacter = null;
 	}
 
 	public void setPage(int p) {
@@ -731,14 +807,7 @@ public class BaseManager : MonoBehaviour  {
 					openBlackMarket();
 				}
 				else if (hoveredObject.tag=="savegame") {
-					saves = Saves.getSaveFiles();
-					baseState = BaseState.Save;
-					oldSaveName = saveName;
-					savesScrollPos = new Vector2();
-					string savesSt = "";
-					foreach (string save in saves)  {
-						savesSt += save + "\n";
-					}
+					setSavesOpen(true);
 				}
 			}
 		
@@ -748,7 +817,12 @@ public class BaseManager : MonoBehaviour  {
 					else if (hoveredCharacter != null) displayedCharacter = hoveredCharacter;
 				}
 				else if (baseState == BaseState.Engineering)  {
-					if (displayedCharacter == null) displayedCharacter = hoveredCharacter;
+					if (displayedCharacter == null && hoveredCharacter != null) {
+						displayedCharacter = hoveredCharacter;
+						setInventory(displayedCharacter, workBenchGUI);
+						InventoryGUI.setInventoryShown(true);
+					}
+
 				}
 			}
 			selectItem(displayedCharacter);
@@ -771,6 +845,15 @@ public class BaseManager : MonoBehaviour  {
 //        newClassFeaturesPrompt.SetActive(false);
 	}
 
+	public void removeWorkBench() {
+		displayedCharacter = null;
+		foreach (InventorySlot slot in trapTurretInventorySlots) {
+			Item i = removeTrapTurretInSlot(slot);
+			if (i != null && !(i is Trap) && !(i is Turret)) {
+				stash.addItem(i);
+			}
+		}
+	}
 	
 	void handleKeyPan()  {
 		return;
@@ -871,6 +954,10 @@ public class BaseManager : MonoBehaviour  {
 			}
 			else if (InventoryGUI.isShown) {
 				InventoryGUI.setInventoryShown(false);
+				removeWorkBench();
+			}
+			else if (savesOpen) {
+				cancelSaves();
 			}
 			else if (levelUpShown) {
 				levelUpCancel();
@@ -1030,14 +1117,19 @@ public class BaseManager : MonoBehaviour  {
 			float buttonX2 = buttonX1 + buttonWidth + 20.0f;
 			if (GUI.Button(new Rect(buttonX1, buttonY, buttonWidth, buttonHeight), "Cancel"))  {
 				baseState = BaseState.None;
+				Saves.saveAs(saveName);
 				saveName = oldSaveName;
 			}
+			bool en = GUI.enabled;
+			GUI.enabled = !string.IsNullOrEmpty(saveName);
 			if (GUI.Button(new Rect(buttonX2, buttonY, buttonWidth, buttonHeight), "Save"))  {
 				Saves.saveAs(saveName);
 				baseState = BaseState.None;
 			}
+			GUI.enabled = en;
 			float textFieldHeight = 25.0f;
 			saveName = GUI.TextField(new Rect(x + 5.0f, y + 5.0f, width - 10.0f, textFieldHeight), saveName);
+			saveName = Path.GetInvalidFileNameChars().Aggregate(saveName, (current, c) => current.Replace(c+"", ""));
 			float savesHeight = 0.0f;
 			GUIStyle st = getSaveButtonsStyle();
 			foreach (string save in saves)  {
@@ -1112,12 +1204,12 @@ public class BaseManager : MonoBehaviour  {
 				}
 			}
 		}
-		else if (baseState == BaseState.Engineering)  {
+		else if (baseState == BaseState.Engineering && displayedCharacter == null)  {
 			int numHeight = 8;
-			float topHeight = 20.0f;
+			float topHeight = 20.0f + 60.0f;
 			float buttonHeight = 40.0f;
 			float buttonWidth = 200.0f;
-			float bottomHeight = buttonHeight + 5.0f*2;
+			float bottomHeight = buttonHeight + 15.0f*2;
 			Vector2 eachSize = new Vector2(476, 79);
 			Vector2 totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
 			while (totalSize.y > Screen.height - 50.0f && numHeight > 2)  {
@@ -1125,7 +1217,11 @@ public class BaseManager : MonoBehaviour  {
 				totalSize = new Vector2(eachSize.x + 20.0f*2, eachSize.y * numHeight + topHeight + bottomHeight);
 			}
 			Vector2 boxOrigin = new Vector2((Screen.width - totalSize.x)/2.0f, (Screen.height - totalSize.y)/2.0f);
-			GUI.Box(new Rect(boxOrigin.x, boxOrigin.y, totalSize.x, totalSize.y), "Workbench");
+			GUIStyle st2 = new GUIStyle("box");
+			st2.normal.background = borderedBackground.texture;
+			st2.fontSize = 30;
+			st2.padding = new RectOffset(0, 0, 20, 0);
+			GUI.Box(new Rect(boxOrigin.x, boxOrigin.y, totalSize.x, totalSize.y), "Workbench", st2);
 
 
 			List<Character> engineerUnits = new List<Character>();
@@ -1319,7 +1415,7 @@ public class BaseManager : MonoBehaviour  {
 
 	public static Vector2 getInventorySlotPos(InventorySlot slot, float baseX, float baseY)  {
 		switch (slot)  {
-		case InventorySlot.Frame:
+	/*	case InventorySlot.Frame:
 			return new Vector2(baseX, baseY);
 		case InventorySlot.Applicator:
 			return new Vector2(baseX + change2*2 + 10.0f, baseY);
@@ -1328,7 +1424,7 @@ public class BaseManager : MonoBehaviour  {
 		case InventorySlot.TriggerEnergySource:
 			return new Vector2(baseX + change2*6 + 30.0f, baseY);
 		case InventorySlot.TrapTurret:
-			return new Vector2(baseX + change2*6 + 30.0f, baseY + change2*2 + 10.0f);
+			return new Vector2(baseX + change2*6 + 30.0f, baseY + change2*2 + 10.0f);*/
 		case InventorySlot.Zero:
 			return new Vector2(baseX, baseY);
 		case InventorySlot.One:
@@ -1369,7 +1465,7 @@ public class BaseManager : MonoBehaviour  {
 	
 	public static Rect getInventorySlotRect(InventorySlot slot, float baseX, float baseY)  {
 		Vector2 v = getInventorySlotPos(slot, baseX, baseY);
-		switch (slot)  {
+	/*	switch (slot)  {
 		case InventorySlot.Head:
 		case InventorySlot.Shoulder:
 		case InventorySlot.Back:
@@ -1401,10 +1497,10 @@ public class BaseManager : MonoBehaviour  {
 		case InventorySlot.Thirteen:
 		case InventorySlot.Fourteen:
 		case InventorySlot.Fifteen:
-			return new Rect(v.x, v.y, inventoryCellSize, inventoryCellSize);
-		default:
+			return new Rect(v.x, v.y, inventoryCellSize, inventoryCellSize);*/
+//		default:
 			return new Rect();
-		}
+//		}
 	}
 
 
@@ -1415,13 +1511,151 @@ public class BaseManager : MonoBehaviour  {
 	public float inventY = 0.0f;
 	public float trapsTurretsX = 0.0f;
 	public float trapsTurretsY = 0.0f;
-	public Frame frame;
-	public Applicator applicator;
-	public Gear gear;
-	public Item energySourceOrTrigger;
+	public Frame turretFrame;
+	public Applicator turretApplicator;
+	public Gear turretGear;
+	public EnergySource energySource;
+	
+	public Frame trapFrame;
+	public Applicator trapApplicator;
+	public Gear trapGear;
+	public Trigger trigger;
+
 	public Item selectedItem;
 	public Turret turret;
 	public Trap trap;
+
+	public Item getTrapTurretInSlot(InventorySlot sl) {
+		switch (sl) {
+		case InventorySlot.TurretFrame:
+			return turretFrame;
+		case InventorySlot.TurretApplicator:
+			return turretApplicator;
+		case InventorySlot.TurretGear2:
+			return turretGear;
+		case InventorySlot.EnergySource:
+			return energySource;
+		case InventorySlot.TrapFrame:
+			return trapFrame;
+		case InventorySlot.TrapApplicator:
+			return trapApplicator;
+		case InventorySlot.TrapGear:
+			return trapGear;
+		case InventorySlot.Trigger:
+			return trigger;
+		case InventorySlot.Turret:
+			return turret;
+		case InventorySlot.Trap:
+			return trap;
+		default:
+			return null;
+		}
+	}
+
+	public Item removeTrapTurretInSlot(InventorySlot sl) {
+		Item i = getTrapTurretInSlot(sl);
+		switch (sl) {
+		case InventorySlot.TurretFrame:
+			turretFrame = null;
+			break;
+		case InventorySlot.TurretApplicator:
+			turretApplicator = null;
+			break;
+		case InventorySlot.TurretGear2:
+			turretGear = null;
+			break;
+		case InventorySlot.EnergySource:
+			energySource = null;
+			break;
+		case InventorySlot.TrapFrame:
+			trapFrame = null;
+			break;
+		case InventorySlot.TrapApplicator:
+			trapApplicator = null;
+			break;
+		case InventorySlot.TrapGear:
+			trapGear = null;
+			break;
+		case InventorySlot.Trigger:
+			trigger = null;
+			break;
+		case InventorySlot.Turret:
+			turret = null;
+			break;
+		case InventorySlot.Trap:
+			trap = null;
+			break;
+		default:
+			break;
+		}
+		return i;
+	}
+
+	public bool setItemInSlot(InventorySlot sl, Item i) {
+		switch (sl) {
+		case InventorySlot.TurretFrame:
+			turretFrame = (Frame)i;
+			return true;
+		case InventorySlot.TurretApplicator:
+			turretApplicator = (Applicator)i;
+			return true;
+		case InventorySlot.TurretGear2:
+			turretGear = (Gear)i;
+			return true;
+		case InventorySlot.EnergySource:
+			energySource = (EnergySource)i;
+			return true;
+		case InventorySlot.TrapFrame:
+			trapFrame = (Frame)i;
+			return true;
+		case InventorySlot.TrapApplicator:
+			trapApplicator = (Applicator)i;
+			return true;
+		case InventorySlot.TrapGear:
+			trapGear = (Gear)i;
+			return true;
+		case InventorySlot.Trigger:
+			trigger = (Trigger)i;
+			return true;
+		case InventorySlot.Turret:
+			turret = (Turret)i;
+			return true;
+		case InventorySlot.Trap:
+			trap = (Trap)i;
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	public bool canInsertItem(Item i, InventorySlot sl) {
+		Debug.Log("Can: " + sl + "   " +  i.itemName);
+		switch (sl) {
+		case InventorySlot.TurretFrame:
+		case InventorySlot.TrapFrame:
+			return i is Frame;
+		case InventorySlot.TurretApplicator:
+		case InventorySlot.TrapApplicator:
+			return i is Applicator;
+		case InventorySlot.TurretGear2:
+		case InventorySlot.TrapGear:
+			return i is Gear;
+		case InventorySlot.EnergySource:
+			return i is EnergySource;
+		case InventorySlot.Trigger:
+			return i is Trigger;
+		case InventorySlot.Turret:
+		//	return i is Turret;
+		case InventorySlot.Trap:
+		//	return i is Trap;
+		default:
+			return false;
+		}
+	}
+
+	public static InventorySlot[] trapTurretInventorySlots = new InventorySlot[] {InventorySlot.TurretFrame, InventorySlot.TurretApplicator, InventorySlot.TurretGear2, InventorySlot.EnergySource, InventorySlot.Turret, InventorySlot.TrapApplicator, InventorySlot.TrapFrame, InventorySlot.TrapGear, InventorySlot.Trigger, InventorySlot.Trap };
+
+	public InventorySlot[] trapTurretInventorySlots2 = new InventorySlot[] {InventorySlot.TurretFrame, InventorySlot.TurretApplicator, InventorySlot.EnergySource, InventorySlot.Turret, InventorySlot.TrapApplicator, InventorySlot.TrapFrame, InventorySlot.TrapGear, InventorySlot.Trigger, InventorySlot.Trap, InventorySlot.TurretGear2 };
 	public InventorySlot selectedItemWasInSlot;
 	public Vector3 selectedMousePos = new Vector3();
 	public Vector2 selectedItemPos = new Vector2();
@@ -1431,7 +1665,7 @@ public class BaseManager : MonoBehaviour  {
 	}
 	public void selectItem(Character characterSheet, MapGenerator mapGenerator, Unit u)  {
 		return;
-		Vector3 mousePos = Input.mousePosition;
+	/*	Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		foreach (InventorySlot slot in UnitGUI.inventorySlots)  {
 			Rect r = getInventorySlotRect(slot, inventX, inventY);
@@ -1564,7 +1798,7 @@ public class BaseManager : MonoBehaviour  {
 					break;
 				}
 			}
-		}
+		}*/
 		/*
 		if (!GameGUI.looting || mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight) return;
 		Vector2 scrollOff = UnitGUI.groundScrollPosition;
@@ -1605,16 +1839,16 @@ public class BaseManager : MonoBehaviour  {
 		deselectItem(characterSheet, null, null);
 	}
 	public void removeTurretTrapItemsPossibly()  {
-		if (selectedItemWasInSlot==InventorySlot.TrapTurret)  {
+/*		if (selectedItemWasInSlot==InventorySlot.TrapTurret)  {
 			frame = null;
 			applicator = null;
 			gear = null;
 			energySourceOrTrigger = null;
 			displayedCharacter.saveCharacter();
-		}
+		}*/
 	}
 	public void deselectItem(Character characterSheet, MapGenerator mapGenerator, Unit u)  {
-		if (selectedItem == null) return;
+	/*	if (selectedItem == null) return;
 		Vector3 mousePos = Input.mousePosition;
 		mousePos.y = Screen.height - mousePos.y;
 		Tile t = (mapGenerator != null && u!=null ? mapGenerator.tiles[(int)u.position.x,(int)-u.position.y] : null);
@@ -1698,15 +1932,6 @@ public class BaseManager : MonoBehaviour  {
 				}
 			}
 		}
-/*		if (GameGUI.looting && !(mousePos.x < groundX || mousePos.y < groundY || mousePos.x > groundX + groundWidth || mousePos.y > groundY + groundHeight))  {
-			if (selectedItemWasInSlot!=InventorySlot.None && selectedItem!=null)  {
-				while (selectedItem.stackSize() > 1) t.addItem(selectedItem.popStack());
-				t.addItem(selectedItem);
-				u.minorsLeft--;
-				//		characterSheet.characterSheet.inventory.removeItemFromSlot(getInventorySlotPos(selectedItemWasInSlot));
-			}
-		}
-		else*/ 
 		if (selectedItemWasInSlot!=InventorySlot.None)  {
 			switch (selectedItemWasInSlot)  {
 			case InventorySlot.Frame:
@@ -1741,7 +1966,7 @@ public class BaseManager : MonoBehaviour  {
 				}
 				break;
 			}
-		}
+		}*/
 		selectedItem = null;
 	}
 
@@ -1750,7 +1975,7 @@ public class BaseManager : MonoBehaviour  {
 
 	int trapOrTurret = 0;
 	public void drawWorkbenchGUI()  {
-		float xOrig = (Screen.width - backgroundSize.x)/2.0f;
+	/*	float xOrig = (Screen.width - backgroundSize.x)/2.0f;
 		float yOrig = (Screen.height - backgroundSize.y)/2.0f;
 		float boxX = xOrig;
 		float boxY = yOrig;
@@ -1929,29 +2154,7 @@ public class BaseManager : MonoBehaviour  {
 				GUIContent content = new GUIContent("" + i.stackSize());
 				GUI.Label(new Rect(stackPos.x,stackPos.y,inventoryCellSize,inventoryCellSize),content,stackSt);
 			}
-		}/*
-		if (mapGenerator != null)  {
-			List<Item> groundItems = mapGenerator.tiles[(int)position.x,(int)-position.y].getReachableItems();
-			//	Debug.Log("ground Items: " + groundItems.Count + "   " + groundItems);
-			float div = 20.0f;
-			float height = div;
-			foreach (Item i in groundItems)  {
-				if (i.inventoryTexture==null) continue;
-				height += i.getSize().y*inventoryCellSize + div;
-			}
-			groundScrollPosition = GUI.BeginScrollView(new Rect(groundX, groundY, groundWidth, groundHeight), groundScrollPosition, new Rect(groundX, groundY, groundWidth-20.0f, height));
-			y = div + groundY;
-			float mid = groundX + groundWidth/2.0f;
-			foreach (Item i in groundItems)  {
-				if (i.inventoryTexture==null) continue;
-				Vector2 size = i.getSize();
-				if (i!=selectedItem)  {
-					GUI.DrawTexture(new Rect(mid - size.x*inventoryCellSize/2.0f, y, size.x*inventoryCellSize, size.y*inventoryCellSize), i.inventoryTexture);
-				}
-				y += size.y*inventoryCellSize + div;
-			}
-			GUI.EndScrollView();
-		}*/
+
 		if (selectedItem != null)  {
 			Vector2 size = selectedItem.getSize();
 			Vector2 pos = selectedItemPos;
@@ -1977,7 +2180,7 @@ public class BaseManager : MonoBehaviour  {
 		float buttonY = boxY + backgroundSize.y - cancelButtonSize.y - 40.0f;
 		if (GUI.Button(new Rect((Screen.width - cancelButtonSize.x)/2.0f, buttonY, cancelButtonSize.x, cancelButtonSize.y), "Done"))  {
 			displayedCharacter = null;
-		}
+		}*/
 
 	}
 

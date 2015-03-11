@@ -188,7 +188,7 @@ public class Item  {
 	}
 	public string textureDelim = "@";
 	public virtual string getItemData(string delim)  {
-		Debug.Log("Item Get Data: " + itemName);
+//		Debug.Log("Item Get Data: " + itemName);
 
 	//	Debug.Log(spritePrefabString);
 		return (int)itemStackType + delim +

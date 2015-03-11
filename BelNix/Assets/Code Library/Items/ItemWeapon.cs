@@ -30,7 +30,7 @@ public class ItemWeapon : EditorItem  {
 		Debug.Log("Weapon Asset Path: " + s);*/
 	//	if (s != null && s != "")
 	//		GameObject.Instantiate(Resources.Load<GameObject>(s));
-		return new Weapon(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
+		return new WeaponMechanical(itemName, itemType, canPlaceInShoulder, gold, silver, copper, isKeyItem, inventoryTextureSpritePrefabName, layerAdd, hit, range, numberOfDamageDice, diceType, damageBonus, damageType, criticalChance, durabilityChance, isRanged, shape);
 //		return weapon;
 	}
 /*

@@ -74,6 +74,17 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private Transform examineFeaturesContent;
 	[SerializeField] private Scrollbar examineFeaturesScrollBar;
 
+
+	[Space(5)]
+	[SerializeField] private Image examineMugshotSkin;
+	[SerializeField] private Image examineMugshotShortHair;
+	[SerializeField] private Image examineMugshotAccessories;
+	[SerializeField] private Image examineMugshotPrimary;
+	[SerializeField] private Image examineMugshotFemaleSkin;
+	[SerializeField] private Image examineMughsotPonyTail;
+	[SerializeField] private Image examineMugshotFemailAccessories;
+	[SerializeField] private Image examineMugshotFemalePrimary;
+
 	private int currentPauseCanvas = 0;
 	private int currentGameOverCanvas = 0;
 	[Space(20)][SerializeField] private Canvas[] pauseButtons;
@@ -558,6 +569,7 @@ public class BattleGUI : MonoBehaviour  {
 		examineShown = shown;
 		if (shown && u != null) {
 			setExamineTexts(u);
+			setExamineMugshotSpritesAndColors(u);
 		}
 	}
 
@@ -923,6 +935,40 @@ public class BattleGUI : MonoBehaviour  {
 			battleGUI.mugshotShortHair.enabled = false;
 			battleGUI.mugshotPonyTail.enabled = true;
 			battleGUI.mugshotPonyTail.color = unit.characterSheet.characterSheet.characterColors.headColor;
+		}
+	}
+
+	public static void setExamineMugshotSpritesAndColors(Unit unit) {
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterSex() == CharacterSex.Female) {
+			battleGUI.examineMugshotSkin.enabled = false;
+			battleGUI.examineMugshotPrimary.enabled = false;
+			battleGUI.examineMugshotAccessories.enabled = false;
+			battleGUI.examineMugshotFemaleSkin.enabled = true;
+			battleGUI.examineMugshotFemalePrimary.enabled = true;
+			battleGUI.examineMugshotFemailAccessories.enabled = true;
+			battleGUI.examineMugshotFemaleSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
+			battleGUI.examineMugshotFemalePrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
+		}
+		else {
+			battleGUI.examineMugshotFemaleSkin.enabled = false;
+			battleGUI.examineMugshotFemalePrimary.enabled = false;
+			battleGUI.examineMugshotFemailAccessories.enabled = false;
+			battleGUI.examineMugshotSkin.enabled = true;
+			battleGUI.examineMugshotPrimary.enabled = true;
+			battleGUI.examineMugshotAccessories.enabled = true;
+			battleGUI.examineMugshotSkin.color = unit.characterSheet.characterSheet.characterColors.characterColor;
+			battleGUI.examineMugshotPrimary.color = unit.characterSheet.characterSheet.characterColors.primaryColor;
+		}
+		
+		if(unit.characterSheet.characterSheet.personalInformation.getCharacterHairStyle().hairStyle == 0) {
+			battleGUI.examineMughsotPonyTail.enabled = false;
+			battleGUI.examineMugshotShortHair.enabled = true;
+			battleGUI.examineMugshotShortHair.color = unit.characterSheet.characterSheet.characterColors.headColor;
+		}
+		else {
+			battleGUI.examineMugshotShortHair.enabled = false;
+			battleGUI.examineMughsotPonyTail.enabled = true;
+			battleGUI.examineMughsotPonyTail.color = unit.characterSheet.characterSheet.characterColors.headColor;
 		}
 	}
 

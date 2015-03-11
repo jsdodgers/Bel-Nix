@@ -44,7 +44,7 @@ public enum StandardType  {Attack, OverClock, Reload, Intimidate, Inventory, Thr
 public enum ActionType  {None, Movement, Standard, Minor}
 public enum MinorType  {Loot, Stealth, Mark, TemperedHands, Escape, Invoke, OneOfMany, Examine, Vault, None, TurretOn, TurretOff}
 public enum Affliction  {Prone = 1 << 0, Immobilized = 1 << 1, Addled = 1 << 2, Confused = 1 << 3, Poisoned = 1 << 4, None}
-public enum InventorySlot  {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Frame, Applicator, Gear, TriggerEnergySource, TrapTurret, None}
+public enum InventorySlot  {Head, Shoulder, Back, Chest, Glove, RightHand, LeftHand, Pants, Boots, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, TrapFrame, TrapApplicator, TrapGear, Trigger, EnergySource, None, Trap, Turret, TurretFrame, TurretApplicator, TurretGear, TurretGear2, None2}
 public enum OneOfManyMode  {Hidden = 0, Hit, Damage, AC, Movement, None};
 public class Unit : MonoBehaviour  {
 	[SerializeField] private EditorItem[] droppedItemsEditor = new EditorItem[]  {};
@@ -598,7 +598,7 @@ public class Unit : MonoBehaviour  {
 	public StandardType getStandardType(ClassFeature feature)  {
 		switch (feature)  {
 		case ClassFeature.Over_Clock:
-			if (getWeapon() is Medicinal) return StandardType.None;
+			if (getWeapon() is Medicinal || !(getWeapon() is WeaponMechanical) || (getWeapon() is WeaponMechanical && ((WeaponMechanical)getWeapon()).overClocked)) return StandardType.None;
 			return StandardType.OverClock;
 		case ClassFeature.Throw:
 			return StandardType.Throw;
@@ -3572,7 +3572,9 @@ public class Unit : MonoBehaviour  {
 			DamageDisplay damageDisplay = ((GameObject)GameObject.Instantiate(damagePrefab)).GetComponent<DamageDisplay>();
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			attackEnemy.activateAITo(this);
-			if (didHit)  {
+			if (didHit)  {	
+				BattleGUI.writeToConsole(getName() + " damaged " + attackEnemy.getName() + "'s composure with Intimidate for " + wapoon + " damage!", (team==0 ? Log.greenColor : Color.red));
+
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
 					primalControlUnit = attackEnemy;
 					intimidated = true;
@@ -3590,6 +3592,7 @@ public class Unit : MonoBehaviour  {
 				attackEnemy.setRotationToCharacter(this);
 			}
 			else  {
+				BattleGUI.writeToConsole(getName() + " missed " + attackEnemy.getName() + " with Invoke!", Color.gray);//(team==0 ? Log.greenColor : Color.red));
 				resetIntimidate();
 			}
 		}
@@ -3619,6 +3622,8 @@ public class Unit : MonoBehaviour  {
 			damageDisplay.begin(wapoon, didHit, false, attackEnemy, Color.green);
 			attackEnemy.activateAITo(this);
 			if (didHit)  {
+				BattleGUI.writeToConsole(getName() + " damaged " + attackEnemy.getName() + "'s composure with Invoke for " + wapoon + " damage!", (team==0 ? Log.greenColor : Color.red));
+
 				attackEnemy.setRotationToCharacter(this);
 				if (attackEnemy.damageComposure(wapoon, this) && characterSheet.characterSheet.characterProgress.hasFeature(ClassFeature.Primal_Control))  {
 					primalControlUnit = attackEnemy;
@@ -3637,6 +3642,8 @@ public class Unit : MonoBehaviour  {
 			}	
 			else  {
 				resetInvoke();
+				BattleGUI.writeToConsole(getName() + " missed " + attackEnemy.getName() + " with Invoke!", Color.gray);//(team==0 ? Log.greenColor : Color.red));
+
 			}
 		}
 	}
@@ -3941,6 +3948,10 @@ public class Unit : MonoBehaviour  {
 			if (med.numberOfUses <= 0)  {
 				characterSheet.characterSheet.characterLoadout.removeItemFromSlot(InventorySlot.RightHand);
 			}
+			BattleGUI.writeToConsole(getName() + " healed " + attackEnemy.getName() + " with "  + getWeapon().itemName + " for " + gained + " health!", (team==0 ? Log.greenColor : Color.red));
+		}
+		else {
+			BattleGUI.writeToConsole(getName() + " missed " + attackEnemy.getName() + " with " + getWeapon().itemName + "!" , Color.gray);//(team==0 ? Log.greenColor : Color.red));
 		}
 		attackEnemy.showHitpoints(gained, kitHit);
 		healAnimating = false;
@@ -3997,7 +4008,7 @@ public class Unit : MonoBehaviour  {
 		if (overClockedAttack)  {
 			Debug.Log("Over Clocked Attack!!!");
 			Weapon w = getWeapon();
-			if (w is ItemMechanical)  {
+			if (w is WeaponMechanical)  {
 				((WeaponMechanical)w).overClocked = true;
 			}
 		}

@@ -162,8 +162,7 @@ public class BarracksEntry : MonoBehaviour  {
 
 
 	private void setLevelUp() {
-		if (character.characterSheet.characterProgress.canLevelUp())
-			options.levelUp.interactable = true;
+		options.levelUp.interactable = character.characterSheet.characterProgress.canLevelUp();
 	}
 	public void showLevelUp() {
 		GameObject basee = (GameObject)GameObject.Find("Base");

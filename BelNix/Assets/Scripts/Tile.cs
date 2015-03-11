@@ -237,6 +237,7 @@ public class Tile  {
 		bool ally = hasAlly(u);
 		bool stand = canStand();
 		bool med = u.getWeapon() is Medicinal;
+		bool mech = u.getWeapon() is WeaponMechanical;
 		bool canAttack = false;
 		bool canBackStep = false;
 		bool canAttackAfterBackStep = false;
@@ -526,17 +527,17 @@ public class Tile  {
 		}
 		if (canAttack && addAttacks)  {
 			tileActions.Add(new TileAction(null, new StandardType[]  {att}, null, this, null, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
-			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(null, new StandardType[]  {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock) && mech) tileActions.Add(new TileAction(null, new StandardType[]  {StandardType.OverClock}, null, this, null, u.attackHitChance(getCharacter())));
 		}
 		if (canBackStep) tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, null, null, this, this));
 		if (canMove ) tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, null, null, this, this));
 		if (canAttackAfterMove && addAttacks)  {
 			tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, new StandardType[]  {att}, null, this, moveAttackTile, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
-			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, new StandardType[]  {StandardType.OverClock}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock) && mech) tileActions.Add(new TileAction(new MovementType[]  {MovementType.Move}, new StandardType[]  {StandardType.OverClock}, null, this, moveAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (canAttackAfterBackStep && addAttacks)  {
 			tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {att}, null, this, backstepAttackTile, (med ? u.healHitChance(getCharacter()) :u.attackHitChance(getCharacter()))));
-			if (u.hasClassFeature(ClassFeature.Over_Clock) && !med) tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
+			if (u.hasClassFeature(ClassFeature.Over_Clock) && mech) tileActions.Add(new TileAction(new MovementType[]  {MovementType.BackStep}, new StandardType[]  {StandardType.OverClock}, null, this, backstepAttackTile, u.attackHitChance(getCharacter())));
 		}
 		if (hasTrapTurret) {
 			if (tr != null || tur != null) {
