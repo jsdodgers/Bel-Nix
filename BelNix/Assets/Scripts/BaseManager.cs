@@ -665,7 +665,7 @@ public class BaseManager : MonoBehaviour  {
 		tooltips.Add("exit", "Exit to Main Menu");
 		tooltips.Add("map", "Mission Map");
 		tooltips.Add("infirmary", "Infirmary");
-		tooltips.Add("newcharacter", "Create a New Character");
+		tooltips.Add("newcharacter", "Hire New Character");
 		int nn=0;
 		do  {
 			nn++;
