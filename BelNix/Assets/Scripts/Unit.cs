@@ -165,6 +165,7 @@ public class Unit : MonoBehaviour  {
 	public List<TurretUnit> turrets;
 	
 	public GameObject damagePrefab;
+    private AudioClip[] footsteps;
 
 
 	public void examineUnit(Unit u) {
@@ -3070,6 +3071,16 @@ public class Unit : MonoBehaviour  {
 		if (isCurrent)  {
 			addTrail();
 		}
+
+        footsteps = new AudioClip[4];
+        for (int i = 0; i < 4; i++)
+        {
+            footsteps[i] = Resources.Load<AudioClip>("Audio/SFX/footstep" + i);
+        }
+        gameObject.AddComponent<AudioSource>();
+        GetComponent<AudioSource>().clip = footsteps[0];
+        GetComponent<AudioSource>().playOnAwake = false;
+        GetComponent<AudioSource>().volume = 0.4f;
 	}
 	
 	// Update is called once per frame
@@ -3098,6 +3109,12 @@ public class Unit : MonoBehaviour  {
 		setTrailRendererPosition();
 		setCircleScale();
 	}
+
+    public void playFootstep()
+    {
+        GetComponent<AudioSource>().clip = footsteps[Random.Range(0, 4)];
+        GetComponent<AudioSource>().Play();
+    }
 
 	public void doLootAfterMovement()  {
 		if (lootTile != null && !moving)  {
