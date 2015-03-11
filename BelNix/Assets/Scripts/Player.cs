@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent (typeof(AudioSource))]
 public class Player : Unit  {
+
 
 	public override void setPosition(Vector3 pos)  {
 		setNewTilePosition(pos);
@@ -15,6 +17,7 @@ public class Player : Unit  {
 	// Use this for initialization
 	void Start ()  {
 		initializeVariables();
+
 	}
 
 	public override void initializeVariables()  {
