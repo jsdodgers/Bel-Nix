@@ -975,7 +975,7 @@ public class Unit : MonoBehaviour  {
 	public void useMinor(MinorType usedMinor, bool changeAnyway = true, bool changeAtAll = true)  {
 		minorsLeft--;
 		Debug.Log("Minors Used: " + minorsLeft);
-		if (minorsLeft <= 0) BattleGUI.hideMinorArm();
+		//if (minorsLeft <= 0) BattleGUI.hideMinorArm();
 
         if (minorsLeft <= 0)
             onFinalMinor(usedMinor);
@@ -989,24 +989,42 @@ public class Unit : MonoBehaviour  {
         
         
 	}
-	
+
+    public delegate void StandardEventHandler(Object source, StandardEventArgs args);
+    public event StandardEventHandler standardUsed;
+    protected void onStandardUsed()
+    {
+        if (standardUsed != null)
+            standardUsed(this, new StandardEventArgs() {unit=this});
+    }
+
 	public void useStandard()  {
 		usedStandard = true;
+        onStandardUsed();
 		if (GameGUI.selectedStandard && !isPerformingAnAction())  {
 			chooseNextBestActionType();
 		}
-		BattleGUI.hideStandardArm();
+		//BattleGUI.hideStandardArm();
 		if (oneOfManyMode == OneOfManyMode.Hidden) loseOneOfMany();
 	}
+
+    public delegate void MovementEventHandler(Object source, MovementEventArgs args);
+    public event MovementEventHandler movementUsed;
+    protected void onMovementUsed()
+    {
+        if (movementUsed != null)
+            movementUsed(this, new MovementEventArgs() {unit = this});
+    }
 	
 	public void useMovement()  {
 		usedMovement = true;
+        onMovementUsed();
 		currentMoveDist = 0;
 		moveDistLeft = 0;
 		if (GameGUI.selectedMovement && !isPerformingAnAction())  {
 			chooseNextBestActionType();
 		}
-		BattleGUI.hideMovementArm();
+		//BattleGUI.hideMovementArm();
 		if (oneOfManyMode == OneOfManyMode.Hidden) loseOneOfMany();
 	}
 	
@@ -4169,4 +4187,15 @@ public class Unit : MonoBehaviour  {
 public class MinorEventArgs : System.EventArgs {
     public Unit unit;
     public MinorType minorType;
+}
+
+public class StandardEventArgs : System.EventArgs
+{
+    public Unit unit;
+    //public StandardType standardType;
+}
+
+public class MovementEventArgs : System.EventArgs
+{
+    public Unit unit;
 }

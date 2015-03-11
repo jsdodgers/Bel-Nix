@@ -214,11 +214,27 @@ public class BattleGUI : MonoBehaviour  {
 
     public static void onFirstMinorUsed(Object source, MinorEventArgs args) {
         Debug.Log("First minor used!");
-        GameObject firstMarker = GameObject.Find("Image - Marker 1");
+        GameObject firstMarker = GameObject.Find("Image - Minor Marker 1");
         firstMarker.GetComponent<ActionMarker>().spark();
     }
     public static void onFinalMinorUsed(Object source, MinorEventArgs args) {
         Debug.Log("Final minor used!");
+        GameObject finalMarker = GameObject.Find("Image - Minor Marker 2");
+        finalMarker.GetComponent<ActionMarker>().spark();
+        hideMinorArm(delay: 0.2f);
+    }
+
+    public static void onStandardUsed(Object source, StandardEventArgs args)
+    {
+        GameObject standardMarker = GameObject.Find("Image - Standard Marker");
+        standardMarker.GetComponent<ActionMarker>().spark();
+        hideStandardArm(delay: 0.2f);
+    }
+    public static void onMovementUsed(Object source, MovementEventArgs args)
+    {
+        GameObject movementMarker = GameObject.Find("Image - Movement Marker");
+        movementMarker.GetComponent<ActionMarker>().spark();
+        hideMovementArm(delay: 0.2f);
     }
 
     // Update is called once per frame
@@ -634,11 +650,13 @@ public class BattleGUI : MonoBehaviour  {
         if (previousUnit != null) {
             previousUnit.finalMinor -= onFinalMinorUsed;
             previousUnit.firstMinor -= onFirstMinorUsed;
-            
+            unit.standardUsed -= onStandardUsed;
+            unit.movementUsed -= onMovementUsed;
         }
         unit.finalMinor += onFinalMinorUsed;
         unit.firstMinor += onFirstMinorUsed;
-        
+        unit.standardUsed += onStandardUsed;
+        unit.movementUsed += onMovementUsed;
         previousUnit = unit;
 
 
@@ -987,8 +1005,9 @@ public class BattleGUI : MonoBehaviour  {
 
 	
 	public static void resetMovementButtons()  {
-		hideMovementArm();
-		battleGUI.Invoke("resetMovementButtonsActually",0.25f);		
+        float timeDelay = 0.1f;
+        hideMovementArm(delay: timeDelay);
+		battleGUI.Invoke("resetMovementButtonsActually", timeDelay + 0.25f);		
 	}
 	public static void showMovementButtons()  {
 		battleGUI.resetMovementButtonsActually();
@@ -999,8 +1018,9 @@ public class BattleGUI : MonoBehaviour  {
 	}
 
 	public static void resetStandardButtons()  {
-		hideStandardArm();
-		battleGUI.Invoke("resetStandardButtonsActually",0.25f);		
+        float timeDelay = 0.1f;
+        hideStandardArm(delay: timeDelay);
+		battleGUI.Invoke("resetStandardButtonsActually", timeDelay + 0.25f);		
 	}
 	public static void showStandardButtons()  {
 		battleGUI.resetStandardButtonsActually();
@@ -1011,8 +1031,9 @@ public class BattleGUI : MonoBehaviour  {
 	}
 
 	public static void resetMinorButtons()  {
-		hideMinorArm();
-		battleGUI.Invoke("resetMinorButtonsActually",0.25f);		
+        float timeDelay = 0.1f;
+        hideMinorArm(delay: timeDelay);
+		battleGUI.Invoke("resetMinorButtonsActually", timeDelay + 0.25f);		
 	}
 	public static void showMinorButtons()  {
 		battleGUI.resetMinorButtonsActually();
@@ -1102,21 +1123,39 @@ public class BattleGUI : MonoBehaviour  {
 		hideStandardArm();
 		hideMovementArm();
 	}
-	public static void hideMinorArm(bool hidden = true)  {
+	public static void hideMinorArm(bool hidden = true, float delay = 0)  {
 	//	armsShown[(int)ActionArm.Minor] = !hidden;
-        GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
+        if (delay > 0)
+        {
+            GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().delayedRetractActionArm("Minor", delay);
+        }
+        else
+            GameObject.Find("Image - Minor Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
 	}
-	public static void hideStandardArm(bool hidden = true)  {
+	public static void hideStandardArm(bool hidden = true, float delay = 0)  {
 	//	armsShown[(int)ActionArm.Standard] = !hidden;
-        GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
+        if (delay > 0)
+        {
+            GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().delayedRetractActionArm("Standard", delay);
+        }
+        else
+            GameObject.Find("Image - Standard Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
 	}
-	public static void hideMovementArm(bool hidden = true)  {
+	public static void hideMovementArm(bool hidden = true, float delay = 0)  {
 	//	armsShown[(int)ActionArm.Movement] = !hidden;
-        GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
+        if (delay > 0)
+        {
+            GameObject.Find("Canvas - Action Bars").GetComponent<ActionBars>().delayedRetractActionArm("Movement", delay);
+        }
+        else
+            GameObject.Find("Image - Movement Arm").GetComponent<Animator>().SetBool("Hidden", hidden);
     }
     private void refreshActionArms() {
 		Debug.Log("Refresh Action Arms");
-        GameObject.Find("Image - Marker 1").GetComponent<Image>().enabled = true;
+        GameObject.Find("Image - Minor Marker 1").GetComponent<Image>().enabled = true;
+        GameObject.Find("Image - Minor Marker 2").GetComponent<Image>().enabled = true;
+        GameObject.Find("Image - Movement Marker").GetComponent<Image>().enabled = true;
+        GameObject.Find("Image - Standard Marker").GetComponent<Image>().enabled = true;
         Unit unit = mapGenerator.getCurrentUnit();
 	//	enableButtons(unit.getMinorTypes(), unit.getMovementTypes(), unit.getStandardTypes());
 	//	hideMinorArm(false);
