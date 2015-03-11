@@ -904,6 +904,7 @@ public class MapGenerator : MonoBehaviour  {
 			player.GetComponent<SpriteRenderer>().color = p.characterSheet.characterSheet.characterColors.characterColor;
 			p.addHair();
 			p.setAllSpritesToRenderingOrder(playerArmorOrder);
+			p.setAllSpritesRenderQueue(1000);
 			//		e.deselect();
 			bbb++;
 		}
@@ -2345,7 +2346,8 @@ public class MapGenerator : MonoBehaviour  {
 		//		}
 				else  {
 		//			deselectAllUnits();
-					openEscapeMenu();
+					BattleGUI.showPauseMenu(true);
+			//		openEscapeMenu();
 				}
 			}
 //			else UnitGUI.openTab = Tab.None;
@@ -3243,7 +3245,7 @@ public class MapGenerator : MonoBehaviour  {
 				bool overThing = mousePos.x >= Screen.width - selectionWidth;
 				Tile t = tiles[posX, posY];
 				Unit u2 = selectedSelectionObject.GetComponent<Unit>();
-				if (t.startingPoint)  {
+				if (t.startingPoint && lastHitWasTile)  {
 					if (t.hasCharacter())  {
 						Unit u = t.getCharacter();
 						if (selectionStartingTile!=null)  {
@@ -3670,7 +3672,8 @@ public class MapGenerator : MonoBehaviour  {
 		return interesting;
 	}
 	
-	
+	public bool lastHitWasTile = false;
+
 	void handleMouseSelect()  {
 	//	if ((shiftRightDraggin || rightDraggin) && ((wasShiftRightDraggin || wasRightDraggin) || !isOnGUI))  {
 		if ((!isInCharacterPlacement() || selectedSelectionObject==null) && !leftClickIsMakingSelection() && (shiftDraggin || normalDraggin) && ((wasRightDraggin || wasShiftRightDraggin) || !isOnGUI))  {
@@ -3785,8 +3788,10 @@ public class MapGenerator : MonoBehaviour  {
 		RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, 100.0f, 1<<9);
 		//		Physics2D.Ray
 		GameObject go = null;
+		lastHitWasTile = false;
 		if (hit.collider != null) go = hit.collider.gameObject;
 		if (go != null && !isOnGUI)  {
+			lastHitWasTile = true;
 		//	Debug.Log(go + "  " + go.transform.position);
 			if (go != lastHit)  {
 				lastHit = go;

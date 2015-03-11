@@ -71,11 +71,14 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
         skillScorePointList[6].GetComponent<Text>().text = calculateSkill(medicinal, technique, 5).ToString();
         skillScorePointList[7].GetComponent<Text>().text = calculateSkill(historical, well_versed, 6).ToString();
         skillScorePointList[8].GetComponent<Text>().text = calculateSkill(political, well_versed, 7).ToString();
-        skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
+		skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
+		setPointButtons();
 	}
 
     protected abstract void subClassStart();
-    protected abstract void extraOnClickLogic();
+    public virtual void extraOnClickLogic() {
+		setPointButtons();
+	}
     
 	
 	// Update is called once per frame
@@ -84,8 +87,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
 	}
 
 
-    public void updateScores()
-    {
+    public void updateScores() {
         abilityScorePointList[1].GetComponent<Text>().text = sturdy.ToString();
         abilityScorePointList[2].GetComponent<Text>().text = perception.ToString();
         abilityScorePointList[3].GetComponent<Text>().text = technique.ToString();
@@ -115,17 +117,13 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
     abstract public int calculateHealth();
     abstract public int calculateComposure();
 
-    protected int calculateMod(int abilityScore)
-    {
+    protected int calculateMod(int abilityScore) {
         return (int)Mathf.Floor(abilityScore / 2);
     }
 
-    public void addPoint(string score)
-    {
-        if (totalPoints > 0)
-        {
-            switch (score)
-            {
+    public void addPoint(string score) {
+        if (totalPoints > 0) {
+            switch (score) {
                 case "sturdy":
                     sturdy++;
                     abilityScorePointList[1].GetComponent<Text>().text = sturdy.ToString();
@@ -155,16 +153,14 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                     break;
             }
             adjustTotalPoints(false);
-            extraOnClickLogic();
+			extraOnClickLogic();
+			setPointButtons();
         }
     }
 
-    public void addSkillPoint(string skill)
-    {
-        if (totalSkillPoints > 0)
-        {
-            switch (skill)
-            {
+    public void addSkillPoint(string skill) {
+        if (totalSkillPoints > 0) {
+            switch (skill) {
                 case "athletics":
                     athletics++;
                     skillScorePointList[1].GetComponent<Text>().text = calculateSkill(athletics, sturdy, 0).ToString();
@@ -201,18 +197,17 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
                     break;
             }
             adjustTotalSkillPoints(false);
-            extraOnClickLogic();
+			extraOnClickLogic();
+			setPointButtons();
         }
     }
 
     protected void adjustTotalPoints(bool positive)
     {
-        if (positive)
-        {
+        if (positive) {
             totalPoints++;
         }
-        else
-        {
+        else {
             totalPoints--;
         }
         abilityScorePointList[0].GetComponent<Text>().text = totalPoints.ToString();
@@ -220,17 +215,24 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
 
     protected void adjustTotalSkillPoints(bool positive)
     {
-        if (positive)
-        {
+        if (positive){
             totalSkillPoints++;
         }
-        else
-        {
+        else{
             totalSkillPoints--;
         }
         skillScorePointList[0].GetComponent<Text>().text = totalSkillPoints.ToString();
     }
-
+	public Button[] minusButtons;
+	public Button[] plusButtons;
+	public void setPointButtons() {
+		int[] points = new int[] {sturdy, perception, technique, well_versed, athletics, melee, ranged, stealth, mechanical, medicinal, historical, political};
+		int[] mins = new int[] { 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+		for (int n=0;n<points.Length;n++) {
+			minusButtons[n].interactable = points[n] > mins[n];
+			plusButtons[n].interactable = n < 4 ? totalPoints > 0 : totalSkillPoints > 0;
+		}
+	}
     public void subtractPoint(string score)
     {
         switch (score)
@@ -278,7 +280,8 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
             default:
                 break;
         }
-        extraOnClickLogic();
+		extraOnClickLogic();
+		setPointButtons();
     }
 
     public void subtractSkillPoint(string skill)
@@ -352,6 +355,7 @@ public abstract class AbstractPointAllocation : MonoBehaviour {
             default:
                 break;
         }
-        extraOnClickLogic();
+		extraOnClickLogic();
+		setPointButtons();
     }
 }

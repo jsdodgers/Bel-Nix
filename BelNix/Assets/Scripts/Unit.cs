@@ -3569,7 +3569,12 @@ public class Unit : MonoBehaviour  {
 					primalControlUnit = attackEnemy;
 					intimidated = true;
 					invoked = false;
-					BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					if (team == 0) {
+						BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					}
+					else {
+						setPrimalControl(1);
+					}
 				}
 				else  {
 					resetIntimidate();
@@ -3611,7 +3616,12 @@ public class Unit : MonoBehaviour  {
 					primalControlUnit = attackEnemy;
 					invoked = true;
 					intimidated = false;
-					BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					if (team == 0) {
+						BattleGUI.setPrimalControlWindowShown(attackEnemy, true);
+					}
+					else {
+						setPrimalControl(1);
+					}
 				}
 				else  {
 					resetInvoke();

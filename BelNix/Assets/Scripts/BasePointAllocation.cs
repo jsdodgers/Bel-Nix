@@ -40,8 +40,9 @@ public class BasePointAllocation : AbstractPointAllocation {
         minPolitical    = political;
     }
 
-    protected override void extraOnClickLogic()
+    public override void extraOnClickLogic()
     {
+		base.extraOnClickLogic();
         barracksEntry.tryEnablingClassFeatureButton(this);
         Debug.Log("Click!");
     }
