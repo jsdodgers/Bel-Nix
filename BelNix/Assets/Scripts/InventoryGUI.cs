@@ -590,6 +590,9 @@ public class InventoryGUI : MonoBehaviour  {
         isShown = shown;
         inventoryGUI.gameObject.SetActive(shown);
 		if (!shown)  {
+			if (selectedUnit == null && selectedCharacter != null) {
+				selectedCharacter.saveCharacter();
+			}
 			inventoryGUI.clearLoot();
 			while (inventoryGUI.overlayObjects.Count > 0)  {
 				inventoryGUI.mouseHoverLeave(inventoryGUI.overlayObjects[0]);

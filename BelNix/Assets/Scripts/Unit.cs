@@ -1454,6 +1454,10 @@ public class Unit : MonoBehaviour  {
 				Debug.Log(enemy.getName() + "  " + enemyDist);
 			}
 			if (!usedMovement)  {
+				if (isProne())  {
+					recover();
+					return;
+				}
 				if (enemyDist > 1)  {
 					currentMoveDist = 5;
 					List<Unit> units = new List<Unit>();
@@ -1505,7 +1509,7 @@ public class Unit : MonoBehaviour  {
 				}
 			}
 			if (isPerformingAnAction() || mapGenerator.movingCamera) return;
-			if ((usedStandard || enemyDist > 1.0f) && (usedMovement || enemyDist <= 1.0f))  {
+		//	if ((usedStandard || enemyDist > 1.0f) && (usedMovement || enemyDist <= 1.0f))  {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0)  {
 					inPrimal = false;
@@ -1514,7 +1518,7 @@ public class Unit : MonoBehaviour  {
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
 				mapGenerator.nextPlayer();
-			}
+		//	}
 		}
 		else if (ps == PrimalState.Passive)  {
 			primalTurnsLeft--;
@@ -1590,8 +1594,10 @@ public class Unit : MonoBehaviour  {
 				mapGenerator.setPlayerPath(currentPath);
 				startMoving(false);
 				usedMovement = true;
+				return;
 			}
-			else  {
+		}
+		//	else  {
 				primalTurnsLeft--;
 				if (primalTurnsLeft==0)  {
 					inPrimal = false;
@@ -1600,8 +1606,8 @@ public class Unit : MonoBehaviour  {
 					characterSheet.characterSheet.combatScores.addComposure(1);
 				}
 				mapGenerator.nextPlayer();
-			}
-		}
+		//	}
+	//	}
 	}
 	
 	public VisibilityMode attackVisibilityMode()  {
