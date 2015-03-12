@@ -5,7 +5,9 @@ using System.IO;
 public class Saves  {
 
 	public static string getSaveRootDirectory()  {
-		return Application.persistentDataPath + "/Saves/";
+		string dir = Application.persistentDataPath + "/Saves/";
+		if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+		return dir;
 	}
 
 	public static string getSaveDirectory(string save)  {
@@ -13,7 +15,9 @@ public class Saves  {
 	}
 
 	public static string getCurrentSaveDirectory()  {
-		return getSaveDirectory("Current");
+		string dir = getSaveDirectory("Current");
+		if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+		return dir;
 	}
 
 	public static bool hasSaveFileNamed(string save)  {
@@ -44,6 +48,7 @@ public class Saves  {
 	}
 
 	public static void removeFilesFromCurrentSaveFile()  {
+		if (!Directory.Exists(getCurrentSaveDirectory())) Directory.CreateDirectory(getCurrentSaveDirectory());
 		removeFilesFromSaveFileNamed("Current");
 	}
 
@@ -167,6 +172,7 @@ public class Saves  {
 
 	public static string[] getSaveFiles()  {
 		string[] s = Directory.GetDirectories(getSaveRootDirectory());
+		if (s.Length <= 1) return new string[0];
 		string[] ans = new string[s.Length-1];
 		int n = 0;
 		foreach (string ss in s)  {
