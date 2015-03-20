@@ -3102,9 +3102,22 @@ public class Unit : MonoBehaviour  {
 
     public void playFootstep()
     {
-        //GetComponent<AudioSource>().clip = footsteps[Random.Range(0, 4)];
-        //GetComponent<AudioSource>().Play();
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("footstep" + Random.Range(1, 5), 0.4f);
+        int i = Random.Range(1, 5);
+        switch (i)
+        {
+            case 1:
+                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep1, 0.4f);
+                break;
+            case 2:
+                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep2, 0.4f);
+                break;
+            case 3:
+                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep3, 0.4f);
+                break;
+            case 4:
+                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep4, 0.4f);
+                break;
+        }
     }
 
 	public void doLootAfterMovement()  {
@@ -4003,7 +4016,7 @@ public class Unit : MonoBehaviour  {
 				//	ScreenShaker screenShaker = new ScreenShaker();
                 Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             }
-            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("blunt-impact", 1.0f);
+            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.BluntImpact, 1.0f);
         }
 		if (overClockedAttack)  {
 			Debug.Log("Over Clocked Attack!!!");

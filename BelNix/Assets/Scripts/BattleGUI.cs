@@ -228,7 +228,7 @@ public class BattleGUI : MonoBehaviour  {
         GameObject firstMarker = GameObject.Find("Image - Minor Marker 1");
         firstMarker.GetComponent<ActionMarker>().spark();
         if (GameObject.Find("MapGenerator").GetComponent<MapGenerator>().selectedUnit.team == 0)
-            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip("zap", 0.025f);
+            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.UISpark, 0.025f);
     }
     public static void onFinalMinorUsed(Object source, MinorEventArgs args) {
         Debug.Log("Final minor used!");
