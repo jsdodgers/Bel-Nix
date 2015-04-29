@@ -60,11 +60,13 @@ class Combat  {
 
     private static void OnComposureDamageHit(Unit attacker, Unit attackedEnemy, int damage)
     {
-
+        ComposureDamageHandler composureDamageHandler = getComposureDamageHandler();
+        composureDamageHandler.OnComposureDamageHit(attacker, attackedEnemy, damage);
     }
     private static void OnComposureDamageMissed(Unit attacker, Unit attackedEnemy)
     {
-
+        ComposureDamageHandler composureDamageHandler = getComposureDamageHandler();
+        composureDamageHandler.OnComposureDamageMissed(attacker, attackedEnemy);
     }
 
 
@@ -123,6 +125,27 @@ class Combat  {
         return attacker.characterSheet.overloadDamage();
     }
 	
+    public static bool dealComposureDamage(Unit attacker, Unit attackedEnemy, int damage)
+    {
+        if ((damage > 0) && (!attackedEnemy.characterSheet.characterSheet.combatScores.isInPrimalState()))
+        {
+            attackedEnemy.crushingHitSFX();
+            attackedEnemy.loseComposure(damage);
+            
+            if (attackedEnemy.characterSheet.characterSheet.combatScores.isInPrimalState())
+            {
+                attackedEnemy.inPrimal = true;
+                attackedEnemy.primalControl = 0;
+                attackedEnemy.primalInstigator = attacker;
+                attackedEnemy.primalTurnsLeft = attacker.characterSheet.characterSheet.combatScores.getDominion() + 1;
+                AudioManager.getAudioManager().playAudioClip(SFXClip.ComposureBreak, 0.4f);
+                return true;
+            }
+            AudioManager.getAudioManager().playAudioClip(SFXClip.ComposureDamage, 0.4f);
+        }
+        return false;
+    }
+
 	// Returns true if the attacker and a teammate are flanking the defender (they are on opposite sides of the defender)
 	public static bool flanking(Unit attacker)  {
 		return flanking(attacker, attacker.attackEnemy);

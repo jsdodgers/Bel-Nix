@@ -824,7 +824,7 @@ public class MapGenerator : MonoBehaviour  {
 		mapTransform = map.transform;
 		targetObject = GameObject.Find("Target");
 		audioBank = GameObject.Find("AudioBank").GetComponent<AudioBank>();
-		aManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+        aManager = AudioManager.getAudioManager();
 
 		turrets = mapTransform.FindChild("Turrets").gameObject;
 		traps = mapTransform.FindChild("Traps").gameObject;

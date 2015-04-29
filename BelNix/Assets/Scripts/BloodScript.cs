@@ -52,7 +52,7 @@ public class BloodScript : MonoBehaviour  {
         blood.GetComponent<BloodSplash>().sizeOption = damage;
         
         // Play the blood sound!
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.BloodSplash, 0.025f);
+        AudioManager.getAudioManager().playAudioClip(SFXClip.BloodSplash, 0.025f);
     }
 }
 

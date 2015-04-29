@@ -13,7 +13,7 @@ public class ButtonClickSFX : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
 	// Use this for initialization
 	void Start () {
-        audioManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+        audioManager = AudioManager.getAudioManager();
 	}
 	
 	// Update is called once per frame

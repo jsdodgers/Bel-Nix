@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public enum SFXClip {UISpark, TurretShoot, Footstep1, Footstep2, Footstep3, Footstep4, BloodSplash, BluntImpact, ButtonUp, ButtonDown}
+public enum SFXClip {UISpark, TurretShoot, Footstep1, Footstep2, Footstep3, Footstep4, BloodSplash, BluntImpact, ComposureDamage, ComposureBreak, ButtonUp, ButtonDown}
 
 public class AudioManager : MonoBehaviour  {
 	public GameObject phazingMusic;
@@ -15,10 +15,12 @@ public class AudioManager : MonoBehaviour  {
     Queue<GameObject> SFXPlayers;
     GameObject SFXContainerTemplate;
     private const int MAX_SFXPLAYER_COUNT = 20;
+    private static AudioManager primaryAudioManager;
     
 	[SerializeField] private float transitionTime;
 	// Use this for initialization
 	void Start ()  {
+        primaryAudioManager = this;
 		if (phazingMusic != null)  {
 			music = phazingMusic.GetComponent<AudioSource>();
 			anim = phazingMusic.GetComponent<Animator>();
@@ -45,6 +47,8 @@ public class AudioManager : MonoBehaviour  {
         importAudioClip(SFXClip.UISpark, "zapv1");
         importAudioClip(SFXClip.BloodSplash, "blood-splash");
         importAudioClip(SFXClip.BluntImpact, "Combat-CrushHit");
+        importAudioClip(SFXClip.ComposureDamage, "composure-hit");
+        importAudioClip(SFXClip.ComposureBreak, "composure-break");
         importAudioClip(SFXClip.ButtonDown, "Button_DOWN");
         importAudioClip(SFXClip.ButtonUp, "Button_UP");
     }
@@ -71,6 +75,11 @@ public class AudioManager : MonoBehaviour  {
         SFXPlayer.clip = clip;
         SFXPlayer.volume = volume;
         SFXPlayer.Play();
+    }
+
+    public static AudioManager getAudioManager()
+    {
+        return primaryAudioManager;
     }
 
 	public void invokeFadeInMusic()  {

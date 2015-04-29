@@ -3106,16 +3106,16 @@ public class Unit : MonoBehaviour  {
         switch (i)
         {
             case 1:
-                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep1, 0.4f);
+                AudioManager.getAudioManager().playAudioClip(SFXClip.Footstep1, 0.4f);
                 break;
             case 2:
-                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep2, 0.4f);
+                AudioManager.getAudioManager().playAudioClip(SFXClip.Footstep2, 0.4f);
                 break;
             case 3:
-                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep3, 0.4f);
+                AudioManager.getAudioManager().playAudioClip(SFXClip.Footstep3, 0.4f);
                 break;
             case 4:
-                GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.Footstep4, 0.4f);
+                AudioManager.getAudioManager().playAudioClip(SFXClip.Footstep4, 0.4f);
                 break;
         }
     }
@@ -3684,7 +3684,8 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public bool damageComposure(int damage, Unit u)  {
-		if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState())  {
+        return Combat.dealComposureDamage(u, this, damage);
+        /*if (damage > 0 && !characterSheet.characterSheet.combatScores.isInPrimalState())  {
 			crushingHitSFX();
 			loseComposure(damage);
 			if (characterSheet.characterSheet.combatScores.isInPrimalState())  {
@@ -3695,7 +3696,7 @@ public class Unit : MonoBehaviour  {
 				return true;
 			}
 		}
-		return false;
+		return false;*/
 	}
 
 	public void loseComposure(int damage) {
@@ -4016,7 +4017,7 @@ public class Unit : MonoBehaviour  {
 				//	ScreenShaker screenShaker = new ScreenShaker();
                 Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             }
-            GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.BluntImpact, 1.0f);
+            AudioManager.getAudioManager().playAudioClip(SFXClip.BluntImpact, 1.0f);
         }
 		if (overClockedAttack)  {
 			Debug.Log("Over Clocked Attack!!!");

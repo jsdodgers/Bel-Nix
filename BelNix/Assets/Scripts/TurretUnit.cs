@@ -222,7 +222,7 @@ public class TurretUnit : MechanicalUnit  {
         //source.volume = 0.4f;
         //Invoke("resetAudio", 0.6f);
 		if (!isOn || !turret.hasUsesLeft()) return;
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().playAudioClip(SFXClip.TurretShoot, 0.2f);
+        AudioManager.getAudioManager().playAudioClip(SFXClip.TurretShoot, 0.2f);
 		fireOnTile(mapGenerator.tiles[(int)position.x,(int)-position.y], 5);
 		turret.use();
 	}
