@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public enum SFXClip {UISpark, TurretShoot, Footstep1, Footstep2, Footstep3, Footstep4, BloodSplash, BluntImpact}
+public enum SFXClip {UISpark, TurretShoot, Footstep1, Footstep2, Footstep3, Footstep4, BloodSplash, BluntImpact, ButtonUp, ButtonDown}
 
 public class AudioManager : MonoBehaviour  {
 	public GameObject phazingMusic;
@@ -38,13 +38,15 @@ public class AudioManager : MonoBehaviour  {
     private void loadSFX()
     {
         importAudioClip(SFXClip.Footstep1, "footstep1");
-        importAudioClip(SFXClip.Footstep1, "footstep2");
-        importAudioClip(SFXClip.Footstep1, "footstep3");
-        importAudioClip(SFXClip.Footstep1, "footstep4");
+        importAudioClip(SFXClip.Footstep2, "footstep2");
+        importAudioClip(SFXClip.Footstep3, "footstep3");
+        importAudioClip(SFXClip.Footstep4, "footstep4");
         importAudioClip(SFXClip.TurretShoot, "turret-shoot");
         importAudioClip(SFXClip.UISpark, "zapv1");
         importAudioClip(SFXClip.BloodSplash, "blood-splash");
         importAudioClip(SFXClip.BluntImpact, "Combat-CrushHit");
+        importAudioClip(SFXClip.ButtonDown, "Button_DOWN");
+        importAudioClip(SFXClip.ButtonUp, "Button_UP");
     }
     public void importAudioClip(SFXClip key, string filename)
     {
