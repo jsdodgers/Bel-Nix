@@ -33,6 +33,22 @@ class Combat  {
             return eventHandler.AddComponent<AttackHandler>();
         }
     }
+
+    public static ComposureDamageHandler getComposureDamageHandler()
+    {
+        try
+        {
+            ComposureDamageHandler composureDamageHandler = GameObject.Find("Event Handler").GetComponent<ComposureDamageHandler>();
+            return composureDamageHandler;
+        }
+        catch (Exception e)
+        {
+            // I'll use getAttackHandler as a shortcut, letting it retrieve or set up the Event Handler for me.
+            GameObject eventHandler = getAttackHandler().gameObject;
+            return eventHandler.AddComponent<ComposureDamageHandler>();
+        }
+    }
+
     private static void OnAttackHit(Unit attacker, Unit attackedEnemy, int damage, bool ranged = false, bool crit = false, bool overClockedAttack = false) {
         AttackHandler attackHandler = getAttackHandler();
         attackHandler.OnAttackHit(attacker, attackedEnemy, damage, ranged, crit, overClockedAttack);
@@ -42,6 +58,14 @@ class Combat  {
         attackHandler.OnAttackMissed(attacker, attackedEnemy, ranged, overClockedAttack);
     }
 
+    private static void OnComposureDamageHit(Unit attacker, Unit attackedEnemy, int damage)
+    {
+
+    }
+    private static void OnComposureDamageMissed(Unit attacker, Unit attackedEnemy)
+    {
+
+    }
 
 
     public static void dealDamage(Unit attacker, Unit attackedEnemy, bool overClockedAttack = false) {
@@ -171,4 +195,46 @@ public class AttackEventArgs : EventArgs {
     public bool rangedAttack;
     public bool criticalHit;
     public bool overClockedAttack;
+}
+
+public class ComposureDamageHandler : MonoBehaviour
+{
+    public delegate void composureDamageHandler(ComposureDamageEventArgs args);
+    public event composureDamageHandler composureDamageHit;
+    public event composureDamageHandler composureDamageMissed;
+
+    public void OnComposureDamageHit(Unit attacker, Unit attackedEnemy, int damage)
+    {
+        if (composureDamageHit != null)
+        {
+            composureDamageHit(new ComposureDamageEventArgs()
+            {
+                attackingUnit = attacker.gameObject,
+                attackedUnit = attackedEnemy.gameObject,
+                missed = false,
+                damageDealt = damage
+            });
+        }
+    }
+    public void OnComposureDamageMissed(Unit attacker, Unit attackedEnemy)
+    {
+        if (composureDamageMissed != null)
+        {
+            composureDamageMissed(new ComposureDamageEventArgs()
+            {
+                attackingUnit = attacker.gameObject,
+                attackedUnit = attackedEnemy.gameObject,
+                missed = true,
+                damageDealt = 0,
+            });
+        }
+    }
+}
+
+public class ComposureDamageEventArgs : EventArgs
+{
+    public GameObject attackingUnit;
+    public GameObject attackedUnit;
+    public int damageDealt;
+    public bool missed;
 }
