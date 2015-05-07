@@ -7,13 +7,13 @@ public class ButtonClickSFX : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     [SerializeField, Range(0, 1)]
     private float volume;
 
-    private AudioManager audioManager;
+    //private AudioManager audioManager;
     private bool currentlyClicking = false;
 
 
 	// Use this for initialization
 	void Start () {
-        audioManager = AudioManager.getAudioManager();
+//        audioManager = AudioManager.getAudioManager();
 	}
 	
 	// Update is called once per frame
@@ -23,13 +23,13 @@ public class ButtonClickSFX : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
     public void OnPointerDown(PointerEventData e)
     {
-        //buttonDown();
-        audioManager.playAudioClip(SFXClip.ButtonDown, volume);
+        buttonDown();
+        //AudioManager.getAudioManager().playAudioClip(SFXClip.ButtonDown, volume);
     }
     public void OnPointerUp(PointerEventData e)
     {
-        //buttonUp();
-        audioManager.playAudioClip(SFXClip.ButtonUp, volume);
+        buttonUp();
+        //AudioManager.getAudioManager().playAudioClip(SFXClip.ButtonUp, volume);
     }
 
 
@@ -37,7 +37,7 @@ public class ButtonClickSFX : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     {
         if(!currentlyClicking)
         {
-            audioManager.playAudioClip(SFXClip.ButtonDown, 1.0f);
+            AudioManager.getAudioManager().playAudioClip(SFXClip.ButtonDown, volume);
             currentlyClicking = true;
             Debug.Log("Button Down!");
         }
@@ -45,7 +45,7 @@ public class ButtonClickSFX : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
     public void buttonUp()
     {
-        audioManager.playAudioClip(SFXClip.ButtonUp, 1.0f);
+        AudioManager.getAudioManager().playAudioClip(SFXClip.ButtonUp, volume);
         currentlyClicking = false;
         Debug.Log("Button Up!");
     }
