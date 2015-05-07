@@ -71,7 +71,7 @@ public class BloodManager : MonoBehaviour {
             else
                 numberAsString = i.ToString();
 
-            bloodSprites.Add(Resources.Load<Sprite>("Materials/Particles/blood_splatter_image" + numberAsString));
+            bloodSprites.Add(Resources.Load<Sprite>("Effects/Blood/blood_splatter_image" + numberAsString));
         }
 
         Debug.Log(bloodSprites.Count + "Sprites loaded");
