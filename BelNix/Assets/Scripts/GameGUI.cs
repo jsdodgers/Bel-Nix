@@ -51,10 +51,6 @@ public class GameGUI : MonoBehaviour  {
 	public static Tab clipboardTab = Tab.T;
 	public static Mission openMission = Mission.Primary;
 
-	static Texture2D actionTexture3;
-	static Texture2D hotkeysBackTextureCenter;
-	static Texture2D hotkeysBackTextureLeft;
-	static Texture2D clipBoardBodyTexture;
 
 	public static void resetVars()  {
 		clipboardTab = Tab.T;
@@ -80,18 +76,9 @@ public class GameGUI : MonoBehaviour  {
 		clipboardTab = Tab.T;
 		position = new Vector2(0.0f, 0.0f);
 		first = true;
-		actionTexture3 = Resources.Load<Texture>("UI/SocketBase_v2") as Texture2D;
 
-		hotkeysBackTextureLeft = Resources.Load<Texture>("UI/action-bar-left") as Texture2D;
-		hotkeysBackTextureCenter = Resources.Load<Texture>("UI/action-bar-center") as Texture2D;
-		clipBoardBodyTexture = Resources.Load<Texture>("UI/clipboard-body") as Texture2D;
 	}
 
-	static Texture2D getHotKeysBackTexture(int n)  {
-		if (n == -1 || n == Mathf.Max(2, numberActions)) return hotkeysBackTextureLeft;
-		return hotkeysBackTextureCenter;
-	}
-	
 	// Update is called once per frame
 	void Update ()  {
 	}
