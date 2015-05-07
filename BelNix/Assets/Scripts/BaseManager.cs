@@ -282,7 +282,7 @@ public class BaseManager : MonoBehaviour  {
 	public void resetInfirmaryText() {
 		infirmaryCost = perUnitInfirmaryCost * units.Count;
 		bool enabled = stash.canAfford(infirmaryCost);//units[0].characterSheet.inventory.purse.enoughMoney(cost);
-		bool enabled2 = false;
+		bool enabled2 = !false;
 		foreach (Character c in units)  {
 			CombatScores cs = c.characterSheet.combatScores;
 			if (cs.getCurrentHealth() < cs.getMaxHealth() || cs.getCurrentComposure() < cs.getMaxComposure())  {
@@ -324,6 +324,7 @@ public class BaseManager : MonoBehaviour  {
 			}
 		}
 		resetInfirmaryText();
+		randomlyOpenOrCloseMission();
 	}
 
 	public bool savesOpen = false;
@@ -1210,7 +1211,7 @@ public class BaseManager : MonoBehaviour  {
 			float x = boxOrigin.x + 5.0f;
 			int cost = perUnitInfirmaryCost * units.Count;
 			bool enabled = stash.canAfford(cost);//units[0].characterSheet.inventory.purse.enoughMoney(cost);
-			bool enabled2 = false;
+			bool enabled2 = !false;
 			foreach (Character c in units)  {
 				CombatScores cs = c.characterSheet.combatScores;
 				if (cs.getCurrentHealth() < cs.getMaxHealth() || cs.getCurrentComposure() < cs.getMaxComposure())  {
