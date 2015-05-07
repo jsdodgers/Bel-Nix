@@ -14,6 +14,8 @@ public class BattleGUI : MonoBehaviour  {
 	public static BattleGUI battleGUI;
 	public static bool aggressivelyEndTurn;
 	public static bool speedUpAI;
+	public static bool scrollAtBorders;
+	public static int scrollAtBordersSpeed;
 	private string[] saves;
 	[SerializeField] private GameObject saveEntry;
 	[SerializeField] private EventSystem eventSystem;
@@ -47,6 +49,8 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private Slider masterVolumeSlider;
 	[SerializeField] private Toggle aggressiveEndTurnToggle;
 	[SerializeField] private Toggle speedUpAIToggle;
+	[SerializeField] private Toggle scrollAtBordersToggle;
+	[SerializeField] private Slider scrollAtBordersSpeedSlider;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
@@ -173,6 +177,20 @@ public class BattleGUI : MonoBehaviour  {
 			speedUpAI = false;
 			speedUpAIToggle.isOn = false;
 		}
+		if (PlayerPrefs.HasKey("scrollBorders")) {
+			scrollAtBorders = PlayerPrefs.GetInt("scrollBorders") == 1;
+		}
+		else {
+			scrollAtBorders = true;
+		}
+		scrollAtBordersToggle.isOn = true;
+		if (PlayerPrefs.HasKey("scrollBordersSpeed")) {
+			scrollAtBordersSpeed = PlayerPrefs.GetInt("scrollBordersSpeed");
+		}
+		else {
+			scrollAtBordersSpeed = 30;
+		}
+		scrollAtBordersSpeedSlider.value = scrollAtBordersSpeed;
 		for (int n=0;n<3;n++) armsShown[n] = true;
         
         // Add screenshake to the main camera!
@@ -303,6 +321,24 @@ public class BattleGUI : MonoBehaviour  {
 	public void setSpeedUpAI(bool speed) {
 		PlayerPrefs.SetInt("speedUpAI", (speed ? 1 : 0));
 		speedUpAI = speed;
+	}
+
+	public void setScrollAtBorders(Toggle toggle) {
+		setScrollAtBorders(toggle.isOn);
+	}
+
+	public void setScrollAtBorders(bool borders) {
+		PlayerPrefs.SetInt("scrollBorders", (borders ? 1 : 0));
+		scrollAtBorders = borders;
+	}
+
+	public void setScrollAtBordersSpeed(Slider slider) {
+		setScrollAtBordersSpeed((int)slider.value);
+	}
+
+	public void setScrollAtBordersSpeed(int speed) {
+		PlayerPrefs.SetInt("scrollBordersSpeed",speed);
+		scrollAtBordersSpeed = speed;
 	}
 
 	public static void setEndGameUnits(int c, int exp, bool won, List<Item> rewards)  {

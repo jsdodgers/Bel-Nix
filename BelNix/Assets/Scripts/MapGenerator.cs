@@ -1732,8 +1732,13 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	public void setCameraPos()  {
-		float sc = gridSize/1.0f;
+		float sc = gridSize/2.0f;
+		if (cameraPos.x < 0.0f) cameraPos.x = 0.0f;
+		if (cameraPos.x > actualWidth) cameraPos.x = actualWidth;
+		if (cameraPos.y > 0.0f) cameraPos.y = 0.0f;
+		if (cameraPos.y < -actualHeight) cameraPos.y = -actualHeight;
 		mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * sc)))/sc, ((float)((int)(cameraPos.y * sc)))/sc, cameraPos.z);
+	//	mainCamera.transform.position = new Vector3((float)(((int)(cameraPos.x * sc))/sc), (float)(((int)(cameraPos.y * sc))/sc), cameraPos.z);
 
 	}
 
@@ -2173,6 +2178,7 @@ public class MapGenerator : MonoBehaviour  {
 
 	void handleInput()  {
 		if (Conversation.conversationOpen || gameState != GameState.Playing) return;
+		handleBorderScroll();
 		handleKeys();
 		if (GameGUI.escapeMenuOpen) return;
 		if (currentUnitIsPrimal())  {
@@ -2194,7 +2200,26 @@ public class MapGenerator : MonoBehaviour  {
 
 		if (altDown && shiftDown) rotatePlayerTowardsMouse();
 	}
-	
+
+	float maxDist = 20.0f;
+	void handleBorderScroll() {
+		if (!BattleGUI.scrollAtBorders) return;
+		Vector3 mousePos = Input.mousePosition;
+		float down = Mathf.Max(0, mousePos.y);
+		float up = Mathf.Max(0, screenHeight - mousePos.y);
+		float left = Mathf.Max(0, mousePos.x);
+		float right = Mathf.Max(0, screenWidth - mousePos.x);
+		cameraPos.y += getWeightedCameraBorderChange(up);
+		cameraPos.y -= getWeightedCameraBorderChange(down);
+		cameraPos.x -= getWeightedCameraBorderChange(left);
+		cameraPos.x += getWeightedCameraBorderChange(right);
+		setCameraPos();
+	}
+
+	float getWeightedCameraBorderChange(float change) {
+		if (change > maxDist) return 0.0f;
+		return (maxDist - change) * BattleGUI.scrollAtBordersSpeed/3000.0f;
+	}
 
 	void handleGUIPos()  {
 	//	isOnGUI = GameGUI.moveButtonRect().Contains(new Vector2(Input.mousePosition.x, Input.mousePosition.y));
@@ -2949,7 +2974,7 @@ public class MapGenerator : MonoBehaviour  {
 		if (Input.touchCount == 2) Debug.Log("Time elapsed: " + (Time.time - tapTime));
 		if (!shiftDraggin && (!normalDraggin || Time.time - tapTime <= 0.25f) && !rightDraggin && !shiftRightDraggin)  {
 		//	Debug.Log("Middle Set: " +   (middleDraggin && mouseMiddleDown) + "   "  + (!isOnGUI && Input.GetMouseButtonDown(2)) 
-			middleDraggin = (middleDraggin && (mouseMiddleDown || (mouseLeftDown && Input.touchCount == 2))) || ((!isOnGUI || isOnGUI) && Input.GetMouseButtonDown(2)) || ((!isOnGUI || isOnGUI) && (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && normalDraggin)) && (Input.touchCount >= 2 && (oldTouchCount == 2 || true)));
+			middleDraggin = (middleDraggin && (mouseMiddleDown || (mouseLeftDown && Input.touchCount >= 1))) || ((!isOnGUI || isOnGUI) && Input.GetMouseButtonDown(2)) || ((!isOnGUI || isOnGUI) && (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && normalDraggin)) && (Input.touchCount >= 1 && (oldTouchCount >= 1 || true)));
 			normalDraggin = normalDraggin && !middleDraggin;
 		}
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftRightDraggin) shiftDraggin = ((shiftDraggin && mouseLeftDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(0)));
@@ -2966,9 +2991,9 @@ public class MapGenerator : MonoBehaviour  {
 		mouseRightDown = Input.GetMouseButton(1);
 		if (!normalDraggin && !middleDraggin && !rightDraggin && !shiftDraggin) shiftRightDraggin = ((shiftRightDraggin && mouseRightDown) || (!isOnGUI && shiftDown && Input.GetMouseButtonDown(1)));
 		if (!shiftDraggin && !middleDraggin && !normalDraggin && !shiftRightDraggin) rightDraggin = (rightDraggin && mouseRightDown) || (!shiftDown && Input.GetMouseButtonDown(1));
-		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount != 2;
-		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount != 2;
-		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount != 2;
+		mouseDown = Input.GetMouseButtonDown(0) && Input.touchCount < 1;
+		mouseUp = Input.GetMouseButtonUp(0) && Input.touchCount < 1;
+		mouseDownRight = Input.GetMouseButtonDown(1) && Input.touchCount < 1;
 	//	if (mouseDown || mouseUp)
 	//		Debug.Log("MouseDown: " + mouseDown + " MouseUp: " + mouseUp);
 		if (mouseDown) mouseDownGUI = isOnGUI;
