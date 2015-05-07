@@ -78,6 +78,7 @@ public class MapGenerator : MonoBehaviour  {
 	public List<EditorItem> rewardItems = new List<EditorItem>();
 	[Space(20)]
 	public string tileMapName;
+	public int levelNumber = 0;
 	public int gridSize = 64;
 	public string goalText = "";
 
@@ -696,6 +697,9 @@ public class MapGenerator : MonoBehaviour  {
 		savePlayers();
 		deleteDeadPlayers();
 		BattleGUI.setEndGameUnits(copperReward, experienceReward, true, items);
+	//	int[] missions = Saves.getMissionList();
+		BaseManager.endMission(levelNumber);
+//		Saves.saveMissionList(missions);
 	}
 
 	public bool addItem(Unit u, Item i) {
@@ -1058,9 +1062,7 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	public void fadeInMusic() {
-        if (aManager == null)
-            aManager = AudioManager.getAudioManager();
-        aManager.invokeFadeInMusic();
+		aManager.invokeFadeInMusic();
 	}
 
 	public void activateNearbyEnemies(Unit e)  {

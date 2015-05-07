@@ -67,6 +67,11 @@ public class Saves  {
 	public static string getCharactersListFilePath()  {
 		return getCurrentSaveDirectory() + "/Characters.txt";
 	}
+	
+	public static string[] getCharacterList()  {
+		string text = File.ReadAllText(getCharactersListFilePath());
+		return text.Split(new char[] {';'});
+	}
 
 	public static string getCharacterPath(string characterId)  {
 		return getCurrentSaveDirectory() + "/" + characterId + ".txt";
@@ -76,6 +81,30 @@ public class Saves  {
 		return File.ReadAllText(getCharacterPath(characterId));
 	}
 
+	public static string getMissionListFilePath() {
+		return getCurrentSaveDirectory() + "/Missions.txt";
+	}
+
+	public static int[] getMissionList() {
+		if (!File.Exists(getMissionListFilePath())) return new int[] {1};
+		string text = File.ReadAllText(getMissionListFilePath());
+		string[] texts = text.Split(";".ToCharArray());
+		int[] missions = new int[texts.Length-1];
+		for (int n=0;n<texts.Length-1;n++) {
+			missions[n] = int.Parse(texts[n]);
+		}
+		return missions;
+		// 0 - no open mission;
+		// 1 - story mission;
+		// 2 - ???
+		// 3 - Profit;
+	}
+
+	public static void saveMissionList(int[] missions) {
+		File.WriteAllText(getMissionListFilePath(),"");
+		foreach (int mission in missions) File.AppendAllText(getMissionListFilePath(),mission + ";");
+	}
+
 	public static string getStashPath() {
 		return getCurrentSaveDirectory() + "/Stash.txt";
 	}
@@ -83,11 +112,6 @@ public class Saves  {
 	public static string getStashString() {
 		if (!File.Exists(getStashPath())) return "0;0";
 		return File.ReadAllText(getStashPath());
-	}
-
-	public static string[] getCharacterList()  {
-		string text = File.ReadAllText(getCharactersListFilePath());
-		return text.Split(new char[] {';'});
 	}
 
 	public static void deleteCharacter(string characterId)  {

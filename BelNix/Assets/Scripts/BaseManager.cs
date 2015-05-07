@@ -141,6 +141,12 @@ public class BaseManager : MonoBehaviour  {
 	Vector3 lastPos = new Vector3();
 	static Texture2D barracksTexture;
 	static Texture2D bottomSheetTexture;
+
+
+
+	public static int[] missionList;
+	[SerializeField] private GameObject[] missionButtons;
+	public static int numMissionButtons;
 	// Use this for initialization
 
 	
@@ -150,6 +156,7 @@ public class BaseManager : MonoBehaviour  {
 			section.setupItems();
 		}
 		currentSection = blackMarket[0];
+		numMissionButtons = missionButtons.Length;
 	}
 	public void openBlackMarket() {
 //		blackMarketCanvas.SetActive(true);
@@ -655,6 +662,7 @@ public class BaseManager : MonoBehaviour  {
 
 	public bool mapShown = false;
 	public void enableMap() {
+		setAvailableMissions();
 		mapShown = true;
 		somethingOpen = true;
 		map.SetActive(true);
@@ -663,6 +671,49 @@ public class BaseManager : MonoBehaviour  {
 		mapShown = false;
 		somethingOpen = false;
 		map.SetActive(false);
+	}
+	public void setAvailableMissions() {
+		for (int n=0;n<missionButtons.Length;n++) {
+			missionButtons[n].SetActive(missionList.Length > n ? missionList[n] > 0 : false);
+		}
+	}
+
+	public static void endMission(int levelNumber) {
+		if (missionList == null) missionList = Saves.getMissionList();
+		if (missionList.Length - 1 == levelNumber) {
+			int[] missionsNew = new int[missionList.Length+1];
+			for (int n=0;n<missionList.Length;n++) {
+				missionsNew[n] = missionList[n];
+			}
+			missionsNew[missionList.Length] = 1;
+			missionList = missionsNew;
+		}
+		missionList[levelNumber] = 0;
+		randomlyOpenOrCloseMission(levelNumber);
+	}
+
+	public static void randomlyOpenOrCloseMission(int except = -1) {
+		if (missionList == null) missionList = Saves.getMissionList();
+		for (int n=0;n<missionList.Length-1;n++) {
+			if (except == n) continue;
+			if (Random.Range(0,2)==0) {
+				if (missionList[n] == 0)
+					missionList[n] = 1;
+				else if (Random.Range(0,2)==0) missionList[n] = 0;
+			}
+		}
+		int num = 0;
+		for (int n=0;n<Mathf.Min(numMissionButtons,missionList.Length);n++) {
+			if (missionList[n] > 0) {
+				num++;
+			}
+		}
+		if (num == 0) {
+			int count = Mathf.Min(numMissionButtons,missionList.Length);
+			int ind = Random.Range(0,count);
+			missionList[ind] = 1;
+		}
+		Saves.saveMissionList(missionList);
 	}
 
 	public bool barracksShown = false;
@@ -713,7 +764,7 @@ public class BaseManager : MonoBehaviour  {
 			bf.Serialize(textWriter, item);
 			Debug.Log(textWriter.ToString());
 		}*/
-	
+		missionList = Saves.getMissionList();
 		units = new List<Character>();
 		string[] chars = Saves.getCharacterList();
 		for (int n=0;n<chars.Length-1;n++)  {
