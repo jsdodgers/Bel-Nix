@@ -1058,7 +1058,9 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	public void fadeInMusic() {
-		aManager.invokeFadeInMusic();
+        if (aManager == null)
+            aManager = AudioManager.getAudioManager();
+        aManager.invokeFadeInMusic();
 	}
 
 	public void activateNearbyEnemies(Unit e)  {

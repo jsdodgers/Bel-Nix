@@ -3721,7 +3721,7 @@ public class Unit : MonoBehaviour  {
 	
 	public void crushingSwingSFX()  {
 		if (mapGenerator && mapGenerator.audioBank)  {
-			mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingSwing, transform.position);
+			mapGenerator.audioBank.playClipAtPoint(SFXClip.CrushingSwing, transform.position);
 		}
 	}
 	
@@ -4079,7 +4079,7 @@ public class Unit : MonoBehaviour  {
 	}
 	
 	public void crushingHitSFX()  {
-		mapGenerator.audioBank.playClipAtPoint(ClipName.CrushingHit, transform.position);
+		mapGenerator.audioBank.playClipAtPoint(SFXClip.CrushingHit, transform.position);
 	}
 	
 	public virtual bool deadOrDying()  {
