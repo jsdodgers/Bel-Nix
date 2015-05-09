@@ -2589,6 +2589,7 @@ public class Unit : MonoBehaviour  {
 		}
 		rot.z += rotateDist * sign;
 		transform.eulerAngles = rot;
+		mapGenerator.setOverlay(this);
 	}
 
 	void rotateBy(float rotateDist)  {
@@ -2881,7 +2882,7 @@ public class Unit : MonoBehaviour  {
 				shouldMove = attackOfOpp(currentPath[0], MapGenerator.getDirectionOfTile(mapGenerator.tiles[(int)currentPath[0].x,(int)currentPath[0].y],mapGenerator.tiles[(int)currentPath[1].x,(int)currentPath[1].y]));
 				doAttOpp = false;
 			}
-			if (team == 0) mapGenerator.setOverlay(this);
+			mapGenerator.setOverlay(this);
 			if (currentPath.Count >= 2 && !isProne())  {
 				setRotatingPath();
 				//		attacking = true;
@@ -2907,7 +2908,7 @@ public class Unit : MonoBehaviour  {
 			pos.x += directionX*moveDist;
 			pos.y += directionY*moveDist;
 			transform.localPosition = pos;
-			if (team == 0) mapGenerator.setOverlay(this);
+			mapGenerator.setOverlay(this);
 			//			transform.Translate(new Vector3(directionX * moveDist, directionY * moveDist, 0.0f));
 		}
 		//	Vector2 dist = new Vector2(currentPath[1].x - currentPath[0].x, currentPath[1].y - currentPath[0].y);
@@ -3230,7 +3231,7 @@ public class Unit : MonoBehaviour  {
 									transform.localPosition = new Vector3(v.x + 0.5f, -v.y - 0.5f, transform.localPosition.z);
 									mapGenerator.setCurrentUnitTile();
 									mapGenerator.activateEnemies(this);
-									if (team == 0) mapGenerator.setOverlay(this);
+									mapGenerator.setOverlay(this);
 									break;
 								}
 							} 
