@@ -147,9 +147,16 @@ public class BaseManager : MonoBehaviour  {
 	public static int[] missionList;
 	[SerializeField] private GameObject[] missionButtons;
 	public static int numMissionButtons;
+	public string[,] missionNames = new string[,] {
+		{"TutorialLevel"},
+		{"Warehouse"},
+		{"Street"}
+	};
 	// Use this for initialization
 
-	
+	public void loadMission(int n) {
+		Application.LoadLevel(missionNames[n,missionList[n]-1]);
+	}
 	void Awake() {
 		stash.loadStash();
 		foreach (BlackMarketSection section in blackMarket) {
@@ -1148,6 +1155,7 @@ public class BaseManager : MonoBehaviour  {
 			for (int n=0;n<Mathf.Min(missions.Length, missionLevels.Length); n++)  {
 				if (GUI.Button(new Rect(buttX, boxY + 25.0f + 40.0f * n, buttWidth, 40.0f), missions[n]))  {
 					Application.LoadLevel(missionLevels[n]);
+//					Application.LoadLevel(missionNames[n
 				}
 			}
 			GUI.EndScrollView();
