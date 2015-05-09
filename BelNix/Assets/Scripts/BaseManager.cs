@@ -148,7 +148,7 @@ public class BaseManager : MonoBehaviour  {
 	[SerializeField] private GameObject[] missionButtons;
 	public static int numMissionButtons;
 	public static string[][] missionNames = new string[][] {
-		new string[] {"TutorialLevel", "TutorialLevel_kill_1"},
+		new string[] {"TutorialLevel", "TutorialLevel_kill_1", "TutorialLevel_escape_2"},
 		new string[] {"Warehouse"},
 		new string[] {"Street"}
 	};
