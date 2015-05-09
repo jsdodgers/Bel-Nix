@@ -25,6 +25,7 @@ public class MapGenerator : MonoBehaviour  {
 	public static MapGenerator mg;
 	Vector3 cameraPos;
 	public GameObject overlayMeshPrefab;
+	public GameObject lineSightMeshPrefab;
 	public GameObject[] overlayImage;
 	public float smoothness = 720.0f;
 	public bool doOverlay = false;
@@ -47,6 +48,7 @@ public class MapGenerator : MonoBehaviour  {
     public const int bloodOrder = 3 + sortingOrderExtra;
     public const int gridOrder = 4 + sortingOrderExtra;
 	public const int lineOrder = 6 + sortingOrderExtra;
+	public const int aiViewOrder = 10 + sortingOrderExtra;
 	public const int trapOrder = 20 + sortingOrderExtra;
 	public const int circleNormalOrder = 30 + sortingOrderExtra;
 	public const int circleMovingOrder = 31 + sortingOrderExtra;
@@ -121,7 +123,7 @@ public class MapGenerator : MonoBehaviour  {
 	public List<Unit> selectedUnits;
 	public List<TrapUnit> currentTrap;
 	public TrapUnit currentlySelectedTrap;
-	Unit hoveredCharacter;
+	public Unit hoveredCharacter;
 	public List<Unit> players;
 	public List<Unit> deadUnits;
 //	public List<Unit> nonAlertEnemies;
@@ -226,6 +228,8 @@ public class MapGenerator : MonoBehaviour  {
 	public class MeshPos  {
 		internal Vector2 position;
 		internal MeshGen meshGen;
+		internal Unit u;
+		internal Unit e;
 		public MeshPos(Vector2 pos, MeshGen m)  {
 			meshGen = m;
 			position = pos;
@@ -251,6 +255,14 @@ public class MapGenerator : MonoBehaviour  {
 					meshPoses.Add(getMeshPos(t));
 				}
 			}
+			int i = 0;
+			foreach (Unit u in enemies)  {
+				//	positions.Add(new Vector2(u.transform.position.x, u.transform.position.y));
+				meshPoses.Add(getMeshPos(u));
+				i++;
+				Debug.Log("Enemy " + i + ": " + u.team);
+			}
+
 		}
 		else  {
 			foreach (Unit u in players)  {
@@ -266,7 +278,7 @@ public class MapGenerator : MonoBehaviour  {
 			}
 		}
 		foreach (MeshPos pos in meshPoses)  {
-			setOverlay(pos);
+			setOverlay(pos, false, pos.u);
 		/*	int printed = 0;
 			int x = (int)(pos.x * (float)gridSize);
 			int y = (int)(-pos.y * (float)gridSize);
@@ -360,12 +372,15 @@ public class MapGenerator : MonoBehaviour  {
 	public MeshPos getMeshPos(Unit u)  {
 		MeshGen mg = u.meshGen;
 		if (mg == null)  {
-			GameObject mgObj = GameObject.Instantiate(overlayMeshPrefab) as GameObject;
+			GameObject mgObj = (u.team == 0 ? GameObject.Instantiate(overlayMeshPrefab) : GameObject.Instantiate(lineSightMeshPrefab)) as GameObject;
 			mg = mgObj.GetComponent<MeshGen>();
 			u.meshGen = mg;
 			mgObj.transform.parent = overlayObject.transform;
+			mgObj.SetActive(u.team == 0 || (BattleGUI.showAIRange && (!BattleGUI.showAIRangeHover || hoveredCharacter == u)));
 		}
-		return new MeshPos(new Vector2(u.transform.position.x, u.transform.position.y), mg);
+		MeshPos mp = new MeshPos(new Vector2(u.transform.position.x, u.transform.position.y), mg);
+		if (u.team != 0) mp.u = u;
+		return mp;
 	}
 	public MeshPos getMeshPos(Tile t)  {
 		MeshGen mg = t.meshGen;
@@ -379,7 +394,8 @@ public class MapGenerator : MonoBehaviour  {
 		//		break;
 	}
 	public void setOverlay(Unit u, bool print = false)  {
-		setOverlay(getMeshPos(u), print);
+		MeshPos mp = getMeshPos(u);
+		setOverlay(mp, print, mp.u);
 //		Debug.Log("Angle: " + u
 	}
 	public void removeOverlay(Unit u)  {
@@ -393,8 +409,8 @@ public class MapGenerator : MonoBehaviour  {
 		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/smoothness)  {
 			float sin = Mathf.Sin(n);
 			float cos = Mathf.Cos(n);
-			float y = pos.position.y + sin * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-90.0f));
-			float x = pos.position.x + cos * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-90.0f));
+			float y = pos.position.y + sin * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-0*90.0f));
+			float x = pos.position.x + cos * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-0*90.0f));
 			Vector2 v = new Vector2(x, y);
 			CollisionPoint cp = getLineOfSightCollisionPoint(pos.position, v, VisibilityMode.Visibility);
 			if (cp.collides)  {
@@ -404,7 +420,7 @@ public class MapGenerator : MonoBehaviour  {
 				points.Add(v);
 			}
 		}
-		pos.meshGen.createMesh(points.ToArray(), pos.position, print);
+		pos.meshGen.createMesh(points.ToArray(), pos.position, u != null);
 	}
 	bool done = false;
 	public void setVisibilityLine(Vector2 from, Vector2 to, bool[,] visibilities)  {
@@ -3839,13 +3855,25 @@ public class MapGenerator : MonoBehaviour  {
 		//	Debug.Log(go + "  " + go.transform.position);
 			if (go != lastHit)  {
 				lastHit = go;
-				if (!selectedUnit)  {
+			//	if (!selectedUnit)  {
 					if (hoveredCharacter)  {
 					//	resetAroundCharacter(hoveredCharacter, hoveredCharacter.viewDist);
+						if (hoveredCharacter.team != 0 && hoveredCharacter.meshGen != null) {
+							if (BattleGUI.showAIRange && BattleGUI.showAIRangeHover) {
+								hoveredCharacter.meshGen.gameObject.SetActive(false);
+							}
+						}
 					}
-				}
+			//	}
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
+				if (hoveredCharacter) {
+					if (hoveredCharacter.team != 0 && hoveredCharacter.meshGen != null) {
+						if (BattleGUI.showAIRange && BattleGUI.showAIRangeHover) {
+							hoveredCharacter.meshGen.gameObject.SetActive(true);
+						}
+					}
+				}
 			}
 			if (middleDraggin)  {
 				//	Tile t = go.GetComponent<TileHolder>().tile;

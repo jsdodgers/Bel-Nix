@@ -12,10 +12,89 @@ public class MeshGen : MonoBehaviour  {
 	
 	//size of each tile
 //	public float tileSize = 1.0f;
-	
+
+//	static MeshFilter aiMesh;
 	// Use this for initialization
 	void Start ()  {
+	/*	Debug.Log("Start");
+		if (aiMesh == null) {
+			Debug.Log("aiMesh is Null");
+			GameObject aiMeshObj = GameObject.Find("AIMesh");
+			aiMesh = aiMeshObj.GetComponent<MeshFilter>();
+			Debug.Log("Is aiMesh null? " + (aiMesh==null));
+		}*/
 	//	createMesh();    
+	}
+
+	private void tangentSolver(Mesh theMesh)
+	{
+		int vertexCount = theMesh.vertexCount;
+		Vector3[] vertices = theMesh.vertices;
+		Vector3[] normals = theMesh.normals;
+		Vector2[] texcoords = theMesh.uv;
+		int[] triangles = theMesh.triangles;
+		int triangleCount = triangles.Length / 3;
+		Vector4[] tangents = new Vector4[vertexCount];
+		Vector3[] tan1 = new Vector3[vertexCount];
+		Vector3[] tan2 = new Vector3[vertexCount];
+		int tri = 0;
+		for (int i = 0; i < (triangleCount); i++)
+		{
+			int i1 = triangles[tri];
+			int i2 = triangles[tri + 1];
+			int i3 = triangles[tri + 2];
+			
+			Vector3 v1 = vertices[i1];
+			Vector3 v2 = vertices[i2];
+			Vector3 v3 = vertices[i3];
+			
+			Vector2 w1 = texcoords[i1];
+			Vector2 w2 = texcoords[i2];
+			Vector2 w3 = texcoords[i3];
+			
+			float x1 = v2.x - v1.x;
+			float x2 = v3.x - v1.x;
+			float y1 = v2.y - v1.y;
+			float y2 = v3.y - v1.y;
+			float z1 = v2.z - v1.z;
+			float z2 = v3.z - v1.z;
+			
+			float s1 = w2.x - w1.x;
+			float s2 = w3.x - w1.x;
+			float t1 = w2.y - w1.y;
+			float t2 = w3.y - w1.y;
+			
+			float r = 1.0f / (s1 * t2 - s2 * t1);
+			Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+			Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+			
+			tan1[i1] += sdir;
+			tan1[i2] += sdir;
+			tan1[i3] += sdir;
+			
+			tan2[i1] += tdir;
+			tan2[i2] += tdir;
+			tan2[i3] += tdir;
+			
+			tri += 3;
+		}
+		
+		for (int i = 0; i < (vertexCount); i++)
+		{
+			Vector3 n = normals[i];
+			Vector3 t = tan1[i];
+			
+			// Gram-Schmidt orthogonalize
+			Vector3.OrthoNormalize(ref n, ref t);
+			
+			tangents[i].x = t.x;
+			tangents[i].y = t.y;
+			tangents[i].z = t.z;
+			
+			// Calculate handedness
+			tangents[i].w = (Vector3.Dot(Vector3.Cross(n, t), tan2[i]) < 0.0) ? -1.0f : 1.0f;
+		}
+		theMesh.tangents = tangents;
 	}
 	
 	void createMesh()  {
@@ -119,10 +198,10 @@ public class MeshGen : MonoBehaviour  {
 		Vector3[] verts = new Vector3[totalVerts];
 		Vector3[] norms = new Vector3[totalVerts];
 		Vector2[] uvs = new Vector2[totalVerts];
-		//		Color[] colors = new Color[totalVerts];
-		//		for (int n=0;n<totalVerts;n++)  {
-		//			colors[n] = Color.clear;
-		//		}
+		Color[] colors = new Color[totalVerts];
+		for (int n=0;n<totalVerts;n++)  {
+			colors[n] = new Color(1.0f,0.0f,0.0f,0.5f);
+		}
 		
 		//triangles
 		//		int[] tris = new int[totalTris * 3];
@@ -218,10 +297,18 @@ public class MeshGen : MonoBehaviour  {
 		newMesh.normals = norms;
 		newMesh.triangles = tris;
 		//		newMesh.colors = colors;
+		newMesh.colors = colors;
+		tangentSolver(newMesh);
 	}
 
 	
-	public void createMesh(Vector2[] points, Vector2 origin, bool print = false)  {
+	public void createMesh(Vector2[] points, Vector2 origin, bool combine = false)  {
+	/*	if (aiMesh == null) {
+			Debug.Log("aiMesh is Null");
+			GameObject aiMeshObj = GameObject.Find("AIMesh");
+			aiMesh = aiMeshObj.GetComponent<MeshFilter>();
+			Debug.Log("Is aiMesh null? " + (aiMesh==null));
+		}*/
 		//declare mesh variables
 		//	int totalTiles = sizeX * sizeZ;
 		//	int totalTris = totalTiles * 2;
@@ -254,12 +341,14 @@ public class MeshGen : MonoBehaviour  {
 			}
 		}
 		*/
+		Vector2[] UV2 = new Vector2[] {new Vector2(0,0),new Vector2(0,1),new Vector2(1,1),new Vector2(1,0)};
 		int[] tris = new int[(totalVerts-1)*3];
 		for(int n=0;n<totalVerts;n++)  {
 			norms[n] = Vector3.up;
 			if (n == 0) verts[n] = new Vector3(origin.x, origin.y, -1.0f);
 			else  {
 				verts[n] = new Vector3(points[n-1].x, points[n-1].y, -1.0f);
+				uvs[n] = UV2[n%4];
 				int tri = (n-1)*3;
 				int m = n+1;
 				if (m >= totalVerts) m = 1;
@@ -270,7 +359,7 @@ public class MeshGen : MonoBehaviour  {
 		}
 		//uvs
 		//no texture, just a simple red material
-		uvs[0] = new Vector2(0,0);
+		//uvs[0] = new Vector2(0,0);
 		
 		
 		//triangles
@@ -335,6 +424,7 @@ public class MeshGen : MonoBehaviour  {
 			newMesh = new Mesh();
 			meshFilter.mesh = newMesh;
 		}
+		GetComponent<MeshRenderer>().sortingOrder = MapGenerator.aiViewOrder;
 		//assign mesh to filter/collider/renderer
 		//		MeshCollider meshCollider = GetComponent<MeshCollider>();
 		//		MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
@@ -344,10 +434,29 @@ public class MeshGen : MonoBehaviour  {
 		newMesh.uv = uvs;
 		newMesh.normals = norms;
 		newMesh.triangles = tris;
+//		tangentSolver(newMesh);
+		newMesh.RecalculateNormals();
 		newMesh.RecalculateBounds();
+	/*	if (combine) {
+			List<MeshFilter> meshFilters = new List<MeshFilter>();
+			MapGenerator mg = MapGenerator.mg;
+			foreach (Enemy e in mg.enemies) {
+				if (e.meshGen != null && e.meshGen.GetComponent<MeshFilter>().mesh != null) {
+					meshFilters.Add(e.meshGen.GetComponent<MeshFilter>());
+				}
+			}
+			CombineInstance[] combines = new CombineInstance[meshFilters.Count];
+			for (int n=0;n<meshFilters.Count;n++) {
+				combines[n].mesh = meshFilters[n].sharedMesh;
+				combines[n].transform = meshFilters[n].transform.localToWorldMatrix;
+			}
+			if (aiMesh.mesh == null) {
+				aiMesh.mesh = new Mesh();
+			}
+			aiMesh.sharedMesh.CombineMeshes(combines);
+		}*/
 		//		newMesh.colors = colors;
 	}
-
 
 	static bool printed = false;
 	bool rightTurn(Vector2 p, Vector2 q, Vector2 r, bool print = false)	 {

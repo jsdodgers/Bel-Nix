@@ -15,6 +15,8 @@ public class BattleGUI : MonoBehaviour  {
 	public static bool aggressivelyEndTurn;
 	public static bool speedUpAI;
 	public static bool scrollAtBorders;
+	public static bool showAIRange;
+	public static bool showAIRangeHover;
 	public static int scrollAtBordersSpeed;
 	private string[] saves;
 	[SerializeField] private GameObject saveEntry;
@@ -51,6 +53,8 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private Toggle speedUpAIToggle;
 	[SerializeField] private Toggle scrollAtBordersToggle;
 	[SerializeField] private Slider scrollAtBordersSpeedSlider;
+	[SerializeField] private Toggle showAIRangeToggle;
+	[SerializeField] private Toggle showAIRangeHoverToggle;
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
@@ -183,7 +187,7 @@ public class BattleGUI : MonoBehaviour  {
 		else {
 			scrollAtBorders = true;
 		}
-		scrollAtBordersToggle.isOn = true;
+		scrollAtBordersToggle.isOn = scrollAtBorders;
 		if (PlayerPrefs.HasKey("scrollBordersSpeed")) {
 			scrollAtBordersSpeed = PlayerPrefs.GetInt("scrollBordersSpeed");
 		}
@@ -191,6 +195,20 @@ public class BattleGUI : MonoBehaviour  {
 			scrollAtBordersSpeed = 30;
 		}
 		scrollAtBordersSpeedSlider.value = scrollAtBordersSpeed;
+		if (PlayerPrefs.HasKey("showAIRange")) {
+			showAIRange = PlayerPrefs.GetInt("showAIRange")==1;
+		}
+		else {
+			showAIRange = true;
+		}
+		showAIRangeToggle.isOn = showAIRange;
+		if (PlayerPrefs.HasKey("showAIRangeHover")) {
+			showAIRangeHover = PlayerPrefs.GetInt("showAIRangeHover")==1;
+		}
+		else {
+			showAIRangeHover = false;
+		}
+		showAIRangeHoverToggle.isOn = showAIRangeHover;
 		for (int n=0;n<3;n++) armsShown[n] = true;
         
         // Add screenshake to the main camera!
@@ -339,6 +357,35 @@ public class BattleGUI : MonoBehaviour  {
 	public void setScrollAtBordersSpeed(int speed) {
 		PlayerPrefs.SetInt("scrollBordersSpeed",speed);
 		scrollAtBordersSpeed = speed;
+	}
+
+	public void setShowAIRange(Toggle toggle) {
+		setShowAIRange(toggle.isOn);
+	}
+
+	public void setShowAIRange(bool show) {
+		PlayerPrefs.SetInt("showAIRange",(show ? 1 : 0));
+		showAIRange = show;
+		resetVisibleAIRanges();
+	}
+
+	public void setShowAIRangeHover(Toggle toggle) {
+		setShowAIRangeHover(toggle.isOn);
+	}
+
+	public void setShowAIRangeHover(bool hover) {
+		PlayerPrefs.SetInt("showAIRangeHover",(hover ? 1 : 0));
+		showAIRangeHover = hover;
+		resetVisibleAIRanges();
+	}
+
+	public void resetVisibleAIRanges() {
+		foreach (Enemy e in MapGenerator.mg.enemies) {
+			MeshGen mg = e.meshGen;
+			if (mg != null) {
+				mg.gameObject.SetActive(showAIRange && (!showAIRangeHover || MapGenerator.mg.hoveredCharacter==e));
+			}
+		}
 	}
 
 	public static void setEndGameUnits(int c, int exp, bool won, List<Item> rewards)  {
