@@ -3439,6 +3439,7 @@ public class Unit : MonoBehaviour  {
 		gettingThrown = true;
 		//		gettingThrownPosition = new Vector3(x, -y, position.z);
 		currentPath.Add(new Vector2(x, y));
+        AudioManager.getAudioManager().playAudioClip(SFXClip.KnockedDown, 0.6f);
 		//	setPosition(new Vector3(x, -y, position.z));
 	}
 	

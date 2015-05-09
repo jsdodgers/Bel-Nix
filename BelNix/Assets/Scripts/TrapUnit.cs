@@ -111,6 +111,7 @@ public class TrapUnit : MechanicalUnit  {
 		if (attacking)  {
 			attacking = false;
 			dealDamage();
+            AudioManager.playSFXClip(SFXClip.TrapShut, 0.4f);
 			if (attackEnemy)  {
 				attackEnemy.wasBeingAttacked = attackEnemy.beingAttacked;
 				attackEnemy.beingAttacked = false;

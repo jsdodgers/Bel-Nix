@@ -41,6 +41,10 @@ public class AudioManager : MonoBehaviour  {
     {
         return primaryAudioManager;
     }
+    public static void playSFXClip(SFXClip clipName, float volume = 1.0f)
+    {
+        primaryAudioManager.playAudioClip(clipName, volume);
+    }
 
 	public void invokeFadeInMusic()  {
 		if(phazingMusic != null)  {

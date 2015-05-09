@@ -9,12 +9,13 @@ public enum ClipName  {
 
 public enum SFXClip { 
     UISpark, 
-    TurretShoot, 
+    TurretShoot, TrapShut,
     Footstep1, Footstep2, Footstep3, Footstep4, 
     BloodSplash, 
     BluntImpact, CrushingSwing, CrushingHit,
+    KnockedDown,
     ComposureDamage, ComposureBreak, 
-    ButtonUp, ButtonDown }
+    ButtonUp, ButtonDown, UIClick }
 
 public class AudioBank : MonoBehaviour  {
 
@@ -40,6 +41,7 @@ public class AudioBank : MonoBehaviour  {
         importAudioClip(SFXClip.Footstep3,      "footstep3");
         importAudioClip(SFXClip.Footstep4,      "footstep4");
         importAudioClip(SFXClip.TurretShoot,    "turret-shoot");
+        importAudioClip(SFXClip.TrapShut,       "trap-shut");
         importAudioClip(SFXClip.UISpark,        "zapv1");
         importAudioClip(SFXClip.BloodSplash,    "blood-splash");
         importAudioClip(SFXClip.BluntImpact,    "Combat-CrushHit");
@@ -47,8 +49,10 @@ public class AudioBank : MonoBehaviour  {
         importAudioClip(SFXClip.CrushingHit,    "Combat-CrushHit");
         importAudioClip(SFXClip.ComposureDamage,"composure-hit");
         importAudioClip(SFXClip.ComposureBreak, "composure-break");
+        importAudioClip(SFXClip.KnockedDown,    "knocked_over");
         importAudioClip(SFXClip.ButtonDown,     "Button_DOWN");
         importAudioClip(SFXClip.ButtonUp,       "Button_UP");
+        importAudioClip(SFXClip.UIClick,        "ui-click");
     }
 
     public void importAudioClip(SFXClip key, string filename)
