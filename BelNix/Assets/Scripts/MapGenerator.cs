@@ -1759,12 +1759,17 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	float cameraSpeed = 32.0f;
+	public Vector3 lastChange = Vector3.zero;
 	void moveCamera()  {
-		if (!movingCamera) return;
+		if (!movingCamera) {
+			lastChange = Vector3.zero;
+			return;
+		}
 	//	float speed = 32.0f;
 		float dist = cameraSpeed * Time.deltaTime;
 //		float distLeft = Mathf.
 		Vector3 pos = cameraPos;//Camera.main.transform.position;
+		Vector3 oldPos = pos;
 		Vector3 left = new Vector3(cameraMoveToPos.x - pos.x, cameraMoveToPos.y - pos.y, cameraMoveToPos.z - pos.z);
 		float distLeft = Mathf.Sqrt(Mathf.Pow(left.x,2) + Mathf.Pow(left.y,2) + Mathf.Pow(left.z,2));
 		if (distLeft <= dist)  {
@@ -1788,6 +1793,7 @@ public class MapGenerator : MonoBehaviour  {
 		//	mainCamera.transform.position = new Vector3(((float)((int)(cameraPos.x * gridSize)))/((float)gridSize), ((float)((int)(cameraPos.y * gridSize)))/((float)gridSize), cameraPos.z);
 			setCameraPos();
 		}
+		lastChange = cameraPos - oldPos;
 	}
 
 	public void setCameraPos()  {
