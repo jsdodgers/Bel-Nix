@@ -418,11 +418,15 @@ public class Unit : MonoBehaviour  {
 		idleAnimation(false);
 		doTurrets();
 		temperedHandsMod = 0;
+
+	}
+
+	public void checkEscapability() {
 		Tile t = mapGenerator.tiles[(int)position.x,(int)-position.y];
 		if (MapGenerator.mg.mapType == MapType.Escape) {
 			canEscape = t.triggerBitSet(2);
 			bool allCanEscape = true;
-			if (canEscape) {
+		//	if (canEscape) {
 				foreach (Unit u in MapGenerator.mg.players) {
 					if (!u.deadOrDyingOrUnconscious() && !u.canEscape) {
 						allCanEscape = false;
@@ -430,8 +434,10 @@ public class Unit : MonoBehaviour  {
 					}
 				}
 				if (allCanEscape)
-					mapGenerator.setGameState(GameState.Won);
-			}
+					BattleGUI.battleGUI.escapeCanvas.SetActive(true);
+				else BattleGUI.battleGUI.escapeButton.SetActive(false);
+//					mapGenerator.setGameState(GameState.Won);
+		//	}
 		}
 	}
 	
@@ -3323,6 +3329,9 @@ public class Unit : MonoBehaviour  {
 					BattleGUI.resetMinorButtons();
 				}
 			}
+			if (!moving) {
+				checkEscapability();
+			}
 		}
 	}
 	
@@ -4031,10 +4040,10 @@ public class Unit : MonoBehaviour  {
         if (didHit) {
 			attackEnemy.damage(wapoon, this, animate);
             BloodScript.spillBlood(this, e, wapoon);
-			if (crit) {
+			if (crit && !attackEnemy.moving) {
 				Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
 			}
-			else {
+			else if (!attackEnemy.moving) {
 				//	ScreenShaker screenShaker = new ScreenShaker();
                 Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             }

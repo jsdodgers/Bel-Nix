@@ -54,11 +54,7 @@ public class ScreenShaker : MonoBehaviour  {
             Vector2 currentPos = transform.position;
             while (currentPos != targetPoint) {
                 if (map.movingCamera) {
-					currentPos.x += map.lastChange.x;
-					currentPos.y += map.lastChange.y;
-					targetPoint.x += map.lastChange.x;
-					targetPoint.y += map.lastChange.y;
-                 //   yield break;
+                    yield break;
 				}
                 currentPos = setPos(transform, Vector2.MoveTowards(currentPos, targetPoint, stepSize));
                 yield return null;

@@ -147,15 +147,15 @@ public class BaseManager : MonoBehaviour  {
 	public static int[] missionList;
 	[SerializeField] private GameObject[] missionButtons;
 	public static int numMissionButtons;
-	public string[,] missionNames = new string[,] {
-		{"TutorialLevel"},
-		{"Warehouse"},
-		{"Street"}
+	public static string[][] missionNames = new string[][] {
+		new string[] {"TutorialLevel", "TutorialLevel_kill_1"},
+		new string[] {"Warehouse"},
+		new string[] {"Street"}
 	};
 	// Use this for initialization
 
 	public void loadMission(int n) {
-		Application.LoadLevel(missionNames[n,missionList[n]-1]);
+		Application.LoadLevel(missionNames[n][missionList[n]-1]);
 	}
 	void Awake() {
 		stash.loadStash();
@@ -706,7 +706,7 @@ public class BaseManager : MonoBehaviour  {
 			if (except == n) continue;
 			if (Random.Range(0,2)==0) {
 				if (missionList[n] == 0)
-					missionList[n] = 1;
+					missionList[n] = Random.Range((missionNames[n].Length > 1 ? 2 :1),missionNames[n].Length+1);
 				else if (Random.Range(0,2)==0) missionList[n] = 0;
 			}
 		}
@@ -719,7 +719,7 @@ public class BaseManager : MonoBehaviour  {
 		if (num == 0) {
 			int count = Mathf.Min(numMissionButtons,missionList.Length);
 			int ind = Random.Range(0,count);
-			missionList[ind] = 1;
+			missionList[ind] = Random.Range(1,missionNames[ind].Length+1);
 		}
 		Saves.saveMissionList(missionList);
 	}
