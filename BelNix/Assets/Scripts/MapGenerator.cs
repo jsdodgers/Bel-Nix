@@ -1078,6 +1078,7 @@ public class MapGenerator : MonoBehaviour  {
 	}
 
 	public void fadeInMusic() {
+		if (aManager == null) return;
 		aManager.invokeFadeInMusic();
 	}
 
