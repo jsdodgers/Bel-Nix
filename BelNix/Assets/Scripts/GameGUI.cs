@@ -1224,6 +1224,7 @@ public class GameGUI : MonoBehaviour  {
 					foreach (Unit u in mapGenerator.priorityOrder)  {
 						u.setRotationToMostInterestingTile();
 					}
+					BattleGUI.moveHelpButton();
                     BattleGUI.toggleUI();
 				}
 			}

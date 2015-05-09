@@ -60,6 +60,7 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private GameObject[] confirmButtons;
 	[SerializeField] private Text playerTurnTextObject;
 	[SerializeField] private ButtonSwap actionsButton;
+	[SerializeField] private GameObject helpButton;
 
 	[Space(20)]
 	[Header("Mugshot")]
@@ -138,6 +139,13 @@ public class BattleGUI : MonoBehaviour  {
 
 	public void escapeMission() {
 		MapGenerator.mg.setGameState(GameState.Won);
+	}
+
+	public static void moveHelpButton() {
+		RectTransform rt = battleGUI.helpButton.GetComponent<RectTransform>();
+		Vector2 v = rt.anchoredPosition;
+		v.x = -40.0f;
+		rt.anchoredPosition = v;
 	}
 
 	private void cameraDebug() {
