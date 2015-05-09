@@ -379,11 +379,15 @@ public class BattleGUI : MonoBehaviour  {
 		resetVisibleAIRanges();
 	}
 
-	public void resetVisibleAIRanges() {
+	public static void resetVisibleAIRanges() {
 		foreach (Enemy e in MapGenerator.mg.enemies) {
 			MeshGen mg = e.meshGen;
+			MeshGen mgs = e.meshGenStealth;
 			if (mg != null) {
 				mg.gameObject.SetActive(showAIRange && (!showAIRangeHover || MapGenerator.mg.hoveredCharacter==e));
+			}
+			if (mgs != null) {
+				mgs.gameObject.SetActive((showAIRange && (!showAIRangeHover || MapGenerator.mg.hoveredCharacter==e)) && MapGenerator.mg.getCurrentUnit() != null && MapGenerator.mg.getCurrentUnit().team == 0);
 			}
 		}
 	}
