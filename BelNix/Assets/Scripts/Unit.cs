@@ -4031,10 +4031,10 @@ public class Unit : MonoBehaviour  {
         if (didHit) {
 			attackEnemy.damage(wapoon, this, animate);
             BloodScript.spillBlood(this, e, wapoon);
-			if (crit) {
+			if (crit && !attackEnemy.moving) {
 				Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.3f, 10, 0.2f);
 			}
-			else {
+			else if (!attackEnemy.moving) {
 				//	ScreenShaker screenShaker = new ScreenShaker();
                 Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             }
