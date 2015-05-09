@@ -47,6 +47,8 @@ public class BattleGUI : MonoBehaviour  {
 	[SerializeField] private GameObject turnOrderPrefab;
 	[SerializeField] private GameObject oneOfManyCanvas;
 	[SerializeField] private GameObject temperedHandsCanvas;
+	[SerializeField] public GameObject escapeCanvas;
+	[SerializeField] public GameObject escapeButton;
 	[SerializeField] private GameEndMenu gameEndMenu;
 	[SerializeField] private Slider masterVolumeSlider;
 	[SerializeField] private Toggle aggressiveEndTurnToggle;
@@ -134,7 +136,11 @@ public class BattleGUI : MonoBehaviour  {
     public enum CIPanel  { Glance, Stats, Skills, Buttons };
     //--------------------------------------------------------------------------------
 
-    private void cameraDebug() {
+	public void escapeMission() {
+		MapGenerator.mg.setGameState(GameState.Won);
+	}
+
+	private void cameraDebug() {
         gameObject.GetComponent<Canvas>().enabled = false;
         Camera uiCamera = GameObject.Find("Camera - UI").GetComponent<Camera>();
         Camera mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
