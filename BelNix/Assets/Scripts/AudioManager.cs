@@ -15,6 +15,7 @@ public class AudioManager : MonoBehaviour  {
 	[SerializeField] private float transitionTime;
 	// Use this for initialization
 	void Start ()  {
+		primaryAudioManager = this;
 		if (phazingMusic != null)  {
 			music = phazingMusic.GetComponent<AudioSource>();
 			anim = phazingMusic.GetComponent<Animator>();
@@ -23,7 +24,6 @@ public class AudioManager : MonoBehaviour  {
 		if (constantMusic != null)  {
 			cMusic = constantMusic.GetComponent<AudioSource>();
 		}
-        primaryAudioManager = this;
         if (MapGenerator.mg != null)
             audioBank = MapGenerator.mg.audioBank;
         else
