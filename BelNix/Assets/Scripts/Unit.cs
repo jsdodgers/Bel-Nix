@@ -4038,7 +4038,10 @@ public class Unit : MonoBehaviour  {
 				//	ScreenShaker screenShaker = new ScreenShaker();
                 Camera.main.GetComponent<ScreenShaker>().shake(Camera.main.gameObject, 0.2f, 4, 0.2f);
             }
-            AudioManager.getAudioManager().playAudioClip(SFXClip.BluntImpact, 1.0f);
+            if(getWeapon().range > 2)
+                AudioManager.getAudioManager().playAudioClip(SFXClip.CrossbowTwang, 0.6f);
+            else
+                AudioManager.getAudioManager().playAudioClip(SFXClip.BluntImpact, 1.0f);
         }
 		if (overClockedAttack)  {
 			Debug.Log("Over Clocked Attack!!!");
