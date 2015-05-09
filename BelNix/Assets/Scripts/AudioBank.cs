@@ -12,7 +12,7 @@ public enum SFXClip {
     TurretShoot, TrapShut,
     Footstep1, Footstep2, Footstep3, Footstep4, 
     BloodSplash, 
-    BluntImpact, CrushingSwing, CrushingHit,
+    BluntImpact, CrushingSwing, CrushingHit, CrossbowTwang,
     KnockedDown,
     ComposureDamage, ComposureBreak, 
     ButtonUp, ButtonDown, UIClick }
@@ -47,6 +47,7 @@ public class AudioBank : MonoBehaviour  {
         importAudioClip(SFXClip.BluntImpact,    "Combat-CrushHit");
         importAudioClip(SFXClip.CrushingSwing,  "Combat-CrushSwing");
         importAudioClip(SFXClip.CrushingHit,    "Combat-CrushHit");
+        importAudioClip(SFXClip.CrossbowTwang,  "crossbow-fire-short");
         importAudioClip(SFXClip.ComposureDamage,"composure-hit");
         importAudioClip(SFXClip.ComposureBreak, "composure-break");
         importAudioClip(SFXClip.KnockedDown,    "knocked_over");
