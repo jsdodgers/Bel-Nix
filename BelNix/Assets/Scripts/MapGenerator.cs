@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 public enum GameState  {Playing, Won, Lost, None}
 public enum VisibilityMode  {Visibility, Melee, Ranged, None}
+public enum MapType {Eliminate, Escape, Escort, Loot, Assassinate}
 
 [System.Serializable]
 public struct ConversationTrigger  {
@@ -26,6 +27,7 @@ public class MapGenerator : MonoBehaviour  {
 	Vector3 cameraPos;
 	public GameObject overlayMeshPrefab;
 	public GameObject lineSightMeshPrefab;
+	public GameObject lineSightMeshStealthPrefab;
 	public GameObject[] overlayImage;
 	public float smoothness = 720.0f;
 	public bool doOverlay = false;
@@ -83,7 +85,9 @@ public class MapGenerator : MonoBehaviour  {
 	public int levelNumber = 0;
 	public int gridSize = 64;
 	public string goalText = "";
+	public MapType mapType = MapType.Assassinate;
 
+	[Space(30)]
 	public AudioBank audioBank;
 	GameObject lastHit;
 	GameObject map;
@@ -225,11 +229,12 @@ public class MapGenerator : MonoBehaviour  {
 		}
 		return false;
 	}
-	public class MeshPos  {
+	public class MeshPos {
 		internal Vector2 position;
 		internal MeshGen meshGen;
 		internal Unit u;
 		internal Unit e;
+		internal bool stealth = false;
 		public MeshPos(Vector2 pos, MeshGen m)  {
 			meshGen = m;
 			position = pos;
@@ -268,6 +273,9 @@ public class MapGenerator : MonoBehaviour  {
 			foreach (Unit u in players)  {
 			//	positions.Add(new Vector2(u.transform.position.x, u.transform.position.y));
 				meshPoses.Add(getMeshPos(u));
+			}
+			foreach (Unit e in enemies) {
+				meshPoses.Add(getMeshPosStealth(e));
 			}
 			foreach (Tile t in tiles)  {
 				MeshGen mg = t.meshGen;
@@ -382,6 +390,21 @@ public class MapGenerator : MonoBehaviour  {
 		if (u.team != 0) mp.u = u;
 		return mp;
 	}
+	
+	public MeshPos getMeshPosStealth(Unit u)  {
+		MeshGen mg = u.meshGenStealth;
+		if (mg == null)  {
+			GameObject mgObj = GameObject.Instantiate(lineSightMeshStealthPrefab) as GameObject;
+			mg = mgObj.GetComponent<MeshGen>();
+			u.meshGenStealth = mg;
+			mgObj.transform.parent = overlayObject.transform;
+			mgObj.SetActive((u.team == 0 || (BattleGUI.showAIRange && (!BattleGUI.showAIRangeHover || hoveredCharacter == u))) && getCurrentUnit().team == 0);
+		}
+		MeshPos mp = new MeshPos(new Vector2(u.transform.position.x, u.transform.position.y), mg);
+		if (u.team != 0) mp.u = u;
+		mp.stealth = true;
+		return mp;
+	}
 	public MeshPos getMeshPos(Tile t)  {
 		MeshGen mg = t.meshGen;
 		if (mg == null)  {
@@ -398,10 +421,24 @@ public class MapGenerator : MonoBehaviour  {
 		setOverlay(mp, print, mp.u);
 //		Debug.Log("Angle: " + u
 	}
+	public void setOverlayStealth(Unit u) {
+		MeshPos mp = getMeshPosStealth(u);
+		setOverlay(mp, false, mp.u);
+	}
+	public void setOverlayStealthAllEnemies() {
+		foreach (Enemy e in enemies) {
+			setOverlayStealth(e);
+		}
+	}
+
 	public void removeOverlay(Unit u)  {
 		if (u.meshGen != null)  {
 			GameObject.Destroy(u.meshGen.gameObject);
 			u.meshGen = null;
+		}
+		if (u.meshGenStealth != null) {
+			GameObject.Destroy(u.meshGenStealth.gameObject);
+			u.meshGenStealth = null;
 		}
 	}
 	public void setOverlay(MeshPos pos, bool print = false, Unit u = null)  {
@@ -409,8 +446,8 @@ public class MapGenerator : MonoBehaviour  {
 		for (float n=2.0f*Mathf.PI;n>0;n-=(2*Mathf.PI)/smoothness)  {
 			float sin = Mathf.Sin(n);
 			float cos = Mathf.Cos(n);
-			float y = pos.position.y + sin * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-0*90.0f));
-			float x = pos.position.x + cos * (u == null ? viewRadius : u.getViewRadius(n*180.0f/Mathf.PI-0*90.0f));
+			float y = pos.position.y + sin * (u == null ? viewRadius : (pos.stealth ? u.getViewRadiusToUnit(getCurrentUnit(), n*180.0f/Mathf.PI) : u.getViewRadius(n*180.0f/Mathf.PI-0*90.0f)));
+			float x = pos.position.x + cos * (u == null ? viewRadius : (pos.stealth ? u.getViewRadiusToUnit(getCurrentUnit(), n*180.0f/Mathf.PI) : u.getViewRadius(n*180.0f/Mathf.PI-0*90.0f)));
 			Vector2 v = new Vector2(x, y);
 			CollisionPoint cp = getLineOfSightCollisionPoint(pos.position, v, VisibilityMode.Visibility);
 			if (cp.collides)  {
@@ -682,7 +719,7 @@ public class MapGenerator : MonoBehaviour  {
 			gameState = GameState.Lost;
 			playerLost();
 		}
-        else if (!enemy) {
+        else if (!enemy && mapType == MapType.Assassinate) {
             gameState = GameState.Won;
 			playerWon();
              
@@ -1417,6 +1454,8 @@ public class MapGenerator : MonoBehaviour  {
 					}
 				}
 			}
+			BattleGUI.resetVisibleAIRanges();
+			setOverlayStealthAllEnemies();
 		//	selectedUnit.chooseNextBestActionType();
 
 			//		editingPath = false;
@@ -3856,21 +3895,31 @@ public class MapGenerator : MonoBehaviour  {
 			if (go != lastHit)  {
 				lastHit = go;
 			//	if (!selectedUnit)  {
-					if (hoveredCharacter)  {
+				if (hoveredCharacter)  {
 					//	resetAroundCharacter(hoveredCharacter, hoveredCharacter.viewDist);
-						if (hoveredCharacter.team != 0 && hoveredCharacter.meshGen != null) {
-							if (BattleGUI.showAIRange && BattleGUI.showAIRangeHover) {
-								hoveredCharacter.meshGen.gameObject.SetActive(false);
+					if (hoveredCharacter.team != 0) {
+						if (BattleGUI.showAIRange && BattleGUI.showAIRangeHover) {
+							if (hoveredCharacter.meshGen != null) {
+							    hoveredCharacter.meshGen.gameObject.SetActive(false);
+							}
+							if (hoveredCharacter.meshGenStealth != null) {
+								hoveredCharacter.meshGenStealth.gameObject.SetActive(false);
 							}
 						}
 					}
+				}
 			//	}
 				Tile t = tiles[(int)go.transform.localPosition.x,(int)-go.transform.localPosition.y];
 				hoveredCharacter = t.getCharacter();
 				if (hoveredCharacter) {
-					if (hoveredCharacter.team != 0 && hoveredCharacter.meshGen != null) {
+					if (hoveredCharacter.team != 0) {
 						if (BattleGUI.showAIRange && BattleGUI.showAIRangeHover) {
-							hoveredCharacter.meshGen.gameObject.SetActive(true);
+							if (hoveredCharacter.meshGen != null) {
+								hoveredCharacter.meshGen.gameObject.SetActive(true);
+							}
+							if (hoveredCharacter.meshGenStealth != null) {
+								hoveredCharacter.meshGenStealth.gameObject.SetActive(true);
+							}
 						}
 					}
 				}

@@ -51,6 +51,7 @@ public class Unit : MonoBehaviour  {
 	public List<Item> droppedItems = new List<Item>();
 	public UnitMovement unitMovement = UnitMovement.None;
 	public MeshGen meshGen;
+	public MeshGen meshGenStealth;
 	public bool needsOverlay = false;
 	bool doOverlay = false;
 	public List<Unit> markedUnits;
@@ -405,7 +406,8 @@ public class Unit : MonoBehaviour  {
 		temperedHandsMod += mod;
 		if (temperedHandsUsesLeft == 0) BattleGUI.resetMinorButtons();
 	}
-	
+
+	public bool canEscape = false;
 	public void endTurn()  {
 		Unit[] copiedMarkedUnits = new Unit[markedUnits.Count];
 		markedUnits.CopyTo(copiedMarkedUnits);
@@ -417,8 +419,19 @@ public class Unit : MonoBehaviour  {
 		doTurrets();
 		temperedHandsMod = 0;
 		Tile t = mapGenerator.tiles[(int)position.x,(int)-position.y];
-		if (t.triggerBitSet(2))  {
-			mapGenerator.setGameState(GameState.Won);
+		if (MapGenerator.mg.mapType == MapType.Escape) {
+			canEscape = t.triggerBitSet(2);
+			bool allCanEscape = true;
+			if (canEscape) {
+				foreach (Unit u in MapGenerator.mg.players) {
+					if (!u.deadOrDyingOrUnconscious() && !u.canEscape) {
+						allCanEscape = false;
+						break;
+					}
+				}
+				if (allCanEscape)
+					mapGenerator.setGameState(GameState.Won);
+			}
 		}
 	}
 	
@@ -959,6 +972,7 @@ public class Unit : MonoBehaviour  {
 		stealth = roll + characterSheet.characterSheet.skillScores.getScore(Skill.Stealth);
 		BattleGUI.writeToConsole(getName() + " rolled a " + stealth + "(" + roll + " + " + (stealth-roll) + ") for stealth.");
 		useMinor(MinorType.Stealth);
+		MapGenerator.mg.setOverlayStealthAllEnemies();
 	}
 
     public delegate void MinorEventHandler(Object source, MinorEventArgs args);
@@ -2590,6 +2604,7 @@ public class Unit : MonoBehaviour  {
 		rot.z += rotateDist * sign;
 		transform.eulerAngles = rot;
 		mapGenerator.setOverlay(this);
+		mapGenerator.setOverlayStealth(this);
 	}
 
 	void rotateBy(float rotateDist)  {
@@ -2883,6 +2898,7 @@ public class Unit : MonoBehaviour  {
 				doAttOpp = false;
 			}
 			mapGenerator.setOverlay(this);
+			if (team != 0) mapGenerator.setOverlayStealth(this);
 			if (currentPath.Count >= 2 && !isProne())  {
 				setRotatingPath();
 				//		attacking = true;
@@ -2909,6 +2925,7 @@ public class Unit : MonoBehaviour  {
 			pos.y += directionY*moveDist;
 			transform.localPosition = pos;
 			mapGenerator.setOverlay(this);
+			if (team != 0) mapGenerator.setOverlayStealth(this);
 			//			transform.Translate(new Vector3(directionX * moveDist, directionY * moveDist, 0.0f));
 		}
 		//	Vector2 dist = new Vector2(currentPath[1].x - currentPath[0].x, currentPath[1].y - currentPath[0].y);
@@ -3078,6 +3095,7 @@ public class Unit : MonoBehaviour  {
 	void Update ()  {
 		if (doOverlay)  {
 			mapGenerator.setOverlay();
+			if (team != 0) mapGenerator.setOverlayStealth(this);
 			doOverlay = false;
 		}
 		doMovement();
@@ -3232,6 +3250,7 @@ public class Unit : MonoBehaviour  {
 									mapGenerator.setCurrentUnitTile();
 									mapGenerator.activateEnemies(this);
 									mapGenerator.setOverlay(this);
+									if (team != 0) mapGenerator.setOverlayStealth(this);
 									break;
 								}
 							} 
