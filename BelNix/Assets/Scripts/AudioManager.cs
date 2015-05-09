@@ -24,22 +24,43 @@ public class AudioManager : MonoBehaviour  {
 			cMusic = constantMusic.GetComponent<AudioSource>();
 		}
         primaryAudioManager = this;
-        audioBank = MapGenerator.mg.audioBank;
+        if (MapGenerator.mg != null)
+            audioBank = MapGenerator.mg.audioBank;
+        else
+        {
+            gameObject.AddComponent("AudioBank");
+            audioBank = GetComponent<AudioBank>();
+        }
 	}
 
     public void playAudioClip(SFXClip clipName, float volume = 1.0f)
     {
+        if (audioBank == null)
+        {
+            gameObject.AddComponent("AudioBank");
+            audioBank = GetComponent<AudioBank>();
+        }
         audioBank.playAudioClip(clipName, volume);
     }
 
     public void playAudioClip(SFXClip clipName, Vector3 position, float volume = 1.0f)
     {
+        if (audioBank == null)
+        {
+            gameObject.AddComponent("AudioBank");
+            audioBank = GetComponent<AudioBank>();
+        }
         audioBank.playClipAtPoint(clipName, position, volume);
     }
 
     public static AudioManager getAudioManager()
     {
-        return primaryAudioManager;
+        if (primaryAudioManager == null)
+        {
+            return ((GameObject)Instantiate(new GameObject("AudioManager", typeof(AudioManager)))).GetComponent<AudioManager>();
+        }
+        else
+            return primaryAudioManager;
     }
     public static void playSFXClip(SFXClip clipName, float volume = 1.0f)
     {
