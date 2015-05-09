@@ -418,11 +418,15 @@ public class Unit : MonoBehaviour  {
 		idleAnimation(false);
 		doTurrets();
 		temperedHandsMod = 0;
+
+	}
+
+	public void checkEscapability() {
 		Tile t = mapGenerator.tiles[(int)position.x,(int)-position.y];
 		if (MapGenerator.mg.mapType == MapType.Escape) {
 			canEscape = t.triggerBitSet(2);
 			bool allCanEscape = true;
-			if (canEscape) {
+		//	if (canEscape) {
 				foreach (Unit u in MapGenerator.mg.players) {
 					if (!u.deadOrDyingOrUnconscious() && !u.canEscape) {
 						allCanEscape = false;
@@ -430,8 +434,10 @@ public class Unit : MonoBehaviour  {
 					}
 				}
 				if (allCanEscape)
-					mapGenerator.setGameState(GameState.Won);
-			}
+					BattleGUI.battleGUI.escapeCanvas.SetActive(true);
+				else BattleGUI.battleGUI.escapeButton.SetActive(false);
+//					mapGenerator.setGameState(GameState.Won);
+		//	}
 		}
 	}
 	
@@ -3322,6 +3328,9 @@ public class Unit : MonoBehaviour  {
 					escapeUsed = true;
 					BattleGUI.resetMinorButtons();
 				}
+			}
+			if (!moving) {
+				checkEscapability();
 			}
 		}
 	}
